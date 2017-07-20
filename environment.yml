@@ -1,0 +1,19 @@
+name: iscape
+channels:
+- anaconda
+- defaults
+dependencies:
+- curl=7.54.1=0
+- expat=2.1.0=0
+- git=2.11.1=0
+- krb5=1.13.2=0
+- libssh2=1.8.0=0
+- openssl=1.0.2l=0
+- pip=9.0.1=py27_1
+- python=2.7.13=0
+- readline=6.2=2
+- setuptools=27.2.0=py27_0
+- sqlite=3.13.0=0
+- tk=8.5.18=0
+- wheel=0.29.0=py27_0
+- zlib=1.2.8=3
