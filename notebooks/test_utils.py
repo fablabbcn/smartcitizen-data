@@ -127,8 +127,6 @@ def loadTest():
         commitSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/' + readings[test_id]['commit_hash'] + '/lib/Sensors/Sensors.h')
         commitSensorNames = getSensorNames(commitSensorsh)
 
-
-        
         targetSensorNames = list()
         for types in ('WORKING','AUXILIARY'):
             for slot in (1,2,3):
@@ -148,27 +146,33 @@ def loadTest():
         test_end_date = test['test']['end_date']
         
         print '------------------------------------------------------'
-        print '\tLoading test {} for performed from {} to {}'.format(test_id, test_init_date, test_end_date)
-        print '\tTest performed with commit {}'.format(readings[test_id]['commit_hash'])
+        display(Markdown('## Test Load'))
+
+        display(Markdown('Loading test **{}** performed from {} to {}'.format(test_id, test_init_date, test_end_date)))
+    
+        display(Markdown('Test performed with commit **{}**'.format(readings[test_id]['commit_hash'])))
+
         display(Markdown(test['test']['comment']))
-        print '\t-----KIT-----'
+        display(Markdown('### KIT'))
 
         # Open all kits
         for kit in test['test']['devices']['kits']:
-            print '\t\t-----{}-----'.format(kit)
+
+            display(Markdown('#### {}'.format(kit)))
             # Get fileName
             fileNameProc = test['test']['devices']['kits'][kit]['fileNameProc']
             frequency = test['test']['devices']['kits'][kit]['frequency']
             fileData = join(testPath, fileNameProc)
             location = test['test']['devices']['kits'][kit]['location']
-            print '\t\t\tKit location {}'.format(location)
+            display(Markdown('Kit **{}** located **{}**'.format(kit, location)))
             
             # Create pandas dataframe
             df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index('Time')
+            # df = pd.read_csv(fileData, verbose=False).set_index('Time')
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
             
             df.sort_index(inplace=True)
-            df = df.groupby(pd.TimeGrouper(freq=frequency)).aggregate(np.mean)
+            df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
             # Create dictionary and add it to the readings key
             
@@ -176,7 +180,7 @@ def loadTest():
                 for i in range(len(targetSensorNames)):
                     if not (testSensorNames[i] == '') and not (testSensorNames[i] == targetSensorNames[i]):
                         df.rename(columns={testSensorNames[i]: targetSensorNames[i]}, inplace=True)
-                        print '\t\t\tRenaming column {} to {}'.format(testSensorNames[i], targetSensorNames[i])
+                        print '\tRenaming column _{}_ to _{}_'.format(testSensorNames[i], targetSensorNames[i])
             
             kitDict = dict()
             kitDict['location'] = location
@@ -194,16 +198,15 @@ def loadTest():
                 alphaDelta['O3'] = test['test']['devices']['kits'][kit]['alphasense']['O3']
                 alphaDelta['SLOTS'] = test['test']['devices']['kits'][kit]['alphasense']['slots']
                 readings[test_id]['devices'][kit]['alphasense'] = alphaDelta
-                print '\t\t\t-----ALPHASENSE-----'
-                print '\t\t\tAlphasense sensors used'
-                print '\t\t\t' + str(alphaDelta)
+                print '\t**ALPHASENSE**'
+                print '\t' + str(alphaDelta)
                 
-            print '\t\tKit {} has been loaded'.format(kit)
+            display(Markdown('Kit **{}** has been loaded'.format(kit)))
         ## Check if there's was a reference equipment during the test
         if test['reference']['available']:
-            print '\t-----REFERENCE-----'
+            display(Markdown('### REFERENCE'))
             for reference in test['reference']['files']:
-                print '\t\t' + reference
+                display(Markdown('#### {}'.format(reference)))
                 # print 'Reference during the test was'
                 referenceDict =  dict()
                 
@@ -214,14 +217,14 @@ def loadTest():
                 # Check the index name
                 timeIndex = test['reference']['files'][reference]['index']['name']
                 location = test['reference']['files'][reference]['location']
-                print '\t\t\tReference location {}'.format(location)
+                display(Markdown('Reference location **{}**'.format(location)))
                 
                 # Open it with pandas    
                 fileData = join(testPath, fileNameProc)
                 df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index(timeIndex)
                 df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
                 df.sort_index(inplace=True)
-                df = df.groupby(pd.TimeGrouper(freq=frequency)).aggregate(np.mean)
+                df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
                 df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
                 
                 ## Convert units
@@ -252,23 +255,29 @@ def loadTest():
                     # Get convertion factor
                     if unit == targetUnit:
                             convertionFactor = 1
-                            print '\t\t\tNo unit convertion needed for {}'.format(pollutant)
+                            print '\tNo unit convertion needed for {}'.format(pollutant)
                     else:
                         for convertionItem in convertionLUT:
                             if convertionItem[0] == unit and convertionItem[1] == targetUnit:
                                 convertionFactor = convertionItem[2]
                             elif convertionItem[1] == unit and convertionItem[0] == targetUnit:
                                 convertionFactor = 1.0/convertionItem[2]
-                        print '\t\t\tConverting {} from {} to {}'.format(pollutant, unit, targetUnit)
+                        print '\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit)
                             
                     df.loc[:,pollutant] = df.loc[:,channel]*convertionFactor
                     
                 referenceDict['data'] = df
                 readings[test_id]['devices'][reference] = referenceDict
                 readings[test_id]['devices'][reference]['is_reference'] = True
-                print '\t\t{} reference has been loaded'.format(reference)
+                display(Markdown('**{}** reference has been loaded'.format(reference)))
         print '------------------------------------------------------'
     return readings
+
+def combine_data(list_of_datas):
+    dataframe = pd.DataFrame()
+    for i in list_of_datas:
+        dataframe = dataframe.combine_first(list_of_datas[i]['data'])
+    return dataframe
 
 # # Usage example
 # for test in readings:

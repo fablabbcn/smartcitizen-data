@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def SMOOTH(y, box_pts):
     box = np.ones(box_pts)/box_pts
@@ -63,29 +64,33 @@ def MICS_FORMULA(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor
 def greater(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
-        if (y[i]>val): result[i]=True
-        else: result [i]=False        
+        if (y[i]<=val and not y[i] == np.nan): result[i] = False
+        elif (y[i]>val and not y[i] == np.nan): result [i] = True
+        elif (math.isnan(y[i])): result[i] = result[i-1]   
     return result
 
 def greaterequal(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
-        if (y[i]<val): result[i] = False
-        else: result [i] = True
+        if (y[i]<val and not y[i] == np.nan): result[i] = False
+        elif (y[i]>=val and not y[i] == np.nan): result [i] = True
+        elif (math.isnan(y[i])): result[i] = result[i-1]
     return result
 
 def lower (y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
-        if (y[i]<val): result[i]=True
-        else: result [i]=False        
+        if (y[i]<val and not y[i] == np.nan): result[i] = True
+        elif (y[i]>=val and not y[i] == np.nan): result [i] = False
+        elif (math.isnan(y[i])): result[i] = result[i-1]   
     return result
 
 def lowerequal(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
-        if (y[i]>val): result[i] = False
-        else: result [i] = True
+        if (y[i]<=val and not y[i] == np.nan): result[i] = True
+        elif (y[i]>val and not y[i] == np.nan): result [i] = False
+        elif (math.isnan(y[i])): result[i] = result[i-1] 
     return result
             
 def derivative(y, x):
