@@ -1,5 +1,9 @@
 import matplotlib.pyplot as plt                  # plots
+%matplotlib inline
 import seaborn as sns                            # more plots
+sns.set(color_codes=True)
+matplotlib.style.use('seaborn-whitegrid')
+
 import plotly as ply                             # even more plots
 import plotly.graph_objs as go
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot

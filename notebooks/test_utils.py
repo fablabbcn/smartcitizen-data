@@ -274,10 +274,19 @@ def loadTest():
     return readings
 
 def combine_data(list_of_datas):
-    dataframe = pd.DataFrame()
+    dataframe_result = pd.DataFrame()
     for i in list_of_datas:
+        dataframe = pd.DataFrame()
         dataframe = dataframe.combine_first(list_of_datas[i]['data'])
-    return dataframe
+        append = i
+        new_names = list()
+        for name in dataframe.columns:
+            # print name
+            new_names.append(name + '_' + append)
+        
+        dataframe.columns = new_names
+        dataframe_result = dataframe_result.combine_first(dataframe)
+    return dataframe_result
 
 # # Usage example
 # for test in readings:
