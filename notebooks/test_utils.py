@@ -16,6 +16,8 @@ pollutantLUT = (['CO', 28, 'ppm'],
                 ['NO2', 46, 'ppb'],
                 ['O3', 48, 'ppb'])
 
+ref_append = 'ref'
+
 def getSensorNames(_sensorsh):
     # read only 20 000 chars
     data = urllib2.urlopen(_sensorsh).read(20000)
@@ -297,7 +299,7 @@ def loadTest():
                                 convertionFactor = 1.0/convertionItem[2]
                         print '\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit)
                             
-                    df.loc[:,pollutant] = df.loc[:,channel]*convertionFactor
+                    df.loc[:,pollutant + ref_append] = df.loc[:,channel]*convertionFactor
                     
                 referenceDict['data'] = df
                 readings[test_id]['devices'][reference] = referenceDict

@@ -29,10 +29,10 @@ mics_calData = getCalData('mics')
 # AlphaDelta PCB factor
 factorPCB = 6.36
 
-# Background Concentration (model assumption) - (from Masbit et al.)
-backgroundConc_CO = 0 # NG
-backgroundConc_NO2 = 5 # NG
-backgroundConc_OX = 10 # NG
+# Background Concentration (model assumption) - (from Modelling atmospheric composition in urban street canyons - Vivien Bright, William Bloss and Xiaoming Cai)
+backgroundConc_CO = 0.2 # ppm
+backgroundConc_NO2 = 8 # ppb
+backgroundConc_OX = 40 # ppb
 
 # Overlap in hours for each day (index = [day(i)-overlapHours, day(i+1)+overlapHours])
 overlapHours = 2 
@@ -42,6 +42,7 @@ filterExpSmoothing = 0.2
 
 # Range of deltas
 deltas = np.arange(1,20,1)
+deltasMICS = np.arange(1,200,1)
 
 # Units Look Up Table - ['Pollutant', unit factor from ppm to target 1, unit factor from ppm to target 2]
 alphaUnitsFactorsLUT = (['CO', 1, 0],
@@ -379,7 +380,8 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
         ## Un-pack list names
         mics_resist, temp, hum = _listNames
 
-        baselineCorr = (indexMax)
+        baselineCorr = list()
+        baselineCorr.append(indexMax)
 
 
     return data_baseline, baselineCorr
@@ -397,6 +399,8 @@ def findDates(_dataframe):
     max_date_df = _dataframe.index.max().floor('D')
     
     return min_date_df, max_date_df, range_days
+
+from formula_utils import maxer, miner
 
 def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
     '''
@@ -567,9 +571,9 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                             dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
                         if dataframeTrimRef.index.max() < dataframeTrim.index.max():
                             dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]
-                        
-                        if pollutant in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant]))
+                        pollutant_ref = (pollutant + '_' + ref_append)
+                        if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant_ref]))
                         else:
                             r_valueRef = np.nan
                     else:
@@ -669,9 +673,9 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                         dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
                     if dataframeTrimRef.index.max() < dataframeTrim.index.max():
                         dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]                    
-
-                    if pollutant in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-                        slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrimRef[pollutant]),np.transpose(dataframeTrim[pollutant_column]))
+                    pollutant_ref = pollutant + '_' + ref_append
+                    if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+                        slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrimRef[pollutant_ref]),np.transpose(dataframeTrim[pollutant_column]))
                         CorrParamsTrim.append(r_valueRef**2)
                     else:
                         CorrParamsTrim.append(np.nan)
@@ -742,9 +746,10 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             
             if _refAvail:
                 # take the reference and check if it's available
-                if pollutant in _dataframeRef.columns:
+                pollutant_ref = pollutant + '_' + ref_append
+                if pollutant_ref in _dataframeRef.columns:
                     # If all good, plot it
-                    fig1.append_trace({'x': _dataframeRef.index, 'y': _dataframeRef[pollutant], 'type': 'scatter', 'name': _dataframeRef[pollutant].name}, 2, 1)
+                    fig1.append_trace({'x': _dataframeRef.index, 'y': _dataframeRef[pollutant_ref], 'type': 'scatter', 'name': _dataframeRef[pollutant_ref].name}, 2, 1)
                 
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[temp], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[temp].name}, 3, 1)
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[hum], 'type': 'scatter', 'name': (dataframeResult[hum].name)}, 4, 1)
@@ -763,7 +768,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
 
     return dataframeResult, CorrParamsDict
 
-def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
+def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
     '''
         Function to calculate mics pollutants with baseline technique
         Input:
@@ -810,21 +815,20 @@ def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _d
             baselineType = _pollutantTuples[sensor][3]
         
         # Get Sensor data
-        Sensitivity = mics_calData.loc[sensorSN,'Sensitivity']
-        Target = mics_calData.loc[sensorSN,'Target']
+        if pollutant == 'CO':
+            indexPollutant = 1
+        elif pollutant == 'NO2':
+            indexPollutant = 2
+
+        Sensitivity = mics_calData.loc[sensorSN,'Sensitivity ' +str(indexPollutant)]
+        Target = mics_calData.loc[sensorSN,'Target ' + str(indexPollutant)]
+        Zero_Air_Resistance = mics_calData.loc[sensorSN,'Zero Air Resistance ' + str(indexPollutant)]
 
         if not Target == pollutant:
             print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target, pollutant)
             return
 
-        # TBD
-        if pollutant == 'CO':
-            lookfor = 'Carbon'
-        elif pollutant == 'NO2':
-            lookfor = 'Nitro'
-
         mics_resist = CHANNEL_NAME(currentSensorNames, 'SENSOR_' + pollutant, '', '', 'BOARD_URBAN','kOhm')
-        
         temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN','C')
         hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN','%')
         
@@ -832,7 +836,6 @@ def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _d
         
         # Get units for the pollutant in questions
         for pollutantItem in micsUnitsFactorsLUT:
-            
             if pollutant == pollutantItem[0]:
                 factor_unit = pollutantItem[1]
 
@@ -901,16 +904,18 @@ def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _d
                     dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
                     
                     # CALCULATE ACTUAL POLLUTANT CONCENTRATION
-                    pollutant_wo_bo = factor_unit*(dataframeTrim[mics_resist] - dataframeTrim[mics_resist + '_baseline'])/Sensitivity
+                    pollutant_wo_background = factor_unit*(dataframeTrim[mics_resist] - dataframeTrim[mics_resist + '_baseline'] - Zero_Air_Resistance)/Sensitivity
+                    
                     if pollutant == 'CO': 
-                        dataframeTrim[pollutant_column] = backgroundConc_CO + pollutant_wo_bo
+                        dataframeTrim[pollutant_column] = backgroundConc_CO + pollutant_wo_background
                     elif pollutant == 'NO2':
-                        dataframeTrim[pollutant_column] = backgroundConc_NO2 + pollutant_wo_bo
+                        dataframeTrim[pollutant_column] = backgroundConc_NO2 + pollutant_wo_background
 
                     # ADD IT TO THE DATAFRAME
                     dataframeResult = dataframeResult.combine_first(dataframeTrim)
                     
                     if _refAvail:
+                        pollutant_ref = pollutant + '_' + ref_append
                         ## Trim ref dataframe to no-overlap dates
                         dataframeTrimRef = _dataframeRef[_dataframeRef.index >= dataframeTrim.index.min()].fillna(0)
                         dataframeTrimRef = dataframeTrimRef[dataframeTrimRef.index <= dataframeTrim.index.max()].fillna(0)
@@ -921,8 +926,8 @@ def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _d
                         if dataframeTrimRef.index.max() < dataframeTrim.index.max():
                             dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]
                         
-                        if pollutant in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant]))
+                        if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant_ref]))
                         else:
                             r_valueRef = np.nan
                     else:
@@ -989,9 +994,9 @@ def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _d
             
             if _refAvail:
                 # take the reference and check if it's available
-                if pollutant in _dataframeRef.columns:
+                if pollutant_ref in _dataframeRef.columns:
                     # If all good, plot it
-                    fig1.append_trace({'x': _dataframeRef.index, 'y': _dataframeRef[pollutant], 'type': 'scatter', 'name': _dataframeRef[pollutant].name}, 2, 1)
+                    fig1.append_trace({'x': _dataframeRef.index, 'y': _dataframeRef[pollutant_ref], 'type': 'scatter', 'name': _dataframeRef[pollutant_ref].name}, 2, 1)
                 
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[temp], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[temp].name}, 3, 1)
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[hum], 'type': 'scatter', 'name': (dataframeResult[hum].name)}, 4, 1)
