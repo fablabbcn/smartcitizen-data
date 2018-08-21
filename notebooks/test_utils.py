@@ -3,7 +3,7 @@ import re
 import os
 from os.path import dirname, join
 import yaml
-import markdown
+# import markdown
 from tzwhere import tzwhere
 from ipywidgets import interact
 import ipywidgets as widgets
@@ -17,7 +17,6 @@ pollutantLUT = (['CO', 28, 'ppm'],
                 ['O3', 48, 'ppb'])
 
 def getSensorNames(_sensorsh):
-    
     # read only 20 000 chars
     data = urllib2.urlopen(_sensorsh).read(20000)
     # split it into lines
@@ -31,11 +30,11 @@ def getSensorNames(_sensorsh):
             
         if data.index(line) > lineSensors:
                 
-                if 'OneSensor' in line:
+                if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
                     try:
                         # Split commas
                         lineTokenized =  line.strip('').split(',')
-                        
+                        # print len(lineTokenized)
                         # Elimminate unnecessary elements
                         lineTokenizedSub = list()
                         for item in lineTokenized:
@@ -45,23 +44,31 @@ def getSensorNames(_sensorsh):
                             item = re.sub('}', '', item)
                             #item = re.sub(' ', '', item)
                             item = re.sub('"', '', item)
+                            # if item != '':
+                            while item[0] == ' ' and len(item)>0: item = item[1:]
                             lineTokenizedSub.append(item)
-                        
-                            # Add them to the dict
-                            if len(lineTokenizedSub) >2:
-                                sensorID = re.sub(' ','', lineTokenizedSub[1])
-                                sensorNames[sensorID] = dict()
-                                sensorNames[sensorID]['SensorLocation'] = re.sub(' ', '', lineTokenizedSub[0])
-                                if lineTokenizedSub[2][0] == ' ':
-                                    sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2][1:len(lineTokenizedSub[2])]
-                                else:
-                                    sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
-                                sensorNames[sensorID]['title'] = lineTokenizedSub[3]
-                                sensorNames[sensorID]['id'] = lineTokenizedSub[4]
-                                if len(lineTokenizedSub) > 5:
-                                    sensorNames[lineTokenizedSub[1]]['unit'] = lineTokenizedSub[7]
+                        lineTokenizedSub = lineTokenizedSub[:-1]
+                            
                     except:
                         pass
+
+                    if len(lineTokenizedSub) > 2:
+                            sensorLocation = re.sub(' ', '', lineTokenizedSub[0])
+                            if sensorLocation != 'BOARD_BASE':
+                                sensorID = re.sub(' ','', lineTokenizedSub[1])
+                                sensorNames[sensorID] = dict()
+                                sensorNames[sensorID]['SensorLocation'] = sensorLocation
+                                if len(lineTokenizedSub)>7:
+                                    sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[2])
+                                    sensorNames[sensorID]['title'] = lineTokenizedSub[3]
+                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[4])
+                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
+                                else:
+                                    sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
+                                    sensorNames[sensorID]['title'] = lineTokenizedSub[2]
+                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[3])
+                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
+
     return sensorNames
 
 
@@ -69,21 +76,39 @@ def getSensorNames(_sensorsh):
 currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/refurbish/lib/Sensors/Sensors.h')
 currentSensorNames = getSensorNames(currentSensorsh)
 
-
-def CHANNEL_NAME(_sensorNames, _measurement, _slot, electrode, _SensorLocation):
-    sensor_name = ''
-    electrode_eq = electrode[0]
+# def CHANNEL_NAME(_sensorNames, _measurement, _slot, electrode, _SensorLocation):
+#     sensor_name = ''
+#     electrode_eq = electrode[0]
     
-    for name in _sensorNames:
+#     for name in _sensorNames:
 
-        if _sensorNames[name]['SensorLocation'] == _SensorLocation and '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
+#         if _sensorNames[name]['SensorLocation'] == _SensorLocation and '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
             
-            sensor_name = str(_sensorNames[name]['shortTitle'])
-            return sensor_name
-        elif _sensorNames[name]['SensorLocation'] == _SensorLocation and not '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
-            sensor_name = str(_sensorNames[name]['shortTitle'])
+#             sensor_name = str(_sensorNames[name]['shortTitle'])
+#             return sensor_name
+#         elif _sensorNames[name]['SensorLocation'] == _SensorLocation and not '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
+#             sensor_name = str(_sensorNames[name]['shortTitle'])
 
 
+#     return sensor_name
+
+def CHANNEL_NAME(_sensorNames, _measurement, _concat1, _concat2, _SensorLocation, _unit):
+    sensor_name = ''
+    for name in _sensorNames:
+        nameLocation = _sensorNames[name]['SensorLocation']
+        nameUnit = _sensorNames[name]['unit']
+        if _SensorLocation == 'BOARD_AUX':
+            if nameLocation == _SensorLocation and '{}{}'.format(_concat1, _concat2) in name and _measurement in name:
+                sensor_name = str(_sensorNames[name]['shortTitle'])
+                return sensor_name
+            elif nameLocation == _SensorLocation and not '{}{}'.format(_concat1, _concat2) in name and '{}'.format(_measurement) in name:
+                sensor_name = str(_sensorNames[name]['shortTitle'])
+    
+        elif _SensorLocation == 'BOARD_URBAN':
+            if nameLocation == _SensorLocation and '{}{}'.format(_concat1, _concat2) in name and '{}'.format(_measurement) in name and nameUnit in _unit:
+                sensor_name = str(_sensorNames[name]['shortTitle'])
+                return sensor_name
+    
     return sensor_name
 
 def getTests(directory):
@@ -128,19 +153,27 @@ def loadTest():
         commitSensorNames = getSensorNames(commitSensorsh)
 
         targetSensorNames = list()
-        for types in ('WORKING','AUXILIARY'):
+        for types in ('W','A'):
             for slot in (1,2,3):
-                targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'GASES', slot, types, 'BOARD_AUX'))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX'))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX'))
+                targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'GASES', slot, types, 'BOARD_AUX', ''))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', ''))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', ''))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'SENSOR_CO', '', '', 'BOARD_URBAN', 'kOhm'))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'SENSOR_NO2', '', '', 'BOARD_URBAN', 'kOhm'))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN', 'C'))
+        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN', '%'))
         
         testSensorNames = list()
-        for types in ('WORKING','AUXILIARY'):
+        for types in ('W','A'):
             for slot in (1,2,3):
-                testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, types, 'BOARD_AUX'))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX'))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX'))
-        
+                testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, types, 'BOARD_AUX', ''))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', ''))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', ''))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'SENSOR_CO', '', '', 'BOARD_URBAN', 'kOhm'))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'SENSOR_NO2', '', '', 'BOARD_URBAN', 'kOhm'))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN', 'C'))
+        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN', '%'))
+
         # Get test metadata
         test_init_date = test['test']['init_date']
         test_end_date = test['test']['end_date']
@@ -174,11 +207,11 @@ def loadTest():
             df.sort_index(inplace=True)
             df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-            # Create dictionary and add it to the readings key
             
+            # Create dictionary and add it to the readings key
             if len(targetSensorNames) == len(testSensorNames) and len(targetSensorNames) > 0:
                 for i in range(len(targetSensorNames)):
-                    if not (testSensorNames[i] == '') and not (testSensorNames[i] == targetSensorNames[i]):
+                    if not (testSensorNames[i] == '') and not (testSensorNames[i] == targetSensorNames[i]) and testSensorNames[i] in df.columns:
                         df.rename(columns={testSensorNames[i]: targetSensorNames[i]}, inplace=True)
                         print '\tRenaming column _{}_ to _{}_'.format(testSensorNames[i], targetSensorNames[i])
             
@@ -273,12 +306,17 @@ def loadTest():
         print '------------------------------------------------------'
     return readings
 
-def combine_data(list_of_datas):
+def combine_data(list_of_datas, check_reference):
     dataframe_result = pd.DataFrame()
     for i in list_of_datas:
         dataframe = pd.DataFrame()
         dataframe = dataframe.combine_first(list_of_datas[i]['data'])
-        append = i
+        if 'is_reference' in list_of_datas[i]:
+            append = i
+            prepend = 'REF_'
+        else:
+            append = i
+            prepend = ''
         new_names = list()
         for name in dataframe.columns:
             # print name

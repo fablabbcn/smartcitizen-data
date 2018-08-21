@@ -1,5 +1,5 @@
+import matplotlib
 import matplotlib.pyplot as plt                  # plots
-%matplotlib inline
 import seaborn as sns                            # more plots
 sns.set(color_codes=True)
 matplotlib.style.use('seaborn-whitegrid')
@@ -9,8 +9,6 @@ import plotly.graph_objs as go
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 from plotly.graph_objs import Scatter, Layout
 import plotly.tools as tls
-
-init_notebook_mode(connected=True)
 
 import pandas as pd
 import numpy as np
@@ -22,10 +20,11 @@ warnings.filterwarnings('ignore')
 from dateutil import relativedelta
 from scipy.optimize import curve_fit
 
-from cal_utils import alphasense
+from calData_utils import getCalData
 from test_utils import *
 
-alpha_calData = alphasense()
+alpha_calData = getCalData('alphasense')
+mics_calData = getCalData('mics')
 
 # AlphaDelta PCB factor
 factorPCB = 6.36
@@ -48,6 +47,9 @@ deltas = np.arange(1,20,1)
 alphaUnitsFactorsLUT = (['CO', 1, 0],
                         ['NO2', 1000, 0],
                         ['O3', 1000, 1000])
+
+micsUnitsFactorsLUT = (['CO', 1],
+                        ['NO2', 1000])
 
 def ExtractBaseline(_data, _delta):
     '''
@@ -82,10 +84,13 @@ def findMax(_listF):
     return valMax, indexMax
 
 def exponential_smoothing(series, alpha):
-    """
-        series - dataset with timestamps
-        alpha - float [0.0, 1.0], smoothing parameter
-    """
+    '''
+        Input:
+            series - dataset with timestamps
+            alpha - float [0.0, 1.0], smoothing parameter
+        Output: 
+            smoothed series
+    '''
     result = [series[0]] # first value is same as series
     for n in range(1, len(series)):
         result.append(alpha * series[n] + (1 - alpha) * result[n-1])
@@ -226,26 +231,38 @@ def decompose(_data, plots = False):
             
     return dataDecomp, slope, intercept
 
-def calculateBaselineDay(_dataFrame, _listNames, _baselined, _baseliner, _deltas, _type_regress, _trydecomp = False, _plots = False, _verbose = True):
+def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _baseliner, _deltas, _type_regress, _trydecomp = False, _plots = False, _verbose = True):
     '''
         Function to calculate day-based baseline corrections
         Input:
-            _dataFrame: pandas dataframe with datetime index containing 1 day of measurements
-            _listNames: list containing column names of WE, AE, Temp and Hum
+            _dataFrame: pandas dataframe with datetime index containing 1 day of measurements + overlap
+            _listNames: list containing column names of /WE / AE / TEMP / HUM) or (MICS / TEMP / HUM)
             _baselined: channel to calculate the baseline of
             _baseliner: channel to use as input for the baselined (baselined = f(baseliner)) 
             _type_regress: type of regression to perform (linear, exponential, best)
-            _trydecomp: try trend decomposition (not needed . remove it)
+            // NOT USED - _trydecomp: try trend decomposition (not needed . remove it)
             _plot: plot analytics or not
             _verbose: print analytics or not
         Output:
             _data_baseline: dataframe with baseline
             _baseline_corr: metadata containing analytics for long term analysis
     '''
+
+    # def decomposeData(_dataframe, _listNames):
+    #     dataDecomp = pd.DataFrame(index = _dataframe.index)
+    #     slopeList = list()
+    #     interceptList = list()
+    #     # Decompose Trend - Check if decomposition helps at all
+    #     for name in _listNames:
+    #         dataDecomp[name], slope, intercept = decompose(_dataframe[name], _plots)
+    #         slopeList.append(slope)
+    #         interceptList.append(intercept)
+
+    #     return dataDecomp, slopeList, interceptList
     
-    ## Un-pack list names
-    alphaW, alphaA, temp, hum = _listNames
-    
+    ## Create Baselines
+    data_baseline, indexMax = createBaselines(_dataFrame[_baselined], _dataFrame[_baseliner], _deltas, _type_regress, _plots, _verbose)
+
     ## Verify anticorrelation between temperature and humidity
     if _plots == True:
         with plt.style.context('seaborn-white'):
@@ -267,121 +284,104 @@ def calculateBaselineDay(_dataFrame, _listNames, _baselined, _baseliner, _deltas
             ax5.set_ylabel(_dataFrame[hum].name, color = colorT)
             ax4.grid(True)
 
-    ## Correlation between temperature and working electrode raw
-    slopenDC, interceptnDC, r_valuenDC, p_valuenDC, std_errnDC = linregress(np.transpose(_dataFrame[_baseliner].values), np.transpose(_dataFrame[_baselined].values))
-   
-    ## Create Baselines
-    data_baseline, indexMax = createBaselines(_dataFrame[_baselined], _dataFrame[_baseliner], _deltas, _type_regress, _plots, _verbose)
+    if _typeSensor == 'alphasense': 
 
-    if _trydecomp == True:
-        dataDecomp = pd.DataFrame(index = _dataFrame.index)
-        # Decompose Trend - Check if decomposition helps at all
-        dataDecomp[alphaW], dataWSlope, dataWIntercept = decompose(_dataFrame[alphaW], _plots)
-        dataDecomp[alphaA], dataASlope, dataAIntercept = decompose(_dataFrame[alphaA], _plots)
-        dataDecomp[temp], dataCorrSlope, dataCorrIntercept = decompose(_dataFrame[temp], _plots)
+        ## Un-pack list names
+        alphaW, alphaA, temp, hum = _listNames
 
-        slopeDC, interceptDC, r_valueDC, p_valueDC, std_errDC = linregress(np.transpose(dataDecomp[_baseliner]), np.transpose(dataDecomp[_baselined]))
-        data_baselineDecomp, indexMaxDecomp = createBaselines(dataDecomp[_baselined], dataDecomp[_baseliner], _deltas, _type_regress, _plots)
-        slopeBADecomp, interceptBADecomp, r_valueBADecomp, p_valuenBADecomp, std_errnBADecomp = linregress(np.transpose(data_baseline.values), np.transpose(_dataFrame[alphaA].values))
+        ## Correlation between Baseline and original auxiliary
+        slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA = linregress(np.transpose(data_baseline.values), np.transpose(_dataFrame[alphaA].values))
 
-    ## Try to find a correlation with the auxiliary electrode
-    ## Correlation between Baseline and original auxiliary
-    slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA = linregress(np.transpose(data_baseline.values), np.transpose(_dataFrame[alphaA].values))
+        # Add metadata for further research
+        deltaAuxBas = data_baseline.values-_dataFrame[alphaA].values
+        ratioAuxBas = data_baseline.values/_dataFrame[alphaA].values
+       
+        deltaAuxBas_avg = np.mean(deltaAuxBas)
+        ratioAuxBas_avg = np.mean(ratioAuxBas)
+       
+        # Pre filter based on the metadata itself
+        if slopeBA > 0 and r_valueBA > 0.3:
+            valid = True
+        else:
+            valid = False
+       
+        baselineCorr = (slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA, deltaAuxBas_avg, ratioAuxBas_avg, indexMax, valid)
     
-    deltaAuxBas = data_baseline.values-_dataFrame[alphaA].values
-    ratioAuxBas = data_baseline.values/_dataFrame[alphaA].values
-    
-    deltaAuxBas_avg = np.mean(deltaAuxBas)
-    ratioAuxBas_avg = np.mean(ratioAuxBas)
-    
-    # Pre filter the metadata
-    if slopeBA > 0 and r_valueBA > 0.3:
-        valid = True
-    else:
-        valid = False
-    baselineCorr = (slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA, deltaAuxBas_avg, ratioAuxBas_avg, indexMax, valid)
-    
-    if _verbose == True:
-        
-        print '-------------------'
-        print 'Correlation coeffs'
-        print '-------------------'
-        print 'Correlation coefficient without decomposed trend: {}'.format(r_valuenDC)
-        if _trydecomp == True:
-            print 'Correlation coefficient with decomposed trend: {}'.format(r_valueDC)
-        
-            print '-------------------'
-            print 'Slopes'
-            print '-------------------'
-            print 'Slope Working Electrode: {} \n Slope Aux Electrode: {} \n Slope Temperature : {} \t Ratio WE/T: {}'.format(dataWSlope, dataASlope, dataCorrSlope, dataWSlope/dataCorrSlope)
-    
-        print '-------------------'
-        print 'Auxiliary Electrode'
-        print '-------------------'
-        print 'Correlation coefficient of Baseline and Original auxiliary: {}'.format(r_valueBA)
-        print 'Baseline Correlation Slope: {} \t Intercept: {}'.format(slopeBA, interceptBA)
-        if _trydecomp == True:
-            print 'Correlation coefficient of Baseline and Original auxiliary with Decomp: {}'.format(r_valueBADecomp)
-            print 'Baseline Correlation Slope: {} \t Intercept with Decomp: {}'.format(slopeBADecomp, interceptBADecomp)
-        
-        print 'Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg)
-
-    if _plots == True:
-        with plt.style.context('seaborn-white'):
+        if _verbose == True:
             
-            if _trydecomp == False:
+            print '-------------------'
+            print 'Auxiliary Electrode'
+            print '-------------------'
+            print 'Correlation coefficient of Baseline and Original auxiliary: {}'.format(r_valueBA)
+            print 'Baseline Correlation Slope: {} \t Intercept: {}'.format(slopeBA, interceptBA)
+            
+            print 'Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg)
+
+        if _plots == True:
+            with plt.style.context('seaborn-white'):
+                
                 fig2, ax3 = plt.subplots(figsize=(20,8))
-            else: 
-                fig2, (ax3, ax4) = plt.subplots(nrows = 1, ncols = 2, figsize=(20,8))
-                ax4.plot(data_baselineDecomp.index, data_baselineDecomp.values, label='Baseline', marker = None)
-                ax4.plot(dataDecomp.index, dataDecomp[alphaW], label = 'Working Decomp', marker = None)
-                ax4.plot(dataDecomp.index, dataDecomp[alphaA], label = 'Auxiliary Decomp', marker = None)
-                ax4.legend(loc="best")
-                ax4.axis('tight')
-                ax4.set_title("Baseline Compensated")
-                ax4.set(xlabel='Time', ylabel='Ouput-mV')
-                ax4.grid(True)
-                ax4.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
-                
-                ax6 = ax4.twinx()
-                ax6.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
-                ax6.tick_params(axis='y', labelcolor ='red')
-                ax6.set_ylabel('Temperature (degC)', color = 'red')
-                ax6.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
-            
-            ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
-            ax3.plot(_dataFrame.index, _dataFrame[alphaW], label='Original Working', marker = None)
-            ax3.plot(_dataFrame.index, _dataFrame[alphaA], label='Original Auxiliary', marker = None)
 
-            ax3.legend(loc="best")
-            ax3.axis('tight')
-            ax3.set_title("Baseline Not Compensated")
-            ax3.set(xlabel='Time', ylabel='Ouput-mV')
-            ax3.grid(True)
-            ax3.set_ylim(min(min(_dataFrame[temp]),min(data_baseline.values)) -5,max(max(_dataFrame[temp]),max(data_baseline.values))+5)
-            
-            if _trydecomp == True:
-                ax5 = ax3.twinx()
-                ax5.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
-                ax5.tick_params(axis='y', labelcolor ='red')
-                ax5.set_ylabel(dataDecomp[temp].name, color = 'red')
-                ax5.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
+                # if _trydecomp == False:
+                #     fig2, ax3 = plt.subplots(figsize=(20,8))
+                # else: 
+                #     fig2, (ax3, ax4) = plt.subplots(nrows = 1, ncols = 2, figsize=(20,8))
+                #     ax4.plot(data_baselineDecomp.index, data_baselineDecomp.values, label='Baseline', marker = None)
+                #     ax4.plot(dataDecomp.index, dataDecomp[alphaW], label = 'Working Decomp', marker = None)
+                #     ax4.plot(dataDecomp.index, dataDecomp[alphaA], label = 'Auxiliary Decomp', marker = None)
+                #     ax4.legend(loc="best")
+                #     ax4.axis('tight')
+                #     ax4.set_title("Baseline Compensated")
+                #     ax4.set(xlabel='Time', ylabel='Ouput-mV')
+                #     ax4.grid(True)
+                #     ax4.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
+                    
+                #     ax6 = ax4.twinx()
+                #     ax6.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
+                #     ax6.tick_params(axis='y', labelcolor ='red')
+                #     ax6.set_ylabel('Temperature (degC)', color = 'red')
+                #     ax6.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
                 
-            fig3, ax7 = plt.subplots(figsize=(20,8))
-            
-            ax7.plot(_dataFrame[temp], _dataFrame[alphaW], label='W - Raw', marker='o',  linestyle=None, linewidth = 0)
-            ax7.plot(_dataFrame[temp], _dataFrame[alphaA], label ='A - Raw', marker='v', linewidth=0)
-            
-            if _trydecomp == True:
-                ax7.plot(dataDecomp[temp], dataDecomp[alphaA], label ='A - Trend Decomposed', marker='v', linewidth=0)
-                ax7.plot(dataDecomp[temp], dataDecomp[alphaW], label = 'W - Trend Decomposed',marker='o', linestyle=None, linewidth = 0)
-            
-            ax7.legend(loc="best")
-            ax7.axis('tight')
-            ax7.set_title("Output vs. Temperature")
-            ax7.set(xlabel='Temperature', ylabel='Ouput-mV')
-            ax7.grid(True)
-    
+                ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
+                ax3.plot(_dataFrame.index, _dataFrame[alphaW], label='Original Working', marker = None)
+                ax3.plot(_dataFrame.index, _dataFrame[alphaA], label='Original Auxiliary', marker = None)
+
+                ax3.legend(loc="best")
+                ax3.axis('tight')
+                ax3.set_title("Baseline Not Compensated")
+                ax3.set(xlabel='Time', ylabel='Ouput-mV')
+                ax3.grid(True)
+                ax3.set_ylim(min(min(_dataFrame[temp]),min(data_baseline.values)) -5,max(max(_dataFrame[temp]),max(data_baseline.values))+5)
+                
+                # if _trydecomp == True:
+                #     ax5 = ax3.twinx()
+                #     ax5.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
+                #     ax5.tick_params(axis='y', labelcolor ='red')
+                #     ax5.set_ylabel(dataDecomp[temp].name, color = 'red')
+                #     ax5.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
+                    
+                fig3, ax7 = plt.subplots(figsize=(20,8))
+                
+                ax7.plot(_dataFrame[temp], _dataFrame[alphaW], label='W - Raw', marker='o',  linestyle=None, linewidth = 0)
+                ax7.plot(_dataFrame[temp], _dataFrame[alphaA], label ='A - Raw', marker='v', linewidth=0)
+                
+                # if _trydecomp == True:
+                #     ax7.plot(dataDecomp[temp], dataDecomp[alphaA], label ='A - Trend Decomposed', marker='v', linewidth=0)
+                #     ax7.plot(dataDecomp[temp], dataDecomp[alphaW], label = 'W - Trend Decomposed',marker='o', linestyle=None, linewidth = 0)
+                
+                ax7.legend(loc="best")
+                ax7.axis('tight')
+                ax7.set_title("Output vs. Temperature")
+                ax7.set(xlabel='Temperature', ylabel='Ouput-mV')
+                ax7.grid(True)
+
+    elif _typeSensor == 'mics':
+        ## Un-pack list names
+        mics_resist, temp, hum = _listNames
+
+        baselineCorr = (indexMax)
+
+
     return data_baseline, baselineCorr
 
 def findDates(_dataframe):
@@ -398,7 +398,7 @@ def findDates(_dataframe):
     
     return min_date_df, max_date_df, range_days
 
-def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
+def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
     '''
         Function to calculate alphasense pollutants with baseline technique
         Input:
@@ -444,10 +444,9 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
         pollutant = _pollutantTuples[sensor][0]
         sensorID = _pollutantTuples[sensor][1]
         method = _pollutantTuples[sensor][2]
-        slot = _pollutantTuples[sensor][4]
-        
         if method == 'baseline':
             baselineType = _pollutantTuples[sensor][3]
+        slot = _pollutantTuples[sensor][4]
         
         # Get Sensor data
         Sensitivity_1 = alpha_calData.loc[sensorID,'Sensitivity 1']
@@ -460,10 +459,10 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
             print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant)
             return
 
-        alphaW = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'WORKING', 'BOARD_AUX')
-        alphaA = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'AUXILIARY', 'BOARD_AUX')
-        temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX')
-        hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX')
+        alphaW = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'W', 'BOARD_AUX', '')
+        alphaA = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'A', 'BOARD_AUX', '')
+        temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', 'C')
+        hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', '%')
         
         _listNames = (alphaW, alphaA, temp, hum)
 
@@ -540,7 +539,7 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
                 else:
                     
                     # CALCULATE THE BASELINE PER DAY
-                    dataframeTrim[alphaW + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeTrim, _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
+                    dataframeTrim[alphaW + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeTrim, 'alphasense', _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
                     
                     # TRIM IT BACK TO NO-OVERLAP
                     dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
@@ -638,11 +637,11 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
             CorrParamsTrim = list()
             
             if pollutant == 'CO': 
-                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)
+                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_CO
             elif pollutant == 'NO2':
-                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)
+                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_NO2
             elif pollutant == 'O3':
-                dataframeResult[pollutant_column] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
+                dataframeResult[pollutant_column] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
             
             ## Calculate stats day by day to avoid stationarity
             min_date_df, max_date_df, range_days = findDates(dataframeResult)
@@ -729,7 +728,7 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
         
         # PLOT THINGS IF REQUESTED
         if _plotResult:
-            
+
             fig1 = tls.make_subplots(rows=4, cols=1, shared_xaxes=True, print_grid=False)
             
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaW], 'type': 'scatter', 'line': dict(width = 2), 'name': dataframeResult[alphaW].name}, 1, 1)
@@ -763,3 +762,251 @@ def calculatePollutants(_dataframe, _pollutantTuples, _append, _refAvail, _dataf
             ply.offline.iplot(fig1)
 
     return dataframeResult, CorrParamsDict
+
+def calculatePollutantsMics(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
+    '''
+        Function to calculate mics pollutants with baseline technique
+        Input:
+            _dataframe: pandas dataframe from
+            _pollutantTuples: list of tuples containing: 
+                '[(_pollutant,
+                    _sensorSN, 
+                    calibration_method:
+                        'baseline', 
+                    baseline_type: 'baseline using temperature or humidity'
+                        'single_temp'
+                        'single_hum', 
+                ...]'
+            _append: suffix to the new channel name (pollutant + append)
+            _refAvail: True or False if there is a reference available
+            _dataframeRef: reference dataframe if available
+            _deltas: for baseline correction method
+            _overlapHours: number of hours to overlap over the day -> -_overlapHours+day:day+1+_overlapHours
+            _type_regress = type of regression for baseline (best, exponential or linear)
+            _filterExpSmoothing = alpha parameter for exponential filter smoothing
+            _trydecomp = try to decompose with temperature trend or not
+            _plotsInter = warning - many plots (True, False) plot intermediate analysis, 
+            _plotResult = (True, False) plot final result, 
+            _verbose = warning - many things (True, False), 
+            _printStats = (True, False) print final statistics) 
+
+        Output:
+            _dataframe with pollutants added
+            _metadata with statistics analysis
+    '''
+    
+    dataframeResult = _dataframe.copy()
+    numberSensors = len(_pollutantTuples)
+    CorrParamsDict = dict()
+    
+    for sensor in range(numberSensors):
+        
+        # Get Sensor 
+        pollutant = _pollutantTuples[sensor][0]
+        sensorSN = _pollutantTuples[sensor][1]
+        method = _pollutantTuples[sensor][2]
+        
+        if method == 'baseline':
+            baselineType = _pollutantTuples[sensor][3]
+        
+        # Get Sensor data
+        Sensitivity = mics_calData.loc[sensorSN,'Sensitivity']
+        Target = mics_calData.loc[sensorSN,'Target']
+
+        if not Target == pollutant:
+            print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target, pollutant)
+            return
+
+        # TBD
+        if pollutant == 'CO':
+            lookfor = 'Carbon'
+        elif pollutant == 'NO2':
+            lookfor = 'Nitro'
+
+        mics_resist = CHANNEL_NAME(currentSensorNames, 'SENSOR_' + pollutant, '', '', 'BOARD_URBAN','kOhm')
+        
+        temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN','C')
+        hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN','%')
+        
+        _listNames = (mics_resist, temp, hum)
+        
+        # Get units for the pollutant in questions
+        for pollutantItem in micsUnitsFactorsLUT:
+            
+            if pollutant == pollutantItem[0]:
+                factor_unit = pollutantItem[1]
+
+        ## Find min, max and range of days
+        min_date_df, max_date_df, range_days = findDates(_dataframe)
+        print '------------------------------------------------------------------'
+        print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
+        print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
+        print '------------------------------------------------------------------'
+        
+        # Give name to pollutant column
+        pollutant_column = (pollutant + '_' + _append) 
+        
+        if method == 'baseline':
+
+            # Select baselined - baseliner depending on the baseline type
+            if baselineType == 'single_temp':
+                baseliner = temp
+            elif baselineType == 'single_rel_hum':
+                baseliner = hum
+
+            baselined = mics_resist
+            
+            # Iterate over days
+            for day in range(range_days):
+            
+                # Calculate overlap dates for that day
+                min_date_ovl = max(_dataframe.index.min(), (min_date_df + pd.DateOffset(days=day) - pd.DateOffset(hours = _overlapHours)))
+                max_date_ovl = min(_dataframe.index.max(), (min_date_ovl + pd.DateOffset(days=1) + pd.DateOffset(hours = _overlapHours + relativedelta.relativedelta(min_date_df + pd.DateOffset(days=day),min_date_ovl).hours)))
+                
+                # Calculate non overlap dates for that day
+                min_date_novl = max(min_date_df, (min_date_df + pd.DateOffset(days=day)))
+                max_date_novl = min(max_date_df, (min_date_novl + pd.DateOffset(days=1)))
+            
+                if _verbose:
+                    print '------------------------------------------------------------------'
+                    print 'Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl)
+                    print '------------------------------------------------------------------'
+                
+                ## Trim dataframe to overlap dates
+                dataframeTrim = dataframeResult[dataframeResult.index > min_date_ovl]
+                dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_ovl]
+                
+                # Init stuff
+                if day == 0:
+                    # Init list for CorrParams
+                    CorrParams = list()
+                 
+                if dataframeTrim.empty:
+                    if _verbose:
+                        print 'No data between these dates'
+                    
+                    # Fill with nan if no data available (to avoid messing up the stats)
+                    nanV =np.ones(10)
+                    nanV.fill(np.nan)
+
+                    CorrParams.append(tuple(nanV))
+                    
+                else:
+                    
+                    # CALCULATE THE BASELINE PER DAY
+                    dataframeTrim[mics_resist + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeTrim, 'mics', _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
+                    
+                    # TRIM IT BACK TO NO-OVERLAP
+                    dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
+                    dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
+                    
+                    # CALCULATE ACTUAL POLLUTANT CONCENTRATION
+                    pollutant_wo_bo = factor_unit*(dataframeTrim[mics_resist] - dataframeTrim[mics_resist + '_baseline'])/Sensitivity
+                    if pollutant == 'CO': 
+                        dataframeTrim[pollutant_column] = backgroundConc_CO + pollutant_wo_bo
+                    elif pollutant == 'NO2':
+                        dataframeTrim[pollutant_column] = backgroundConc_NO2 + pollutant_wo_bo
+
+                    # ADD IT TO THE DATAFRAME
+                    dataframeResult = dataframeResult.combine_first(dataframeTrim)
+                    
+                    if _refAvail:
+                        ## Trim ref dataframe to no-overlap dates
+                        dataframeTrimRef = _dataframeRef[_dataframeRef.index >= dataframeTrim.index.min()].fillna(0)
+                        dataframeTrimRef = dataframeTrimRef[dataframeTrimRef.index <= dataframeTrim.index.max()].fillna(0)
+                        
+                        # Adapt dataframeTrim to be able to perform correlation
+                        if dataframeTrimRef.index.min() > dataframeTrim.index.min():
+                            dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
+                        if dataframeTrimRef.index.max() < dataframeTrim.index.max():
+                            dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]
+                        
+                        if pollutant in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant]))
+                        else:
+                            r_valueRef = np.nan
+                    else:
+                        r_valueRef = np.nan
+                        print 'No Ref available'
+                    
+                    ## Get some metrics
+                    temp_avg = dataframeTrim[temp].mean(skipna = True)
+                    temp_stderr = dataframeTrim[temp].std(skipna = True)
+                    hum_avg = dataframeTrim[hum].mean(skipna = True)
+                    hum_stderr = dataframeTrim[hum].std(skipna = True)
+                    pollutant_avg = dataframeTrim[pollutant_column].mean(skipna = True)
+                    
+                    tempCorrParams = list(CorrParamsTrim)
+                    tempCorrParams.insert(0,r_valueRef**2)
+                    tempCorrParams.insert(1,pollutant_avg)
+                    tempCorrParams.insert(1,hum_stderr)
+                    tempCorrParams.insert(1,hum_avg)
+                    tempCorrParams.insert(1,temp_stderr)
+                    tempCorrParams.insert(1,temp_avg)                    
+                    CorrParamsTrim = tuple(tempCorrParams)
+                    CorrParams.append(CorrParamsTrim)
+            
+            ## Add relevant metadata for this method
+            labelsCP = ['r_valueRef',
+                        'avg_temp',
+                        'stderr_temp',
+                        'avg_hum',
+                        'stderr_hum',
+                        'avg_pollutant',
+                        'indexMax']
+            
+            CorrParamsDF = pd.DataFrame(CorrParams, columns = labelsCP, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
+                   
+            # SHOW SOME METADATA FOR THE BASELINES FOUND
+            if _printStats:
+                        
+                print '------------------------'
+                print ' Meta Data'
+                print '------------------------'
+                display(CorrParamsDF)
+                        
+        elif method == 'classic':
+            print('Nothing to see here')
+            # Nothing
+        
+        # FILTER IT
+        dataframeResult[pollutant_column + '_filter'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
+        
+        ## RETRIEVE METADATA
+        CorrParamsDict[pollutant] = CorrParamsDF
+        
+        # PLOT THINGS IF REQUESTED
+        if _plotResult:
+            
+            fig1 = tls.make_subplots(rows=4, cols=1, shared_xaxes=True, print_grid=False)
+            
+            fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[mics_resist], 'type': 'scatter', 'line': dict(width = 2), 'name': dataframeResult[mics_resist].name}, 1, 1)
+            if method == 'baseline':
+                fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[mics_resist + '_baseline'], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
+            
+            fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[pollutant_column].name}, 2, 1)
+            fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column + '_filter'], 'type': 'scatter', 'name': (dataframeResult[pollutant_column + '_filter'].name)}, 2, 1)
+            
+            if _refAvail:
+                # take the reference and check if it's available
+                if pollutant in _dataframeRef.columns:
+                    # If all good, plot it
+                    fig1.append_trace({'x': _dataframeRef.index, 'y': _dataframeRef[pollutant], 'type': 'scatter', 'name': _dataframeRef[pollutant].name}, 2, 1)
+                
+            fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[temp], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[temp].name}, 3, 1)
+            fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[hum], 'type': 'scatter', 'name': (dataframeResult[hum].name)}, 4, 1)
+            
+            fig1['layout'].update(height = 1500, 
+                                  legend=dict(x=-.1, y=0.9), 
+                                  xaxis=dict(title='Time'), 
+                                  title = 'Baseline Correction for {}'.format(pollutant),
+                                  yaxis1 = dict(title='Sensor Output - mV'), 
+                                  yaxis2 = dict(title='Pollutant - ppm'),
+                                  yaxis3 = dict(title='Temperature - degC'),
+                                  yaxis4 = dict(title='Humidity - %'),
+                                 )
+                                   
+            ply.offline.iplot(fig1)
+
+    return dataframeResult, CorrParamsDict
+

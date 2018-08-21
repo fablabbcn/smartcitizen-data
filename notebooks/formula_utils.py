@@ -61,6 +61,24 @@ def MICS_FORMULA(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor
     # MICS_Formula("Inverse", A, "Direct", B, "Direct", C, -1.615e-01 , 210.08064516, -10236.73257, 0, 0, 0, 0)
     return result
 
+def ABS_HUM(temperature, rel_humidity, pressure):
+    '''
+        Calculate Absolute humidity based on vapour equilibrium:
+        Input: 
+            Temperature: in degC
+            Rel_humidity: in %
+            Pressure: in mbar
+        Output:
+            Absolute_humidity: in mg/m3?
+    '''
+    # Vapour equilibrium: 
+    # _Temp is temperature in degC, _Press is absolute pressure in mbar
+    vap_eq = (1.0007 + 3.46*1e-6*pressure)*6.1121*np.exp(17.502*temperature/(240.97+temperature))
+
+    abs_humidity = rel_humidity * vap_eq
+
+    return abs_humidity
+
 def greater(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):

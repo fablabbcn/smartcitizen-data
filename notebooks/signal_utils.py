@@ -47,7 +47,7 @@ import pandas as pd
 def split_agnostisise(_readings, _reading, _channel):        
     begining_date = '2001-01-01 00:00:00+02:00'
     print _readings[_reading]['devices'].keys()
-    dataframe_combined = combine_data(_readings[_reading]['devices'])
+    dataframe_combined = combine_data(_readings[_reading]['devices'], False)
     dataframe_combined['change'] = count_peak(dataframe_combined[_channel])
 
     df = [x for _, x in dataframe_combined.groupby('change')]
@@ -92,7 +92,7 @@ def plot_oneshots(readings, channels, device_one_shot):
         devices = readings[reading]['devices'].keys()
         
         # Combine the devices for each reading
-        dataframe_combined = combine_data(readings[reading]['devices'])
+        dataframe_combined = combine_data(readings[reading]['devices'], False)
         readings[reading]['devices']['combined'] = dict()
         readings[reading]['devices']['combined']['data'] = dict()
         readings[reading]['devices']['combined']['data'] = dataframe_combined
