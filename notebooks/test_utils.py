@@ -120,7 +120,7 @@ def getTests(directory):
         for _file in files:
             if _file.endswith(".yaml"):
                 filePath = join(root, _file)
-                stream = file(filePath)
+                stream = open(filePath)
                 yamlFile = yaml.load(stream)
                 tests[yamlFile['test']['id']] = root
                 #print [yamlFile['test']['id'], filePath]
@@ -133,7 +133,6 @@ def selectTests(x):
     
 def clearTests():
     clear_output()
-    global selectedTests
     selectedTests = ()
 
 def loadTest():
@@ -180,7 +179,7 @@ def loadTest():
         test_init_date = test['test']['init_date']
         test_end_date = test['test']['end_date']
         
-        print '------------------------------------------------------'
+        print('------------------------------------------------------')
         display(Markdown('## Test Load'))
 
         display(Markdown('Loading test **{}** performed from {} to {}'.format(test_id, test_init_date, test_end_date)))
@@ -215,7 +214,7 @@ def loadTest():
                 for i in range(len(targetSensorNames)):
                     if not (testSensorNames[i] == '') and not (testSensorNames[i] == targetSensorNames[i]) and testSensorNames[i] in df.columns:
                         df.rename(columns={testSensorNames[i]: targetSensorNames[i]}, inplace=True)
-                        print '\tRenaming column _{}_ to _{}_'.format(testSensorNames[i], targetSensorNames[i])
+                        print ('\tRenaming column _{}_ to _{}_'.format(testSensorNames[i], targetSensorNames[i]))
             
             kitDict = dict()
             kitDict['location'] = location
@@ -233,8 +232,8 @@ def loadTest():
                 alphaDelta['O3'] = test['test']['devices']['kits'][kit]['alphasense']['O3']
                 alphaDelta['SLOTS'] = test['test']['devices']['kits'][kit]['alphasense']['slots']
                 readings[test_id]['devices'][kit]['alphasense'] = alphaDelta
-                print '\t**ALPHASENSE**'
-                print '\t' + str(alphaDelta)
+                print ('\t**ALPHASENSE**')
+                print ('\t' + str(alphaDelta))
                 
             display(Markdown('Kit **{}** has been loaded'.format(kit)))
         ## Check if there's was a reference equipment during the test
@@ -290,14 +289,14 @@ def loadTest():
                     # Get convertion factor
                     if unit == targetUnit:
                             convertionFactor = 1
-                            print '\tNo unit convertion needed for {}'.format(pollutant)
+                            print ('\tNo unit convertion needed for {}'.format(pollutant))
                     else:
                         for convertionItem in convertionLUT:
                             if convertionItem[0] == unit and convertionItem[1] == targetUnit:
                                 convertionFactor = convertionItem[2]
                             elif convertionItem[1] == unit and convertionItem[0] == targetUnit:
                                 convertionFactor = 1.0/convertionItem[2]
-                        print '\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit)
+                        print ('\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit))
                             
                     df.loc[:,pollutant + ref_append] = df.loc[:,channel]*convertionFactor
                     
@@ -305,7 +304,7 @@ def loadTest():
                 readings[test_id]['devices'][reference] = referenceDict
                 readings[test_id]['devices'][reference]['is_reference'] = True
                 display(Markdown('**{}** reference has been loaded'.format(reference)))
-        print '------------------------------------------------------'
+        print ('------------------------------------------------------')
     return readings
 
 def combine_data(list_of_datas, check_reference):
@@ -313,6 +312,7 @@ def combine_data(list_of_datas, check_reference):
     for i in list_of_datas:
         dataframe = pd.DataFrame()
         dataframe = dataframe.combine_first(list_of_datas[i]['data'])
+        # Check if there is reference
         if 'is_reference' in list_of_datas[i]:
             append = i
             prepend = 'REF_'
@@ -322,7 +322,7 @@ def combine_data(list_of_datas, check_reference):
         new_names = list()
         for name in dataframe.columns:
             # print name
-            new_names.append(name + '_' + append)
+            new_names.append(prepend + name + '_' + append)
         
         dataframe.columns = new_names
         dataframe_result = dataframe_result.combine_first(dataframe)

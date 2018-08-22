@@ -127,8 +127,8 @@ def createBaselines(_dataBaseline, _dataCorr, _numberDeltas, _type_regress = 'li
         slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData[(name +'_' +str(delta))]), np.transpose(vectorCorr))
         pearsons.append(r_value)
     
-    ## Find Max in the pearsons
-    valMax, indexMax = findMax(pearsons)
+    ## Find Max in the pearsons - correlation can be negative, so use absolute of the pearson
+    valMax, indexMax = findMax(map(abs,pearsons))
         
     ## Find regression between _dataCorr
     baseline = pd.DataFrame(index = _dataBaseline.index)
@@ -264,27 +264,6 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
     ## Create Baselines
     data_baseline, indexMax = createBaselines(_dataFrame[_baselined], _dataFrame[_baseliner], _deltas, _type_regress, _plots, _verbose)
 
-    ## Verify anticorrelation between temperature and humidity
-    if _plots == True:
-        with plt.style.context('seaborn-white'):
-            fig2, (ax3, ax4) = plt.subplots(nrows = 2, ncols = 1,figsize=(20,10))
-            ax3.scatter(_dataFrame[hum], _dataFrame[temp], marker = 'o', linewidth = 0)
-            ax3.set_xlabel(_dataFrame[hum].name)
-            ax3.set_ylabel(_dataFrame[temp].name)
-            ax3.grid(True)
-            
-            colorH = 'red'
-            colorT = 'blue'
-            ax4.plot(_dataFrame.index, _dataFrame[hum], c = colorH, label = _dataFrame[hum].name, marker = None)
-            ax5 = ax4.twinx()
-            ax5.plot(_dataFrame.index, _dataFrame[temp], c = colorT, label = _dataFrame[temp].name, marker = None)
-            ax4.tick_params(axis='y', labelcolor=colorH)
-            ax5.tick_params(axis='y', labelcolor=colorT)
-            ax4.set_xlabel('Time')
-            ax4.set_ylabel(_dataFrame[temp].name, color = colorH)
-            ax5.set_ylabel(_dataFrame[hum].name, color = colorT)
-            ax4.grid(True)
-
     if _typeSensor == 'alphasense': 
 
         ## Un-pack list names
@@ -383,6 +362,26 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
         baselineCorr = list()
         baselineCorr.append(indexMax)
 
+    ## Verify anticorrelation between temperature and humidity
+    if _plots == True:
+        with plt.style.context('seaborn-white'):
+            fig2, (ax3, ax4) = plt.subplots(nrows = 2, ncols = 1,figsize=(20,10))
+            ax3.scatter(_dataFrame[hum], _dataFrame[temp], marker = 'o', linewidth = 0)
+            ax3.set_xlabel(_dataFrame[hum].name)
+            ax3.set_ylabel(_dataFrame[temp].name)
+            ax3.grid(True)
+            
+            colorH = 'red'
+            colorT = 'blue'
+            ax4.plot(_dataFrame.index, _dataFrame[hum], c = colorH, label = _dataFrame[hum].name, marker = None)
+            ax5 = ax4.twinx()
+            ax5.plot(_dataFrame.index, _dataFrame[temp], c = colorT, label = _dataFrame[temp].name, marker = None)
+            ax4.tick_params(axis='y', labelcolor=colorH)
+            ax5.tick_params(axis='y', labelcolor=colorT)
+            ax4.set_xlabel('Time')
+            ax4.set_ylabel(_dataFrame[temp].name, color = colorH)
+            ax5.set_ylabel(_dataFrame[hum].name, color = colorT)
+            ax4.grid(True)
 
     return data_baseline, baselineCorr
 
