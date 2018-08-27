@@ -22,6 +22,7 @@ from scipy.optimize import curve_fit
 
 from calData_utils import getCalData
 from test_utils import *
+from formula_utils import exponential_smoothing
 
 alpha_calData = getCalData('alphasense')
 mics_calData = getCalData('mics')
@@ -51,6 +52,7 @@ alphaUnitsFactorsLUT = (['CO', 1, 0],
 
 micsUnitsFactorsLUT = (['CO', 1],
                         ['NO2', 1000])
+
 
 def ExtractBaseline(_data, _delta):
     '''
@@ -83,19 +85,6 @@ def findMax(_listF):
     # print 'Max Value found at index: {}, with value: {}'.format(indexMax, valMax)
     
     return valMax, indexMax
-
-def exponential_smoothing(series, alpha):
-    '''
-        Input:
-            series - dataset with timestamps
-            alpha - float [0.0, 1.0], smoothing parameter
-        Output: 
-            smoothed series
-    '''
-    result = [series[0]] # first value is same as series
-    for n in range(1, len(series)):
-        result.append(alpha * series[n] + (1 - alpha) * result[n-1])
-    return result
 
 def exponential_func(x, a, b, c):
      return a * np.exp(b * x) + c

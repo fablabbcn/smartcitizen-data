@@ -1,6 +1,19 @@
 import numpy as np
 import math
 
+def exponential_smoothing(series, alpha):
+    '''
+        Input:
+            series - dataset with timestamps
+            alpha - float [0.0, 1.0], smoothing parameter
+        Output: 
+            smoothed series
+    '''
+    result = [series[0]] # first value is same as series
+    for n in range(1, len(series)):
+        result.append(alpha * series[n] + (1 - alpha) * result[n-1])
+    return result
+
 def SMOOTH(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')

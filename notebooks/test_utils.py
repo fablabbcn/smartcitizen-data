@@ -18,6 +18,10 @@ pollutantLUT = (['CO', 28, 'ppm'],
 
 ref_append = 'ref'
 
+
+currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h')
+
+
 def getSensorNames(_sensorsh):
     # read only 20 000 chars
     data = urllib2.urlopen(_sensorsh).read(20000)
@@ -33,66 +37,43 @@ def getSensorNames(_sensorsh):
         if data.index(line) > lineSensors:
                 
                 if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
-                    try:
-                        # Split commas
-                        lineTokenized =  line.strip('').split(',')
-                        # print len(lineTokenized)
-                        # Elimminate unnecessary elements
-                        lineTokenizedSub = list()
-                        for item in lineTokenized:
+                    # Split commas
+                    lineTokenized =  line.strip('').split(',')
+                    # print len(lineTokenized)
+                    # Elimminate unnecessary elements
+                    lineTokenizedSub = list()
+                    for item in lineTokenized:
                             item = re.sub('\t', '', item)
                             item = re.sub('OneSensor', '', item)
                             item = re.sub('{', '', item)
                             item = re.sub('}', '', item)
                             #item = re.sub(' ', '', item)
                             item = re.sub('"', '', item)
-                            # if item != '':
-                            while item[0] == ' ' and len(item)>0: item = item[1:]
-                            lineTokenizedSub.append(item)
-                        lineTokenizedSub = lineTokenizedSub[:-1]
                             
-                    except:
-                        pass
+                            if item != '': 
+                                while item[0] == ' ' and len(item)>0: item = item[1:]
+                            lineTokenizedSub.append(item)
+                    lineTokenizedSub = lineTokenizedSub[:-1]
+
 
                     if len(lineTokenizedSub) > 2:
                             sensorLocation = re.sub(' ', '', lineTokenizedSub[0])
-                            if sensorLocation != 'BOARD_BASE':
-                                sensorID = re.sub(' ','', lineTokenizedSub[1])
-                                sensorNames[sensorID] = dict()
-                                sensorNames[sensorID]['SensorLocation'] = sensorLocation
-                                if len(lineTokenizedSub)>7:
+                            sensorID = re.sub(' ','', lineTokenizedSub[1])
+                            sensorNames[sensorID] = dict()
+                            sensorNames[sensorID]['SensorLocation'] = sensorLocation
+                            if len(lineTokenizedSub)>7:
                                     sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[2])
                                     sensorNames[sensorID]['title'] = lineTokenizedSub[3]
                                     sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[4])
                                     sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
-                                else:
+                            else:
                                     sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
                                     sensorNames[sensorID]['title'] = lineTokenizedSub[2]
                                     sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[3])
                                     sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
-
     return sensorNames
 
-
-
-currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/refurbish/lib/Sensors/Sensors.h')
 currentSensorNames = getSensorNames(currentSensorsh)
-
-# def CHANNEL_NAME(_sensorNames, _measurement, _slot, electrode, _SensorLocation):
-#     sensor_name = ''
-#     electrode_eq = electrode[0]
-    
-#     for name in _sensorNames:
-
-#         if _sensorNames[name]['SensorLocation'] == _SensorLocation and '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
-            
-#             sensor_name = str(_sensorNames[name]['shortTitle'])
-#             return sensor_name
-#         elif _sensorNames[name]['SensorLocation'] == _SensorLocation and not '{}{}'.format(_slot, electrode_eq) in name and '{}'.format(_measurement) in name:
-#             sensor_name = str(_sensorNames[name]['shortTitle'])
-
-
-#     return sensor_name
 
 def CHANNEL_NAME(_sensorNames, _measurement, _concat1, _concat2, _SensorLocation, _unit):
     sensor_name = ''
