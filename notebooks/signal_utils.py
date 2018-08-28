@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def detect_peak(signal):
     result = np.zeros(signal.shape)
     for i in range(len(signal)-1):

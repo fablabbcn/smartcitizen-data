@@ -10,11 +10,22 @@ from IPython.display import display, clear_output, Markdown
 # Define base url
 base_url = 'https://api.smartcitizen.me/v0/devices/'
 kits_url = 'https://api.smartcitizen.me/v0/kits/'
-rollup = '10m' # https://developer.smartcitizen.me/#get-historical-readings
 
-# Get this automatically
-station_kit_id = 21
+# TODO: Get this automatically
+station_kit_id = 19
 kit_kit_id = 11
+
+# Convertion table from API SC to Pandas
+# https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
+# https://developer.smartcitizen.me/#get-historical-readings
+frequencyConvertLUT = (['y','A'],
+    ['M','M'],
+    ['w','W'],
+    ['d','D'],
+    ['h','H'],
+    ['m','Min'],
+    ['s','S'],
+    ['ms','ms'])
 
 from test_utils import currentSensorNames
 
@@ -59,6 +70,23 @@ def getPlatformSensorID():
     return sensors
 
 def getDeviceData(_device, verbose, frequency):
+
+    # Convert frequency from pandas to API's
+    for index, letter in enumerate(frequency):
+        try:
+            aux = int(letter)
+        except:
+            index_first = index
+            letter_first = letter
+            rollup_value = frequency[:index_first]
+            frequency_unit = frequency[index_first:]
+            break
+
+    for item in frequencyConvertLUT:
+        if item[1] == frequency_unit:
+            rollup_unit = item[0]
+
+    rollup = rollup_value + rollup_unit
 
     # Get device
     print 'Getting device {} at url {}'.format(_device, base_url + '{}/'.format(_device))
