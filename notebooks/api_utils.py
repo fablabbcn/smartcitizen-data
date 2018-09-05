@@ -196,7 +196,7 @@ def getDeviceData(_device, verbose, frequency):
 
                         df = df.combine_first(dfT)
                 
-        return df, location, toDate, fromDate, hasAlpha
+        return df, location, toDate, fromDate, hasAlpha, latitude, longitude 
     else:
         return (deviceR.status_code)
 
@@ -205,7 +205,7 @@ def getReadingsAPI(_devices, frequency):
     readingsAPI['devices'] = dict()
     for device in _devices:
         print 'Loading device {}'.format(device)
-        data, location, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency)
+        data, location, toDate, fromDate, hasAlpha, latitude, longitude = getDeviceData(device, True, frequency)
         readingsAPI['devices'][device] = dict()
         if (type(data) == int) and (not (data == 200 or data == 201)):
             readingsAPI['devices'][device]['valid'] = False
