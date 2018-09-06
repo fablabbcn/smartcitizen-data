@@ -3,6 +3,7 @@ import statsmodels.api as smapi
 import statsmodels.graphics as smgraph
 from statsmodels.stats.outliers_influence import summary_table
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
+from statsmodels.tsa.stattools import adfuller
 import numpy as np
 
 from math import sqrt

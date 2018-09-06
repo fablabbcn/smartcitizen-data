@@ -454,7 +454,11 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
         alphaW = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'W', 'BOARD_AUX', '')
         alphaA = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'A', 'BOARD_AUX', '')
         temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', 'C')
+        if temp not in dataframeResult.columns:
+            temp = CHANNEL_NAME(currentSensorNames, 'SHT31', 0, 'EXT_TEMP', 'BOARD_AUX', 'C')
         hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', '%')
+        if hum not in dataframeResult.columns:
+            hum = CHANNEL_NAME(currentSensorNames, 'SHT31', 0, 'EXT_HUM', 'BOARD_AUX', 'C')
         
         _listNames = (alphaW, alphaA, temp, hum)
 
@@ -474,7 +478,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 factor_unit_2 = pollutantItem[2]
 
         ## Find min, max and range of days
-        min_date_df, max_date_df, range_days = findDates(_dataframe)
+        min_date_df, max_date_df, range_days = findDates(dataframeResult)
         print '------------------------------------------------------------------'
         print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
         print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
