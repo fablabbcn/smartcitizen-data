@@ -924,7 +924,7 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
                             r_valueRef = np.nan
                     else:
                         r_valueRef = np.nan
-                        print 'No Ref available'
+                        # print 'No Ref available'
                     
                     ## Get some metrics
                     temp_avg = dataframeTrim[temp].mean(skipna = True)

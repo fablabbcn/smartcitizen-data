@@ -15,13 +15,12 @@ from sklearn.metrics import median_absolute_error, mean_squared_error#, mean_squ
 # Plots
 import matplotlib.pyplot as plot
 import seaborn as sns
-# %matplotlib inline
 # Others
 from formula_utils import exponential_smoothing
 
-def prepData(dataframeModel, tuple_features, min_date, max_date, ratio_train, filter_data = False, alpha_filter = 0.2):
+def prepData(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter = 0.2):
 
-    ## Prepare Data Frame
+    ## Trim dates
     dataframeModel = dataframeModel[dataframeModel.index > min_date]
     dataframeModel = dataframeModel[dataframeModel.index < max_date]
     # Train Dataframe
@@ -29,17 +28,15 @@ def prepData(dataframeModel, tuple_features, min_date, max_date, ratio_train, fi
     n_train_periods = int(round(total_len*ratio_train))
 
     dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
-    dataframeTrain = dataframeTrain.fillna(0)
     dataframeTrain['const'] = 1
 
-    if filter_data:
+    if alpha_filter<1:
         for column in dataframeTrain.columns:
             dataframeTrain[column] = exponential_smoothing(dataframeTrain[column], alpha_filter)
     # Test Dataframe
     dataframeTest = dataframeModel.iloc[n_train_periods:,:]
-    dataframeTest = dataframeTest.fillna(0)
     dataframeTest['const'] = 1
-    if filter_data:
+    if alpha_filter<1:
         for column in dataframeTest.columns:
             dataframeTest[column] = exponential_smoothing(dataframeTest[column], alpha_filter)
 
@@ -92,21 +89,28 @@ def fit_model(formula_expression, dataTrain, dataTest):
     # Plot the stuff
     fig = plot.figure(figsize=(15,10))
     # Actual data
-    plot.plot(dataTrain['index'], referenceTrain, 'k', label = 'Reference Train', alpha = 0.3)
+    plot.plot(dataTrain['index'], referenceTrain, 'r', label = 'Reference Train', alpha = 0.3)
     plot.plot(dataTest['index'], referenceTest, 'b', label = 'Reference Test', alpha = 0.3)
     # Fitted Values for Training
-    plot.plot(dataTrain['index'], predictionTrain, 'g', label = 'Prediction Train')
+    plot.plot(dataTrain['index'], predictionTrain, 'r', label = 'Prediction Train')
     plot.plot(dataTrain['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
     plot.plot(dataTrain['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+    plot.fill_between(dataTrain['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
     plot.plot(dataTrain['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
     plot.plot(dataTrain['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+    plot.fill_between(dataTrain['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
     
     # Fitted Values for Test
-    plot.plot(dataTest['index'], test_mean, 'g', label = 'Prediction Test')
+    plot.plot(dataTest['index'], test_mean, 'b', label = 'Prediction Test')
     plot.plot(dataTest['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
     plot.plot(dataTest['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+    plot.fill_between(dataTest['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
+
+    # Out of sample forecast Confidence intervals
     plot.plot(dataTest['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
     plot.plot(dataTest['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+    plot.fill_between(dataTest['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+
     plot.title('Linear Regression Results')
     plot.ylabel('Reference/Prediction (-)')
     plot.xlabel('Date (-)')
@@ -116,12 +120,16 @@ def fit_model(formula_expression, dataTrain, dataTest):
     # Calculate RMSE
     rmseTrain = sqrt(mean_squared_error(predictionTrain, referenceTrain))
     rmseTest = sqrt(mean_squared_error(test_mean, referenceTest))
+    # Calculate R2
+    rsquaredTrain = model.rsquared
+
     
     print('------------------------')
-    print('Train RMSE: %.3f' % rmseTrain)
-    print('Test RMSE: %.3f' % rmseTest)
+    print('Train RMSE: %.3f / Test RMSE: %.3f'  % (rmseTrain,rmseTest))
+    # print('Train R2: %.3f / Test R2: %.3f'  % (rsquaredTrain, rsquaredTest))
+    print('Model R2: %.3f'  % (rsquaredTrain))
 
-    return model, rmseTrain, rmseTest
+    return model, rmseTrain, rmseTest, rsquaredTrain
 
 def modelRplots(model, dataTrain, dataTest):
     
