@@ -18,7 +18,7 @@ import seaborn as sns
 # Others
 from formula_utils import exponential_smoothing
 
-def prepData(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter = 0.2):
+def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter = 0.2):
 
     ## Trim dates
     dataframeModel = dataframeModel[dataframeModel.index > min_date]
@@ -53,13 +53,16 @@ def prepData(dataframeModel, tuple_features, min_date, max_date, ratio_train, al
     return dataTrain, dataTest
 
 # Fit model
-def fit_model(formula_expression, dataTrain, dataTest):
+def fit_model_OLS(formula_expression, dataTrain):
     '''
         
     '''
     model = smform.OLS.from_formula(formula = formula_expression, data = dataTrain).fit()
     print(model.summary())
-    
+
+    return model
+
+def predict_OLS(model, dataTrain, dataTest):    
     ## Predict Results
     predictionTrain = model.predict(dataTrain)
     # predictionTest = model.predict(dataTest)
@@ -91,6 +94,7 @@ def fit_model(formula_expression, dataTrain, dataTest):
     # Actual data
     plot.plot(dataTrain['index'], referenceTrain, 'r', label = 'Reference Train', alpha = 0.3)
     plot.plot(dataTest['index'], referenceTest, 'b', label = 'Reference Test', alpha = 0.3)
+
     # Fitted Values for Training
     plot.plot(dataTrain['index'], predictionTrain, 'r', label = 'Prediction Train')
     plot.plot(dataTrain['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
@@ -116,20 +120,8 @@ def fit_model(formula_expression, dataTrain, dataTest):
     plot.xlabel('Date (-)')
     plot.legend(loc='best')
     plot.show()
-    
-    # Calculate RMSE
-    rmseTrain = sqrt(mean_squared_error(predictionTrain, referenceTrain))
-    rmseTest = sqrt(mean_squared_error(test_mean, referenceTest))
-    # Calculate R2
-    rsquaredTrain = model.rsquared
 
-    
-    print('------------------------')
-    print('Train RMSE: %.3f / Test RMSE: %.3f'  % (rmseTrain,rmseTest))
-    # print('Train R2: %.3f / Test R2: %.3f'  % (rsquaredTrain, rsquaredTest))
-    print('Model R2: %.3f'  % (rsquaredTrain))
-
-    return model, rmseTrain, rmseTest, rsquaredTrain
+    return referenceTrain, referenceTest, predictionTrain, test_mean
 
 def modelRplots(model, dataTrain, dataTest):
     

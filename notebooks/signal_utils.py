@@ -1,4 +1,46 @@
 import numpy as np
+from math import sqrt
+
+def metrics(reference, estimation):
+    metrics_dict = dict()
+    
+    # Average
+    avg_ref = np.mean(reference)
+    avg_est = np.mean(estimation)
+    metrics_dict['avg_ref'] = avg_ref
+    metrics_dict['avg_est'] = avg_est
+
+    # Standard deviation
+    sigma_ref = np.std(reference)
+    sigma_est = np.std(estimation)
+    metrics_dict['sig_ref'] = sigma_ref
+    metrics_dict['sig_est'] = sigma_est
+    
+    # Bias
+    bias = avg_est-avg_ref
+    normalised_bias = float((avg_est-avg_ref)/sigma_ref)
+    metrics_dict['bias'] = bias
+    metrics_dict['normalised_bias'] = normalised_bias
+    
+    # Normalized std deviation
+    sigma_norm = sigma_est/sigma_ref
+    sign_sigma = (sigma_est-sigma_ref)/(abs(sigma_est-sigma_ref))
+    metrics_dict['sigma_norm'] = sigma_norm
+    metrics_dict['sign_sigma'] = sign_sigma
+
+    # R2
+    SS_Residual = sum((estimation-reference)**2)
+    SS_Total = sum((reference-np.mean(reference))**2)
+    rsquared = 1 - (float(SS_Residual))/SS_Total
+    metrics_dict['rsquared'] = rsquared
+
+    # RMSD
+    RMSD = sqrt((1./len(reference))*SS_Residual)
+    RMSD_norm_unb = sqrt(1+np.power(sigma_norm,2)-2*sigma_norm*sqrt(rsquared))
+    metrics_dict['RMSD'] = RMSD
+    metrics_dict['RMSD_norm_unb'] = RMSD_norm_unb
+    
+    return metrics_dict
 
 def detect_peak(signal):
     result = np.zeros(signal.shape)

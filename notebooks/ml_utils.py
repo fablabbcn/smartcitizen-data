@@ -45,15 +45,12 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	return agg
 
 # Join List of Items
-def prep_dataframe(dataframeModel, min_date, max_date, tuple_features, n_lags, ratio_train, alpha_filter):
+def prep_dataframe_ML(dataframeModel, min_date, max_date, tuple_features, n_lags, ratio_train, alpha_filter):
       
 
     ## Trim dates
     dataframeModel = dataframeModel[dataframeModel.index > min_date]
     dataframeModel = dataframeModel[dataframeModel.index < max_date]
-    # Training periods
-    total_len = len(dataframeModel.index)
-    n_train_periods = int(round(total_len*ratio_train))
     
     list_all = list()
     for item in tuple_features: 
@@ -66,6 +63,10 @@ def prep_dataframe(dataframeModel, min_date, max_date, tuple_features, n_lags, r
     # get selected values from list
     dataframeSupervised = dataframeModel.loc[:,list_all]
     dataframeSupervised = dataframeSupervised.dropna()
+
+    # Training periods
+    total_len = len(dataframeSupervised.index)
+    n_train_periods = int(round(total_len*ratio_train))
 
     if alpha_filter<1:
         for column in dataframeSupervised.columns:
@@ -121,7 +122,7 @@ def prep_dataframe(dataframeModel, min_date, max_date, tuple_features, n_lags, r
     
     return index, train_X, train_y, test_X, test_y, scaler, n_train_periods
 
-def modelML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2):
+def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2):
     
     model = Sequential()
     layers = [50, 100, 1]
@@ -147,7 +148,7 @@ def modelML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verb
     
     return model
 
-def predictML(model, test_X, test_y, n_lags, scaler):
+def predict_ML(model, test_X, test_y, n_lags, scaler):
     # Make a prediction for test
     yhat = model.predict(test_X)
     test_X = test_X.reshape((test_X.shape[0], test_X.shape[2] * n_lags))
@@ -161,9 +162,5 @@ def predictML(model, test_X, test_y, n_lags, scaler):
     inv_y = concatenate((test_X[:, :], test_y), axis=1)
     inv_y = scaler.inverse_transform(inv_y)
     inv_y = inv_y[:,-1]
-
-    # calculate RMSE
-    rmse = sqrt(mean_squared_error(inv_y, inv_yhat))
-    rsquared = r2_score(inv_y, inv_yhat)
     
-    return inv_y, inv_yhat, rmse, rsquared
+    return inv_y, inv_yhat
