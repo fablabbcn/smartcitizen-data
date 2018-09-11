@@ -214,3 +214,6 @@ def plot_oneshots(readings, channels, device_one_shot):
             fig1['layout']['yaxis'+str(channels.index(channel)+1)].update(title=channel + ' Relative Error')
 
         ply.offline.iplot(fig1)
+
+def minRtarget(targetR):
+    return sqrt(1+ np.power(targetR,2)-2*np.power(targetR,2))
