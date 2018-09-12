@@ -125,14 +125,15 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, tuple_features, n_lags
 def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2):
     
     model = Sequential()
-    layers = [50, 100, 1]
+    layers = [100, 100, 100, 1]
     model.add(LSTM(layers[0], return_sequences=True, input_shape=(train_X.shape[1], train_X.shape[2])))
     model.add(Dropout(0.2))
-    model.add(LSTM(layers[1], return_sequences=False))
+    model.add(LSTM(layers[1], return_sequences=True))
+    model.add(LSTM(layers[2], return_sequences=False))
     model.add(Dropout(0.2))
-    model.add(Dense(output_dim=layers[2]))
+    model.add(Dense(output_dim=layers[3]))
     model.add(Activation("linear"))
-    model.compile(loss='mse', optimizer='rmsprop')
+    model.compile(loss='mse', optimizer='adam')
 
     # fit network
     history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)

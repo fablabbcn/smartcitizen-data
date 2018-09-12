@@ -31,7 +31,7 @@ def metrics(reference, estimation):
     # R2
     SS_Residual = sum((estimation-reference)**2)
     SS_Total = sum((reference-np.mean(reference))**2)
-    rsquared = 1 - (float(SS_Residual))/SS_Total
+    rsquared = max(0, 1 - (float(SS_Residual))/SS_Total)
     metrics_dict['rsquared'] = rsquared
 
     # RMSD
