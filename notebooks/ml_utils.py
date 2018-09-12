@@ -20,7 +20,6 @@ from math import sqrt
 
 from formula_utils import exponential_smoothing
 
-
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
 	df = pd.DataFrame(data)
@@ -44,24 +43,14 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 		agg.dropna(inplace=True)
 	return agg
 
-# Join List of Items
-def prep_dataframe_ML(dataframeModel, min_date, max_date, tuple_features, n_lags, ratio_train, alpha_filter):
-      
+def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags, ratio_train, alpha_filter, reference_name, verbose = True):
 
     ## Trim dates
     dataframeModel = dataframeModel[dataframeModel.index > min_date]
     dataframeModel = dataframeModel[dataframeModel.index < max_date]
-    
-    list_all = list()
-    for item in tuple_features: 
-        if item[0] == 'REF':
-            list_all.insert(0,item[1])
-            reference_name = item[1]
-        else:
-            list_all.append(item[1])
-    
+        
     # get selected values from list
-    dataframeSupervised = dataframeModel.loc[:,list_all]
+    dataframeSupervised = dataframeModel.loc[:,list_features]
     dataframeSupervised = dataframeSupervised.dropna()
 
     # Training periods
@@ -75,7 +64,7 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, tuple_features, n_lags
     index = dataframeSupervised.index
     values = dataframeSupervised.values
 
-    n_features = len(list_all) - 1
+    n_features = len(list_features) - 1
     n_obs = n_lags * n_features
     # print 'n_features {}'.format(n_features)
     # print 'n_obs {}'.format(n_obs)
@@ -115,14 +104,15 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, tuple_features, n_lags
     # print 'Training X, y and Test X, y shapes after reshaping'
     # print (train_X.shape, train_y.shape, test_X.shape, test_y.shape)
     
-    print 'DataFrame has been reframed and prepared for supervised learning'
-    print 'Reference is: {}'.format(reference_name)
-    print 'Features are: {}'.format([i for i in list_all[1:]])
-    print 'Traning X Shape {}, Training Y Shape {}, Test X Shape {}, Test Y Shape {}'.format(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+    if verbose:
+    	print 'DataFrame has been reframed and prepared for supervised learning'
+    	print 'Reference is: {}'.format(reference_name)
+    	print 'Features are: {}'.format([i for i in list_features[1:]])
+    	print 'Traning X Shape {}, Training Y Shape {}, Test X Shape {}, Test Y Shape {}'.format(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
     
     return index, train_X, train_y, test_X, test_y, scaler, n_train_periods
 
-def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2):
+def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2, plotResult = True, loss = 'mse', optimizer = 'adam'):
     
     model = Sequential()
     layers = [100, 100, 100, 1]
@@ -133,19 +123,21 @@ def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72,
     model.add(Dropout(0.2))
     model.add(Dense(output_dim=layers[3]))
     model.add(Activation("linear"))
-    model.compile(loss='mse', optimizer='adam')
+
+    model.compile(loss=loss, optimizer=optimizer)
 
     # fit network
     history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)
-    # plot history
-    fig = plot.figure(figsize=(10,8))
-    plot.plot(history.history['loss'], label='train')
-    plot.plot(history.history['val_loss'], label='test')
-    plot.xlabel('Epochs (-)')
-    plot.ylabel('Loss (-)')
-    plot.title('Model Convergence')
-    plot.legend(loc='best')
-    plot.show()
+    if plotResult:
+	    # plot history
+	    fig = plot.figure(figsize=(10,8))
+	    plot.plot(history.history['loss'], label='train')
+	    plot.plot(history.history['val_loss'], label='test')
+	    plot.xlabel('Epochs (-)')
+	    plot.ylabel('Loss (-)')
+	    plot.title('Model Convergence')
+	    plot.legend(loc='best')
+	    plot.show()
     
     return model
 

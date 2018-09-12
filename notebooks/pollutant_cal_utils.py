@@ -641,7 +641,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             
             ## Calculate stats day by day to avoid stationarity
             min_date_df, max_date_df, range_days = findDates(dataframeResult)
-            print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
+            # print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
             
             for day in range(range_days):
                 ## CorrParams

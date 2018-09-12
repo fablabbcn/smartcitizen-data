@@ -17,8 +17,9 @@ import matplotlib.pyplot as plot
 import seaborn as sns
 # Others
 from formula_utils import exponential_smoothing
+from signal_utils import metrics
 
-def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter = 0.2):
+def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter, device_name):
 
     ## Trim dates
     dataframeModel = dataframeModel[dataframeModel.index > min_date]
@@ -43,26 +44,27 @@ def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_trai
 	dataTrain = {}
     dataTest = {}
     for item in tuple_features:
-        dataTrain[item[0]] = dataframeTrain.loc[:,item[1]].values
-        dataTest[item[0]] = dataframeTest.loc[:,item[1]].values
+        dataTrain[item[0]] = dataframeTrain.loc[:,item[1] + '_' + device_name].values
+        dataTest[item[0]] = dataframeTest.loc[:,item[1] + '_' + device_name].values
     dataTrain['index'] = dataframeTrain.index
     dataTrain['const'] = dataframeTrain.loc[:,'const'].values
     dataTest['index'] = dataframeTest.index
     dataTest['const'] = dataframeTest.loc[:,'const'].values
     
-    return dataTrain, dataTest
+    return dataTrain, dataTest, n_train_periods
 
 # Fit model
-def fit_model_OLS(formula_expression, dataTrain):
+def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
     '''
         
     '''
     model = smform.OLS.from_formula(formula = formula_expression, data = dataTrain).fit()
-    print(model.summary())
+    if printSummary:
+    	print(model.summary())
 
     return model
 
-def predict_OLS(model, dataTrain, dataTest):    
+def predict_OLS(model, dataTrain, dataTest, plotResult = True):    
     ## Predict Results
     predictionTrain = model.predict(dataTrain)
     # predictionTest = model.predict(dataTest)
@@ -89,37 +91,38 @@ def predict_OLS(model, dataTrain, dataTest):
     test_ci_low = summary_test.loc[:, 'obs_ci_lower'].values
     test_ci_upp = summary_test.loc[:, 'obs_ci_upper'].values
 
-    # Plot the stuff
-    fig = plot.figure(figsize=(15,10))
-    # Actual data
-    plot.plot(dataTrain['index'], referenceTrain, 'r', label = 'Reference Train', alpha = 0.3)
-    plot.plot(dataTest['index'], referenceTest, 'b', label = 'Reference Test', alpha = 0.3)
-
-    # Fitted Values for Training
-    plot.plot(dataTrain['index'], predictionTrain, 'r', label = 'Prediction Train')
-    plot.plot(dataTrain['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
-    plot.plot(dataTrain['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-    plot.fill_between(dataTrain['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
-    plot.plot(dataTrain['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-    plot.plot(dataTrain['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-    plot.fill_between(dataTrain['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
-    
-    # Fitted Values for Test
-    plot.plot(dataTest['index'], test_mean, 'b', label = 'Prediction Test')
-    plot.plot(dataTest['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
-    plot.plot(dataTest['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-    plot.fill_between(dataTest['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
-
-    # Out of sample forecast Confidence intervals
-    plot.plot(dataTest['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-    plot.plot(dataTest['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-    plot.fill_between(dataTest['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
-
-    plot.title('Linear Regression Results')
-    plot.ylabel('Reference/Prediction (-)')
-    plot.xlabel('Date (-)')
-    plot.legend(loc='best')
-    plot.show()
+    if plotResult:
+    	# Plot the stuff
+    	fig = plot.figure(figsize=(15,10))
+    	# Actual data
+    	plot.plot(dataTrain['index'], referenceTrain, 'r', label = 'Reference Train', alpha = 0.3)
+    	plot.plot(dataTest['index'], referenceTest, 'b', label = 'Reference Test', alpha = 0.3)
+	
+    	# Fitted Values for Training
+    	plot.plot(dataTrain['index'], predictionTrain, 'r', label = 'Prediction Train')
+    	plot.plot(dataTrain['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
+    	plot.plot(dataTrain['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+    	plot.fill_between(dataTrain['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
+    	plot.plot(dataTrain['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+    	plot.plot(dataTrain['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+    	plot.fill_between(dataTrain['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
+    	
+    	# Fitted Values for Test
+    	plot.plot(dataTest['index'], test_mean, 'b', label = 'Prediction Test')
+    	plot.plot(dataTest['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
+    	plot.plot(dataTest['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+    	plot.fill_between(dataTest['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
+	
+    	# Out of sample forecast Confidence intervals
+    	plot.plot(dataTest['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+    	plot.plot(dataTest['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+    	plot.fill_between(dataTest['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+	
+    	plot.title('Linear Regression Results')
+    	plot.ylabel('Reference/Prediction (-)')
+    	plot.xlabel('Date (-)')
+    	plot.legend(loc='best')
+    	plot.show()
 
     return referenceTrain, referenceTest, predictionTrain, test_mean
 
@@ -250,3 +253,42 @@ def modelRplots(model, dataTrain, dataTest):
     
     plot.legend(loc='upper right');
 
+def archiveModel_OLS(model_name_OLS,referenceTrain, referenceTest, predictionTrain, predictionTest):
+    dataFrameTrain = pd.DataFrame(data = {'referenceTrain': referenceTrain, 'predictionTrain': predictionTrain.values}, 
+                                  index = dataTrain['index'])
+    
+    dataFrameTest = pd.DataFrame(data = {'referenceTest': referenceTest, 'predictionTest': predictionTest}, 
+                                  index = dataTest['index'])
+    
+    metrics_model_train = metrics(referenceTrain, predictionTrain)
+    metrics_model_test = metrics(referenceTest, predictionTest)
+
+    ## Metrics Train
+    print('\t\t Train \t\t Test')
+    for item in metrics_model_train.keys():
+        print ('% s: \t %.5f \t %.5f ' % (item, metrics_model_train[item], metrics_model_test[item]))
+    
+    ## Put everything into the dict
+    dictModel = readings[test_model]['devices'][name_combined_data]
+    
+    dictModel[model_name_OLS] = dict()
+    dictModel[model_name_OLS]['metrics'] = dict()
+    dictModel[model_name_OLS]['metrics']['train'] = metrics_model_train
+    dictModel[model_name_OLS]['metrics']['test'] = metrics_model_test
+
+    # Model Parameters
+    dictModel[model_name_OLS]['parameters'] = dict()
+    dictModel[model_name_OLS]['parameters']['formula'] = formula_expression
+    dictModel[model_name_OLS]['parameters']['features'] = tuple_features
+    dictModel[model_name_OLS]['parameters']['ratio_train'] = ratio_train
+    dictModel[model_name_OLS]['model'] = model
+    dictModel[model_name_OLS]['data'] = dict()
+    dictModel[model_name_OLS]['data']['train'] = dataFrameTrain
+    dictModel[model_name_OLS]['data']['test'] = dataFrameTest
+    
+    # print dictModel[model_name].keys()
+    # print dictModel[model_name]['metrics']
+    # print dictModel[model_name]['parameters']
+    # print dictModel[model_name]['model']
+    
+    return dictModel[model_name_OLS]
