@@ -1,6 +1,9 @@
 # Remove
 data
 
+#
+notebooks/temp-plot.html
+
 # MAC stuff
 */.DS_Store
 .DS_Store
