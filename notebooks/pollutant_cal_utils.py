@@ -358,8 +358,10 @@ def findDates(_dataframe):
             rounded up min day, floor max day and number of days between the min and max dates
     '''
     range_days = (_dataframe.index.max()-_dataframe.index.min()).days
-    min_date_df = _dataframe.index.min().ceil('D')
-    max_date_df = _dataframe.index.max().floor('D')
+    # min_date_df = _dataframe.index.min().ceil('D')
+    # max_date_df = _dataframe.index.max().floor('D')
+    min_date_df = _dataframe.index.min().floor('D')
+    max_date_df = _dataframe.index.max().ceil('D')
     
     return min_date_df, max_date_df, range_days
 
