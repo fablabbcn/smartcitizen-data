@@ -6,6 +6,9 @@ import numpy as np
 from ipywidgets import interact
 import ipywidgets as widgets
 from IPython.display import display, clear_output, Markdown
+import yaml
+from os import getcwd, walk
+from os.path import join
 
 # Define base url
 base_url = 'https://api.smartcitizen.me/v0/devices/'
@@ -28,6 +31,18 @@ frequencyConvertLUT = (['y','A'],
     ['ms','ms'])
 
 from test_utils import currentSensorNames
+
+def getSensors(directory):
+    devices = dict()
+    mydir = join(directory, 'sensorData')
+    for root, dirs, files in walk(mydir):
+        for _file in files:
+            if _file.endswith(".yaml"):
+                filePath = join(root, _file)
+                stream = open(filePath)
+                yamlFile = yaml.load(stream)
+                devices.update(yamlFile)
+    return devices
 
 def getKitID(_device, verbose):
     # Get device
@@ -203,6 +218,11 @@ def getDeviceData(_device, verbose, frequency):
 def getReadingsAPI(_devices, frequency):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
+    # Get cwd
+    directory = getcwd()
+    # Get dict with sensor history
+    sensorHistory = getSensors(directory)
+
     for device in _devices:
         print 'Loading device {}'.format(device)
         data, location, toDate, fromDate, hasAlpha, latitude, longitude = getDeviceData(device, True, frequency)
@@ -219,14 +239,12 @@ def getReadingsAPI(_devices, frequency):
             readingsAPI['devices'][device]['location'] = location
 
             if hasAlpha:
-                print 'Device ID says it had alphasense sensors'
+                print '\tDevice ID says it had alphasense sensors, loading them'
                 # retrieve data from API for alphasense
                 readingsAPI['devices'][device]['alphasense'] = dict()
-                alphaDelta = dict()
-                alphaDelta['CO'] = 'TEMPORARY_CO'
-                alphaDelta['NO2'] = 'TEMPORARY_NO2'
-                alphaDelta['O3'] = 'TEMPORARY_O3'
-                alphaDelta['SLOTS'] = 'TEMPORARY_SLOTS'
-                readingsAPI['devices'][device]['alphasense'] = alphaDelta
-            
+                try:
+                    readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['alphasense']
+                except:
+                    print 'Device not in history'
+        print '\tDone'
     return readingsAPI

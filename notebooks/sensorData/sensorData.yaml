@@ -1,40 +1,39 @@
-device_id: 4773
+'4773':
   sck_id: SCK2118080014
-  type: station
-  gas_pro_board:
+  type: 'station'
+  gas_pro_board: 
     CO: 162581720
     NO2: 202160405
     O3: 204160159
-    slots: (CO, NO2, O3)
+    SLOTS: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000701
     PMS5003_2: 2017123000703
 
-device_id: 4774
+'4774':
   sck_id: SCK2118080026
-  type: station
+  type: 'station'
   alphasense:
     CO: 162581724
     NO2: 202160411
     O3: 204160156
-    slots: (CO, NO2, O3)
+    SLOTS: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
 
-device_id: 4748
-  sck_id: na
-  type: station
+'4748':
+  sck_id: 'na'
+  type: 'station'
   alphasense:
     CO: 162031257
     NO2: 202160413
     O3: 204560316
-    slots: (NO2, CO, O3)
+    SLOTS: !!python/tuple [NO2, CO, O3]
   pm_board:
-    PMS5003_1: na
-    PMS5003_2: na
+    PMS5003_1: 'na'
+    PMS5003_2: 'na'
 
-device_id: 4776
-  sck_id: na
+'4776':
+  sck_id: 'na'
   type: kit
-

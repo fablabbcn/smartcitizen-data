@@ -16,11 +16,9 @@ pollutantLUT = (['CO', 28, 'ppm'],
                 ['NO2', 46, 'ppb'],
                 ['O3', 48, 'ppb'])
 
-ref_append = 'ref'
-
+ref_append = 'REF'
 
 currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h')
-
 
 def getSensorNames(_sensorsh):
     # read only 20 000 chars

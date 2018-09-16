@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 from dateutil import relativedelta
 from scipy.optimize import curve_fit
 
-from calData_utils import getCalData
+from data_utils import getCalData
 from test_utils import *
 from formula_utils import exponential_smoothing
 
