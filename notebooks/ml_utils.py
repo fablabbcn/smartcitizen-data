@@ -126,7 +126,7 @@ def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72,
     	model.add(Dense(output_dim=layers[3]))
     	model.add(Activation("linear"))
     else:
-    	print '\t Using imported layers'
+
 		for layer in layers:
 			neurons = layer['neurons'] if 'neurons' in layer else None
 			dropout_rate = layer['rate'] if 'rate' in layer else None

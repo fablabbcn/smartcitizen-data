@@ -24,6 +24,10 @@ from calData_utils import getCalData
 from test_utils import *
 from formula_utils import exponential_smoothing
 
+from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
+from math import sqrt
+
 alpha_calData = getCalData('alphasense')
 mics_calData = getCalData('mics')
 
@@ -42,7 +46,6 @@ overlapHours = 2
 filterExpSmoothing = 0.2
 
 # Range of deltas
-deltas = np.arange(1,20,1)
 deltasMICS = np.arange(1,200,1)
 
 # Units Look Up Table - ['Pollutant', unit factor from ppm to target 1, unit factor from ppm to target 2]
@@ -89,11 +92,10 @@ def findMax(_listF):
 def exponential_func(x, a, b, c):
      return a * np.exp(b * x) + c
 
-def createBaselines(_dataBaseline, _dataCorr, _numberDeltas, _type_regress = 'linear', _plots = False, _verbose = False):
+def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plots = False, _verbose = False):
     '''
         Input:
             _dataBaseline: dataframe containing signal and index to be baselined
-            _dataCorr: baseline data for regression
             _type_regress= 'linear', 'exponential', 'best' (based on p_value of both)
             _numberDeltas : vector of floats for deltas (N periods)
             _plots:  display plots or not
@@ -106,14 +108,13 @@ def createBaselines(_dataBaseline, _dataCorr, _numberDeltas, _type_regress = 'li
     '''
     
     resultData = _dataBaseline.copy()
-    vectorCorr = _dataCorr.values
 
-    name = resultData.name
+    name = _dataBaseline.iloc[:,0].name
     pearsons =[]
     
     for delta in _numberDeltas:
-        resultData[(name +'_' +str(delta))] = ExtractBaseline(_dataBaseline, delta)
-        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData[(name +'_' +str(delta))]), np.transpose(vectorCorr))
+        resultData[(name +'_' +str(delta))] = ExtractBaseline(resultData.iloc[:,0], delta)
+        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData[(name +'_' +str(delta))]), np.transpose(resultData.iloc[:,1].values))
         pearsons.append(r_value)
     
     ## Find Max in the pearsons - correlation can be negative, so use absolute of the pearson
@@ -123,43 +124,43 @@ def createBaselines(_dataBaseline, _dataCorr, _numberDeltas, _type_regress = 'li
     baseline = pd.DataFrame(index = _dataBaseline.index)
     if _type_regress == 'linear':
         ## Fit with y = A + Bx
-        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(vectorCorr),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
-        baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept + slope*vectorCorr
+        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData.iloc[:,1].values),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
+        baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept + slope*resultData.iloc[:,1].values
     elif _type_regress == 'exponential':
         ## Fit with y = Ae^(Bx) -> logy = logA + Bx
         logy = np.log(resultData[(name + '_'+str(_numberDeltas[indexMax]))])
-        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(vectorCorr), logy)
-        baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(vectorCorr), np.exp(intercept), slope, 0)
+        slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData.iloc[:,1].values), logy)
+        baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept), slope, 0)
     elif _type_regress == 'best':
         ## Find linear r_value
-        slope_lin, intercept_lin, r_value_lin, p_value_lin, std_err_lin = linregress(np.transpose(vectorCorr),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
+        slope_lin, intercept_lin, r_value_lin, p_value_lin, std_err_lin = linregress(np.transpose(resultData.iloc[:,1].values),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
         
         ## Find Exponential r_value
         logy = np.log(resultData[(name + '_'+str(_numberDeltas[indexMax]))])
-        slope_exp, intercept_exp, r_value_exp, p_value_exp, std_err_exp = linregress(np.transpose(vectorCorr), logy)
+        slope_exp, intercept_exp, r_value_exp, p_value_exp, std_err_exp = linregress(np.transpose(resultData.iloc[:,1].values), logy)
         
         ## Pick which one is best
         if r_value_lin > r_value_exp:
             if _verbose:
                 print 'Using linear regression'
-            baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept_lin + slope_lin*vectorCorr
+            baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept_lin + slope_lin*resultData.iloc[:,1].values
         else:
             if _verbose:
                 print 'Using exponential regression'
-            baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(vectorCorr), np.exp(intercept_exp), slope_exp, 0)
+            baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept_exp), slope_exp, 0)
             
     if _plots == True:
         with plt.style.context('seaborn-white'):
             fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20,8))
             
-            ax1.plot(_dataCorr.values, resultData[(name + '_'+str(_numberDeltas[indexMax]))], label = 'Baseline', linestyle='-', linewidth=0, marker='o')
-            ax1.plot(_dataCorr.values, baseline[(name + '_' + 'baseline_' +  _type_regress)] , label = 'Regressed value', linestyle='-', linewidth=1, marker=None)
+            ax1.plot(resultData.iloc[:,1].values, resultData[(name + '_'+str(_numberDeltas[indexMax]))], label = 'Baseline', linestyle='-', linewidth=0, marker='o')
+            ax1.plot(resultData.iloc[:,1].values, baseline[(name + '_' + 'baseline_' +  _type_regress)] , label = 'Regressed value', linestyle='-', linewidth=1, marker=None)
             legend = ax1.legend(loc='best')
-            ax1.set_xlabel(_dataCorr.name)
+            ax1.set_xlabel(resultData.iloc[:,1].name)
             ax1.set_ylabel('Regression values')
             ax1.grid(True)
             
-            ax2.plot(_dataBaseline.index, _dataBaseline.values, label = "Actual", linestyle=':', linewidth=1, marker=None)
+            ax2.plot(resultData.iloc[:,0].index, resultData.iloc[:,0].values, label = "Actual", linestyle=':', linewidth=1, marker=None)
             #[ax2.plot(resultData.index, resultData[(name +'_' +str(delta))].values, label="Delta {}".format(delta), marker=None,  linestyle='-', linewidth=1) for delta in _numberDeltas]
             ax2.plot(baseline.index, baseline.values, label='Baseline', marker = None)
 
@@ -169,8 +170,8 @@ def createBaselines(_dataBaseline, _dataCorr, _numberDeltas, _type_regress = 'li
             ax2.grid(True)
             
             ax22 = ax2.twinx()
-            ax22.plot(_dataCorr.index, _dataCorr.values, color = 'red', label = _dataCorr.name, linestyle='-', linewidth=1, marker=None)
-            ax22.set_ylabel(_dataCorr.name, color = 'red')
+            ax22.plot(resultData.index, resultData.iloc[:,1].values, color = 'red', label = resultData.iloc[:,1].name, linestyle='-', linewidth=1, marker=None)
+            ax22.set_ylabel(resultData.iloc[:,1].name, color = 'red')
             ax22.tick_params(axis='y', labelcolor='red')
             
             fig2, ax3 = plt.subplots(figsize=(20,8)) # two axes on figure
@@ -251,7 +252,10 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
     #     return dataDecomp, slopeList, interceptList
     
     ## Create Baselines
-    data_baseline, indexMax = createBaselines(_dataFrame[_baselined], _dataFrame[_baseliner], _deltas, _type_regress, _plots, _verbose)
+
+    dataframeCalc = _dataFrame.loc[:,(_baselined, _baseliner)].dropna()
+
+    data_baseline, indexMax = createBaselines(dataframeCalc, _deltas, _type_regress, _plots, _verbose)
 
     if _typeSensor == 'alphasense': 
 
@@ -259,32 +263,35 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
         alphaW, alphaA, temp, hum = _listNames
 
         ## Correlation between Baseline and original auxiliary
-        slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA = linregress(np.transpose(data_baseline.values), np.transpose(_dataFrame[alphaA].values))
+        slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc[alphaA].values))
 
         # Add metadata for further research
-        deltaAuxBas = data_baseline.values-_dataFrame[alphaA].values
-        ratioAuxBas = data_baseline.values/_dataFrame[alphaA].values
-       
-        deltaAuxBas_avg = np.mean(deltaAuxBas)
-        ratioAuxBas_avg = np.mean(ratioAuxBas)
+        deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc[alphaA].values)
+        ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc[alphaA].values)
        
         # Pre filter based on the metadata itself
-        if slopeBA > 0 and r_valueBA > 0.3:
+        if slopeAuxBase > 0 and rAuxBase > 0.3:
             valid = True
         else:
             valid = False
        
-        baselineCorr = (slopeBA, interceptBA, r_valueBA, p_valueBA, std_errBA, deltaAuxBas_avg, ratioAuxBas_avg, indexMax, valid)
+        CorrParams = {}
+
+        CorrParams['slopeAuxBase'] = slopeAuxBase
+        CorrParams['rAuxBase'] = rAuxBase
+        CorrParams['deltaAuxBase_avg'] = deltaAuxBase_avg
+        CorrParams['ratioAuxBase_avg'] = ratioAuxBase_avg
+        CorrParams['indexMax'] = indexMax
+        CorrParams['0_valid'] = valid
     
         if _verbose == True:
             
             print '-------------------'
             print 'Auxiliary Electrode'
             print '-------------------'
-            print 'Correlation coefficient of Baseline and Original auxiliary: {}'.format(r_valueBA)
-            print 'Baseline Correlation Slope: {} \t Intercept: {}'.format(slopeBA, interceptBA)
+            print 'Correlation coefficient of Baseline and Original auxiliary: {}'.format(rAuxBase)
             
-            print 'Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg)
+            print 'Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg)
 
         if _plots == True:
             with plt.style.context('seaborn-white'):
@@ -312,15 +319,14 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
                 #     ax6.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
                 
                 ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
-                ax3.plot(_dataFrame.index, _dataFrame[alphaW], label='Original Working', marker = None)
-                ax3.plot(_dataFrame.index, _dataFrame[alphaA], label='Original Auxiliary', marker = None)
+                ax3.plot(dataframeCalc.index, dataframeCalc[alphaW], label='Original Working', marker = None)
+                ax3.plot(dataframeCalc.index, dataframeCalc[alphaA], label='Original Auxiliary', marker = None)
 
                 ax3.legend(loc="best")
                 ax3.axis('tight')
                 ax3.set_title("Baseline Not Compensated")
                 ax3.set(xlabel='Time', ylabel='Ouput-mV')
                 ax3.grid(True)
-                ax3.set_ylim(min(min(_dataFrame[temp]),min(data_baseline.values)) -5,max(max(_dataFrame[temp]),max(data_baseline.values))+5)
                 
                 # if _trydecomp == True:
                 #     ax5 = ax3.twinx()
@@ -372,7 +378,7 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
             ax5.set_ylabel(_dataFrame[hum].name, color = colorT)
             ax4.grid(True)
 
-    return data_baseline, baselineCorr
+    return data_baseline, CorrParams
 
 def findDates(_dataframe):
     '''
@@ -390,7 +396,7 @@ def findDates(_dataframe):
 
 from formula_utils import maxer, miner
 
-def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _deltas, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
+def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
     '''
         Function to calculate alphasense pollutants with baseline technique
         Input:
@@ -411,7 +417,6 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             _append: suffix to the new channel name (pollutant + append)
             _refAvail: True or False if there is a reference available
             _dataframeRef: reference dataframe if available
-            _deltas: for baseline correction method
             _overlapHours: number of hours to overlap over the day -> -_overlapHours+day:day+1+_overlapHours
             _type_regress = type of regression for baseline (best, exponential or linear)
             _filterExpSmoothing = alpha parameter for exponential filter smoothing
@@ -439,6 +444,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
         if method == 'baseline':
             baselineType = _pollutantTuples[sensor][3]
         slot = _pollutantTuples[sensor][4]
+        _deltas = _pollutantTuples[sensor][5]
         
         # Get Sensor data
         Sensitivity_1 = alpha_calData.loc[sensorID,'Sensitivity 1']
@@ -451,6 +457,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant)
             return
 
+        # Find Channel Names
         alphaW = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'W', 'BOARD_AUX', '')
         alphaA = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'A', 'BOARD_AUX', '')
         temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', 'C')
@@ -519,28 +526,24 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 
                 # Init stuff
                 if day == 0:
-                    # Init list for CorrParams
+                    # Init dict for CorrParams
                     CorrParams = list()
                  
                 if dataframeTrim.empty:
                     if _verbose:
                         print 'No data between these dates'
-                    
-                    # Fill with nan if no data available (to avoid messing up the stats)
-                    nanV =np.ones(10)
-                    nanV.fill(np.nan)
-
-                    CorrParams.append(tuple(nanV))
-                    
+                                        
                 else:
                     
                     # CALCULATE THE BASELINE PER DAY
                     dataframeTrim[alphaW + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeTrim, 'alphasense', _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
                     
                     # TRIM IT BACK TO NO-OVERLAP
-                    dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
-                    dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
-                    
+                    # dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
+                    # dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
+                    dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl]
+                    dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl]
+
                     # CALCULATE ACTUAL POLLUTANT CONCENTRATION
                     if pollutant == 'CO': 
                         # Not recommended for CO
@@ -553,6 +556,9 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     # ADD IT TO THE DATAFRAME
                     dataframeResult = dataframeResult.combine_first(dataframeTrim)
                     
+                    rmse = np.nan
+                    r_valueRef = np.nan
+
                     if _refAvail:
                         ## Trim ref dataframe to no-overlap dates
                         dataframeTrimRef = _dataframeRef[_dataframeRef.index >= dataframeTrim.index.min()].fillna(0)
@@ -563,56 +569,34 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                             dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
                         if dataframeTrimRef.index.max() < dataframeTrim.index.max():
                             dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]
+
                         pollutant_ref = (pollutant + '_' + ref_append)
+
                         if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-                            slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrim[pollutant_column]), np.transpose(dataframeTrimRef[pollutant_ref]))
-                        else:
-                            r_valueRef = np.nan
+                            CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
+                            CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+
                     else:
-                        r_valueRef = np.nan
-                        print 'No Ref available'
+                        if _verbose:
+                            print 'No Ref available'
                     
-                    ## Get some metrics
-                    temp_avg = dataframeTrim[temp].mean(skipna = True)
-                    temp_stderr = dataframeTrim[temp].std(skipna = True)
-                    hum_avg = dataframeTrim[hum].mean(skipna = True)
-                    hum_stderr = dataframeTrim[hum].std(skipna = True)
-                    pollutant_avg = dataframeTrim[pollutant_column].mean(skipna = True)
-                    
-                    tempCorrParams = list(CorrParamsTrim)
-                    tempCorrParams.insert(0,r_valueRef**2)
-                    tempCorrParams.insert(1,pollutant_avg)
-                    tempCorrParams.insert(1,hum_stderr)
-                    tempCorrParams.insert(1,hum_avg)
-                    tempCorrParams.insert(1,temp_stderr)
-                    tempCorrParams.insert(1,temp_avg)                    
-                    CorrParamsTrim = tuple(tempCorrParams)
+                    ## Get some metrics 
+                    CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean(skipna = True) if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std(skipna = True) if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean(skipna = True) if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std(skipna = True) if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean(skipna = True) if not dataframeTrim.empty else np.nan
+               
                     CorrParams.append(CorrParamsTrim)
             
-            ## Add relevant metadata for this method
-            labelsCP = ['r_valueRef',
-                        'avg_temp',
-                        'stderr_temp',
-                        'avg_hum',
-                        'stderr_hum',
-                        'avg_pollutant',
-                        'slopeBA', 
-                        'interceptBA', 
-                        'r_valueBA', 
-                        'p_valueBA', 
-                        'std_errBA', 
-                        'deltaAuxBas_avg', 
-                        'ratioAuxBas_avg', 
-                        'indexMax', 
-                        'valid']
             
-            CorrParamsDF = pd.DataFrame(CorrParams, columns = labelsCP, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
+            CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
             
             ## Find average ratio for hole dataset
-            deltaAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'deltaAuxBas_avg'].mean(skipna = True)
-            deltaAuxBas_std = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'deltaAuxBas_avg'].std(skipna = True)
-            ratioAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'ratioAuxBas_avg'].mean(skipna = True)
-            ratioAuxBas_std = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'ratioAuxBas_avg'].std(skipna = True)
+            deltaAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'deltaAuxBase_avg'].mean(skipna = True)
+            deltaAuxBas_std = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'deltaAuxBase_avg'].std(skipna = True)
+            ratioAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'ratioAuxBase_avg'].mean(skipna = True)
+            ratioAuxBas_std = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'ratioAuxBase_avg'].std(skipna = True)
                     
             # SHOW SOME METADATA FOR THE BASELINES FOUND
             if _printStats:
@@ -623,8 +607,8 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 display(CorrParamsDF)
                         
                 print '------------------------'
-                print 'Average Delta between baseline and auxiliary electrode: {}, and ratio {}:'.format(deltaAuxBas_avg, ratioAuxBas_avg)
-                print 'Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio {}:'.format(deltaAuxBas_std, ratioAuxBas_std)
+                print 'Average Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg)
+                print 'Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_std, ratioAuxBas_std)
                 print '------------------------'
                     
         elif method == 'classic':
@@ -645,7 +629,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             
             for day in range(range_days):
                 ## CorrParams
-                CorrParamsTrim = list()
+                CorrParamsTrim = {}
                 
                 # Calculate non overlap dates for that day
                 min_date_novl = max(min_date_df, (min_date_df + pd.DateOffset(days=day)))
@@ -667,35 +651,26 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                         dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]                    
                     pollutant_ref = pollutant + '_' + ref_append
                     if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-                        slopeRef, interceptRef, r_valueRef, p_valueRef, std_errRef = linregress(np.transpose(dataframeTrimRef[pollutant_ref]),np.transpose(dataframeTrim[pollutant_column]))
-                        CorrParamsTrim.append(r_valueRef**2)
-                    else:
-                        CorrParamsTrim.append(np.nan)
+                        CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
+                        CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+
                 else:
-                    CorrParamsTrim.append(np.nan)
-                    print 'No ref Available'
+                    if _verbose:
+                        print 'No ref Available'
                 
-                ## Get some metrics
-                CorrParamsTrim.append(dataframeTrim[temp].mean(skipna = True))
-                CorrParamsTrim.append(dataframeTrim[temp].std(skipna = True))
-                CorrParamsTrim.append(dataframeTrim[hum].mean(skipna = True))
-                CorrParamsTrim.append(dataframeTrim[hum].std(skipna = True))
-                CorrParamsTrim.append(dataframeTrim[pollutant_column].mean(skipna = True))
+                ## Get some metrics 
+                CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean(skipna = True) if not dataframeTrim.empty else np.nan
+                CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std(skipna = True) if not dataframeTrim.empty else np.nan
+                CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean(skipna = True) if not dataframeTrim.empty else np.nan
+                CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std(skipna = True) if not dataframeTrim.empty else np.nan
+                CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean(skipna = True) if not dataframeTrim.empty else np.nan
                 
                 if day == 0:
                     CorrParams = list()
                 
                 CorrParams.append(CorrParamsTrim)
             
-            ## TODO: Add relevant metadata for this method
-            labelsCP = ['r_valueRef',
-                        'avg_temp',
-                        'stderr_temp',
-                        'avg_hum',
-                        'stderr_hum',
-                        'avg_pollutant']
-            
-            CorrParamsDF = pd.DataFrame(CorrParams, columns = labelsCP, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
+            CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
             
             # SHOW SOME METADATA FOR THE BASELINES FOUND
             if _printStats:

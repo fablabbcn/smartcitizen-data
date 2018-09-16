@@ -4,7 +4,9 @@ import statsmodels.graphics as smgraph
 from statsmodels.stats.outliers_influence import summary_table
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
 from statsmodels.tsa.stattools import adfuller
+
 import numpy as np
+import pandas as pd
 
 from math import sqrt
 
@@ -18,6 +20,36 @@ import seaborn as sns
 # Others
 from formula_utils import exponential_smoothing
 from signal_utils import metrics
+
+def tfullerplot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
+    
+    if lags_diff > 0:
+        _x = _x - _x.shift(lags_diff)
+        
+    _x = _x.dropna()
+    
+    ad_fuller_result = adfuller(_x)
+    adf = ad_fuller_result[0]
+    pvalue = ad_fuller_result[1]
+    usedlag = ad_fuller_result[2]
+    nobs = ad_fuller_result[3]
+    print ('{}:'.format(name))
+    print ('\tADF- Statistic: %.5f \tpvalue: %.5f \tUsed Lag: % d \tnobs: % d ' % (adf, pvalue, usedlag, nobs))
+
+    with plot.style.context('seaborn-white'):    
+        fig = plot.figure(figsize=figsize)
+        layout = (2, 2)
+        ts_ax = plot.subplot2grid(layout, (0, 0), colspan=2)
+        acf_ax = plot.subplot2grid(layout, (1, 0))
+        pacf_ax = plot.subplot2grid(layout, (1, 1))
+        
+        _x.plot(ax=ts_ax)
+        ts_ax.set_ylabel(name)
+        ts_ax.set_title('Analysis Plots\n Dickey-Fuller: p={0:.5f}'.format(pvalue))
+        smgraph.tsaplots.plot_acf(_x, lags=lags, ax=acf_ax)
+        smgraph.tsaplots.plot_pacf(_x, lags=lags, ax=pacf_ax)
+        plot.tight_layout()
+
 
 def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter, device_name):
 
@@ -34,18 +66,21 @@ def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_trai
     if alpha_filter<1:
         for column in dataframeTrain.columns:
             dataframeTrain[column] = exponential_smoothing(dataframeTrain[column], alpha_filter)
+    		
     # Test Dataframe
     dataframeTest = dataframeModel.iloc[n_train_periods:,:]
     dataframeTest['const'] = 1
     if alpha_filter<1:
         for column in dataframeTest.columns:
             dataframeTest[column] = exponential_smoothing(dataframeTest[column], alpha_filter)
+			
 
 	dataTrain = {}
     dataTest = {}
     for item in tuple_features:
         dataTrain[item[0]] = dataframeTrain.loc[:,item[1] + '_' + device_name].values
         dataTest[item[0]] = dataframeTest.loc[:,item[1] + '_' + device_name].values
+        
     dataTrain['index'] = dataframeTrain.index
     dataTrain['const'] = dataframeTrain.loc[:,'const'].values
     dataTest['index'] = dataframeTest.index
@@ -53,7 +88,6 @@ def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_trai
     
     return dataTrain, dataTest, n_train_periods
 
-# Fit model
 def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
     '''
         
@@ -64,7 +98,25 @@ def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
 
     return model
 
-def predict_OLS(model, dataTrain, dataTest, plotResult = True):    
+def plotOLSCoeffs(_model):
+    """
+        Plots sorted coefficient values of the model
+    """
+    _data =  [x for x in _model.params]
+    _columns = _model.params.index
+    _coefs = pd.DataFrame(_data, _columns, dtype = 'float')
+    
+    _coefs.columns = ["coef"]
+    _coefs["abs"] = _coefs.coef.apply(np.abs)
+    _coefs = _coefs.sort_values(by="abs", ascending=False).drop(["abs"], axis=1)
+    
+    figure = plot.figure(figsize=(15, 7))
+    _coefs.coef.plot(kind='bar')
+    plot.grid(True, axis='y')
+    plot.hlines(y=0, xmin=0, xmax=len(_coefs), linestyles='dashed')
+    plot.title('Linear Regression Coefficients')
+
+def predict_OLS(model, dataTrain, dataTest, plotResult = True, plotAnomalies = True):    
     ## Predict Results
     predictionTrain = model.predict(dataTrain)
     # predictionTest = model.predict(dataTest)
@@ -84,7 +136,6 @@ def predict_OLS(model, dataTrain, dataTest, plotResult = True):
     
     # For test
     summary_test = predictionTest.summary_frame(alpha=0.05)
-    # test_mean, mean_se, mean_ci_lower, mean_ci_upper, obs_ci_lower, obs_ci_upper
     test_mean  = summary_test.loc[:, 'mean'].values
     test_mean_ci_low = summary_test.loc[:, 'mean_ci_lower'].values
     test_mean_ci_upp = summary_test.loc[:, 'mean_ci_upper'].values
@@ -112,8 +163,6 @@ def predict_OLS(model, dataTrain, dataTest, plotResult = True):
     	plot.plot(dataTest['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
     	plot.plot(dataTest['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
     	plot.fill_between(dataTest['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
-	
-    	# Out of sample forecast Confidence intervals
     	plot.plot(dataTest['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
     	plot.plot(dataTest['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
     	plot.fill_between(dataTest['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
@@ -253,6 +302,9 @@ def modelRplots(model, dataTrain, dataTest):
     
     plot.legend(loc='upper right');
 
+    # Model residuals
+    tfullerplot(model_residuals, name = 'Residuals', lags=60, lags_diff = 0)
+        
 def archiveModel_OLS(model_name_OLS,referenceTrain, referenceTest, predictionTrain, predictionTest):
     dataFrameTrain = pd.DataFrame(data = {'referenceTrain': referenceTrain, 'predictionTrain': predictionTrain.values}, 
                                   index = dataTrain['index'])
