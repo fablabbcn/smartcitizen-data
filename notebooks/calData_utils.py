@@ -3,8 +3,6 @@ import pandas as pd
 from os.path import join, dirname
 from os import getcwd
 
-
-
 url_alpha = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-iscape-data/master/notebooks/caldata/alphasense.json'
 url_mics = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-iscape-data/master/notebooks/caldata/mics.json'
 

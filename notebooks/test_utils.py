@@ -279,7 +279,7 @@ def loadTest():
                                 convertionFactor = 1.0/convertionItem[2]
                         print ('\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit))
                             
-                    df.loc[:,pollutant + ref_append] = df.loc[:,channel]*convertionFactor
+                    df.loc[:,pollutant + '_' + ref_append] = df.loc[:,channel]*convertionFactor
                     
                 referenceDict['data'] = df
                 readings[test_id]['devices'][reference] = referenceDict

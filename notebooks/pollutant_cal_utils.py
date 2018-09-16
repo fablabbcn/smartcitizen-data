@@ -297,27 +297,7 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
             with plt.style.context('seaborn-white'):
                 
                 fig2, ax3 = plt.subplots(figsize=(20,8))
-
-                # if _trydecomp == False:
-                #     fig2, ax3 = plt.subplots(figsize=(20,8))
-                # else: 
-                #     fig2, (ax3, ax4) = plt.subplots(nrows = 1, ncols = 2, figsize=(20,8))
-                #     ax4.plot(data_baselineDecomp.index, data_baselineDecomp.values, label='Baseline', marker = None)
-                #     ax4.plot(dataDecomp.index, dataDecomp[alphaW], label = 'Working Decomp', marker = None)
-                #     ax4.plot(dataDecomp.index, dataDecomp[alphaA], label = 'Auxiliary Decomp', marker = None)
-                #     ax4.legend(loc="best")
-                #     ax4.axis('tight')
-                #     ax4.set_title("Baseline Compensated")
-                #     ax4.set(xlabel='Time', ylabel='Ouput-mV')
-                #     ax4.grid(True)
-                #     ax4.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
-                    
-                #     ax6 = ax4.twinx()
-                #     ax6.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
-                #     ax6.tick_params(axis='y', labelcolor ='red')
-                #     ax6.set_ylabel('Temperature (degC)', color = 'red')
-                #     ax6.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
-                
+ 
                 ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
                 ax3.plot(dataframeCalc.index, dataframeCalc[alphaW], label='Original Working', marker = None)
                 ax3.plot(dataframeCalc.index, dataframeCalc[alphaA], label='Original Auxiliary', marker = None)
@@ -327,22 +307,11 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _baselined, _basel
                 ax3.set_title("Baseline Not Compensated")
                 ax3.set(xlabel='Time', ylabel='Ouput-mV')
                 ax3.grid(True)
-                
-                # if _trydecomp == True:
-                #     ax5 = ax3.twinx()
-                #     ax5.plot(dataDecomp.index, dataDecomp[temp], label='Temperature Decomp', c = 'red', marker = None)
-                #     ax5.tick_params(axis='y', labelcolor ='red')
-                #     ax5.set_ylabel(dataDecomp[temp].name, color = 'red')
-                #     ax5.set_ylim(min(min(dataDecomp[temp]),min(data_baselineDecomp.values)) -5,max(max(dataDecomp[temp]),max(data_baselineDecomp.values))+5)
-                    
+                 
                 fig3, ax7 = plt.subplots(figsize=(20,8))
                 
                 ax7.plot(_dataFrame[temp], _dataFrame[alphaW], label='W - Raw', marker='o',  linestyle=None, linewidth = 0)
                 ax7.plot(_dataFrame[temp], _dataFrame[alphaA], label ='A - Raw', marker='v', linewidth=0)
-                
-                # if _trydecomp == True:
-                #     ax7.plot(dataDecomp[temp], dataDecomp[alphaA], label ='A - Trend Decomposed', marker='v', linewidth=0)
-                #     ax7.plot(dataDecomp[temp], dataDecomp[alphaW], label = 'W - Trend Decomposed',marker='o', linestyle=None, linewidth = 0)
                 
                 ax7.legend(loc="best")
                 ax7.axis('tight')
@@ -588,7 +557,6 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean(skipna = True) if not dataframeTrim.empty else np.nan
                
                     CorrParams.append(CorrParamsTrim)
-            
             
             CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
             
