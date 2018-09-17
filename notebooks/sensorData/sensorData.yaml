@@ -1,5 +1,6 @@
 '4773':
   sck_id: SCK2118080014
+  internal_name: 'station_a'
   type: 'station'
   gas_pro_board: 
     CO: 162581720
@@ -12,6 +13,7 @@
 
 '4774':
   sck_id: SCK2118080026
+  internal_name: 'station_a'
   type: 'station'
   alphasense:
     CO: 162581724
@@ -24,6 +26,7 @@
 
 '4748':
   sck_id: 'na'
+  internal_name: 'station_lab'
   type: 'station'
   alphasense:
     CO: 162031257

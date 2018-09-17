@@ -114,7 +114,7 @@ def clearTests():
     clear_output()
     selectedTests = ()
 
-def loadTest():
+def loadTest(frequency):
     
     # print selectedTests
     readings = {}
@@ -174,7 +174,7 @@ def loadTest():
             display(Markdown('#### {}'.format(kit)))
             # Get fileName
             fileNameProc = test['test']['devices']['kits'][kit]['fileNameProc']
-            frequency = test['test']['devices']['kits'][kit]['frequency']
+            # frequency = test['test']['devices']['kits'][kit]['frequency']
             fileData = join(testPath, fileNameProc)
             location = test['test']['devices']['kits'][kit]['location']
             display(Markdown('Kit **{}** located **{}**'.format(kit, location)))
