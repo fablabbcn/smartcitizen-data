@@ -499,6 +499,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 if day == 0:
                     # Init dict for CorrParams
                     CorrParams = list()
+                    days_with_data = list()
                  
                 if dataframeTrim.empty:
                     if _verbose:
@@ -552,15 +553,16 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                             print 'No Ref available'
                     
                     ## Get some metrics 
-                    CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean(skipna = True) if not dataframeTrim.empty else np.nan
-                    CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std(skipna = True) if not dataframeTrim.empty else np.nan
-                    CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean(skipna = True) if not dataframeTrim.empty else np.nan
-                    CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std(skipna = True) if not dataframeTrim.empty else np.nan
-                    CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean(skipna = True) if not dataframeTrim.empty else np.nan
-               
+                    CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean() if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std() if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean() if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std() if not dataframeTrim.empty else np.nan
+                    CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean() if not dataframeTrim.empty else np.nan
+                    if not dataframeTrim.empty:
+                        days_with_data.append(day)
                     CorrParams.append(CorrParamsTrim)
             
-            CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
+            CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in days_with_data])
             
             ## Find average ratio for hole dataset
             deltaAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'deltaAuxBase_avg'].mean(skipna = True)
