@@ -15,7 +15,7 @@
   sck_id: SCK2118080026
   internal_name: 'station_a'
   type: 'station'
-  alphasense:
+  gas_pro_board:
     CO: 162581724
     NO2: 202160411
     O3: 204160156
@@ -28,7 +28,7 @@
   sck_id: 'na'
   internal_name: 'station_lab'
   type: 'station'
-  alphasense:
+  gas_pro_board:
     CO: 162031257
     NO2: 202160413
     O3: 204560316

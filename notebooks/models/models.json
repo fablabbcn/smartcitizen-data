@@ -5,7 +5,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE",
+			"REF": "CO_AD_BASE_60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -19,7 +19,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE",
+			"REF": "CO_AD_BASE_60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -34,7 +34,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE",
+			"REF": "CO_AD_BASE_60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -47,14 +47,14 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.4,
 		"features": {
-			"REF": "CO_AD_BASE",
+			"REF": "CO_AD_BASE_60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
             "D": "EXT_PM_25"
 		},
 		"n_lags": 2,
-		"epochs": 100,
+		"epochs": 20,
 		"batch_size": 72,
 		"loss": "mse",
 		"optimizer": "adam",

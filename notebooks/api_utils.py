@@ -15,7 +15,7 @@ base_url = 'https://api.smartcitizen.me/v0/devices/'
 kits_url = 'https://api.smartcitizen.me/v0/kits/'
 
 # TODO: Get this automatically
-station_kit_id = 19
+station_kit_ids = (19, 21)
 kit_kit_id = 11
 
 # Convertion table from API SC to Pandas
@@ -169,7 +169,7 @@ def getDeviceData(_device, verbose, frequency):
             #     print 'Sensor Name Platform: {}'.format(sensor_real_names[sensor_real_ids.index(sensor_id)])
             #     print 'Sensor Name Target: {}'.format(sensor_target_names[sensor_real_ids.index(sensor_id)])
 
-        if deviceRJSON['kit']['id'] == station_kit_id:
+        if deviceRJSON['kit']['id'] in station_kit_ids:
             hasAlpha = True
         else:
             hasAlpha = False
@@ -243,8 +243,9 @@ def getReadingsAPI(_devices, frequency):
                 # retrieve data from API for alphasense
                 readingsAPI['devices'][device]['alphasense'] = dict()
                 try:
-                    readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['alphasense']
+                    readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['gas_pro_board']
                 except:
+
                     print 'Device not in history'
         print '\tDone'
     return readingsAPI
