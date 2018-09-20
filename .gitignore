@@ -3,6 +3,7 @@ data
 
 #
 notebooks/temp-plot.html
+notebooks/models/export/*
 
 # MAC stuff
 */.DS_Store
