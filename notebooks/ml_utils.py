@@ -66,8 +66,6 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags,
 
     n_features = len(list_features) - 1
     n_obs = n_lags * n_features
-    # print 'n_features {}'.format(n_features)
-    # print 'n_obs {}'.format(n_obs)
     
     ## Option sensor 1 (lag 1 and no lagged prediction as feature)
     reframed = series_to_supervised(values, n_lags, 1)
@@ -84,33 +82,31 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags,
         
     values_drop = reframed.values
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled = scaler.fit_transform(values_drop)
+    # X, y
+    values_drop_X = values_drop[:, :-n_predicted_features]
+    values_drop_y = values_drop[:, -n_predicted_features]
 
-    # split into train and test sets
-    train = scaled[:n_train_periods, :]
-    test = scaled[n_train_periods:, :]
+    # apply scaler
+    scalerX = MinMaxScaler(feature_range=(0, 1))
+    scalery = MinMaxScaler(feature_range=(0, 1))
+    scaledX = scalerX.fit_transform(values_drop_X)
+    scaledy = scalery.fit_transform(values_drop_y)
 
-    # split into input and outputs
-    train_X, train_y = train[:, :-n_predicted_features], train[:, -n_predicted_features]
-    test_X, test_y = test[:, :-n_predicted_features], test[:, -n_predicted_features]
-
-    # print 'Training X, y and Test X, y shapes before reshaping'
-    # print (train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+    # train X
+    train_X, test_X = scaledX[:n_train_periods], scaledX[n_train_periods:]
+    train_y, test_y = scaledy[:n_train_periods], scaledy[n_train_periods:]
 
     # reshape input to be 3D [samples, timesteps, features]
     train_X = train_X.reshape((train_X.shape[0], n_lags, n_features))
     test_X = test_X.reshape((test_X.shape[0], n_lags, n_features))
-    # print 'Training X, y and Test X, y shapes after reshaping'
-    # print (train_X.shape, train_y.shape, test_X.shape, test_y.shape)
     
     if verbose:
-    	print 'DataFrame has been reframed and prepared for supervised learning'
-    	print 'Reference is: {}'.format(reference_name)
-    	print 'Features are: {}'.format([i for i in list_features[1:]])
-    	print 'Traning X Shape {}, Training Y Shape {}, Test X Shape {}, Test Y Shape {}'.format(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
+        print 'DataFrame has been reframed and prepared for supervised learning'
+        print 'Reference is: {}'.format(reference_name)
+        print 'Features are: {}'.format([i for i in list_features[1:]])
+        print 'Traning X Shape {}, Training Y Shape {}, Test X Shape {}, Test Y Shape {}'.format(train_X.shape, train_y.shape, test_X.shape, test_y.shape)
     
-    return index, train_X, train_y, test_X, test_y, scaler, n_train_periods
+    return index, train_X, train_y, test_X, test_y, scalerX, scalery, n_train_periods
 
 def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2, plotResult = True, loss = 'mse', optimizer = 'adam', layers = ''):
     
@@ -159,19 +155,50 @@ def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72,
     
     return model
 
-def predict_ML(model, test_X, test_y, n_lags, scaler):
+
+def predict_ML(model, test_X, n_lags, scalery):
+
     # Make a prediction for test
     yhat = model.predict(test_X)
-    test_X = test_X.reshape((test_X.shape[0], test_X.shape[2] * n_lags))
-    # invert scaling for test prediction
-    inv_yhat = concatenate((test_X[:, :], yhat), axis=1)
-    inv_yhat = scaler.inverse_transform(inv_yhat)
+    inv_yhat = scalery.inverse_transform(yhat)
     inv_yhat = inv_yhat[:,-1]
+
+    return inv_yhat
+
+def get_inverse_transform_ML(test_y, n_lags, scalery):
     
     # invert scaling for actual
     test_y = test_y.reshape((len(test_y), 1))
-    inv_y = concatenate((test_X[:, :], test_y), axis=1)
-    inv_y = scaler.inverse_transform(inv_y)
+    inv_y = scalery.inverse_transform(test_y)
     inv_y = inv_y[:,-1]
     
-    return inv_y, inv_yhat
+    return inv_y
+
+def prep_prediction_ML(dataframeModel, list_features, n_lags, alpha_filter, scalerX, verbose = True):
+        
+    # get selected values from list    
+    dataframeSupervised = dataframeModel.loc[:,list_features]
+    dataframeSupervised = dataframeSupervised.dropna()
+    index = dataframeSupervised.index[n_lags-1:]
+
+    if alpha_filter<1:
+        for column in dataframeSupervised.columns:
+            dataframeSupervised[column] = exponential_smoothing(dataframeSupervised[column], alpha_filter)
+    
+    values = dataframeSupervised.values
+    reframed = series_to_supervised(values, n_lags-1, 1)
+    
+    n_features = len(list_features) # There is no reference in the list
+    n_obs = n_lags * n_features
+        
+    test = scalerX.transform(reframed.values)
+
+    # reshape input to be 3D [samples, timesteps, features]
+    test = test.reshape((test.shape[0], n_lags, n_features))
+    
+    if verbose:
+        print 'DataFrame has been reframed and prepared for supervised learning forecasting'
+        print 'Features are: {}'.format([i for i in list_features])
+        print 'Test X Shape {}'.format(test.shape)
+    
+    return test, index, n_obs
