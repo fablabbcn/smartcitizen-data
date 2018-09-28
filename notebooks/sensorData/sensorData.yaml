@@ -1,7 +1,24 @@
 '4773':
-  sck_id: SCK2118080014
-  internal_name: 'station_a'
+  hardware_id: '8ce207d2-504e4b4b-372e314a-ff03180c'
+  sck_id: 'SCK2118080014'
+  id: '12345a'
   type: 'station'
+  mac: '07D7'
+  gas_pro_board: 
+    CO: 162581720
+    NO2: 202160405
+    O3: 204160159
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000701
+    PMS5003_2: 2017123000703
+
+'4814':
+  hardware_id: '8ce207d2-504e4b4b-372e314a-ff03180c'
+  sck_id: 'SCK2118080014'
+  id: '12345a'
+  type: 'station'
+  mac: '07D7'
   gas_pro_board: 
     CO: 162581720
     NO2: 202160405
@@ -12,9 +29,11 @@
     PMS5003_2: 2017123000703
 
 '4774':
-  sck_id: SCK2118080026
-  internal_name: 'station_a'
+  hardware_id: 'e7a97ecf-504e4b4b-372e314a-ff031727'
+  sck_id: 'SCK2118080026'
+  id: '12345b'
   type: 'station'
+  mac: 'F9FF'
   gas_pro_board:
     CO: 162581724
     NO2: 202160411
@@ -24,10 +43,147 @@
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
 
+
+'4815':
+  hardware_id: 'e7a97ecf-504e4b4b-372e314a-ff031727'
+  sck_id: 'SCK2118080026'
+  id: '12345b'
+  type: 'station'
+  mac: 'F9FF'
+  gas_pro_board:
+    CO: 162581724
+    NO2: 202160411
+    O3: 204160156
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000719
+    PMS5003_2: 2017123000700
+
+'4816':
+  hardware_id: '84227d31-504e4b4b-372e314a-ff032a25'
+  sck_id: 'SCK2118080071'
+  id: '12345c'
+  type: 'station'
+  mac: 'F5B3'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'4817':
+  hardware_id: '164dfb34-504e4b4b-372e314a-ff032617'
+  sck_id: 'SCK2118080036'
+  id: '12345d'
+  type: 'station'
+  mac: 'F886'
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 2041600149
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
+
+'4818':
+  hardware_id: 'd89fb85-504e4b4b-372e314a-ff032d28'
+  sck_id: 'SCK2118080055'
+  id: '12345e'
+  type: 'station'
+  mac: 'FFD5'
+  gas_pro_board: 
+    CO: 162581709
+    NO2: 202160418
+    O3: 204160146
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503890
+    PMS5003_2: 2018052503803
+
+'4819':
+  hardware_id: '3d53dc0f-504e4b4b-372e314a-ff032b26'
+  sck_id: 'SCK2118080028'
+  id: '12345f'
+  type: 'station'
+  mac: '0200'
+  gas_pro_board: 
+    CO: 162581711
+    NO2: 202160419
+    O3: 204160148
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503807
+    PMS5003_2: 2018052503823
+
+'PROVG':
+  hardware_id: '6fec749e-504e4b4b-372e314a-ff032e0d'
+  sck_id: 'SCK2118080002'
+  id: '12345g'
+  type: 'station'
+  mac: '1E4A'
+  gas_pro_board: 
+    CO: 162581710
+    NO2: 202160420
+    O3: 204160147
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503821
+    PMS5003_2: 2018052503814
+
+'PROVH':
+  hardware_id: 'beccbf5d-504e4b4b-372e314a-ff032526'
+  sck_id: 'SCK2118080012'
+  id: '12345h'
+  type: 'station'
+  mac: 'FB19'
+  gas_pro_board: 
+    CO: 162581721
+    NO2: 202160417
+    O3: 204160158
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503833
+    PMS5003_2: 2018052503825 
+
+'PROVI':
+  hardware_id: '127b5531-504e4b4b-372e314a-ff031926'
+  sck_id: 'SCK2118080024'
+  id: '12345i'
+  type: 'station'
+  mac: 'F174'
+  gas_pro_board: 
+    CO: 162581723
+    NO2: 202160412
+    O3: 204160155
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503839
+    PMS5003_2: 2018052503819
+
+'PROVJ':
+  hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
+  sck_id: 'SCK2118080035'
+  id: '12345j'
+  type: 'station'
+  mac: '04E1'
+  gas_pro_board: 
+    CO: 162581722
+    NO2: 202160404
+    O3: 204160157
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503817
+    PMS5003_2: 2018052503804
+
 '4748':
   sck_id: 'na'
-  internal_name: 'station_lab'
+  id: 'station_lab'
   type: 'station'
+  mac: ''
   gas_pro_board:
     CO: 162031257
     NO2: 202160413
@@ -36,7 +192,3 @@
   pm_board:
     PMS5003_1: 'na'
     PMS5003_2: 'na'
-
-'4776':
-  sck_id: 'na'
-  type: kit
