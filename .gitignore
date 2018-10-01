@@ -4,6 +4,7 @@ data
 #
 notebooks/temp-plot.html
 notebooks/models/export/*
+notebooks/caldata/*
 
 # MAC stuff
 */.DS_Store

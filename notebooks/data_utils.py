@@ -5,7 +5,7 @@ from os import getcwd
 
 def getCalData(_sensorType):
 
-	url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-iscape-data/master/notebooks/caldata/'
+	url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-iscape-models/master/CalibrationData/'
 
 	try:
 		calData = pd.read_json(url + _sensorType + '.json', orient='columns', lines = True)

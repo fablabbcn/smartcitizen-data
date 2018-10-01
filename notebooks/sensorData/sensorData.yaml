@@ -4,6 +4,9 @@
   id: '12345a'
   type: 'station'
   mac: '07D7'
+  internal_ref: 'Demo Hasselt - Bottrop'
+  date_from: '2018-09-17'
+  date_to: '2018-09-21'
   gas_pro_board: 
     CO: 162581720
     NO2: 202160405
@@ -19,6 +22,9 @@
   id: '12345a'
   type: 'station'
   mac: '07D7'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board: 
     CO: 162581720
     NO2: 202160405
@@ -34,6 +40,9 @@
   id: '12345b'
   type: 'station'
   mac: 'F9FF'
+  internal_ref: 'Demo Hasselt - Bottrop'
+  date_from: '2018-09-17'
+  date_to: '2018-09-21'
   gas_pro_board:
     CO: 162581724
     NO2: 202160411
@@ -50,6 +59,9 @@
   id: '12345b'
   type: 'station'
   mac: 'F9FF'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board:
     CO: 162581724
     NO2: 202160411
@@ -65,6 +77,9 @@
   id: '12345c'
   type: 'station'
   mac: 'F5B3'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board: 
     CO: 162581708
     NO2: 202160421
@@ -80,6 +95,9 @@
   id: '12345d'
   type: 'station'
   mac: 'F886'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board: 
     CO: 162581712
     NO2: 202160416
@@ -95,6 +113,9 @@
   id: '12345e'
   type: 'station'
   mac: 'FFD5'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board: 
     CO: 162581709
     NO2: 202160418
@@ -110,6 +131,9 @@
   id: '12345f'
   type: 'station'
   mac: '0200'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
   gas_pro_board: 
     CO: 162581711
     NO2: 202160419
