@@ -136,12 +136,12 @@ def loadTest(frequency):
         for types in ('W','A'):
             for slot in (1,2,3):
                 targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'GASES', slot, types, 'BOARD_AUX', ''))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', ''))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', ''))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'SENSOR_CO', '', '', 'BOARD_URBAN', 'kOhm'))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'SENSOR_NO2', '', '', 'BOARD_URBAN', 'kOhm'))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN', 'C'))
-        targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN', '%'))
+        targetSensorNames.append('EXT_TEMP')
+        targetSensorNames.append('EXT_HUM')
+        targetSensorNames.append('CO_MICS_RAW')
+        targetSensorNames.append('NO2_MICS_RAW')
+        targetSensorNames.append('TEMP')
+        targetSensorNames.append('HUM')
         
         testSensorNames = list()
         for types in ('W','A'):
