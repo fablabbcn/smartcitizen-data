@@ -72,11 +72,11 @@
     PMS5003_2: 2017123000700
 
 '4816':
-  hardware_id: '84227d31-504e4b4b-372e314a-ff032a25'
-  sck_id: 'SCK2118080071'
+  hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
+  sck_id: 'SCK2118080019'
   id: '12345c'
   type: 'station'
-  mac: 'F5B3'
+  mac: '3C2D'
   internal_ref: 'Delivery iScape'
   date_from: '2018-09-28'
   date_to: '-'
@@ -90,11 +90,11 @@
     PMS5003_2: 2018052503835
 
 '4817':
-  hardware_id: '164dfb34-504e4b4b-372e314a-ff032617'
-  sck_id: 'SCK2118080036'
+  hardware_id: '72e042c5-504e4b4b-372e314a-ff030b28'
+  sck_id: 'SCK2118080073'
   id: '12345d'
   type: 'station'
-  mac: 'F886'
+  mac: 'EE42'
   internal_ref: 'Delivery iScape'
   date_from: '2018-09-28'
   date_to: '-'
@@ -143,7 +143,7 @@
     PMS5003_1: 2018052503807
     PMS5003_2: 2018052503823
 
-'PROVG':
+'4825':
   hardware_id: '6fec749e-504e4b4b-372e314a-ff032e0d'
   sck_id: 'SCK2118080002'
   id: '12345g'
@@ -158,7 +158,7 @@
     PMS5003_1: 2018052503821
     PMS5003_2: 2018052503814
 
-'PROVH':
+'4826':
   hardware_id: 'beccbf5d-504e4b4b-372e314a-ff032526'
   sck_id: 'SCK2118080012'
   id: '12345h'
@@ -173,7 +173,7 @@
     PMS5003_1: 2018052503833
     PMS5003_2: 2018052503825 
 
-'PROVI':
+'4827':
   hardware_id: '127b5531-504e4b4b-372e314a-ff031926'
   sck_id: 'SCK2118080024'
   id: '12345i'
@@ -188,7 +188,7 @@
     PMS5003_1: 2018052503839
     PMS5003_2: 2018052503819
 
-'PROVJ':
+'4828':
   hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
   sck_id: 'SCK2118080035'
   id: '12345j'

@@ -249,18 +249,6 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
             _data_baseline: dataframe with baseline
             _baseline_corr: metadata containing analytics for long term analysis
     '''
-
-    # def decomposeData(_dataframe, _listNames):
-    #     dataDecomp = pd.DataFrame(index = _dataframe.index)
-    #     slopeList = list()
-    #     interceptList = list()
-    #     # Decompose Trend - Check if decomposition helps at all
-    #     for name in _listNames:
-    #         dataDecomp[name], slope, intercept = decompose(_dataframe[name], _plots)
-    #         slopeList.append(slope)
-    #         interceptList.append(intercept)
-
-    #     return dataDecomp, slopeList, interceptList
     
     ## Create Baselines
 
@@ -336,27 +324,6 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
 
         baselineCorr = list()
         baselineCorr.append(indexMax)
-
-    # ## Verify anticorrelation between temperature and humidity
-    # if _plots == True:
-    #     with plt.style.context('seaborn-white'):
-    #         fig2, (ax3, ax4) = plt.subplots(nrows = 2, ncols = 1,figsize=(20,10))
-    #         ax3.scatter(_dataFrame[hum], _dataFrame[temp], marker = 'o', linewidth = 0)
-    #         ax3.set_xlabel(_dataFrame[hum].name)
-    #         ax3.set_ylabel(_dataFrame[temp].name)
-    #         ax3.grid(True)
-            
-    #         colorH = 'red'
-    #         colorT = 'blue'
-    #         ax4.plot(_dataFrame.index, _dataFrame[hum], c = colorH, label = _dataFrame[hum].name, marker = None)
-    #         ax5 = ax4.twinx()
-    #         ax5.plot(_dataFrame.index, _dataFrame[temp], c = colorT, label = _dataFrame[temp].name, marker = None)
-    #         ax4.tick_params(axis='y', labelcolor=colorH)
-    #         ax5.tick_params(axis='y', labelcolor=colorT)
-    #         ax4.set_xlabel('Time')
-    #         ax4.set_ylabel(_dataFrame[temp].name, color = colorH)
-    #         ax5.set_ylabel(_dataFrame[hum].name, color = colorT)
-    #         ax4.grid(True)
 
     return data_baseline, CorrParams
 
@@ -484,6 +451,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 baseliner = hum
             elif baselineType == 'single_aux':
                 baseliner = alphaA
+            print 'Using {} as baseliner'.format(baseliner)
             baselined = alphaW
             
             # Iterate over days
@@ -526,25 +494,24 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     CorrParamsTrim = dict()
 
                     # CALCULATE THE BASELINE PER DAY
-                    dataframeTrim[alphaW + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeCheck, 'alphasense', _listNames, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
+                    dataframeTrim[alphaW + '_BASELINE_' + _append], CorrParamsTrim = calculateBaselineDay(dataframeCheck, 'alphasense', _listNames, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
                     
                     CorrParamsTrim['ratioAuxBase_avg']
                     # TRIM IT BACK TO NO-OVERLAP
-                    # dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
-                    # dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
+
                     dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl]
                     dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl]
 
                     # CALCULATE ACTUAL POLLUTANT CONCENTRATION
                     if pollutant == 'CO': 
                         # Not recommended for CO
-                        dataframeTrim[pollutant_column] = backgroundConc_CO + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_baseline'])/abs(Sensitivity_1)
+                        dataframeTrim[pollutant_column] = backgroundConc_CO + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append])/abs(Sensitivity_1)
                     elif pollutant == 'NO2':
-                        dataframeTrim[pollutant_column] = backgroundConc_NO2 + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_baseline'])/abs(Sensitivity_1)
+                        dataframeTrim[pollutant_column] = backgroundConc_NO2 + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append])/abs(Sensitivity_1)
                         # dataframeTrim[pollutant_column] = backgroundConc_NO2 + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - CorrParamsTrim['ratioAuxBase_avg']*dataframeTrim[alphaA])/abs(Sensitivity_1)
                     
                     elif pollutant == 'O3':
-                        dataframeTrim[pollutant_column] = backgroundConc_OX + factor_unit_1*(factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_baseline']) - (dataframeTrim[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
+                        dataframeTrim[pollutant_column] = backgroundConc_OX + factor_unit_1*(factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append]) - (dataframeTrim[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
                     
                     # ADD IT TO THE DATAFRAME
                     dataframeTrim[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeTrim[pollutant_column].fillna(0), filterExpSmoothing)
@@ -708,7 +675,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaA], 'type': 'scatter', 'line': dict(width = 2), 'name': dataframeResult[alphaA].name}, 1, 1)
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaA] * nWA, 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': 'AuxCor Alphasense'}, 1, 1)
             if method == 'baseline':
-                fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaW + '_baseline'], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
+                fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaW + '_BASELINE_' + _append], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
             
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[pollutant_column].name}, 2, 1)
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column + '_FILTER'], 'type': 'scatter', 'name': (dataframeResult[pollutant_column + '_FILTER'].name)}, 2, 1)
@@ -866,14 +833,14 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
                 else:
                     
                     # CALCULATE THE BASELINE PER DAY
-                    dataframeTrim[mics_resist + '_baseline'], CorrParamsTrim = calculateBaselineDay(dataframeTrim, 'mics', _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
+                    dataframeTrim[mics_resist + '_BASELINE_' + _append], CorrParamsTrim = calculateBaselineDay(dataframeTrim, 'mics', _listNames, baselined, baseliner, _deltas, _type_regress, _trydecomp, _plotsInter, _verbose)
                     
                     # TRIM IT BACK TO NO-OVERLAP
                     dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl].fillna(0)
                     dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
                     
                     # CALCULATE ACTUAL POLLUTANT CONCENTRATION
-                    pollutant_wo_background = factor_unit*(dataframeTrim[mics_resist] - dataframeTrim[mics_resist + '_baseline'] - Zero_Air_Resistance)/Sensitivity
+                    pollutant_wo_background = factor_unit*(dataframeTrim[mics_resist] - dataframeTrim[mics_resist + '_BASELINE_' + _append] - Zero_Air_Resistance)/Sensitivity
                     
                     if pollutant == 'CO': 
                         dataframeTrim[pollutant_column] = backgroundConc_CO + pollutant_wo_background
@@ -956,7 +923,7 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
             
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[mics_resist], 'type': 'scatter', 'line': dict(width = 2), 'name': dataframeResult[mics_resist].name}, 1, 1)
             if method == 'baseline':
-                fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[mics_resist + '_baseline'], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
+                fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[mics_resist + '_BASELINE_' + _append], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
             
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[pollutant_column].name}, 2, 1)
             fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column + '_FILTER'], 'type': 'scatter', 'name': (dataframeResult[pollutant_column + '_FILTER'].name)}, 2, 1)
