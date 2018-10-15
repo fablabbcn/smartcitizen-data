@@ -432,10 +432,13 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
         # Retrieve temperature and humidity names
         for item in th_ids_table:
             for currentSensorName in currentSensorNames:      
-                if item[1] == currentSensorNames[currentSensorName]['id']:
+                if item[1] == currentSensorNames[currentSensorName]['id'] and currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
                     temp = currentSensorNames[currentSensorName]['shortTitle']
                     break
-                if item[2] == currentSensorNames[currentSensorName]['id']:
+        
+        for item in th_ids_table:
+            for currentSensorName in currentSensorNames:   
+                if item[2] == currentSensorNames[currentSensorName]['id'] and currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
                     hum = currentSensorNames[currentSensorName]['shortTitle']
                     break
 

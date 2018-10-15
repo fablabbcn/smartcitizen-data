@@ -111,9 +111,6 @@ def loadTest(frequency):
         readings[test_id]['devices'] = dict()
         readings[test_id]['commit_hash'] = test['commit_hash']
 
-        commitSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/' + readings[test_id]['commit_hash'] + '/lib/Sensors/Sensors.h')
-        commitSensorNames = getSensorNames(commitSensorsh)
-
         # Get test metadata
         test_init_date = test['test']['init_date']
         test_end_date = test['test']['end_date']
@@ -136,10 +133,10 @@ def loadTest(frequency):
             testSensorNames = list()
 
             for item_test in metadata:
-                print metadata[item_test]
                 id_test = metadata[item_test]['id']
+
                 for item_target in currentSensorNames:
-                    if currentSensorNames[item_target]['id'] == id_test:
+                    if currentSensorNames[item_target]['id'] == id_test and id_test != '0':
                         targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
                         testSensorNames.append(item_test)
                         break
@@ -199,8 +196,10 @@ def loadTest(frequency):
                 
                 # Get the file name and frequency
                 fileNameProc = test['reference']['files'][reference]['fileNameProc']
-                frequency = test['reference']['files'][reference]['index']['frequency']
-                
+                frequency_ref = test['reference']['files'][reference]['index']['frequency']
+                if frequency != frequency_ref:
+                    print 'resampling reference'
+
                 # Check the index name
                 timeIndex = test['reference']['files'][reference]['index']['name']
                 location = test['reference']['files'][reference]['location']
