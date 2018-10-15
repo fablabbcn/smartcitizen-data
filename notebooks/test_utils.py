@@ -73,25 +73,6 @@ def getSensorNames(_sensorsh):
 
 currentSensorNames = getSensorNames(currentSensorsh)
 
-def CHANNEL_NAME(_sensorNames, _measurement, _concat1, _concat2, _SensorLocation, _unit):
-    sensor_name = ''
-    for name in _sensorNames:
-        nameLocation = _sensorNames[name]['SensorLocation']
-        nameUnit = _sensorNames[name]['unit']
-        if _SensorLocation == 'BOARD_AUX':
-            if nameLocation == _SensorLocation and '{}{}'.format(_concat1, _concat2) in name and _measurement in name:
-                sensor_name = str(_sensorNames[name]['shortTitle'])
-                return sensor_name
-            elif nameLocation == _SensorLocation and not '{}{}'.format(_concat1, _concat2) in name and '{}'.format(_measurement) in name:
-                sensor_name = str(_sensorNames[name]['shortTitle'])
-    
-        elif _SensorLocation == 'BOARD_URBAN':
-            if nameLocation == _SensorLocation and '{}{}'.format(_concat1, _concat2) in name and '{}'.format(_measurement) in name and nameUnit in _unit:
-                sensor_name = str(_sensorNames[name]['shortTitle'])
-                return sensor_name
-    
-    return sensor_name
-
 def getTests(directory):
     tests = dict()
     mydir = join(directory, 'data')
@@ -129,30 +110,9 @@ def loadTest(frequency):
         readings[test_id] = dict()
         readings[test_id]['devices'] = dict()
         readings[test_id]['commit_hash'] = test['commit_hash']
+
         commitSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/' + readings[test_id]['commit_hash'] + '/lib/Sensors/Sensors.h')
         commitSensorNames = getSensorNames(commitSensorsh)
-
-        targetSensorNames = list()
-        for types in ('W','A'):
-            for slot in (1,2,3):
-                targetSensorNames.append(CHANNEL_NAME(currentSensorNames, 'GASES', slot, types, 'BOARD_AUX', ''))
-        targetSensorNames.append('EXT_TEMP')
-        targetSensorNames.append('EXT_HUM')
-        targetSensorNames.append('CO_MICS_RAW')
-        targetSensorNames.append('NO2_MICS_RAW')
-        targetSensorNames.append('TEMP')
-        targetSensorNames.append('HUM')
-        
-        testSensorNames = list()
-        for types in ('W','A'):
-            for slot in (1,2,3):
-                testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, types, 'BOARD_AUX', ''))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', ''))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', ''))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'SENSOR_CO', '', '', 'BOARD_URBAN', 'kOhm'))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'SENSOR_NO2', '', '', 'BOARD_URBAN', 'kOhm'))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', '', '', 'BOARD_URBAN', 'C'))
-        testSensorNames.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', '', '', 'BOARD_URBAN', '%'))
 
         # Get test metadata
         test_init_date = test['test']['init_date']
@@ -170,6 +130,20 @@ def loadTest(frequency):
 
         # Open all kits
         for kit in test['test']['devices']['kits']:
+
+            metadata = test['test']['devices']['kits'][kit]['metadata']
+            targetSensorNames = list()
+            testSensorNames = list()
+
+            for item_test in metadata:
+                print metadata[item_test]
+                id_test = metadata[item_test]['id']
+                for item_target in currentSensorNames:
+                    if currentSensorNames[item_target]['id'] == id_test:
+                        targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
+                        testSensorNames.append(item_test)
+                        break
+            
 
             display(Markdown('#### {}'.format(kit)))
             # Get fileName
@@ -306,60 +280,3 @@ def combine_data(list_of_datas, check_reference):
         dataframe.columns = new_names
         dataframe_result = dataframe_result.combine_first(dataframe)
     return dataframe_result
-
-# # Usage example
-# for test in readings:
-#     print test
-#     for reading in readings[test]:
-#         print reading
-#         if 'alphasense' in readings[test]['devices'][reading]:
-#             print 'The Kit with alphasense is {}'.format(reading)
-#             display(readings[test][reading]['alphasense'])
-#         if 'is_reference' in readings[test]['devices'][reading]:
-#             print 'The reference is {}'.format(reading)
-#             display(readings[test][reading]['data'].head(4))
-            
-# ## Usage Example
-# slot = 2
-# name = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'WORKING', 'BOARD_AUX')
-# print name
-
-# slot = 2
-# name = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'AUXILIARY', 'BOARD_AUX')
-# print name
-
-# slot = 3
-# name = CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, 'WORKING', 'BOARD_AUX')
-# print name
-
-# slot = 2
-# name = CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, 'AUXILIARY', 'BOARD_AUX')
-# print name
-
-# name = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX')
-# print name
-
-# name = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX')
-# print name
-
-# name = CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX')
-# print name
-
-# name = CHANNEL_NAME(commitSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX')
-# print name
-
-# typeSLOT = ('WORKING','AUXILIARY')
-
-# namesNEW = list()
-# for types in ('WORKING','AUXILIARY'):
-#     for slot in (1,2,3):
-#         namesNEW.append(CHANNEL_NAME(currentSensorNames, 'GASES', slot, types, 'BOARD_AUX'))
-# namesNEW.append(CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX'))
-# namesNEW.append(CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX'))
-
-# namesOLD = list()
-# for types in ('WORKING','AUXILIARY'):
-#     for slot in (1,2,3):
-#         namesOLD.append(CHANNEL_NAME(commitSensorNames, 'ALPHA', slot, types, 'BOARD_AUX'))
-# namesOLD.append(CHANNEL_NAME(commitSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX'))
-# namesOLD.append(CHANNEL_NAME(commitSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX'))

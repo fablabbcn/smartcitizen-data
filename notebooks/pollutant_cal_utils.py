@@ -56,6 +56,16 @@ alphaUnitsFactorsLUT = (['CO', 1, 0],
 micsUnitsFactorsLUT = (['CO', 1],
                         ['NO2', 1000])
 
+# Alphasense ID table (Slot, Working, Auxiliary)
+as_ids_table = ([1,'64','65'], 
+             [2,'61','62'], 
+             [3,'67','68'])
+
+# External temperature table (this table is by priority)
+th_ids_table = (['EXT_DALLAS','96',''], 
+                 ['EXT_SHT31','79', '80'], 
+                 ['SENSOR_TEMPERATURE','55','56'],
+                 ['GASESBOARD_TEMPERATURE','79', '80'])
 
 def ExtractBaseline(_data, _delta):
     '''
@@ -406,17 +416,31 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant)
             return
 
-        # Find Channel Names
-        alphaW = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'W', 'BOARD_AUX', '')
-        alphaA = CHANNEL_NAME(currentSensorNames, 'GASES', slot, 'A', 'BOARD_AUX', '')
-        temp = CHANNEL_NAME(currentSensorNames, 'TEMPERATURE', 0, '?ONE', 'BOARD_AUX', 'C')
-        if temp not in dataframeResult.columns:
-            temp = CHANNEL_NAME(currentSensorNames, 'SHT31', 0, 'EXT_TEMP', 'BOARD_AUX', 'C')
-        hum = CHANNEL_NAME(currentSensorNames, 'HUMIDITY', 0, '?ONE', 'BOARD_AUX', '%')
-        if hum not in dataframeResult.columns:
-            hum = CHANNEL_NAME(currentSensorNames, 'SHT31', 0, 'EXT_HUM', 'BOARD_AUX', 'C')
-        
+        ## Retrieve alphasense ids from table (for the slot we are calcualting)
+        for item in as_ids_table:
+            if slot == item[0]:
+                id_alphaW = item[1]
+                id_alphaA = item[2]
+
+        ## Retrieve alphasense name
+        for currentSensorName in currentSensorNames:        
+            if id_alphaW == currentSensorNames[currentSensorName]['id']:
+                alphaW = currentSensorNames[currentSensorName]['shortTitle']
+            if id_alphaA == currentSensorNames[currentSensorName]['id']:
+                alphaA = currentSensorNames[currentSensorName]['shortTitle']
+       
+        # Retrieve temperature and humidity names
+        for item in th_ids_table:
+            for currentSensorName in currentSensorNames:      
+                if item[1] == currentSensorNames[currentSensorName]['id']:
+                    temp = currentSensorNames[currentSensorName]['shortTitle']
+                    break
+                if item[2] == currentSensorNames[currentSensorName]['id']:
+                    hum = currentSensorNames[currentSensorName]['shortTitle']
+                    break
+
         _listNames = (alphaW, alphaA, temp, hum)
+        print _listNames
 
         if pollutant == 'O3':
             # Check if NO2 is already present in the dataset
