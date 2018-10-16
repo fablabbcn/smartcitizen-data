@@ -136,11 +136,9 @@ def loadTest(frequency):
                 id_test = metadata[item_test]['id']
 
                 for item_target in currentSensorNames:
-                    if currentSensorNames[item_target]['id'] == id_test and id_test != '0':
+                    if currentSensorNames[item_target]['id'] == id_test and id_test != '0' and item_test not in testSensorNames:
                         targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
-                        testSensorNames.append(item_test)
-                        break
-            
+                        testSensorNames.append(item_test)            
 
             display(Markdown('#### {}'.format(kit)))
             # Get fileName
@@ -154,9 +152,14 @@ def loadTest(frequency):
             df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index('Time')
             # df = pd.read_csv(fileData, verbose=False).set_index('Time')
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
-            
+        
             df.sort_index(inplace=True)
+
+            df = df.apply(pd.to_numeric,errors='coerce')            
+
+            df.fillna(0)
             df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
+
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
             
             # Create dictionary and add it to the readings key
@@ -171,7 +174,6 @@ def loadTest(frequency):
             kitDict['data'] = df
             
             readings[test_id]['devices'][kit] = kitDict
-            
             
             ## Check if it's a STATION and retrieve alphadelta codes
             if test['test']['devices']['kits'][kit]['type'] == 'STATION':
