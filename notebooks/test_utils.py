@@ -2,6 +2,8 @@ import urllib2
 import re
 import os
 from os.path import dirname, join
+from os import getcwd
+from sklearn.externals import joblib
 import yaml
 # import markdown
 from tzwhere import tzwhere
@@ -21,54 +23,71 @@ ref_append = 'REF'
 currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h')
 
 def getSensorNames(_sensorsh):
-    # read only 20 000 chars
-    data = urllib2.urlopen(_sensorsh).read(20000)
-    # split it into lines
-    data = data.split("\n") 
-    sensorNames = dict()
-    lineSensors = len(data)
-    for line in data:
-        
-        if 'class AllSensors' in line:
-            lineSensors = data.index(line)
+    # Directory
+    nameDictPath = join(getcwd(), 'sensorData/sensorNames.sav')
+
+    try:
+        # Read only 20000 chars
+        data = urllib2.urlopen(_sensorsh).read(20000)
+        # split it into lines
+        data = data.split("\n") 
+        sensorNames = dict()
+        lineSensors = len(data)
+
+        # Put everything in the dict
+        for line in data:
             
-        if data.index(line) > lineSensors:
+            if 'class AllSensors' in line:
+                lineSensors = data.index(line)
                 
-                if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
-                    # Split commas
-                    lineTokenized =  line.strip('').split(',')
-                    # print len(lineTokenized)
-                    # Elimminate unnecessary elements
-                    lineTokenizedSub = list()
-                    for item in lineTokenized:
-                            item = re.sub('\t', '', item)
-                            item = re.sub('OneSensor', '', item)
-                            item = re.sub('{', '', item)
-                            item = re.sub('}', '', item)
-                            #item = re.sub(' ', '', item)
-                            item = re.sub('"', '', item)
-                            
-                            if item != '': 
-                                while item[0] == ' ' and len(item)>0: item = item[1:]
-                            lineTokenizedSub.append(item)
-                    lineTokenizedSub = lineTokenizedSub[:-1]
+            if data.index(line) > lineSensors:
+                    
+                    if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
+                        # Split commas
+                        lineTokenized =  line.strip('').split(',')
+                        # print len(lineTokenized)
+                        # Elimminate unnecessary elements
+                        lineTokenizedSub = list()
+                        for item in lineTokenized:
+                                item = re.sub('\t', '', item)
+                                item = re.sub('OneSensor', '', item)
+                                item = re.sub('{', '', item)
+                                item = re.sub('}', '', item)
+                                #item = re.sub(' ', '', item)
+                                item = re.sub('"', '', item)
+                                
+                                if item != '': 
+                                    while item[0] == ' ' and len(item)>0: item = item[1:]
+                                lineTokenizedSub.append(item)
+                        lineTokenizedSub = lineTokenizedSub[:-1]
 
 
-                    if len(lineTokenizedSub) > 2:
-                            sensorLocation = re.sub(' ', '', lineTokenizedSub[0])
-                            sensorID = re.sub(' ','', lineTokenizedSub[1])
-                            sensorNames[sensorID] = dict()
-                            sensorNames[sensorID]['SensorLocation'] = sensorLocation
-                            if len(lineTokenizedSub)>7:
-                                    sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[2])
-                                    sensorNames[sensorID]['title'] = lineTokenizedSub[3]
-                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[4])
-                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
-                            else:
-                                    sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
-                                    sensorNames[sensorID]['title'] = lineTokenizedSub[2]
-                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[3])
-                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
+                        if len(lineTokenizedSub) > 2:
+                                sensorLocation = re.sub(' ', '', lineTokenizedSub[0])
+                                sensorID = re.sub(' ','', lineTokenizedSub[1])
+                                sensorNames[sensorID] = dict()
+                                sensorNames[sensorID]['SensorLocation'] = sensorLocation
+                                if len(lineTokenizedSub)>7:
+                                        sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[2])
+                                        sensorNames[sensorID]['title'] = lineTokenizedSub[3]
+                                        sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[4])
+                                        sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
+                                else:
+                                        sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
+                                        sensorNames[sensorID]['title'] = lineTokenizedSub[2]
+                                        sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[3])
+                                        sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
+
+        # Save everything to the most recent one
+        joblib.dump(sensorNames, nameDictPath)
+    
+    except:
+
+        # Directory
+        # Load sensors
+        print 'No connection - Retrieving local version'
+        sensorNames = joblib.load(nameDictPath)
+
     return sensorNames
 
 currentSensorNames = getSensorNames(currentSensorsh)
