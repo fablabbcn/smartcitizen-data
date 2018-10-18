@@ -1,10 +1,13 @@
 # Remove
 data
 
-#
+# Notebook
 notebooks/temp-plot.html
 notebooks/models/export/*
 notebooks/caldata/*
+
+
+.ipynb_checkpoints*
 
 # MAC stuff
 */.DS_Store
