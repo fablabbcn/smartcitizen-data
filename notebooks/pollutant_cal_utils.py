@@ -443,7 +443,6 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     break
 
         _listNames = (alphaW, alphaA, temp, hum)
-        print _listNames
 
         if pollutant == 'O3':
             # Check if NO2 is already present in the dataset

@@ -51,11 +51,8 @@ def tfullerplot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
         plot.tight_layout()
 
 
-def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_train, alpha_filter, device_name):
+def prep_data_OLS(dataframeModel, tuple_features, ratio_train, alpha_filter, device_name):
 
-    ## Trim dates
-    dataframeModel = dataframeModel[dataframeModel.index > min_date]
-    dataframeModel = dataframeModel[dataframeModel.index < max_date]
     # Train Dataframe
     total_len = len(dataframeModel.index)
     n_train_periods = int(round(total_len*ratio_train))
@@ -63,30 +60,37 @@ def prep_data_OLS(dataframeModel, tuple_features, min_date, max_date, ratio_trai
     dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
     dataframeTrain['const'] = 1
 
+    # Train Dataframe
     if alpha_filter<1:
         for column in dataframeTrain.columns:
             dataframeTrain[column] = exponential_smoothing(dataframeTrain[column], alpha_filter)
-    		
-    # Test Dataframe
-    dataframeTest = dataframeModel.iloc[n_train_periods:,:]
-    dataframeTest['const'] = 1
-    if alpha_filter<1:
-        for column in dataframeTest.columns:
-            dataframeTest[column] = exponential_smoothing(dataframeTest[column], alpha_filter)
-			
-
-	dataTrain = {}
-    dataTest = {}
+    
+    dataTrain = {}
     for item in tuple_features:
-        dataTrain[item[0]] = dataframeTrain.loc[:,item[1] + '_' + device_name].values
-        dataTest[item[0]] = dataframeTest.loc[:,item[1] + '_' + device_name].values
-        
+        dataTrain[item[0]] = dataframeTrain.loc[:,item[1]].values
+
     dataTrain['index'] = dataframeTrain.index
     dataTrain['const'] = dataframeTrain.loc[:,'const'].values
-    dataTest['index'] = dataframeTest.index
-    dataTest['const'] = dataframeTest.loc[:,'const'].values
     
-    return dataTrain, dataTest, n_train_periods
+    # Test Dataframe
+    if ratio_train < 1:
+        dataframeTest = dataframeModel.iloc[n_train_periods:,:]
+        dataframeTest['const'] = 1
+        if alpha_filter<1:
+            for column in dataframeTest.columns:
+                dataframeTest[column] = exponential_smoothing(dataframeTest[column], alpha_filter)
+		
+        dataTest = {}
+        for item in tuple_features:
+            dataTest[item[0]] = dataframeTest.loc[:,item[1]].values
+
+        dataTest['index'] = dataframeTest.index
+        dataTest['const'] = dataframeTest.loc[:,'const'].values
+    
+        return dataTrain, dataTest, n_train_periods
+
+    return dataTrain
+
 
 def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
     '''
@@ -116,64 +120,85 @@ def plotOLSCoeffs(_model):
     plot.hlines(y=0, xmin=0, xmax=len(_coefs), linestyles='dashed')
     plot.title('Linear Regression Coefficients')
 
-def predict_OLS(model, dataTrain, dataTest, plotResult = True, plotAnomalies = True):    
+def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test = 'test'):    
+
+    try:
+        reference = data['REF']
+        ref_avail = True
+    except:
+        # Do nothin
+        ref_avail = False
+        print 'No reference available'
+
     ## Predict Results
-    predictionTrain = model.predict(dataTrain)
-    # predictionTest = model.predict(dataTest)
-    predictionTest = model.get_prediction(dataTest)
-    
-    referenceTrain = dataTrain['REF']
-    referenceTest = dataTest['REF']
+    if train_test == 'train':
 
-    ## Get confidence intervals
-    # For training
-    # prstd, iv_l, iv_u = wls_prediction_std(model)
-    st, summary_train, ss2 = summary_table(model, alpha=0.05)
-    
-    train_mean_se  = summary_train[:, 3]
-    train_mean_ci_low, train_mean_ci_upp = summary_train[:, 4:6].T
-    train_ci_low, train_ci_upp = summary_train[:, 6:8].T
-    
-    # For test
-    summary_test = predictionTest.summary_frame(alpha=0.05)
-    test_mean  = summary_test.loc[:, 'mean'].values
-    test_mean_ci_low = summary_test.loc[:, 'mean_ci_lower'].values
-    test_mean_ci_upp = summary_test.loc[:, 'mean_ci_upper'].values
-    test_ci_low = summary_test.loc[:, 'obs_ci_lower'].values
-    test_ci_upp = summary_test.loc[:, 'obs_ci_upper'].values
+        predictionTrain = model.predict(data)
+        ## Get confidence intervals
+        # For training
+        st, summary_train, ss2 = summary_table(model, alpha=0.05)
+        
+        train_mean_se  = summary_train[:, 3]
+        train_mean_ci_low, train_mean_ci_upp = summary_train[:, 4:6].T
+        train_ci_low, train_ci_upp = summary_train[:, 6:8].T
 
-    if plotResult:
-    	# Plot the stuff
-    	fig = plot.figure(figsize=(15,10))
-    	# Actual data
-    	plot.plot(dataTrain['index'], referenceTrain, 'r', label = 'Reference Train', alpha = 0.3)
-    	plot.plot(dataTest['index'], referenceTest, 'b', label = 'Reference Test', alpha = 0.3)
-	
-    	# Fitted Values for Training
-    	plot.plot(dataTrain['index'], predictionTrain, 'r', label = 'Prediction Train')
-    	plot.plot(dataTrain['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
-    	plot.plot(dataTrain['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-    	plot.fill_between(dataTrain['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
-    	plot.plot(dataTrain['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-    	plot.plot(dataTrain['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-    	plot.fill_between(dataTrain['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
-    	
-    	# Fitted Values for Test
-    	plot.plot(dataTest['index'], test_mean, 'b', label = 'Prediction Test')
-    	plot.plot(dataTest['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
-    	plot.plot(dataTest['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-    	plot.fill_between(dataTest['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
-    	plot.plot(dataTest['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-    	plot.plot(dataTest['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-    	plot.fill_between(dataTest['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
-	
-    	plot.title('Linear Regression Results')
-    	plot.ylabel('Reference/Prediction (-)')
-    	plot.xlabel('Date (-)')
-    	plot.legend(loc='best')
-    	plot.show()
+        if plotResult:
+            # Plot the stuff
+            fig = plot.figure(figsize=(15,10))
+            # Actual data
+            plot.plot(data['index'], reference, 'r', label = 'Reference Train', alpha = 0.3)
+        
+            # Fitted Values for Training
+            plot.plot(data['index'], predictionTrain, 'r', label = 'Prediction Train')
+            plot.plot(data['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            plot.plot(data['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            plot.fill_between(data['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
+            plot.plot(data['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            plot.plot(data['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            plot.fill_between(data['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
+        
+        if ref_avail:
+            return reference, predictionTrain
+        else:
+            return predictionTrain
 
-    return referenceTrain, referenceTest, predictionTrain, test_mean
+    else:
+
+        predictionTest = model.get_prediction(data)
+
+        ## Get confidence intervals
+        # For test
+        summary_test = predictionTest.summary_frame(alpha=0.05)
+        test_mean  = summary_test.loc[:, 'mean'].values
+        test_mean_ci_low = summary_test.loc[:, 'mean_ci_lower'].values
+        test_mean_ci_upp = summary_test.loc[:, 'mean_ci_upper'].values
+        test_ci_low = summary_test.loc[:, 'obs_ci_lower'].values
+        test_ci_upp = summary_test.loc[:, 'obs_ci_upper'].values
+
+        if plotResult:
+            # Plot the stuff
+            fig = plot.figure(figsize=(15,10))
+            # Fitted Values for Test
+            plot.plot(data['index'], reference, 'b', label = 'Reference Test', alpha = 0.3)
+
+            plot.plot(data['index'], test_mean, 'b', label = 'Prediction Test')
+            plot.plot(data['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            plot.plot(data['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            plot.fill_between(data['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
+            plot.plot(data['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            plot.plot(data['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            plot.fill_between(data['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+        
+            plot.title('Linear Regression Results')
+            plot.ylabel('Reference/Prediction (-)')
+            plot.xlabel('Date (-)')
+            plot.legend(loc='best')
+            plot.show()
+
+        if ref_avail:
+            return reference, test_mean
+        else:
+            return test_mean
 
 def modelRplots(model, dataTrain, dataTest):
     
@@ -304,43 +329,3 @@ def modelRplots(model, dataTrain, dataTest):
 
     # Model residuals
     tfullerplot(model_residuals, name = 'Residuals', lags=60, lags_diff = 0)
-        
-def archiveModel_OLS(model_name_OLS,referenceTrain, referenceTest, predictionTrain, predictionTest):
-    dataFrameTrain = pd.DataFrame(data = {'referenceTrain': referenceTrain, 'predictionTrain': predictionTrain.values}, 
-                                  index = dataTrain['index'])
-    
-    dataFrameTest = pd.DataFrame(data = {'referenceTest': referenceTest, 'predictionTest': predictionTest}, 
-                                  index = dataTest['index'])
-    
-    metrics_model_train = metrics(referenceTrain, predictionTrain)
-    metrics_model_test = metrics(referenceTest, predictionTest)
-
-    ## Metrics Train
-    print('\t\t Train \t\t Test')
-    for item in metrics_model_train.keys():
-        print ('% s: \t %.5f \t %.5f ' % (item, metrics_model_train[item], metrics_model_test[item]))
-    
-    ## Put everything into the dict
-    dictModel = readings[test_model]['devices'][name_combined_data]
-    
-    dictModel[model_name_OLS] = dict()
-    dictModel[model_name_OLS]['metrics'] = dict()
-    dictModel[model_name_OLS]['metrics']['train'] = metrics_model_train
-    dictModel[model_name_OLS]['metrics']['test'] = metrics_model_test
-
-    # Model Parameters
-    dictModel[model_name_OLS]['parameters'] = dict()
-    dictModel[model_name_OLS]['parameters']['formula'] = formula_expression
-    dictModel[model_name_OLS]['parameters']['features'] = tuple_features
-    dictModel[model_name_OLS]['parameters']['ratio_train'] = ratio_train
-    dictModel[model_name_OLS]['model'] = model
-    dictModel[model_name_OLS]['data'] = dict()
-    dictModel[model_name_OLS]['data']['train'] = dataFrameTrain
-    dictModel[model_name_OLS]['data']['test'] = dataFrameTest
-    
-    # print dictModel[model_name].keys()
-    # print dictModel[model_name]['metrics']
-    # print dictModel[model_name]['parameters']
-    # print dictModel[model_name]['model']
-    
-    return dictModel[model_name_OLS]

@@ -85,7 +85,7 @@ def getSensorNames(_sensorsh):
 
         # Directory
         # Load sensors
-        print 'No connection - Retrieving local version'
+        print 'No connection - Retrieving local version for sensors names'
         sensorNames = joblib.load(nameDictPath)
 
     return sensorNames
