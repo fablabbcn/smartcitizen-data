@@ -5,11 +5,11 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE_60",
+			"REF": "NO2_MICS_RAW",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
-            "D": "EXT_PM_25"
+            "D": "PM_25"
 		}
 	},
 
@@ -19,26 +19,26 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE_60",
+			"REF": "NO2_MICS_RAW",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
-            "D": "EXT_PM_25"
+            "D": "PM_25"
 		}
 	},
 
 
-	"Log(CO_MICS) + Poly(T) + Poly(D)": {
+	"Log(CO_MICS) + Poly(T) + Poly(D)28": {
 		"type": "OLS",
 		"expression": "REF ~ np.log10(A)  + B + np.power(B,2) + np.power(D, 2)",
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "CO_AD_BASE_60",
+			"REF": "NO2_MICS_RAW",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
-            "D": "EXT_PM_25"
+            "D": "PM_25"
 		}
 	},
 
@@ -47,11 +47,11 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.4,
 		"features": {
-			"REF": "CO_AD_BASE_60",
+			"REF": "NO2_MICS_RAW",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
-            "D": "EXT_PM_25"
+            "D": "PM_25"
 		},
 		"n_lags": 2,
 		"epochs": 20,
