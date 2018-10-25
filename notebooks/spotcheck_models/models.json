@@ -28,7 +28,7 @@
 	},
 
 
-	"Log(CO_MICS) + Poly(T) + Poly(D)28": {
+	"Log(CO_MICS) + Poly(T) + Poly(D)": {
 		"type": "OLS",
 		"expression": "REF ~ np.log10(A)  + B + np.power(B,2) + np.power(D, 2)",
 		"ratio_train": 0.75,
@@ -42,7 +42,7 @@
 		}
 	},
 
-	"LSTM CO, T, PM2.5, HUM - a: 0.4 - T2": {
+	"LSTM CO, T, PM2.5, HUM - a: 0.4 - T": {
 		"type": "LSTM",
 		"ratio_train": 0.75,
 		"alpha_filter": 0.4,
