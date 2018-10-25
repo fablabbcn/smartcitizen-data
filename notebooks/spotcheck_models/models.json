@@ -5,7 +5,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "NO2_MICS_RAW",
+			"REF": "CO_AD_BASE_1-60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -19,7 +19,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "NO2_MICS_RAW",
+			"REF": "CO_AD_BASE_1-60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -34,7 +34,7 @@
 		"ratio_train": 0.75,
 		"alpha_filter": 0.9,
 		"features": {
-			"REF": "NO2_MICS_RAW",
+			"REF": "CO_AD_BASE_1-60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
@@ -45,16 +45,16 @@
 	"LSTM CO, T, PM2.5, HUM - a: 0.4 - T": {
 		"type": "LSTM",
 		"ratio_train": 0.75,
-		"alpha_filter": 0.4,
+		"alpha_filter": 0.5,
 		"features": {
-			"REF": "NO2_MICS_RAW",
+			"REF": "CO_AD_BASE_1-60",
 			"A": "CO_MICS_RAW",
             "B": "TEMP",
             "C": "HUM",
             "D": "PM_25"
 		},
-		"n_lags": 2,
-		"epochs": 20,
+		"n_lags": 3,
+		"epochs": 100,
 		"batch_size": 72,
 		"loss": "mse",
 		"optimizer": "adam",
