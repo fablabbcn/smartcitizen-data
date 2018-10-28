@@ -89,6 +89,8 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags,
     # apply scaler
     scalerX = MinMaxScaler(feature_range=(0, 1))
     scalery = MinMaxScaler(feature_range=(0, 1))
+    
+    values_drop_y = values_drop_y.reshape(-1, 1)
     scaledX = scalerX.fit_transform(values_drop_X)
     scaledy = scalery.fit_transform(values_drop_y)
 
@@ -108,52 +110,55 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags,
     
     return index, train_X, train_y, test_X, test_y, scalerX, scalery, n_train_periods
 
-def fit_model_ML(train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2, plotResult = True, loss = 'mse', optimizer = 'adam', layers = ''):
+def fit_model_ML(model_type, train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2, plotResult = True, loss = 'mse', optimizer = 'adam', layers = ''):
     
-    model = Sequential()
-    if layers == '':
+    if model_type == 'LSTM':
+
+        model = Sequential()
+        
+        if layers == '':
+        
+        	layers = [100, 100, 100, 1]
+        	model.add(LSTM(layers[0], return_sequences=True, input_shape=(train_X.shape[1], train_X.shape[2])))
+        	model.add(Dropout(0.2))
+        	model.add(LSTM(layers[1], return_sequences=True))
+        	model.add(LSTM(layers[2], return_sequences=False))
+        	model.add(Dropout(0.2))
+        	model.add(Dense(output_dim=layers[3]))
+        	model.add(Activation("linear"))
+        else:
+
+    		for layer in layers:
+    			neurons = layer['neurons'] if 'neurons' in layer else None
+    			dropout_rate = layer['rate'] if 'rate' in layer else None
+    			activation = layer['activation'] if 'activation' in layer else None
+    			return_seq = layer['return_seq'] if 'return_seq' in layer else None
+    			input_timesteps = layer['input_timesteps'] if 'input_timesteps' in layer else train_X.shape[1]
+    			input_dim = layer['input_dim'] if 'input_dim' in layer else train_X.shape[2]
+
+    			if layer['type'] == 'dense':
+    				model.add(Dense(neurons, activation=activation))
+    			if layer['type'] == 'lstm':
+    				model.add(LSTM(neurons, input_shape=(input_timesteps, input_dim), return_sequences=return_seq))
+    			if layer['type'] == 'dropout':
+    				model.add(Dropout(dropout_rate))
+
+        model.compile(loss=loss, optimizer=optimizer)
+
+        # fit network
+        history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)
+        if plotResult:
+    	    # plot history
+    	    fig = plot.figure(figsize=(10,8))
+    	    plot.plot(history.history['loss'], label='train')
+    	    plot.plot(history.history['val_loss'], label='test')
+    	    plot.xlabel('Epochs (-)')
+    	    plot.ylabel('Loss (-)')
+    	    plot.title('Model Convergence')
+    	    plot.legend(loc='best')
+    	    plot.show()
     
-    	layers = [100, 100, 100, 1]
-    	model.add(LSTM(layers[0], return_sequences=True, input_shape=(train_X.shape[1], train_X.shape[2])))
-    	model.add(Dropout(0.2))
-    	model.add(LSTM(layers[1], return_sequences=True))
-    	model.add(LSTM(layers[2], return_sequences=False))
-    	model.add(Dropout(0.2))
-    	model.add(Dense(output_dim=layers[3]))
-    	model.add(Activation("linear"))
-    else:
-
-		for layer in layers:
-			neurons = layer['neurons'] if 'neurons' in layer else None
-			dropout_rate = layer['rate'] if 'rate' in layer else None
-			activation = layer['activation'] if 'activation' in layer else None
-			return_seq = layer['return_seq'] if 'return_seq' in layer else None
-			input_timesteps = layer['input_timesteps'] if 'input_timesteps' in layer else train_X.shape[1]
-			input_dim = layer['input_dim'] if 'input_dim' in layer else train_X.shape[2]
-
-			if layer['type'] == 'dense':
-				model.add(Dense(neurons, activation=activation))
-			if layer['type'] == 'lstm':
-				model.add(LSTM(neurons, input_shape=(input_timesteps, input_dim), return_sequences=return_seq))
-			if layer['type'] == 'dropout':
-				model.add(Dropout(dropout_rate))
-
-    model.compile(loss=loss, optimizer=optimizer)
-
-    # fit network
-    history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)
-    if plotResult:
-	    # plot history
-	    fig = plot.figure(figsize=(10,8))
-	    plot.plot(history.history['loss'], label='train')
-	    plot.plot(history.history['val_loss'], label='test')
-	    plot.xlabel('Epochs (-)')
-	    plot.ylabel('Loss (-)')
-	    plot.title('Model Convergence')
-	    plot.legend(loc='best')
-	    plot.show()
-    
-    return model
+        return model
 
 
 def predict_ML(model, test_X, n_lags, scalery):
