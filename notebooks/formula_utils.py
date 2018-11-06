@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import pandas as pd
 
 def exponential_smoothing(series, alpha):
     '''
@@ -158,3 +159,16 @@ def derivative(y, x):
     dy[-1] = (y[-1] - y[-2])/dx[-1]
     result = dy
     return result
+
+def exponential_func(x, a, b, c):
+     return a * np.exp(b * x) + c
+
+def evaluate(predictions, original):
+    errors = abs(predictions - original)
+    max_error = max(errors)
+    rerror = np.maximum(np.minimum(np.divide(errors, original),1),-1)
+    
+    mape = 100 * np.mean(rerror)
+    accuracy = 100 - mape
+    
+    return max_error, accuracy

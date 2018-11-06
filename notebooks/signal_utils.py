@@ -1,5 +1,6 @@
 import numpy as np
 from math import sqrt
+import pandas as pd
 
 def metrics(reference, estimation):
     metrics_dict = dict()
@@ -45,19 +46,19 @@ def metrics(reference, estimation):
 def detect_peak(signal):
     result = np.zeros(signal.shape)
     for i in range(len(signal)-1):
-        if signal[i+1] > signal[i]: result[i] = 1
-        elif signal[i+1] < signal[i]: result[i] = -1
-        elif signal[i+1] == signal[i]: result[i] = 0
+        if signal[i] > signal[i-1]: result[i] = 1
+        elif signal[i] < signal[i-1]: result[i] = -1
+        elif signal[i] == signal[i-1]: result[i] = 0
     return result
 
-def count_peak(signal, acum = False):
+def count_peak(signal, acum = False, sign = True, init = True):
     count_pos = 0
     count_neg = 0
-    last_peak_sign = 1
+    if init == True: last_peak_sign = 1 
+    else: last_peak_sign = -1
     peak = detect_peak(signal)
     result = np.zeros(signal.shape)
     for i in range(len(signal)-1):
-        last_peak_sign = 1
         if acum:
             if peak[i] == 1:
                 last_peak_sign = 1
@@ -67,7 +68,11 @@ def count_peak(signal, acum = False):
                 result[i] = 0
             elif peak[i] == 0: 
                 if i == 0: result[i] = 1
-                else: result[i] = result[i-1] + last_peak_sign
+                else: 
+                    if sign:
+                        result[i] = result[i-1] + last_peak_sign
+                    else:
+                        result[i] = result[i-1] + 1
         else:
             if peak[i] == 1: 
                 count_pos = count_pos + 1
