@@ -35,7 +35,7 @@ mics_calData = getCalData('mics')
 factorPCB = 6.36
 
 # Background Concentration (model assumption) - (from Modelling atmospheric composition in urban street canyons - Vivien Bright, William Bloss and Xiaoming Cai)
-backgroundConc_CO = 0.2 # ppm
+backgroundConc_CO = 0 # ppm
 backgroundConc_NO2 = 8 # ppb
 backgroundConc_OX = 40 # ppb
 
@@ -272,11 +272,13 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
         alphaW, alphaA, temp, hum = _listNames
 
         ## Correlation between Baseline and original auxiliary
-        slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc[alphaA].values))
+        slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc.iloc[:,1].values))
 
+        print 'Working' + dataframeCalc.iloc[:,0]
+        print 'Baseliner' + dataframeCalc.iloc[:,1]
         # Add metadata for further research
-        deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc[alphaA].values)
-        ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc[alphaA].values)
+        deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc.iloc[:,1].values)
+        ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc.iloc[:,1].values)
        
         # Pre filter based on the metadata itself
         if slopeAuxBase > 0 and rAuxBase > 0.3:
@@ -308,8 +310,8 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
                 fig2, ax3 = plt.subplots(figsize=(20,8))
  
                 ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
-                ax3.plot(dataframeCalc.index, dataframeCalc[alphaW], label='Original Working', marker = None)
-                ax3.plot(dataframeCalc.index, dataframeCalc[alphaA], label='Original Auxiliary', marker = None)
+                ax3.plot(dataframeCalc.index, dataframeCalc.iloc[:,0], label='Original Working', marker = None)
+                ax3.plot(dataframeCalc.index, dataframeCalc.iloc[:,1], label='Original Auxiliary', marker = None)
 
                 ax3.legend(loc="best")
                 ax3.axis('tight')

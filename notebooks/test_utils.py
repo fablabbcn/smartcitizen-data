@@ -91,6 +91,11 @@ def getSensorNames(_sensorsh):
     return sensorNames
 
 currentSensorNames = getSensorNames(currentSensorsh)
+currentSensorNames[97] = dict()
+currentSensorNames[97]['shortTitle'] = 'BATT_CHG_RATE'
+currentSensorNames[97]['title'] = 'BATT_CHARGE_RATE'
+currentSensorNames[97]['id'] = 97
+currentSensorNames[97]['unit'] = 'mA'
 
 def getTests(directory):
     tests = dict()
@@ -169,7 +174,6 @@ def loadTest(frequency):
             
             # Create pandas dataframe
             df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index('Time')
-            # df = pd.read_csv(fileData, verbose=False).set_index('Time')
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
         
             df.sort_index(inplace=True)
@@ -228,11 +232,13 @@ def loadTest(frequency):
                 
                 # Open it with pandas    
                 fileData = join(testPath, fileNameProc)
-                df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index(timeIndex)
+                df = pd.read_csv(fileData, verbose=False).set_index(timeIndex)
                 df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
                 df.sort_index(inplace=True)
+                df = df.apply(pd.to_numeric,errors='coerce')            
+
+                df.fillna(0)
                 df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
-                df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
                 
                 ## Convert units
                 # Get which pollutants are available in the reference
@@ -270,7 +276,7 @@ def loadTest(frequency):
                             elif convertionItem[1] == unit and convertionItem[0] == targetUnit:
                                 convertionFactor = 1.0/convertionItem[2]
                         print ('\tConverting _{}_ from _{}_ to _{}_'.format(pollutant, unit, targetUnit))
-                            
+                    
                     df.loc[:,pollutant + '_' + ref_append] = df.loc[:,channel]*convertionFactor
                     
                 referenceDict['data'] = df

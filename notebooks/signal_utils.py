@@ -58,7 +58,7 @@ def count_peak(signal, acum = False, sign = True, init = True):
     else: last_peak_sign = -1
     peak = detect_peak(signal)
     result = np.zeros(signal.shape)
-    for i in range(len(signal)-1):
+    for i in range(len(signal)):
         if acum:
             if peak[i] == 1:
                 last_peak_sign = 1

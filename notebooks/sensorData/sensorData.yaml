@@ -118,7 +118,7 @@
   gas_pro_board: 
     CO: 162581712
     NO2: 202160416
-    O3: 2041600149
+    O3: 204160149
     SLOTS: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
@@ -136,7 +136,7 @@
   gas_pro_board: 
     CO: 162581712
     NO2: 202160416
-    O3: 2041600149
+    O3: 204160149
     SLOTS: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
