@@ -152,7 +152,11 @@ def loadTest(frequency):
         # Open all kits
         for kit in test['test']['devices']['kits']:
 
-            metadata = test['test']['devices']['kits'][kit]['metadata']
+            try:
+                metadata = test['test']['devices']['kits'][kit]['metadata']
+            except:
+                metadata = ''
+                pass
             targetSensorNames = list()
             testSensorNames = list()
 

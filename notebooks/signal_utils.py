@@ -222,3 +222,12 @@ def plot_oneshots(readings, channels, device_one_shot):
 
 def minRtarget(targetR):
     return sqrt(1+ np.power(targetR,2)-2*np.power(targetR,2))
+
+def find_closest(A, target):
+    #A must be sorted
+    idx = A.searchsorted(target)
+    idx = np.clip(idx, 1, len(A)-1)
+    left = A[idx-1]
+    right = A[idx]
+    idx -= target - left < right - target
+    return idx
