@@ -1,5 +1,6 @@
 # Remove
 data
+data/*
 
 # Notebook
 notebooks/temp-plot.html
