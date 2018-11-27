@@ -88,6 +88,24 @@
     PMS5003_1: 2018052503810
     PMS5003_2: 2018052503835
 
+'5261':
+  hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
+  sck_id: 'SCK2118080019'
+  id: 'SCS21003'
+  type: 'station'
+  mac: '3C2D'
+  internal_ref: 'Delivery iScape - UCD 2'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
 '4999':
   hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
   sck_id: 'SCK2118080019'
@@ -96,7 +114,7 @@
   mac: '3C2D'
   internal_ref: 'Delivery iScape - UCD 2'
   date_from: '2018-10-28'
-  date_to: '-'
+  date_to: '2018-10-21'
   gas_pro_board: 
     CO: 162581708
     NO2: 202160421
@@ -132,11 +150,29 @@
   mac: 'EE42'
   internal_ref: 'Delivery iScape - UCD 1'
   date_from: '2018-10-28'
+  date_to: '2018-11-21'
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 204160163
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
+
+'5262':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21004'
+  type: 'station'
+  mac: 'F885'
+  internal_ref: 'Delivery iScape - UCD 1'
+  date_from: '2018-11-23'
   date_to: '-'
   gas_pro_board: 
     CO: 162581712
     NO2: 202160416
-    O3: 204160149
+    O3: 204160163
     SLOTS: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
