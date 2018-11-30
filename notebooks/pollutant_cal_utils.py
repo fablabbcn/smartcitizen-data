@@ -274,8 +274,8 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
         ## Correlation between Baseline and original auxiliary
         slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc.iloc[:,1].values))
 
-        print 'Working' + dataframeCalc.iloc[:,0]
-        print 'Baseliner' + dataframeCalc.iloc[:,1]
+        # print 'Working', dataframeCalc.iloc[:,0].name
+        # print 'Baseliner', dataframeCalc.iloc[:,1].name
         # Add metadata for further research
         deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc.iloc[:,1].values)
         ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc.iloc[:,1].values)

@@ -91,11 +91,6 @@ def getSensorNames(_sensorsh):
     return sensorNames
 
 currentSensorNames = getSensorNames(currentSensorsh)
-currentSensorNames[97] = dict()
-currentSensorNames[97]['shortTitle'] = 'BATT_CHG_RATE'
-currentSensorNames[97]['title'] = 'BATT_CHARGE_RATE'
-currentSensorNames[97]['id'] = 97
-currentSensorNames[97]['unit'] = 'mA'
 
 def getTests(directory):
     tests = dict()
@@ -134,6 +129,7 @@ def loadTest(frequency):
         readings[test_id] = dict()
         readings[test_id]['devices'] = dict()
         readings[test_id]['commit_hash'] = test['commit_hash']
+        readings[test_id]['frequency'] = frequency
 
         # Get test metadata
         test_init_date = test['test']['init_date']
@@ -171,6 +167,7 @@ def loadTest(frequency):
             display(Markdown('#### {}'.format(kit)))
             # Get fileName
             fileNameProc = test['test']['devices']['kits'][kit]['fileNameProc']
+            
             # frequency = test['test']['devices']['kits'][kit]['frequency']
             fileData = join(testPath, fileNameProc)
             location = test['test']['devices']['kits'][kit]['location']
@@ -179,14 +176,21 @@ def loadTest(frequency):
             # Create pandas dataframe
             df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index('Time')
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
-        
+
+            # Remove duplicates
+            df = df[~df.index.duplicated(keep='first')]
+
+            # Sort index
             df.sort_index(inplace=True)
 
+            # Remove na
             df = df.apply(pd.to_numeric,errors='coerce')            
-
             df.fillna(0)
+
+            # Group by frequency and aggregate
             df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
 
+            # Drop unnecessary columns
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
             
             # Create dictionary and add it to the readings key
