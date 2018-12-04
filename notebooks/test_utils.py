@@ -128,19 +128,19 @@ def loadTest(frequency):
         
         readings[test_id] = dict()
         readings[test_id]['devices'] = dict()
-        readings[test_id]['commit_hash'] = test['commit_hash']
+        # readings[test_id]['commit_hash'] = test['commit_hash']
         readings[test_id]['frequency'] = frequency
 
         # Get test metadata
-        test_init_date = test['test']['init_date']
-        test_end_date = test['test']['end_date']
+        # test_init_date = test['test']['init_date']
+        # test_end_date = test['test']['end_date']
         
         print('------------------------------------------------------')
         display(Markdown('## Test Load'))
 
-        display(Markdown('Loading test **{}** performed from {} to {}'.format(test_id, test_init_date, test_end_date)))
+        display(Markdown('Loading test **{}**'.format(test_id)))
     
-        display(Markdown('Test performed with commit **{}**'.format(readings[test_id]['commit_hash'])))
+        # display(Markdown('Test performed with commit **{}**'.format(readings[test_id]['commit_hash'])))
 
         display(Markdown(test['test']['comment']))
         display(Markdown('### KIT'))
@@ -174,7 +174,14 @@ def loadTest(frequency):
             display(Markdown('Kit **{}** located **{}**'.format(kit, location)))
             
             # Create pandas dataframe
-            df = pd.read_csv(fileData, verbose=False, skiprows=[1]).set_index('Time')
+            df = pd.read_csv(fileData, verbose=False, skiprows=[1])
+            if 'Time' in df.columns:
+                df = df.set_index('Time')
+            elif 'TIME' in df.columns:
+                df = df.set_index('TIME')
+            else:
+                print 'No known index found'
+            
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
 
             # Remove duplicates
@@ -184,11 +191,10 @@ def loadTest(frequency):
             df.sort_index(inplace=True)
 
             # Remove na
-            df = df.apply(pd.to_numeric,errors='coerce')            
-            df.fillna(0)
+            df = df.resample(frequency).bfill()
 
             # Group by frequency and aggregate
-            df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
+            # df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
 
             # Drop unnecessary columns
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
@@ -220,7 +226,7 @@ def loadTest(frequency):
                 
             display(Markdown('Kit **{}** has been loaded'.format(kit)))
         ## Check if there's was a reference equipment during the test
-        if test['reference']['available']:
+        if 'reference' in test.keys():
             display(Markdown('### REFERENCE'))
             for reference in test['reference']['files']:
                 display(Markdown('#### {}'.format(reference)))

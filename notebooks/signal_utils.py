@@ -325,28 +325,30 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
         
         # datetime features
         # data.index = data.index.to_datetime()
-        data["hour"] = data.index.hour
-        data["weekday"] = data.index.weekday
-        data['is_weekend'] = data.weekday.isin([5,6])*1
+        # data["hour"] = data.index.hour
+        # data["weekday"] = data.index.weekday
+        # data['is_weekend'] = data.weekday.isin([5,6])*1
         
-        if target_encoding:
-            # calculate averages on train set only
-            test_index = int(len(data.dropna())*(1-test_size))
-            data['weekday_average'] = list(map(
-                code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
-            data["hour_average"] = list(map(
-                code_mean(data[:test_index], 'hour', "y").get, data.hour))
+        # if target_encoding:
+        #     # calculate averages on train set only
+        #     test_index = int(len(data.dropna())*(1-test_size))
+        #     data['weekday_average'] = list(map(
+        #         code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
+        #     data["hour_average"] = list(map(
+        #         code_mean(data[:test_index], 'hour', "y").get, data.hour))
 
-            # frop encoded variables 
-            data.drop(["hour", "weekday"], axis=1, inplace=True)
+        #     # frop encoded variables 
+        #     data.drop(["hour", "weekday"], axis=1, inplace=True)
         
         # train-test split
-        y = data.dropna().y
-        X = data.dropna().drop(['y'], axis=1)
+        data = data.dropna()
+
+        y = data.y
+        X = data.drop(['y'], axis=1)
+
         index = X.index
         X_train, X_test, y_train, y_test =\
             timeseries_train_test_split(X, y, test_size=test_size)
-
         return X_train, X_test, y_train, y_test, index
 
     def calculateAnomalies(_data, _frecuency = '1Min' , _scale = 2, _plotModel = False):
@@ -446,9 +448,9 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
 
     append_anomalies = '_ANOM'
     append_clean = '_CLEAN'
-    
+
     dataFrame = _data.copy()
-    dataFrame = _data.resample(_frequencyResample).bfill()
+    dataFrame.resample(_frequencyResample).bfill()
     
     ## Calculate anomalies for each column and treat them
     for column in dataFrame.columns:
