@@ -1,5 +1,6 @@
 # Remove
 data/20*
+data/RAW_DATA/*.csv
 
 # Notebook
 notebooks/temp-plot.html
