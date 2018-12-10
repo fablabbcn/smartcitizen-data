@@ -1,6 +1,5 @@
 # Remove
-data
-data/*
+data/20*
 
 # Notebook
 notebooks/temp-plot.html
