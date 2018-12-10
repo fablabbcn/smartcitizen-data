@@ -33,7 +33,6 @@ def getSensorNames(_sensorsh):
         data = data.split("\n") 
         sensorNames = dict()
         lineSensors = len(data)
-
         # Put everything in the dict
         for line in data:
             
@@ -44,6 +43,7 @@ def getSensorNames(_sensorsh):
                     
                     if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
                         # Split commas
+
                         lineTokenized =  line.strip('').split(',')
                         # print len(lineTokenized)
                         # Elimminate unnecessary elements
@@ -56,7 +56,7 @@ def getSensorNames(_sensorsh):
                                 #item = re.sub(' ', '', item)
                                 item = re.sub('"', '', item)
                                 
-                                if item != '': 
+                                if item != '' and item != ' ':
                                     while item[0] == ' ' and len(item)>0: item = item[1:]
                                 lineTokenizedSub.append(item)
                         lineTokenizedSub = lineTokenizedSub[:-1]
@@ -80,6 +80,7 @@ def getSensorNames(_sensorsh):
 
         # Save everything to the most recent one
         joblib.dump(sensorNames, nameDictPath)
+        print 'Loaded updated sensor names and dumped into', nameDictPath
     
     except:
 
@@ -227,6 +228,17 @@ def loadTest(frequency):
             display(Markdown('Kit **{}** has been loaded'.format(kit)))
         ## Check if there's was a reference equipment during the test
         if 'reference' in test.keys():
+            if 'available' in test['reference'].keys():
+                if test['reference']['available'] == True:
+                    refAvail = True
+                else:
+                    refAvail = False
+            else:
+                refAvail = False
+        else:
+            refAvail = False
+
+        if refAvail:
             display(Markdown('### REFERENCE'))
             for reference in test['reference']['files']:
                 display(Markdown('#### {}'.format(reference)))

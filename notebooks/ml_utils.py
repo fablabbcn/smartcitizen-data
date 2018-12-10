@@ -19,6 +19,7 @@ from numpy import concatenate
 from math import sqrt
 
 from formula_utils import exponential_smoothing
+import numpy as np
 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
@@ -138,28 +139,44 @@ def fit_model_ML(model_type, train_X, train_y, test_X, test_y, epochs = 50, batc
 
     			if layer['type'] == 'dense':
     				model.add(Dense(neurons, activation=activation))
-    			if layer['type'] == 'lstm':
+    			elif layer['type'] == 'lstm':
     				model.add(LSTM(neurons, input_shape=(input_timesteps, input_dim), return_sequences=return_seq))
-    			if layer['type'] == 'dropout':
+    			elif layer['type'] == 'dropout':
     				model.add(Dropout(dropout_rate))
 
-        model.compile(loss=loss, optimizer=optimizer)
+    elif model_type == 'MLP':
 
-        # fit network
-        history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)
-        if plotResult:
-    	    # plot history
-    	    fig = plot.figure(figsize=(10,8))
-    	    plot.plot(history.history['loss'], label='train')
-    	    plot.plot(history.history['val_loss'], label='test')
-    	    plot.xlabel('Epochs (-)')
-    	    plot.ylabel('Loss (-)')
-    	    plot.title('Model Convergence')
-    	    plot.legend(loc='best')
-    	    plot.show()
-    
-        return model
+        # define model
+        model = Sequential()
 
+        if layers == '':
+            n_nodes = 50
+            n_input = 15
+
+        else:
+            n_nodes = layers[0]
+            n_input = layers[1]
+
+        model.add(Dense(n_nodes, activation='relu', input_dim=n_input))
+        model.add(Dense(1))
+       
+    # Compile model 
+    model.compile(loss=loss, optimizer=optimizer)
+
+    # fit network
+    history = model.fit(train_X, train_y, epochs=epochs, batch_size=batch_size, validation_data=(test_X, test_y), verbose=verbose, shuffle=False)
+    if plotResult:
+        # plot history
+        fig = plot.figure(figsize=(10,8))
+        plot.plot(history.history['loss'], label='train')
+        plot.plot(history.history['val_loss'], label='test')
+        plot.xlabel('Epochs (-)')
+        plot.ylabel('Loss (-)')
+        plot.title('Model Convergence')
+        plot.legend(loc='best')
+        plot.show()
+
+    return model
 
 def predict_ML(model, test_X, n_lags, scalery):
 
@@ -207,3 +224,22 @@ def prep_prediction_ML(dataframeModel, list_features, n_lags, alpha_filter, scal
         print 'Test X Shape {}'.format(test.shape)
     
     return test, index, n_obs
+
+## Evaluate model
+def evaluate(model, test_features, test_labels):
+    predictions = model.predict(test_features)
+    errors = abs(predictions - test_labels)
+    fig = plot.figure(figsize=(10,8))
+    plot.plot(test_labels, label = 'Reference')
+    plot.plot(predictions, label = 'Prediction')
+    plot.plot(errors, label = 'Errors')
+    rerror = np.maximum(np.minimum(np.divide(errors, test_labels),1),-1)
+    plot.plot(rerror, label = 'Relative Error')
+    plot.legend(loc='best')
+    mape = 100 * np.mean(rerror)
+    accuracy = 100 - mape
+    print('Model Performance')
+    print('\tAverage Error: {:0.4f}.'.format(np.mean(errors)))
+    print('\tAccuracy = {:0.2f}%.'.format(accuracy))
+    
+    return predictions
