@@ -207,7 +207,8 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date):
                         # dfT.rename(columns={sensor_names[sensor_ids.index(sensor_id)]: sensor_target_names[sensor_ids.index(sensor_id)]}, inplace=True)
 
                         df = df.combine_first(dfT)
-                
+        
+        df = df.reindex(df.index.rename('Time'))
         return df, location, toDate, fromDate, hasAlpha, latitude, longitude 
     else:
         return (deviceR.status_code)
