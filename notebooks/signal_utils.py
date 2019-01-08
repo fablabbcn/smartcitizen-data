@@ -92,7 +92,7 @@ import pandas as pd
 
 def split_agnostisise(_readings, _reading, _channel):        
     begining_date = '2001-01-01 00:00:00+02:00'
-    print _readings[_reading]['devices'].keys()
+    print (_readings[_reading]['devices'].keys())
     dataframe_combined = combine_data(_readings[_reading]['devices'], False)
     dataframe_combined['change'] = count_peak(dataframe_combined[_channel])
 
@@ -378,7 +378,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
         anomalies = np.zeros(len(y))
         
         if (len(y)):
-            print 'Calculating', name
+            print ('Calculating', name)
 
             X_scaled = scaler.fit_transform(X)
              
@@ -422,7 +422,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
         '''
         list_anom = list(np.where(dataframe[column + append_anomalies] == 1)[0])
         clean_column = dataframe[column]
-        print 'Cleaning', column
+        print ('Cleaning', column)
         
         if method == 'before-after-avg':
             for item in list_anom:
@@ -464,7 +464,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
                 dataFrame[column + append_clean] = cleanAnomalies(dataFrame.loc[:,[column, column + append_anomalies]],
                                                     column, method = _methodAnom)
             else:
-                print 'Ignoring', column
-        print '--'
+                print ('Ignoring', column)
+        print ('--')
         
     return dataFrame

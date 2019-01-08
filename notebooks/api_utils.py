@@ -45,6 +45,7 @@ def getSensors(directory):
     return devices
 
 def getKitID(_device, verbose):
+
     # Get device
     deviceR = requests.get(base_url + '{}/'.format(_device))
     # If status code OK, retrieve data
@@ -55,12 +56,11 @@ def getKitID(_device, verbose):
         kitID = deviceRJSON['kit']['id']
         
         if verbose:
-            print 'Device {} is has this kit ID {}'.format(_device, kitID)
+            print ('Device {} is has this kit ID {}'.format(_device, kitID))
         
         return kitID
     else:
-        print type(deviceR.status_code)
-        return 'API reported {}'.format(deviceR.status_code)
+        return 'None'
 
 def getPlatformSensorID():
     kits = requests.get(kits_url)
@@ -80,7 +80,7 @@ def getPlatformSensorID():
         
         return sensorsDict
     else:
-        print type(sensors.status_code)
+        print (type(sensors.status_code))
         return 'API reported {}'.format(sensors.status_code)   
     return sensors
 
@@ -132,14 +132,8 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date):
         # Renaming list based on firmware's short name
         for sensor_id in sensor_ids:
             for name in currentSensorNames:
-                # print 'Current sensor names: {}, type: {}'.format(currentSensorNames[name]['id'], type(currentSensorNames[name]['id']))
-                # print 'sensor_id: {}, type: {}'.format(sensor_id, type(sensor_id))
                 try:
                     if int(currentSensorNames[name]['id']) == int(sensor_id):
-                        # print 'Current sensor names: {}, type: {}'.format(currentSensorNames[name]['id'], type(currentSensorNames[name]['id']))
-                        # print 'sensor_id: {}, type: {}'.format(sensor_id, type(sensor_id))
-                        # print 'sensor real names: {}'.format(sensor_names[sensor_ids.index(sensor_id)])
-                        # print currentSensorNames[name]['shortTitle'] 
                         sensor_target_names.append(currentSensorNames[name]['shortTitle'])
                         sensor_real_names.append(sensor_names[sensor_ids.index(sensor_id)])
                         sensor_real_ids.append(sensor_id)
@@ -157,21 +151,17 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date):
         
         # Print stuff if requested
         if verbose:
-            print 'Kit ID {}'.format(deviceRJSON['kit']['id'])
-            print '\tFrom Date {} to Date {}'.format(start_date, end_date)
-            print '\tDevice located in {}'.format(location)
-            # print 'Sensor IDs'
-            # for sensor_id in sensor_real_ids:
-            #     print 'Index: {}'.format(sensor_real_ids.index(sensor_id))
-            #     print 'Sensor ID: {}'.format(sensor_id)
-            #     print 'Sensor Name Platform: {}'.format(sensor_real_names[sensor_real_ids.index(sensor_id)])
-            #     print 'Sensor Name Target: {}'.format(sensor_target_names[sensor_real_ids.index(sensor_id)])
+            print ('Kit ID {}'.format(deviceRJSON['kit']['id']))
+            print ('\tFrom Date {} to Date {}'.format(start_date, end_date))
+            print ('\tDevice located in {}'.format(location))
 
         if deviceRJSON['kit']['id'] in station_kit_ids:
             hasAlpha = True
         else:
             hasAlpha = False
         
+        print ('\t Sensor IDs')
+        print ('\t',sensor_real_ids)
         # Request sensor ID
         for sensor_id in sensor_real_ids:
             indexDF = list()
@@ -179,7 +169,6 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date):
             # Request sensor per ID
             sensor_id_r = requests.get(base_url + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
             sensor_id_rJSON = sensor_id_r.json()
-            
             # Put the data in lists
             if 'readings' in sensor_id_rJSON:
                 for item in sensor_id_rJSON['readings']:
@@ -194,34 +183,51 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date):
                     df.sort_index(inplace=True)
                     df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
                     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-                    # df.rename(columns={sensor_names[sensor_ids.index(sensor_id)]: sensor_target_names[sensor_ids.index(sensor_id)]}, inplace=True)
 
                 # Add it to dataframe for each sensor
                 else:
-                    # print 'getting sensor id {}'.format(sensor_id)
+                    
                     if dataDF != []:
                         dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
                         dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
                         dfT.sort_index(inplace=True)
                         dfT = dfT.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
-                        # dfT.rename(columns={sensor_names[sensor_ids.index(sensor_id)]: sensor_target_names[sensor_ids.index(sensor_id)]}, inplace=True)
 
                         df = df.combine_first(dfT)
         
         df = df.reindex(df.index.rename('Time'))
-        return df, location, toDate, fromDate, hasAlpha, latitude, longitude 
+        return df, toDate, fromDate, hasAlpha
     else:
         return (deviceR.status_code)
 
-def getReadingsAPI(_devices, frequency, start_date, end_date):
+def getDeviceLocation(_device):
+    # Get device
+    deviceR = requests.get(base_url + '{}/'.format(_device))
+
+    # If status code OK, retrieve data
+    if deviceR.status_code == 200 or deviceR.status_code == 201:
+        
+        deviceRJSON = deviceR.json()
+        # Get location
+        latitude = deviceRJSON['data']['location']['latitude']
+        longitude = deviceRJSON['data']['location']['longitude']
+        
+        # Localize it
+        tz_where = tzwhere.tzwhere()
+        location = tz_where.tzNameAt(latitude, longitude)
+
+    return location, latitude, longitude
+
+def getReadingsAPI(devices, frequency, start_date, end_date):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
     # Get dict with sensor history
     sensorHistory = getSensors(getcwd())
 
-    for device in _devices:
-        print 'Loading device {}'.format(device)
-        data, location, toDate, fromDate, hasAlpha, latitude, longitude = getDeviceData(device, True, frequency, start_date, end_date)
+    for device in devices:
+        print ('Loading device {}'.format(device))
+        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date)
+        location, _, _ = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
         if (type(data) == int) and (not (data == 200 or data == 201)):
             readingsAPI['devices'][device]['valid'] = False
@@ -229,19 +235,20 @@ def getReadingsAPI(_devices, frequency, start_date, end_date):
             
         else:
             # TODO add other info?
-            
+
             readingsAPI['devices'][device]['data'] = data
             readingsAPI['devices'][device]['valid'] = True
             readingsAPI['devices'][device]['location'] = location
 
             if hasAlpha:
-                print '\tDevice ID says it had alphasense sensors, loading them'
+                print ('\tDevice ID says it had alphasense sensors, loading them')
                 # retrieve data from API for alphasense
                 readingsAPI['devices'][device]['alphasense'] = dict()
                 try:
                     readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['gas_pro_board']
                 except:
 
-                    print 'Device not in history'
-        print '\tDone'
+                    print ('Device not in history')
+        
+        print ('\tDone')
     return readingsAPI
