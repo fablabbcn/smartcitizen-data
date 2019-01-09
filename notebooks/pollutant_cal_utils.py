@@ -93,8 +93,8 @@ def findMax(_listF):
         Output: value and index of maximum in the list
     '''
     
-    valMax=max(_listF)
-    indexMax = _listF.index(max(_listF))
+    valMax=np.max(_listF)
+    indexMax = np.argmax(_listF)
     # print 'Max Value found at index: {}, with value: {}'.format(indexMax, valMax)
     
     return valMax, indexMax
@@ -128,7 +128,7 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
         pearsons.append(r_value)
     
     ## Find Max in the pearsons - correlation can be negative, so use absolute of the pearson
-    valMax, indexMax = findMax(map(abs,pearsons))
+    valMax, indexMax = findMax(np.abs(pearsons))
         
     ## Find regression between _dataCorr
     baseline = pd.DataFrame(index = _dataBaseline.index)
@@ -136,13 +136,13 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
         ## Fit with y = A + Bx
         slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData.iloc[:,1].values),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
         baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept + slope*resultData.iloc[:,1].values
-        print r_value
+        # print (r_value)
     elif _type_regress == 'exponential':
         ## Fit with y = Ae^(Bx) -> logy = logA + Bx
         logy = np.log(resultData[(name + '_'+str(_numberDeltas[indexMax]))])
         slope, intercept, r_value, p_value, std_err = linregress(np.transpose(resultData.iloc[:,1].values), logy)
         baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept), slope, 0)
-        print r_value
+        # print (r_value)
     elif _type_regress == 'best':
         ## Find linear r_value
         slope_lin, intercept_lin, r_value_lin, p_value_lin, std_err_lin = linregress(np.transpose(resultData.iloc[:,1].values),resultData[(name + '_'+str(_numberDeltas[indexMax]))])
@@ -155,19 +155,19 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
         if ((not isnan(r_value_exp)) and (not isnan(r_value_lin))):
             if r_value_lin > r_value_exp:
                 if _verbose:
-                    print 'Using linear regression'
+                    print ('Using linear regression')
                 baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept_lin + slope_lin*resultData.iloc[:,1].values
             else:
                 if _verbose:
-                    print 'Using exponential regression'
+                    print ('Using exponential regression')
                 baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept_exp), slope_exp, 0)
         elif not isnan(r_value_lin):
             if _verbose:
-                print 'Using linear regression'
+                print ('Using linear regression')
             baseline[(name + '_' + 'baseline_' +  _type_regress)] = intercept_lin + slope_lin*resultData.iloc[:,1].values
         elif not isnan(r_value_exp):
             if _verbose:
-                print 'Using exponential regression'
+                print ('Using exponential regression')
             baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept_exp), slope_exp, 0)
         
     if _plots == True:
@@ -297,12 +297,12 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
     
         if _verbose == True:
             
-            print '-------------------'
-            print 'Auxiliary Electrode'
-            print '-------------------'
-            print 'Correlation coefficient of Baseline and Original auxiliary: {}'.format(rAuxBase)
+            print ('-------------------')
+            print ('Auxiliary Electrode')
+            print ('-------------------')
+            print ('Correlation coefficient of Baseline and Original auxiliary: {}'.format(rAuxBase))
             
-            print 'Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg)
+            print ('Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg))
 
         if _plots == True:
             with plt.style.context('seaborn-white'):
@@ -415,7 +415,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
         nWA = alpha_calData.loc[sensorID,'Zero Current']/alpha_calData.loc[sensorID,'Aux Zero Current']
 
         if not Target_1 == pollutant:
-            print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant)
+            print ('Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant))
             return
 
         ## Retrieve alphasense ids from table (for the slot we are calcualting)
@@ -451,7 +451,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             if ('NO2'+ '_' + _append) in dataframeResult.columns:
                 pollutant_column_2 = ('NO2' + '_' + _append)
             else:
-                print 'Change tuple order to [(CO,sensorID_CO, ...), (NO2, sensorID_NO2, ...), (O3, sensorID_O3, ...)]'
+                print ('Change tuple order to [(CO,sensorID_CO, ...), (NO2, sensorID_NO2, ...), (O3, sensorID_O3, ...)]')
                 return
         
         # Get units for the pollutant in questions
@@ -463,10 +463,10 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
 
         ## Find min, max and range of days
         min_date_df, max_date_df, range_days = findDates(dataframeResult)
-        print '------------------------------------------------------------------'
+        print ('------------------------------------------------------------------')
         print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
-        print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
-        print '------------------------------------------------------------------'
+        print ('Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days))
+        print ('------------------------------------------------------------------')
         
         # Give name to pollutant column
         pollutant_column = (pollutant + '_' + _append) 
@@ -479,7 +479,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 baseliner = hum
             elif baselineType == 'single_aux':
                 baseliner = alphaA
-            print 'Using {} as baseliner'.format(baseliner)
+            print ('Using {} as baseliner'.format(baseliner))
             baselined = alphaW
             
             # Iterate over days
@@ -494,9 +494,9 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 max_date_novl = min(max_date_df, (min_date_novl + pd.DateOffset(days=1)))
             
                 if _verbose:
-                    print '------------------------------------------------------------------'
-                    print 'Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl)
-                    print '------------------------------------------------------------------'
+                    print ('------------------------------------------------------------------')
+                    print ('Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl))
+                    print ('------------------------------------------------------------------')
                 
                 ## Trim dataframe to overlap dates
                 dataframeTrim = dataframeResult[dataframeResult.index > min_date_ovl]
@@ -516,7 +516,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     CorrParams.append(CorrParamsTrim)
 
                     if _verbose:
-                        print 'No data between these dates' 
+                        print ('No data between these dates' )
 
                 else:
                     CorrParamsTrim = dict()
@@ -564,7 +564,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
 
                     else:
                         if _verbose:
-                            print 'No Ref available'
+                            print ('No Ref available')
                     
                     ## Get some metrics 
                     CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean() if not dataframeTrim.empty else np.nan
@@ -591,15 +591,15 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             # SHOW SOME METADATA FOR THE BASELINES FOUND
             if _printStats:
                         
-                print '------------------------'
-                print ' Meta Data'
-                print '------------------------'
+                print ('------------------------')
+                print (' Meta Data')
+                print ('------------------------')
                 display(CorrParamsDF)
                         
-                print '------------------------'
-                print 'Average Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg)
-                print 'Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_std, ratioAuxBas_std)
-                print '------------------------'
+                print ('------------------------')
+                print ('Average Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg))
+                print ('Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_std, ratioAuxBas_std))
+                print ('------------------------')
                     
         elif method == 'classic':
             
@@ -648,7 +648,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
 
                 else:
                     if _verbose:
-                        print 'No ref Available'
+                        print ('No ref Available')
                 
                 ## Get some metrics 
                 CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean(skipna = True) if not dataframeTrim.empty else np.nan
@@ -672,9 +672,9 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
             # SHOW SOME METADATA FOR THE BASELINES FOUND
             if _printStats:
             
-                print '------------------------'
-                print ' Meta Data'
-                print '------------------------'
+                print ('------------------------')
+                print (' Meta Data')
+                print ('------------------------')
                 display(CorrParamsDF)
         
         # FILTER IT
@@ -789,7 +789,7 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
         Zero_Air_Resistance = mics_calData.loc[sensorSN,'Zero Air Resistance ' + str(indexPollutant)]
 
         if not Target == pollutant:
-            print 'Sensor ID ({}) and pollutant type ({}) not matching'.format(Target, pollutant)
+            print ('Sensor ID ({}) and pollutant type ({}) not matching'.format(Target, pollutant))
             return
 
         mics_resist = CHANNEL_NAME(currentSensorNames, 'SENSOR_' + pollutant, '', '', 'BOARD_URBAN','kOhm')
@@ -805,10 +805,10 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
 
         ## Find min, max and range of days
         min_date_df, max_date_df, range_days = findDates(_dataframe)
-        print '------------------------------------------------------------------'
+        print ('------------------------------------------------------------------')
         print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
-        print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
-        print '------------------------------------------------------------------'
+        print ('Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days))
+        print ('------------------------------------------------------------------')
         
         # Give name to pollutant column
         pollutant_column = (pollutant + '_' + _append) 
@@ -835,9 +835,9 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
                 max_date_novl = min(max_date_df, (min_date_novl + pd.DateOffset(days=1)))
             
                 if _verbose:
-                    print '------------------------------------------------------------------'
-                    print 'Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl)
-                    print '------------------------------------------------------------------'
+                    print ('------------------------------------------------------------------')
+                    print ('Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl))
+                    print ('------------------------------------------------------------------')
                 
                 ## Trim dataframe to overlap dates
                 dataframeTrim = dataframeResult[dataframeResult.index > min_date_ovl]
@@ -850,7 +850,7 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
                  
                 if dataframeTrim.empty:
                     if _verbose:
-                        print 'No data between these dates'
+                        print ('No data between these dates')
                     
                     # Fill with nan if no data available (to avoid messing up the stats)
                     nanV =np.ones(10)
@@ -929,9 +929,9 @@ def calculatePollutantsMICS(_dataframe, _pollutantTuples, _append, _refAvail, _d
             # SHOW SOME METADATA FOR THE BASELINES FOUND
             if _printStats:
                         
-                print '------------------------'
-                print ' Meta Data'
-                print '------------------------'
+                print ('------------------------')
+                print (' Meta Data')
+                print ('------------------------')
                 display(CorrParamsDF)
                         
         elif method == 'classic':
