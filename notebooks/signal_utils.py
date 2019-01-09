@@ -370,7 +370,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
                 factor = item[1]*offset.n
         
         # good lag for 1Min frequency seems to be 60 for all signals
-        lag_end = max(10, 60/factor)
+        lag_end = int(max(10, 60/factor))
         
         X, _, y, _, index =\
             prepareForAnomalies(_data, lag_start=3, lag_end = lag_end, test_size=0, target_encoding=False)

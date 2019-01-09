@@ -146,7 +146,7 @@ def derivative(y, x):
     dy = np.zeros(y.shape, np.float)
     
     if isinstance(x, pd.DatetimeIndex):
-        print 'x is of type DatetimeIndex'
+        print ('x is of type DatetimeIndex')
         
         for i in range(len(x)-1):
             dx[i] =  (x[i+1]-x[i]).seconds
