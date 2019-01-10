@@ -241,14 +241,14 @@ def getReadingsAPI(devices, frequency, start_date, end_date):
             readingsAPI['devices'][device]['location'] = location
 
             if hasAlpha:
-                print ('\tDevice ID says it had alphasense sensors, loading them')
+                print ('\tDevice ID says it had alphasense sensors, loading them...')
                 # retrieve data from API for alphasense
                 readingsAPI['devices'][device]['alphasense'] = dict()
                 try:
                     readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['gas_pro_board']
+                    print ('\tDevice not in history')
                 except:
-
-                    print ('Device not in history')
+                    print ('\tDevice not in history')
         
-        print ('\tDone')
+        print ('\tLoading Sensor Done')
     return readingsAPI

@@ -12,13 +12,13 @@ def concatenate(output, index_name, keep):
 	concat = pd.DataFrame()
 	raw_src_path = dirname(realpath(__file__))
 
-	print 'Files to concat:'
+	print ('Files to concat:')
 
 	header_tokenized = dict()
 	for item in os.listdir(raw_src_path):
 		if '.csv' in item or '.CSV' in item:
 			if item != output:
-				print item
+				print (item)
 
 				src_path = join(raw_src_path, item)
 				with open(item, 'r') as csv_file:
@@ -54,7 +54,7 @@ def concatenate(output, index_name, keep):
 	concat.to_csv(name_file)
 
 	if keep:
-		print 'Updating header'
+		print ('Updating header')
 		with open(name_file, 'rw') as csv_file:
 			content = csv_file.readlines()
 
@@ -82,7 +82,7 @@ def concatenate(output, index_name, keep):
 			content.insert(3, ','.join(id_h))
 
 		with open(name_file, 'w') as csv_file:
-			print '\nSaving file to:', name_file
+			print ('\nSaving file to:', name_file)
 			wr = csv.writer(csv_file, quoting=csv.QUOTE_NONE, escapechar=' ')
 			for row in content:
 				wr.writerow([row])

@@ -105,7 +105,6 @@ def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_metho
 
         # Create pandas dataframe
         df = pd.read_csv(filePath, verbose=False, skiprows=[1])
-
         if 'Time' in df.columns:
             df = df.set_index('Time')
         elif 'TIME' in df.columns:
