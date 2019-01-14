@@ -82,8 +82,9 @@ def concatenate(output, index_name, keep):
 			content.insert(3, ','.join(id_h))
 
 		with open(name_file, 'w') as csv_file:
-			print ('\nSaving file to:', name_file)
-			wr = csv.writer(csv_file, quoting=csv.QUOTE_NONE, escapechar=' ')
+			print ('Saving file to:', name_file)
+			wr = csv.writer(csv_file, delimiter = '\t')
+			
 			for row in content:
 				wr.writerow([row])
 
