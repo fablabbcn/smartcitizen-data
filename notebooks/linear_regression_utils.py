@@ -21,7 +21,7 @@ import seaborn as sns
 from formula_utils import exponential_smoothing
 from signal_utils import metrics
 
-def tfullerplot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
+def tfuller_plot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
     
     if lags_diff > 0:
         _x = _x - _x.shift(lags_diff)
@@ -50,64 +50,56 @@ def tfullerplot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
         smgraph.tsaplots.plot_pacf(_x, lags=lags, ax=pacf_ax)
         plot.tight_layout()
 
-
-def prep_data_OLS(dataframeModel, tuple_features, ratio_train, alpha_filter, device_name):
+def prep_data_OLS(dataframeModel, tuple_features, ratio_train):
+    '''
+        Prepare Dataframe for Ordinary Linear Regression with StatsModels.
+        Input:
+            dataframeModel: Dataframe containing the data to be treated
+            tuple_features: tuple containing features with [TERM, NAME, DEVICE]
+            ratio_train: n_points_train/n_points_test+train
+        Output:
+            It returns two dataframes (train, test) with the columns named 
+            as in TERM, with an additional constant value with name 'const', 
+            for the independent term of the linear regression
+    '''
 
     # Train Dataframe
     total_len = len(dataframeModel.index)
     n_train_periods = int(round(total_len*ratio_train))
-
-    dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
-    dataframeTrain['const'] = 1
-
-    # Train Dataframe
-    if alpha_filter<1:
-        for column in dataframeTrain.columns:
-            dataframeTrain[column] = exponential_smoothing(dataframeTrain[column], alpha_filter)
     
-    dataTrain = {}
+    # Rename to formula
     for item in tuple_features:
-        dataTrain[item[0]] = dataframeTrain.loc[:,item[1]].values
-
-    dataTrain['index'] = dataframeTrain.index
-    dataTrain['const'] = dataframeTrain.loc[:,'const'].values
+        dataframeModel.rename(columns={'_'.join([item[1],item[2]]): item[0]}, inplace=True)
     
+    dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
+    dataframeTrain['CONST'] = 1.0
+
     # Test Dataframe
     if ratio_train < 1:
         dataframeTest = dataframeModel.iloc[n_train_periods:,:]
-        dataframeTest['const'] = 1
-        if alpha_filter<1:
-            for column in dataframeTest.columns:
-                dataframeTest[column] = exponential_smoothing(dataframeTest[column], alpha_filter)
-		
-        dataTest = {}
-        for item in tuple_features:
-            dataTest[item[0]] = dataframeTest.loc[:,item[1]].values
+        dataframeTest['CONST'] = 1.0
+        
+        return dataframeTrain, dataframeTest, n_train_periods
 
-        dataTest['index'] = dataframeTest.index
-        dataTest['const'] = dataframeTest.loc[:,'const'].values
-    
-        return dataTrain, dataTest, n_train_periods
-
-    return dataTrain
-
+    return dataframeTrain, total_len
 
 def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
     '''
         
     '''
-    model = smform.OLS.from_formula(formula = formula_expression, data = dataTrain).fit()
+    model = smform.ols(formula = formula_expression, data = dataTrain).fit()
+    
     if printSummary:
     	print(model.summary())
 
     return model
 
-def plotOLSCoeffs(_model):
+def plot_OLS_coeffs(model):
     """
         Plots sorted coefficient values of the model
     """
-    _data =  [x for x in _model.params]
-    _columns = _model.params.index
+    _data =  [x for x in model.params]
+    _columns = model.params.index
     _coefs = pd.DataFrame(_data, _columns, dtype = 'float')
     
     _coefs.columns = ["coef"]
@@ -128,12 +120,13 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
     except:
         # Do nothin
         ref_avail = False
-        print 'No reference available'
+        print ('No reference available')
 
     ## Predict Results
     if train_test == 'train':
 
         predictionTrain = model.predict(data)
+        
         ## Get confidence intervals
         # For training
         st, summary_train, ss2 = summary_table(model, alpha=0.05)
@@ -146,30 +139,34 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
             # Plot the stuff
             fig = plot.figure(figsize=(15,10))
             # Actual data
-            plot.plot(data['index'], reference, 'r', label = 'Reference Train', alpha = 0.3)
+            plot.plot(data.index, reference, 'r', label = 'Reference Train', alpha = 0.3)
         
             # Fitted Values for Training
-            plot.plot(data['index'], predictionTrain, 'r', label = 'Prediction Train')
-            plot.plot(data['index'], train_ci_low, 'k--', lw=0.7, alpha = 0.5)
-            plot.plot(data['index'], train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-            plot.fill_between(data['index'], train_ci_low, train_ci_upp, alpha = 0.05 )
-            plot.plot(data['index'], train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-            plot.plot(data['index'], train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-            plot.fill_between(data['index'], train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
-        
+            plot.plot(data.index, predictionTrain, 'r', label = 'Prediction Train')
+            plot.plot(data.index, train_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            plot.plot(data.index, train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            plot.fill_between(data.index, train_ci_low, train_ci_upp, alpha = 0.05 )
+            plot.plot(data.index, train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            plot.plot(data.index, train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            plot.fill_between(data.index, train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
+            plot.grid(True)
+
         if ref_avail:
-            return reference, predictionTrain
+            # Put train into pd dataframe
+            dataFrameTrain = pd.DataFrame(data = {'reference': reference, 'prediction': predictionTrain.values}, 
+                              index = data.index)
+            return dataFrameTrain
         else:
             return predictionTrain
 
-    else:
+    elif train_test == 'test':
 
         predictionTest = model.get_prediction(data)
 
         ## Get confidence intervals
         # For test
         summary_test = predictionTest.summary_frame(alpha=0.05)
-        test_mean  = summary_test.loc[:, 'mean'].values
+        test_mean = summary_test.loc[:, 'mean'].values
         test_mean_ci_low = summary_test.loc[:, 'mean_ci_lower'].values
         test_mean_ci_upp = summary_test.loc[:, 'mean_ci_upper'].values
         test_ci_low = summary_test.loc[:, 'obs_ci_lower'].values
@@ -179,28 +176,32 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
             # Plot the stuff
             fig = plot.figure(figsize=(15,10))
             # Fitted Values for Test
-            plot.plot(data['index'], reference, 'b', label = 'Reference Test', alpha = 0.3)
+            plot.plot(data.index, reference, 'b', label = 'Reference Test', alpha = 0.3)
 
-            plot.plot(data['index'], test_mean, 'b', label = 'Prediction Test')
-            plot.plot(data['index'], test_ci_low, 'k--', lw=0.7, alpha = 0.5)
-            plot.plot(data['index'], test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-            plot.fill_between(data['index'], test_ci_low, test_ci_upp, alpha = 0.05 )
-            plot.plot(data['index'], test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-            plot.plot(data['index'], test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-            plot.fill_between(data['index'], test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+            plot.plot(data.index, test_mean, 'b', label = 'Prediction Test')
+            plot.plot(data.index, test_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            plot.plot(data.index, test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            plot.fill_between(data.index, test_ci_low, test_ci_upp, alpha = 0.05 )
+            plot.plot(data.index, test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            plot.plot(data.index, test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            plot.fill_between(data.index, test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
         
             plot.title('Linear Regression Results')
+            plot.grid(True)
             plot.ylabel('Reference/Prediction (-)')
             plot.xlabel('Date (-)')
             plot.legend(loc='best')
             plot.show()
 
         if ref_avail:
-            return reference, test_mean
+            # Put test into pd dataframe
+            dataFrameTest = pd.DataFrame(data = {'reference': reference, 'prediction': test_mean}, 
+                              index = data.index)
+            return dataFrameTest
         else:
             return test_mean
 
-def modelRplots(model, dataTrain, dataTest):
+def model_R_plots(model, dataTrain, dataTest):
     
     ## Calculations required for some of the plots:
     # fitted values (need a constant term for intercept)
@@ -328,4 +329,4 @@ def modelRplots(model, dataTrain, dataTest):
     plot.legend(loc='upper right');
 
     # Model residuals
-    tfullerplot(model_residuals, name = 'Residuals', lags=60, lags_diff = 0)
+    tfuller_plot(model_residuals, name = 'Residuals', lags=60, lags_diff = 0)
