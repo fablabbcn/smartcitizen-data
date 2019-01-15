@@ -44,28 +44,12 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 		agg.dropna(inplace=True)
 	return agg
 
-def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags, ratio_train, alpha_filter, reference_name, verbose = True):
-
-	## Trim dates
-	dataframeModel = dataframeModel[dataframeModel.index > min_date]
-	dataframeModel = dataframeModel[dataframeModel.index < max_date]
-		
-	# get selected values from list
-	dataframeSupervised = dataframeModel.loc[:,list_features]
-	dataframeSupervised = dataframeSupervised.dropna()
-
+def prep_dataframe_ML(dataframeModel, n_features, n_lags, ratio_train, verbose = True):
 	# Training periods
-	total_len = len(dataframeSupervised.index)
+	total_len = len(dataframeModel.index)
 	n_train_periods = int(round(total_len*ratio_train))
 
-	if alpha_filter<1:
-		for column in dataframeSupervised.columns:
-			dataframeSupervised[column] = exponential_smoothing(dataframeSupervised[column], alpha_filter)
-	
-	index = dataframeSupervised.index
-	values = dataframeSupervised.values
-
-	n_features = len(list_features) - 1
+	values = dataframeModel.values
 	n_obs = n_lags * n_features
 	
 	## Option sensor 1 (lag 1 and no lagged prediction as feature)
@@ -105,11 +89,9 @@ def prep_dataframe_ML(dataframeModel, min_date, max_date, list_features, n_lags,
 	
 	if verbose:
 		print ('DataFrame has been reframed and prepared for supervised learning')
-		print ('Reference is: {}'.format(reference_name))
-		print ('Features are: {}'.format([i for i in list_features[1:]]))
 		print ('Traning X Shape {}, Training Y Shape {}, Test X Shape {}, Test Y Shape {}'.format(train_X.shape, train_y.shape, test_X.shape, test_y.shape))
 	
-	return index, train_X, train_y, test_X, test_y, scalerX, scalery, n_train_periods
+	return train_X, train_y, test_X, test_y, scalerX, scalery
 
 def fit_model_ML(model_type, train_X, train_y, test_X, test_y, epochs = 50, batch_size = 72, verbose = 2, plotResult = True, loss = 'mse', optimizer = 'adam', layers = ''):
 	
@@ -204,15 +186,15 @@ def predict_ML(model, X, y, index, scalery = None):
 	print('\tAccuracy = {:0.2f}%.'.format(accuracy))
 
 	dataFrame = pd.DataFrame(data = {'reference': y, 'prediction': inv_predictions}, 
-                              index = index)
+							  index = index)
 	
 	return dataFrame
 
-def get_inverse_transform_ML(test_y, n_lags, scalery):
+def get_inverse_transform_ML(y, scalery):
 	
 	# invert scaling for actual
-	test_y = test_y.reshape((len(test_y), 1))
-	inv_y = scalery.inverse_transform(test_y)
+	y = y.reshape((len(y), 1))
+	inv_y = scalery.inverse_transform(y)
 	inv_y = inv_y[:,-1]
 	
 	return inv_y
@@ -247,68 +229,73 @@ def prep_prediction_ML(dataframeModel, list_features, n_lags, alpha_filter, scal
 	return test, index, n_obs
 
 def plot_model_ML(model, dataFrameTrain, dataFrameTest, feature_list, model_type, model_name):
-    # Plot
-    fig = plot.figure(figsize=(15,10))
-    
-    # Actual data
-    plot.plot(dataFrameTrain.index, dataFrameTrain['reference'],'r', linewidth = 1, label = 'Reference Train', alpha = 0.3)
-    plot.plot(dataFrameTest.index, dataFrameTest['reference'], 'b', linewidth = 1, label = 'Reference Test', alpha = 0.3)
-    
-    # Fitted Values for Training
-    plot.plot(dataFrameTrain.index, dataFrameTrain['prediction'], 'r', linewidth = 1, label = 'Prediction Train')
-    
-    # Fitted Values for Test
-    plot.plot(dataFrameTest.index, dataFrameTest['prediction'], 'b', linewidth = 1, label = 'Prediction Test')
-    
-    plot.title('{} Regression Results'.format(model_type) + model_name)
-    plot.ylabel('Reference/Prediction (-)')
-    plot.xlabel('Date (-)')
-    plot.legend(loc='best')
-    plot.show()
-    
-    ## Model feature importances
-    importances = list(model.feature_importances_)
-    
-    # List of tuples with variable and importance
-    feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list[:], importances)]
-    
-    # Sort the feature importances by most important first
-    feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
-    
-    # Print out the feature and importances 
-    for pair in feature_importances:
-        print ('Variable: {} Importance: {}'.format(pair[0], pair[1]))
-    
-    # list of x locations for plotting
-    x_values = list(range(len(importances)))
-    
-    fig= plot.figure(figsize = (12,6))
-    plot.subplot(1,2,1)
-    # Make a bar chart
-    plot.bar(x_values, importances, orientation = 'vertical', color = 'r', edgecolor = 'k', linewidth = 1.2)
-    
-    # Tick labels for x axis
-    plot.xticks(x_values, feature_list[:], rotation='vertical')
-    
-    # Axis labels and title
-    plot.ylabel('Importance'); plot.xlabel('Variable'); plot.title('Variable Importances');
-    
-    # List of features sorted from most to least important
-    sorted_importances = [importance[1] for importance in feature_importances]
-    sorted_features = [importance[0] for importance in feature_importances]
-    
-    # Cumulative importances
-    cumulative_importances = np.cumsum(sorted_importances)
-    
-    plot.subplot(1,2,2)
-    # Make a line graph
-    plot.plot(x_values, cumulative_importances, 'g-')
-    
-    # Draw line at 95% of importance retained
-    plot.hlines(y = 0.95, xmin=0, xmax=len(sorted_importances), color = 'r', linestyles = 'dashed')
-    
-    # Format x ticks and labels
-    plot.xticks(x_values, sorted_features, rotation = 'vertical')
-    
-    # Axis labels and title
-    plot.xlabel('Variable'); plot.ylabel('Cumulative Importance'); plot.title('Cumulative Importances');
+	# Plot
+	fig = plot.figure(figsize=(15,10))
+	
+	# Actual data
+	plot.plot(dataFrameTrain.index, dataFrameTrain['reference'],'r', linewidth = 1, label = 'Reference Train', alpha = 0.3)
+	plot.plot(dataFrameTest.index, dataFrameTest['reference'], 'b', linewidth = 1, label = 'Reference Test', alpha = 0.3)
+	
+	# Fitted Values for Training
+	plot.plot(dataFrameTrain.index, dataFrameTrain['prediction'], 'r', linewidth = 1, label = 'Prediction Train')
+	
+	# Fitted Values for Test
+	plot.plot(dataFrameTest.index, dataFrameTest['prediction'], 'b', linewidth = 1, label = 'Prediction Test')
+	
+	plot.title('{} Regression Results'.format(model_type) + model_name)
+	plot.ylabel('Reference/Prediction (-)')
+	plot.xlabel('Date (-)')
+	plot.legend(loc='best')
+	plot.show()
+	
+	try:
+		## Model feature importances
+		importances = list(model.feature_importances_)
+		
+		# List of tuples with variable and importance
+		feature_importances = [(feature, round(importance, 2)) for feature, importance in zip(feature_list[:], importances)]
+		
+		# Sort the feature importances by most important first
+		feature_importances = sorted(feature_importances, key = lambda x: x[1], reverse = True)
+		
+		# Print out the feature and importances 
+		for pair in feature_importances:
+			print ('Variable: {} Importance: {}'.format(pair[0], pair[1]))
+		
+		# list of x locations for plotting
+		x_values = list(range(len(importances)))
+		
+		fig= plot.figure(figsize = (12,6))
+		plot.subplot(1,2,1)
+		# Make a bar chart
+		plot.bar(x_values, importances, orientation = 'vertical', color = 'r', edgecolor = 'k', linewidth = 1.2)
+		
+		# Tick labels for x axis
+		plot.xticks(x_values, feature_list[:], rotation='vertical')
+		
+		# Axis labels and title
+		plot.ylabel('Importance'); plot.xlabel('Variable'); plot.title('Variable Importances');
+		
+		# List of features sorted from most to least important
+		sorted_importances = [importance[1] for importance in feature_importances]
+		sorted_features = [importance[0] for importance in feature_importances]
+		
+		# Cumulative importances
+		cumulative_importances = np.cumsum(sorted_importances)
+		
+		plot.subplot(1,2,2)
+		# Make a line graph
+		plot.plot(x_values, cumulative_importances, 'g-')
+		
+		# Draw line at 95% of importance retained
+		plot.hlines(y = 0.95, xmin=0, xmax=len(sorted_importances), color = 'r', linestyles = 'dashed')
+		
+		# Format x ticks and labels
+		plot.xticks(x_values, sorted_features, rotation = 'vertical')
+		
+		# Axis labels and title
+		plot.xlabel('Variable'); plot.ylabel('Cumulative Importance'); plot.title('Cumulative Importances')
+
+	except:
+		print ('Could not plot feature importances. If model is sequential(), this is not possible')
+		pass

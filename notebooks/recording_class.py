@@ -110,7 +110,7 @@ class recordings:
 			else: 
 				print ('\tDataframe model generated successfully')
 
-	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = ''):
+	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = '', n_lags = None, scalerX = None, scalery = None):
 		try:
 			# Metrics
 			self.readings[reading_name]['models'][model_name]['metrics'] = metrics_model
@@ -125,10 +125,16 @@ class recordings:
 			# Parameters
 			self.readings[reading_name]['models'][model_name]['parameters'] = dict()
 			self.readings[reading_name]['models'][model_name]['parameters']['ratio_train'] = ratio_train
-	
+			if scalerX != None:
+				self.readings[reading_name]['models'][model_name]['parameters']['scalerX'] = scalerX
+			if scalery != None:
+				self.readings[reading_name]['models'][model_name]['parameters']['scalery'] = scalery
+			if n_lags != None:
+				self.readings[reading_name]['models'][model_name]['parameters']['n_lags'] = n_lags
 			# Dataframe
 			self.readings[reading_name]['devices'][model_name] = dict()
 			self.readings[reading_name]['devices'][model_name]['data'] = dataframe
+		
 		except:
 			print ('Problem occured')
 			pass
