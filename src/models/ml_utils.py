@@ -5,7 +5,7 @@ from sklearn import preprocessing
 encoder = preprocessing.LabelEncoder() 
 from sklearn.preprocessing import MinMaxScaler
 import pandas as pd
-from test_utils import combine_data
+from src.data.test_utils import combine_data
 import ipywidgets as widgets
 
 from keras.models import Sequential
@@ -13,12 +13,12 @@ from keras.layers import Dense, Activation, LSTM, Dropout
 import matplotlib.pyplot as plot
 
 from sklearn.metrics import r2_score, median_absolute_error
-from sklearn.metrics import mean_absolute_error, mean_squared_error#, mean_squared_log_error 
+from sklearn.metrics import mean_absolute_error, mean_squared_error #, mean_squared_log_error 
 
 from numpy import concatenate
 from math import sqrt
 
-from formula_utils import exponential_smoothing
+from src.models.formula_utils import exponential_smoothing
 import numpy as np
 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):

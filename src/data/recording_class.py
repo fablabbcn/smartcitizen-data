@@ -1,5 +1,5 @@
-from test_utils import *
-from api_utils import *
+from src.data.test_utils import *
+from src.data.api_utils import *
 from os.path import join
 from sklearn.externals import joblib
 import json
@@ -8,16 +8,16 @@ class recordings:
 	def __init__(self):
 		self.readings = dict()
 
-	def add_recording_CSV(self, reading_name, source_id, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
-		data = loadTest(source_id, target_raster, clean_na, clean_na_method)
+	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
+		data = loadTest(source_id, target_raster, currentSensorNames, clean_na, clean_na_method)
 		self.readings[reading_name] = dict()
 		self.readings[reading_name] = data[reading_name]
 
 		# Set flag
 		self.readings[reading_name]['ready_to_model'] = False
 
-	def add_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min'):
-		data = getReadingsAPI(source_id, target_raster, min_date, max_date)
+	def add_recording_API(self, reading_name, source_id,currentSensorNames, min_date, max_date, target_raster = '1Min'):
+		data = getReadingsAPI(source_id, target_raster, min_date, max_date, currentSensorNames)
 		# Case for non merged API to CSV
 		if reading_name not in self.readings.keys():
 			self.readings[reading_name] = dict()
@@ -146,8 +146,8 @@ class recordings:
 		model_type = self.readings[reading_name]['models'][model_name]['model_type']
 		model = self.readings[reading_name]['models'][model_name]['model']
 
-		modelDir = join(model_directory, 'Models/', model_target)
-		summaryDir = join(model_directory, 'Models/summary.json')
+		modelDir = join(model_directory, model_target)
+		summaryDir = join(model_directory, 'summary.json')
 		filename = join(modelDir, model_name)
 
 		joblib.dump(self.readings[reading_name]['models'][model_name]['metrics'], filename + '_metrics.sav')

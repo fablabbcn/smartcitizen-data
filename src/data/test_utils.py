@@ -1,7 +1,7 @@
 from urllib.request import urlopen
 import re
 import os
-from os.path import dirname, join
+from os.path import join
 from os import getcwd
 from sklearn.externals import joblib
 import yaml
@@ -17,12 +17,10 @@ pollutantLUT = (['CO', 28, 'ppm'],
 
 ref_append = 'REF'
 
-currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h')
-
-def getSensorNames(_sensorsh):
+def getSensorNames(_sensorsh, nameDictPath):
     try:
         # Directory
-        nameDictPath = join(getcwd(), 'sensorData/sensorNames.sav')
+        nameDictPath = join(nameDictPath, 'sensorNames.sav')
 
         # Read only 20000 chars
         data = urlopen(_sensorsh).read(20000).decode('utf-8')
@@ -86,12 +84,10 @@ def getSensorNames(_sensorsh):
 
     return sensorNames
 
-currentSensorNames = getSensorNames(currentSensorsh)
-
 def getTests(directory):
     # Get available tests in the data folder structure
     tests = dict()
-    mydir = join(directory, 'data')
+    mydir = join(directory, 'processed')
     for root, dirs, files in os.walk(mydir):
         for _file in files:
             if _file.endswith(".yaml"):
@@ -147,7 +143,7 @@ def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_metho
 
         return df
 
-def loadTest(testPath, target_raster, clean_na = True, clean_na_method = 'fill'):
+def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill'):
 
     _readings = dict()
 

@@ -30,8 +30,6 @@ frequencyConvertLUT = (['y','A'],
     ['s','S'],
     ['ms','ms'])
 
-from test_utils import currentSensorNames
-
 def getSensors(directory):
     devices = dict()
     mydir = join(directory, 'sensorData')
@@ -84,7 +82,7 @@ def getPlatformSensorID():
         return 'API reported {}'.format(sensors.status_code)   
     return sensors
 
-def getDeviceData(_device, verbose, frequency, start_date, end_date):
+def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames):
 
     # Convert frequency from pandas to API's
     for index, letter in enumerate(frequency):
@@ -218,7 +216,7 @@ def getDeviceLocation(_device):
 
     return location, latitude, longitude
 
-def getReadingsAPI(devices, frequency, start_date, end_date):
+def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
     # Get dict with sensor history
@@ -226,7 +224,7 @@ def getReadingsAPI(devices, frequency, start_date, end_date):
 
     for device in devices:
         print ('Loading device {}'.format(device))
-        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date)
+        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames)
         location, _, _ = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
         if (type(data) == int) and (not (data == 200 or data == 201)):

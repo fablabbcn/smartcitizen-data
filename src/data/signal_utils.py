@@ -1,6 +1,14 @@
 import numpy as np
 from math import sqrt
 import pandas as pd
+from src.data.test_utils import combine_data
+from dateutil import relativedelta
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plot
+from xgboost import XGBRegressor
 
 def metrics(reference, estimation):
     metrics_dict = dict()
@@ -85,11 +93,6 @@ def count_peak(signal, acum = False, sign = True, init = True):
                 else: result[i] = result[i-1]
     return result
 
-from signal_utils import *
-from test_utils import combine_data
-from dateutil import relativedelta
-import pandas as pd
-
 def split_agnostisise(_readings, _reading, _channel):        
     begining_date = '2001-01-01 00:00:00+02:00'
     print (_readings[_reading]['devices'].keys())
@@ -126,12 +129,6 @@ def split_agnostisise(_readings, _reading, _channel):
         dataframeAgnostic = dataframeAgnostic.combine_first(df[i])
     
     return dataframeAgnostic 
-
-import plotly.tools as tls
-import plotly as ply
-from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
-
-init_notebook_mode(connected=True)
 
 def plot_oneshots(readings, channels, device_one_shot):
     for reading in readings:
@@ -231,14 +228,6 @@ def find_closest(A, target):
     right = A[idx]
     idx -= target - left < right - target
     return idx
-
-# Dataframe Preparation and anomaly detection utils
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.model_selection import cross_val_score
-import matplotlib.pyplot as plot
-from xgboost import XGBRegressor 
 
 def mean_absolute_percentage_error(y_true, y_pred): 
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100

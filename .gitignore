@@ -1,16 +1,11 @@
 # Remove
-data/20*
-data/RAW_DATA/*.csv
-data/RAW_DATA/*.CSV
-data/RAW_DATA/*/
-
+data/*
+models/*
+scr.egg-info/*
+scr.egg-info
 
 # Notebook
 notebooks/temp-plot.html
-notebooks/models/export/*
-notebooks/caldata/*
-
-
 .ipynb_checkpoints* 
 
 # MAC stuff

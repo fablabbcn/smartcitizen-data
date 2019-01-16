@@ -1,5 +1,5 @@
 import matplotlib
-import matplotlib.pyplot as plt                  # plots
+import matplotlib.pyplot as plot                  # plots
 import seaborn as sns                            # more plots
 sns.set(color_codes=True)
 matplotlib.style.use('seaborn-whitegrid')
@@ -20,16 +20,13 @@ warnings.filterwarnings('ignore')
 from dateutil import relativedelta
 from scipy.optimize import curve_fit
 
-from data_utils import getCalData
-from test_utils import *
-from formula_utils import exponential_smoothing
+from src.data.data_utils import getCalData
+from src.data.test_utils import *
+from src.models.formula_utils import exponential_smoothing, miner, maxer
 
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 from math import sqrt, isnan
-
-alpha_calData = getCalData('alphasense')
-mics_calData = getCalData('mics')
 
 # AlphaDelta PCB factor
 factorPCB = 6.36
@@ -171,8 +168,8 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
             baseline[(name + '_' + 'baseline_' +  _type_regress)] = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept_exp), slope_exp, 0)
         
     if _plots == True:
-        with plt.style.context('seaborn-white'):
-            fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20,8))
+        with plot.style.context('seaborn-white'):
+            fig1, (ax1, ax2) = plot.subplots(nrows=1, ncols=2, figsize=(20,8))
             
             ax1.plot(resultData.iloc[:,1].values, resultData[(name + '_'+str(_numberDeltas[indexMax]))], label = 'Baseline', linestyle='-', linewidth=0, marker='o')
             ax1.plot(resultData.iloc[:,1].values, baseline[(name + '_' + 'baseline_' +  _type_regress)] , label = 'Regressed value', linestyle='-', linewidth=1, marker=None)
@@ -195,7 +192,7 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
             ax22.set_ylabel(resultData.iloc[:,1].name, color = 'red')
             ax22.tick_params(axis='y', labelcolor='red')
             
-            fig2, ax3 = plt.subplots(figsize=(20,8)) # two axes on figure
+            fig2, ax3 = plot.subplots(figsize=(20,8)) # two axes on figure
             ax3.plot(_numberDeltas, pearsons)
             ax3.axis('tight')
             ax3.set_title("R2 vs. Delta")
@@ -229,8 +226,8 @@ def decompose(_data, plots = False):
     trend = slope*indexDecomp + intercept
     if plots == True:
         
-        with plt.style.context('seaborn-white'):
-            fig, ax = plt.subplots(figsize=(20,10))
+        with plot.style.context('seaborn-white'):
+            fig, ax = plot.subplots(figsize=(20,10))
             ax.plot(_data.index, _data.values, label = "Actual", marker = None)
             ax.plot(_data.index, dataDecomp[(name + '_' +'_flat')], marker = None, label = 'Flattened')
             ax.plot(_data.index, trend, label = 'Trend')
@@ -305,9 +302,9 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
             print ('Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg))
 
         if _plots == True:
-            with plt.style.context('seaborn-white'):
+            with plot.style.context('seaborn-white'):
                 
-                fig2, ax3 = plt.subplots(figsize=(20,8))
+                fig2, ax3 = plot.subplots(figsize=(20,8))
  
                 ax3.plot(data_baseline.index, data_baseline.values, label='Baseline', marker = None)
                 ax3.plot(dataframeCalc.index, dataframeCalc.iloc[:,0], label='Original Working', marker = None)
@@ -319,7 +316,7 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
                 ax3.set(xlabel='Time', ylabel='Ouput-mV')
                 ax3.grid(True)
                  
-                # fig3, ax7 = plt.subplots(figsize=(20,8))
+                # fig3, ax7 = plot.subplots(figsize=(20,8))
                 
                 # ax7.plot(_dataFrame[temp], _dataFrame[alphaW], label='W - Raw', marker='o',  linestyle=None, linewidth = 0)
                 # ax7.plot(_dataFrame[temp], _dataFrame[alphaA], label ='A - Raw', marker='v', linewidth=0)
@@ -355,9 +352,7 @@ def findDates(_dataframe):
     
     return min_date_df, max_date_df, range_days
 
-from formula_utils import maxer, miner
-
-def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False):
+def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = ''):
     '''
         Function to calculate alphasense pollutants with baseline technique
         Input:
@@ -395,6 +390,8 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
     dataframeResult = _dataframe.copy()
     numberSensors = len(_pollutantTuples)
     CorrParamsDict = dict()
+
+    alpha_calData = getCalData('alphasense', _calibrationDataPath)
     
     for sensor in range(numberSensors):
         
@@ -425,23 +422,23 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 id_alphaA = item[2]
 
         ## Retrieve alphasense name
-        for currentSensorName in currentSensorNames:        
-            if id_alphaW == currentSensorNames[currentSensorName]['id']:
-                alphaW = currentSensorNames[currentSensorName]['shortTitle']
-            if id_alphaA == currentSensorNames[currentSensorName]['id']:
-                alphaA = currentSensorNames[currentSensorName]['shortTitle']
+        for currentSensorName in _currentSensorNames:        
+            if id_alphaW == _currentSensorNames[currentSensorName]['id']:
+                alphaW = _currentSensorNames[currentSensorName]['shortTitle']
+            if id_alphaA == _currentSensorNames[currentSensorName]['id']:
+                alphaA = _currentSensorNames[currentSensorName]['shortTitle']
        
         # Retrieve temperature and humidity names
         for item in th_ids_table:
-            for currentSensorName in currentSensorNames:      
-                if item[1] == currentSensorNames[currentSensorName]['id'] and currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
-                    temp = currentSensorNames[currentSensorName]['shortTitle']
+            for currentSensorName in _currentSensorNames:      
+                if item[1] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
+                    temp = _currentSensorNames[currentSensorName]['shortTitle']
                     break
         
         for item in th_ids_table:
-            for currentSensorName in currentSensorNames:   
-                if item[2] == currentSensorNames[currentSensorName]['id'] and currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
-                    hum = currentSensorNames[currentSensorName]['shortTitle']
+            for currentSensorName in _currentSensorNames:   
+                if item[2] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
+                    hum = _currentSensorNames[currentSensorName]['shortTitle']
                     break
 
         _listNames = (alphaW, alphaA, temp, hum)
