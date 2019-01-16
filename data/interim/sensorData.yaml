@@ -1,0 +1,353 @@
+'4773':
+  hardware_id: '8ce207d2-504e4b4b-372e314a-ff03180c'
+  sck_id: 'SCK2118080014'
+  id: 'SCS21001'
+  type: 'station'
+  mac: '07D7'
+  internal_ref: 'Demo Hasselt - Bottrop'
+  date_from: '2018-09-17'
+  date_to: '2018-09-21'
+  gas_pro_board: 
+    CO: 162581720
+    NO2: 202160405
+    O3: 204160159
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000701
+    PMS5003_2: 2017123000703
+
+'4774':
+  hardware_id: 'e7a97ecf-504e4b4b-372e314a-ff031727'
+  sck_id: 'SCK2118080026'
+  id: 'SCS21002'
+  type: 'station'
+  mac: 'F9FF'
+  internal_ref: 'Demo Hasselt - Bottrop'
+  date_from: '2018-09-17'
+  date_to: '2018-09-21'
+  gas_pro_board:
+    CO: 162581724
+    NO2: 202160411
+    O3: 204160156
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000719
+    PMS5003_2: 2017123000700
+
+'4814':
+  hardware_id: '8ce207d2-504e4b4b-372e314a-ff03180c'
+  sck_id: 'SCK2118080014'
+  id: 'SCS21001'
+  type: 'station'
+  mac: '07D7'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581720
+    NO2: 202160405
+    O3: 204160159
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000701
+    PMS5003_2: 2017123000703
+
+'4815':
+  hardware_id: 'e7a97ecf-504e4b4b-372e314a-ff031727'
+  sck_id: 'SCK2118080026'
+  id: 'SCS21002'
+  type: 'station'
+  mac: 'F9FF'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581724
+    NO2: 202160411
+    O3: 204160156
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000719
+    PMS5003_2: 2017123000700
+
+'4816':
+  hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
+  sck_id: 'SCK2118080019'
+  id: 'SCS21003'
+  type: 'station'
+  mac: '3C2D'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '2018-10-15'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'4999':
+  hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
+  sck_id: 'SCK2118080019'
+  id: 'SCS21003'
+  type: 'station'
+  mac: '3C2D'
+  internal_ref: 'UCD_STABILISATION_2'
+  date_from: '2018-10-28'
+  date_to: '2018-10-21'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'5261':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21003'
+  type: 'station'
+  mac: 'EE42'
+  internal_ref: 'UCD_URBAN_BACKGROUND_2'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'4817':
+  hardware_id: '72e042c5-504e4b4b-372e314a-ff030b28'
+  sck_id: 'SCK2118080073'
+  id: 'SCS21004'
+  type: 'station'
+  mac: 'EE42'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '2018-10-15'
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 204160149
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
+
+'5000':
+  hardware_id: '72e042c5-504e4b4b-372e314a-ff030b28'
+  sck_id: 'SCK2118080073'
+  id: 'SCS21004'
+  type: 'station'
+  mac: 'EE42'
+  internal_ref: 'UCD_STABILISATION_1'
+  date_from: '2018-10-28'
+  date_to: '2018-11-21'
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 204160163
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
+
+'5262':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21004'
+  type: 'station'
+  mac: 'F885'
+  internal_ref: 'UCD_URBAN_BACKGROUND_1'
+  date_from: '2018-11-23'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 204160163
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
+
+'4818':
+  hardware_id: 'd89fb85-504e4b4b-372e314a-ff032d28'
+  sck_id: 'SCK2118080055'
+  id: 'SCS21005'
+  type: 'station'
+  mac: 'FFD5'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581709
+    NO2: 202160418
+    O3: 204160146
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503890
+    PMS5003_2: 2018052503803
+
+'5461':
+  hardware_id: 'd89fb85-504e4b4b-372e314a-ff032d28'
+  sck_id: 'SCK2118080055'
+  id: 'SCS21005'
+  type: 'station'
+  mac: 'FFD5'
+  internal_ref: 'BOT_STABILISATION_1'
+  date_from: '2019-01-04'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581709
+    NO2: 202160418
+    O3: 204160146
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503890
+    PMS5003_2: 2018052503803
+
+'4819':
+  hardware_id: '3d53dc0f-504e4b4b-372e314a-ff032b26'
+  sck_id: 'SCK2118080028'
+  id: 'SCS21006'
+  type: 'station'
+  mac: '0200'
+  internal_ref: 'Delivery iScape'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581711
+    NO2: 202160419
+    O3: 204160148
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503807
+    PMS5003_2: 2018052503823
+
+'5460':
+  hardware_id: '3d53dc0f-504e4b4b-372e314a-ff032b26'
+  sck_id: 'SCK2118080028'
+  id: 'SCS21006'
+  type: 'station'
+  mac: '0200'
+  internal_ref: 'BOT_STABILISATION_2'
+  date_from: '2019-01-04'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581711
+    NO2: 202160419
+    O3: 204160148
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503807
+    PMS5003_2: 2018052503823
+
+'4825':
+  hardware_id: '6fec749e-504e4b4b-372e314a-ff032e0d'
+  sck_id: 'SCK2118080002'
+  id: 'SCS21007'
+  type: 'station'
+  mac: '1E4A'
+  date_from: '2018-08-03'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581710
+    NO2: 202160420
+    O3: 204160147
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503821
+    PMS5003_2: 2018052503814
+
+'4826':
+  hardware_id: 'beccbf5d-504e4b4b-372e314a-ff032526'
+  sck_id: 'SCK2118080012'
+  id: 'SCS21008'
+  type: 'station'
+  mac: 'FB19'
+  date_from: '2018-08-04'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581721
+    NO2: 202160417
+    O3: 204160158
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503833
+    PMS5003_2: 2018052503825 
+
+'4827':
+  hardware_id: '127b5531-504e4b4b-372e314a-ff031926'
+  sck_id: 'SCK2118080024'
+  id: 'SCS21009'
+  type: 'station'
+  mac: 'F174'
+  date_from: '2018-10-19'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581723
+    NO2: 202160412
+    O3: 204160155
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018062901635
+    PMS5003_2: 2018062901643
+
+'4828':
+  hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
+  sck_id: 'SCK2118080035'
+  id: 'SCS21010'
+  type: 'station'
+  mac: '04E1'
+  date_from: '2018-08-04'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581722
+    NO2: 202160404
+    O3: 204160157
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503817
+    PMS5003_2: 2018052503804
+
+'4748':
+  hardware_id: ''
+  sck_id: ''
+  id: 'station-lab'
+  type: 'station'
+  mac: '3185'
+  date_from: '2018-08-01'
+  date_to: '2018-09-28'
+  gas_pro_board:
+    CO: 162031257
+    NO2: 202160413
+    O3: 204560316
+    SLOTS: !!python/tuple [NO2, CO, O3]
+  pm_board:
+    PMS5003_1: 'na'
+    PMS5003_2: 'na'
+
+'4811':
+  hardware_id: ''
+  sck_id: ''
+  id: 'SCS21011'
+  type: 'station'
+  mac: '3185'
+  date_from: '2018-10-08'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581718
+    NO2: 202160406
+    O3: 204160160
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 'na'
+    PMS5003_2: 'na'

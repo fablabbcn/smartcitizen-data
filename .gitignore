@@ -1,6 +1,10 @@
 # Remove
-data/*
-models/*
+data/export/*
+data/processed/*
+data/raw/*
+models/ALPHASENSE/*
+models/MICS/*
+models/PMS/*
 scr.egg-info/*
 scr.egg-info
 
