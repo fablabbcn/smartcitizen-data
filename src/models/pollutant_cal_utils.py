@@ -20,7 +20,6 @@ warnings.filterwarnings('ignore')
 from dateutil import relativedelta
 from scipy.optimize import curve_fit
 
-from src.data.data_utils import getCalData
 from src.data.test_utils import *
 from src.models.formula_utils import exponential_smoothing, miner, maxer
 
@@ -64,6 +63,14 @@ th_ids_table = (['EXT_DALLAS','96',''],
                  ['SENSOR_TEMPERATURE','55','56'],
                  ['GASESBOARD_TEMPERATURE','79', '80'])
 
+def getCalData(_sensorType, _calibrationDataPath):
+    print ("Loading sensor calibration data from", _calibrationDataPath)
+
+    calData = pd.read_json('file://' + _calibrationDataPath + _sensorType + '.json', orient='columns', lines = True)
+    calData.index = calData['Serial No']
+
+    return calData
+
 def ExtractBaseline(_data, _delta):
     '''
         Input:
@@ -97,7 +104,8 @@ def findMax(_listF):
     return valMax, indexMax
 
 def exponential_func(x, a, b, c):
-     return a * np.exp(b * x) + c
+    # Returns exponential function with the formula: y = a*e^(bx) + c
+    return a * np.exp(b * x) + c
 
 def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plots = False, _verbose = False):
     '''

@@ -3,9 +3,6 @@ from tzwhere import tzwhere
 import pandas as pd
 import numpy as np
 
-from ipywidgets import interact
-import ipywidgets as widgets
-from IPython.display import display, clear_output, Markdown
 import yaml
 from os import getcwd, walk
 from os.path import join

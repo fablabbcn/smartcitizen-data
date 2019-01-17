@@ -33,9 +33,10 @@ Easiest requirements installation is done through the `environment.yml` file:
 
 ```
 conda env create -f environment.yml
+pip install --editable .
 ```
 
-More information about managing environments in Anaconda can be found [here](https://conda.io/docs/user-guide/tasks/manage-environments.html).
+More information about managing environments in Anaconda can be found [here](https://conda.io/docs/user-guide/tasks/manage-environments.html). The folder structure follows that of [CookieCutter for Data Science](https://drivendata.github.io/cookiecutter-data-science/).
 
 ## Run
 

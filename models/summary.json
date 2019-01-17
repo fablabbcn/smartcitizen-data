@@ -1,1 +1,1 @@
-{"MICS": {"": "", "MICS_RF_TEST_MODEL": "RF"}, "ALPHASENSE": {"": ""}, "PMS": {"": ""}}
+{"MICS": {"": "", "MICS_RF_TEST_MODEL": "RF", "MICS_LSTM_TEST_MODEL_n_lags-2": "LSTM", "MICS_OLS_TEST_MODEL": "OLS"}, "ALPHASENSE": {"": ""}, "PMS": {"": ""}}

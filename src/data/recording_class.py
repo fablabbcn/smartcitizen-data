@@ -50,9 +50,6 @@ class recordings:
 			self.readings[reading_name]['devices'][name_combined_data] = dict()
 			self.readings[reading_name]['devices'][name_combined_data]['data'] = dict()
 			self.readings[reading_name]['devices'][name_combined_data]['data'] = dataframe
-			
-			## Create dict for model comparison
-			self.readings[reading_name]['models'] = dict()
 
 		except:
 			print('\tError ocurred. Review data')
@@ -87,8 +84,8 @@ class recordings:
 						dataframeModel = dataframeModel.dropna()
 				dataframeModel = dataframeModel[dataframeModel.index > min_date]
 				dataframeModel = dataframeModel[dataframeModel.index < max_date]
-				
 				if 'models' not in self.readings[reading_name].keys():
+					print ('Creating models dict')
 					self.readings[reading_name]['models']=dict()
 
 				self.readings[reading_name]['models'][model_name]=dict()

@@ -1,25 +1,20 @@
-import pandas as pd
-
-# Combine all data in one dataframe
-from sklearn import preprocessing
-encoder = preprocessing.LabelEncoder() 
-from sklearn.preprocessing import MinMaxScaler
-import pandas as pd
-from src.data.test_utils import combine_data
-import ipywidgets as widgets
-
 from keras.models import Sequential
 from keras.layers import Dense, Activation, LSTM, Dropout
 import matplotlib.pyplot as plot
 
+from sklearn import preprocessing
+from sklearn.preprocessing import MinMaxScaler
+encoder = preprocessing.LabelEncoder() 
 from sklearn.metrics import r2_score, median_absolute_error
 from sklearn.metrics import mean_absolute_error, mean_squared_error #, mean_squared_log_error 
 
+import pandas as pd
+import numpy as np
 from numpy import concatenate
 from math import sqrt
 
+from src.data.test_utils import combine_data
 from src.models.formula_utils import exponential_smoothing
-import numpy as np
 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
