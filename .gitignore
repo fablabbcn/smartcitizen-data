@@ -1,7 +1,6 @@
 # Remove
 data/export/*
 data/processed/*
-data/raw/*
 models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
