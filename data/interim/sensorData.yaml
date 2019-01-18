@@ -4,7 +4,7 @@
   id: 'SCS21001'
   type: 'station'
   mac: '07D7'
-  internal_ref: 'Demo Hasselt - Bottrop'
+  internal_ref: 'DEMO_HASSELT_BOTTROP'
   date_from: '2018-09-17'
   date_to: '2018-09-21'
   gas_pro_board: 
@@ -22,7 +22,7 @@
   id: 'SCS21002'
   type: 'station'
   mac: 'F9FF'
-  internal_ref: 'Demo Hasselt - Bottrop'
+  internal_ref: 'DEMO_HASSELT_BOTTROP'
   date_from: '2018-09-17'
   date_to: '2018-09-21'
   gas_pro_board:
@@ -40,9 +40,9 @@
   id: 'SCS21001'
   type: 'station'
   mac: '07D7'
-  internal_ref: 'Delivery iScape'
+  internal_ref: 'UOS_STABILISATION_1'
   date_from: '2018-09-28'
-  date_to: '-'
+  date_to: '2019-01-17'
   gas_pro_board: 
     CO: 162581720
     NO2: 202160405
@@ -58,8 +58,44 @@
   id: 'SCS21002'
   type: 'station'
   mac: 'F9FF'
-  internal_ref: 'Delivery iScape'
+  internal_ref: 'UOS_STABILISATION_2'
   date_from: '2018-09-28'
+  date_to: '2019-01-17'
+  gas_pro_board:
+    CO: 162581724
+    NO2: 202160411
+    O3: 204160156
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000719
+    PMS5003_2: 2017123000700
+
+'5528':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21001'
+  type: 'station'
+  mac: '07D7'
+  internal_ref: 'UCD_URBAN_BACKGROUND_1'
+  date_from: '2019-01-18'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581720
+    NO2: 202160405
+    O3: 204160159
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000701
+    PMS5003_2: 2017123000703
+
+'5527':
+  hardware_id: ''
+  sck_id: '-'
+  id: 'SCS21002'
+  type: 'station'
+  mac: 'F9FF'
+  internal_ref: 'UCD_URBAN_BACKGROUND_2'
+  date_from: '2019-01-18'
   date_to: '-'
   gas_pro_board:
     CO: 162581724
