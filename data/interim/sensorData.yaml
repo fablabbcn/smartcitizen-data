@@ -76,7 +76,7 @@
   id: 'SCS21001'
   type: 'station'
   mac: '07D7'
-  internal_ref: 'UCD_URBAN_BACKGROUND_1'
+  internal_ref: 'UOS_URBAN_BACKGROUND_1'
   date_from: '2019-01-18'
   date_to: '-'
   gas_pro_board: 
@@ -94,7 +94,7 @@
   id: 'SCS21002'
   type: 'station'
   mac: 'F9FF'
-  internal_ref: 'UCD_URBAN_BACKGROUND_2'
+  internal_ref: 'UOS_URBAN_BACKGROUND_2'
   date_from: '2019-01-18'
   date_to: '-'
   gas_pro_board:
@@ -143,6 +143,24 @@
     PMS5003_2: 2018052503835
 
 '5261':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21003'
+  type: 'station'
+  mac: 'EE42'
+  internal_ref: 'UCD_URBAN_BACKGROUND_2'
+  date_from: '2018-09-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    SLOTS: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'5565':
   hardware_id: '-'
   sck_id: '-'
   id: 'SCS21003'

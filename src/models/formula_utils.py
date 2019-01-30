@@ -97,7 +97,15 @@ def maxer(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
         if (y[i]<=val and not y[i] == np.nan): result[i] = val
-        elif (y[i]<=val and not y[i] == np.nan): result[i] = y[i]
+        elif (y[i]>val and not y[i] == np.nan): result[i] = y[i]
+        elif (math.isnan(y[i])): result[i] = np.nan
+    return result
+
+def maxer_hist(y, val, hist):
+    result = np.zeros(len(y))
+    for i in range(len(y)):
+        if (y[i]<=val and not y[i] == np.nan): result[i] = hist
+        elif (y[i]>val and not y[i] == np.nan): result[i] = y[i]
         elif (math.isnan(y[i])): result[i] = np.nan
     return result
 
@@ -105,9 +113,9 @@ def miner(y, val):
     result = np.zeros(len(y))
     for i in range(len(y)):
         if (y[i]<=val and not y[i] == np.nan): result[i] = y[i]
-        elif (y[i]<=val and not y[i] == np.nan): result[i] = val
+        elif (y[i]>val and not y[i] == np.nan): result[i] = val
         elif (math.isnan(y[i])): result[i] = np.nan
-    return 
+    return result
 
 def greater(y, val):
     result = np.zeros(len(y))
