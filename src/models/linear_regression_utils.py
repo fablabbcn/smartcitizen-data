@@ -72,22 +72,29 @@ def prep_data_OLS(dataframeModel, tuple_features, ratio_train):
         dataframeModel.rename(columns={'_'.join([item[1],item[2]]): item[0]}, inplace=True)
     
     dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
-    dataframeTrain['CONST'] = 1.0
 
     # Test Dataframe
     if ratio_train < 1:
         dataframeTest = dataframeModel.iloc[n_train_periods:,:]
-        dataframeTest['CONST'] = 1.0
         
         return dataframeTrain, dataframeTest, n_train_periods
 
     return dataframeTrain, total_len
 
-def fit_model_OLS(formula_expression, dataTrain, printSummary = True):
+def fit_model_OLS(formula_expression, dataTrain, fit_intercept = True, printSummary = True):
     '''
         
     '''
-    model = smform.ols(formula = formula_expression, data = dataTrain).fit()
+
+    # The constant is only added if the 
+    if formula_expression != None:
+        model = smform.ols(formula = formula_expression, data = dataTrain).fit()
+    else:
+        if fit_intercept:
+            dataTrain = smapi.add_constant(dataTrain)
+        mask = dataTrain.columns.str.contains('REF')
+
+        model = smapi.OLS(dataTrain.loc[:,mask].values, dataTrain.loc[:,~mask].values).fit()
     
     if printSummary:
     	print(model.summary())
@@ -117,15 +124,17 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
     try:
         reference = data['REF']
         ref_avail = True
+        mask = data.columns.str.contains('REF')
     except:
-        # Do nothin
+        # Do nothing
         ref_avail = False
+        mask = data.columns
         print ('No reference available')
 
     ## Predict Results
     if train_test == 'train':
 
-        predictionTrain = model.predict(data)
+        predictionTrain = model.predict(data.loc[:,~mask])
         
         ## Get confidence intervals
         # For training
@@ -139,7 +148,8 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
             # Plot the stuff
             fig = plot.figure(figsize=(15,10))
             # Actual data
-            plot.plot(data.index, reference, 'r', label = 'Reference Train', alpha = 0.3)
+            if ref_avail:
+                plot.plot(data.index, reference, 'r', label = 'Reference Train', alpha = 0.3)
         
             # Fitted Values for Training
             plot.plot(data.index, predictionTrain, 'r', label = 'Prediction Train')
@@ -161,7 +171,7 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
 
     elif train_test == 'test':
 
-        predictionTest = model.get_prediction(data)
+        predictionTest = model.get_prediction(data.loc[:,~mask])
 
         ## Get confidence intervals
         # For test

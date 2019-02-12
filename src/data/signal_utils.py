@@ -254,7 +254,7 @@ def plotModelResults(X, y, index, prediction, name, lower, upper, plot_intervals
 
     plot.figure(figsize=(15, 7))
     plot.plot(index, prediction, "g", label="Prediction", linewidth=2.0)
-    plot.plot(index, y, label="actual", linewidth=2.0)
+    plot.plot(index, y, alpha = 0.5, label="Actual", linewidth=2.0)
     
     if plot_intervals:
         
@@ -274,7 +274,7 @@ def plotModelResults(X, y, index, prediction, name, lower, upper, plot_intervals
     plot.grid(True);
     plot.show()
 
-def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAnom = True, _scaleAnom = 1.9, _methodAnom = 'before-after-avg'):
+def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasses = 1, _plotModelAnom = True, _scaleAnom = 1.9, _narrowDownFactor = 1, _methodAnom = 'before-after-avg', _append_clean = '_CLEAN'):
     '''
         Function for Dataframe preparation: resampling and anomalies cleaning
         data: Pandas dataframe with datetime index
@@ -282,10 +282,11 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
         irrelevant_columns: ignore columns for anomaly detection (tipically BATT, BATT_CHG_RATE and LIGHT)
         plotModelAnom: plot anomaly model
         scaleAnom: range for anomaly detection thresholds (between 1 and 3)
+        narrow_down_factor: a tighter factor each time
         methodAnom = anomaly treatment method
     '''
 
-    def prepareForAnomalies(series, lag_start, lag_end, test_size, target_encoding=False):
+    def prepareForAnomalies(series_prepare, lag_start, lag_end, test_size):
         """
             series: pd.DataFrame
                 dataframe with timeseries
@@ -305,100 +306,87 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
         """
         
         # copy of the initial dataset
-        data = pd.DataFrame(series.copy())
-        data.columns = ["y"]
+        data_prepare = pd.DataFrame(series_prepare.copy())
+        data_prepare.columns = ["y"]
         
         # lags of series
         for i in range(lag_start, lag_end):
-            data["lag_{}".format(i)] = data.y.shift(i)
+            data_prepare["lag_{}".format(i)] = data_prepare.y.shift(i)
         
-        # datetime features
-        # data.index = data.index.to_datetime()
-        # data["hour"] = data.index.hour
-        # data["weekday"] = data.index.weekday
-        # data['is_weekend'] = data.weekday.isin([5,6])*1
-        
-        # if target_encoding:
-        #     # calculate averages on train set only
-        #     test_index = int(len(data.dropna())*(1-test_size))
-        #     data['weekday_average'] = list(map(
-        #         code_mean(data[:test_index], 'weekday', "y").get, data.weekday))
-        #     data["hour_average"] = list(map(
-        #         code_mean(data[:test_index], 'hour', "y").get, data.hour))
+        # # train-test split
+        data_prepare = data_prepare.fillna(method='bfill').fillna(method='ffill')
 
-        #     # frop encoded variables 
-        #     data.drop(["hour", "weekday"], axis=1, inplace=True)
-        
-        # train-test split
-        data = data.dropna()
+        y = data_prepare.y
+        X = data_prepare.drop(['y'], axis=1)
 
-        y = data.y
-        X = data.drop(['y'], axis=1)
-
-        index = X.index
+        index = data_prepare.index
         X_train, X_test, y_train, y_test =\
             timeseries_train_test_split(X, y, test_size=test_size)
         return X_train, X_test, y_train, y_test, index
 
-    def calculateAnomalies(_data, _frecuency = '1Min' , _scale = 2, _plotModel = False):
-        name = _data.name
+    def calculateAnomalies(data_calculate, frecuency_calculate = '1Min' , scale_calculate = 2, plot_model_calculate = False):
+        print ('Scale factor:', scale_calculate)
+
+        name_calculate = data_calculate.name
         scaler = StandardScaler()
         tscv = TimeSeriesSplit(n_splits=5)
         
         # Extract frequency and convert it to lags
-        offset = pd.tseries.frequencies.to_offset(_frecuency)
-        alias = pd.tseries.frequencies.get_base_alias(_frecuency)
+        offset = pd.tseries.frequencies.to_offset(frecuency_calculate)
+        alias = pd.tseries.frequencies.get_base_alias(frecuency_calculate)
         
         LUT_CONVERT_FREQ = (['Min', 1], 
                        ['S', 1/60], 
                        ['H', 60])
         
         factor = 0
-        for item in LUT_CONVERT_FREQ:
-            if item[0] == alias:
-                factor = item[1]*offset.n
+        for item_lut in LUT_CONVERT_FREQ:
+            if item_lut[0] == alias:
+                factor = item_lut[1]*offset.n
         
         # good lag for 1Min frequency seems to be 60 for all signals
         lag_end = int(max(10, 60/factor))
         
-        X, _, y, _, index =\
-            prepareForAnomalies(_data, lag_start=3, lag_end = lag_end, test_size=0, target_encoding=False)
+        X_calculate, _, y_calculate, _, index_calculate =\
+            prepareForAnomalies(data_calculate, lag_start=3, lag_end = lag_end, 
+                test_size=0)
 
-        anomalies = np.zeros(len(y))
+        anomalies_calculate = np.zeros(len(y_calculate))
         
-        if (len(y)):
-            print ('Calculating', name)
+        if (len(y_calculate)):
+            print ('\tCalculating...', name_calculate)
 
-            X_scaled = scaler.fit_transform(X)
+            X_scaled_calculate = scaler.fit_transform(X_calculate)
              
             xgb = XGBRegressor()
-            model = xgb.fit(X_scaled, y)
+            model_calculate = xgb.fit(X_scaled_calculate, y_calculate)
             
-            prediction = model.predict(X_scaled)
+            prediction_calculate = model_calculate.predict(X_scaled_calculate)
             
-            cv = cross_val_score(model, X_scaled, y,
+            cv = cross_val_score(model_calculate, X_scaled_calculate, y_calculate,
                                 cv = tscv, 
                                 scoring = "neg_mean_squared_error")
             
-            deviation = np.sqrt(cv.std())
+            deviation_calculate = np.sqrt(cv.std())
             
-            lower = prediction - (_scale * deviation)
-            upper = prediction + (_scale * deviation)
+            lower_calculate = prediction_calculate - (scale_calculate * deviation_calculate)
+            upper_calculate = prediction_calculate + (scale_calculate * deviation_calculate)
                     
-            anomalies[y<lower] = 1
-            anomalies[y>upper] = 1
+            anomalies_calculate [y_calculate < lower_calculate] = 1
+            anomalies_calculate [y_calculate > upper_calculate] = 1
             
-            if _plotModel: 
-                plotModelResults(X, y, index, prediction, name,
-                                 lower, upper, 
-                                 True, True)
+            if plot_model_calculate: 
+                plotModelResults(X_calculate, y_calculate, index_calculate, 
+                                prediction_calculate, name_calculate,
+                                lower_calculate, upper_calculate, 
+                                True, True)
                 
-        series = pd.Series(anomalies)
-        series.index = index
+        anomalies_calculate = pd.Series(anomalies_calculate)
+        anomalies_calculate.index = index_calculate
         
-        return series
+        return anomalies_calculate
     
-    def cleanAnomalies(dataframe, column, method):
+    def cleanAnomalies(values_array, anomalies_array, method):
         '''
             Function to clean dataframe, provided a column with anomalies and a marker
             column, with ones where the anomalies are found.
@@ -409,51 +397,78 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _plotModelAn
                     - nan: inputs a nan in the anomaly
                     - avg: 
         '''
-        list_anom = list(np.where(dataframe[column + append_anomalies] == 1)[0])
-        clean_column = dataframe[column]
-        print ('Cleaning', column)
+
+        list_anom = list(np.where(anomalies_array == 1)[0])
+        values_array_clean = values_array.copy()
         
         if method == 'before-after-avg':
-            for item in list_anom:
-                if item < len(clean_column)-1:
-                    clean_column[item] = (clean_column[item - 1]\
-                                + clean_column[item + 1])/2
+            for item_anomaly in list_anom:
+                if item_anomaly < len(values_array_clean)-2:
+
+                    values_array_clean[item_anomaly] = (values_array_clean[item_anomaly - 1]\
+                                + values_array_clean[item_anomaly + 1])/2
+
+
         elif method == 'fill-zeroes':
-            for item in list_anom:
-                clean_column[item] = 0
+            for item_anomaly in list_anom:
+                values_array_clean[item_anomaly] = 0
         elif method == 'fill-nan':
-            for item in list_anom:
-                clean_column[item] = np.nan
+            for item_anomaly in list_anom:
+                values_array_clean[item_anomaly] = np.nan
         elif method == 'fill-avg':
-            average = np.mean(clean_column)
-            for item in list_anom:
-                clean_column[item] = average 
+            average = np.mean(values_array_clean)
+            for item_anomaly in list_anom:
+                values_array_clean[item_anomaly] = average 
         elif method == 'fill-median':
-            median = np.median(clean_column)
-            for item in list_anom:
-                clean_column[item] = median    
+            median = np.median(values_array_clean)
+            for item_anomaly in list_anom:
+                values_array_clean[item_anomaly] = median    
         
-        return clean_column
+        return values_array_clean
 
     append_anomalies = '_ANOM'
-    append_clean = '_CLEAN'
 
     dataFrame = _data.copy()
     dataFrame.resample(_frequencyResample).bfill()
-    
+
     ## Calculate anomalies for each column and treat them
     for column in dataFrame.columns:
         if append_anomalies not in column:
             if column not in _irrelevantColumns:
-                dataFrame[column + append_anomalies] = calculateAnomalies(dataFrame[column],
-                                                                    _frequencyResample, 
-                                                                    _scale = _scaleAnom, 
-                                                                    _plotModel = _plotModelAnom)
+
+                values_array = dataFrame[column]
+
+                for pass_number in range(_numberPasses):
                 
-                dataFrame[column + append_clean] = cleanAnomalies(dataFrame.loc[:,[column, column + append_anomalies]],
-                                                    column, method = _methodAnom)
+                    print ('Calculating: ' + column + '. Pass#: ' + str(pass_number))
+
+                    anomalies_array = calculateAnomalies(values_array,
+                                                        _frequencyResample, 
+                                                        scale_calculate = _scaleAnom/(np.power(_narrowDownFactor, pass_number)), 
+                                                        plot_model_calculate = _plotModelAnom)
+
+                    dataFrame[column + '_ANOM_PASS_' + str(pass_number)] = anomalies_array
+
+                    print ('Cleaning: ' + column + '. Pass#: ' + str(pass_number) + '. Method:' + _methodAnom)
+
+                    clean_array = cleanAnomalies(values_array, anomalies_array,
+                                                method = _methodAnom)
+
+                    values_array = clean_array
+
+                print (column, 'has been cleaned')
+                dataFrame[column + _append_clean] = clean_array.values
+
+                plot.figure(figsize=(15, 7))
+                plot.plot(dataFrame.index, dataFrame[column + _append_clean], "g", label="Final Signal", linewidth=2.0)
+                plot.title('Final clean signal for {}, after {} passes'.format(column, _numberPasses))
+                plot.legend(loc="best")
+                plot.tight_layout()
+                plot.grid(True);
+                plot.show()
+
             else:
                 print ('Ignoring', column)
-        print ('--')
+        print ('-------')
         
     return dataFrame
