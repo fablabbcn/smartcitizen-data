@@ -1,6 +1,8 @@
 iScape Sensor Analysis Framework
 =======
 
+[![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
+
 Welcome to the iScape Sensor Analysis Framework. The framework is built with the purpose of helping on the calibration process of the sensors on field tests and it aim to be the primary tool for manipulating the sensors data.
 
 ![](https://i.imgur.com/CvUuWpL.gif)
