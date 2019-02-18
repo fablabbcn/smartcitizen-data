@@ -11,7 +11,7 @@
     CO: 162581720
     NO2: 202160405
     O3: 204160159
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000701
     PMS5003_2: 2017123000703
@@ -29,7 +29,7 @@
     CO: 162581724
     NO2: 202160411
     O3: 204160156
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
@@ -47,7 +47,7 @@
     CO: 162581720
     NO2: 202160405
     O3: 204160159
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000701
     PMS5003_2: 2017123000703
@@ -65,7 +65,7 @@
     CO: 162581724
     NO2: 202160411
     O3: 204160156
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
@@ -83,7 +83,7 @@
     CO: 162581720
     NO2: 202160405
     O3: 204160159
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000701
     PMS5003_2: 2017123000703
@@ -101,7 +101,7 @@
     CO: 162581724
     NO2: 202160411
     O3: 204160156
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
@@ -119,7 +119,7 @@
     CO: 162581708
     NO2: 202160421
     O3: 204160144
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503810
     PMS5003_2: 2018052503835
@@ -137,7 +137,7 @@
     CO: 162581708
     NO2: 202160421
     O3: 204160144
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503810
     PMS5003_2: 2018052503835
@@ -155,7 +155,7 @@
     CO: 162581708
     NO2: 202160421
     O3: 204160144
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503810
     PMS5003_2: 2018052503835
@@ -173,7 +173,7 @@
     CO: 162581708
     NO2: 202160421
     O3: 204160144
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503810
     PMS5003_2: 2018052503835
@@ -191,7 +191,7 @@
     CO: 162581712
     NO2: 202160416
     O3: 204160149
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
     PMS5003_2: 2018052503991
@@ -209,7 +209,7 @@
     CO: 162581712
     NO2: 202160416
     O3: 204160163
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
     PMS5003_2: 2018052503991
@@ -227,7 +227,7 @@
     CO: 162581712
     NO2: 202160416
     O3: 204160163
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503827
     PMS5003_2: 2018052503991
@@ -245,7 +245,7 @@
     CO: 162581709
     NO2: 202160418
     O3: 204160146
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503890
     PMS5003_2: 2018052503803
@@ -263,7 +263,7 @@
     CO: 162581709
     NO2: 202160418
     O3: 204160146
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503890
     PMS5003_2: 2018052503803
@@ -281,7 +281,7 @@
     CO: 162581711
     NO2: 202160419
     O3: 204160148
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503807
     PMS5003_2: 2018052503823
@@ -299,7 +299,7 @@
     CO: 162581711
     NO2: 202160419
     O3: 204160148
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503807
     PMS5003_2: 2018052503823
@@ -316,7 +316,7 @@
     CO: 162581710
     NO2: 202160420
     O3: 204160147
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503821
     PMS5003_2: 2018052503814
@@ -333,7 +333,7 @@
     CO: 162581721
     NO2: 202160417
     O3: 204160158
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503833
     PMS5003_2: 2018052503825 
@@ -350,7 +350,7 @@
     CO: 162581723
     NO2: 202160412
     O3: 204160155
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018062901635
     PMS5003_2: 2018062901643
@@ -367,7 +367,7 @@
     CO: 162581722
     NO2: 202160404
     O3: 204160157
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 2018052503817
     PMS5003_2: 2018052503804
@@ -384,7 +384,7 @@
     CO: 162031257
     NO2: 202160413
     O3: 204560316
-    SLOTS: !!python/tuple [NO2, CO, O3]
+    slots: !!python/tuple [NO2, CO, O3]
   pm_board:
     PMS5003_1: 'na'
     PMS5003_2: 'na'
@@ -401,7 +401,7 @@
     CO: 162581718
     NO2: 202160406
     O3: 204160160
-    SLOTS: !!python/tuple [CO, NO2, O3]
+    slots: !!python/tuple [CO, NO2, O3]
   pm_board:
     PMS5003_1: 'na'
     PMS5003_2: 'na'
