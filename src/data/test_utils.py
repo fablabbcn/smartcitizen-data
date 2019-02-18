@@ -217,33 +217,28 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
         display(Markdown('Kit **{}** has been loaded'.format(kit)))
     
     ## Check if there's was a reference equipment during the test
-    if 'reference' in test.keys():
-        if 'available' in test['reference'].keys():
-            if test['reference']['available'] == True:
-                refAvail = True
-            else:
-                refAvail = False
-        else:
-            refAvail = False
+    print (test['test']['devices'].keys())
+    if 'reference' in test['test']['devices'].keys():
+            refAvail = True
     else:
         refAvail = False
 
     if refAvail:
         display(Markdown('### REFERENCE'))
-        for reference in test['reference']['files']:
+        for reference in test['test']['devices']['reference']:
             display(Markdown('#### {}'.format(reference)))
             # print 'Reference during the test was'
             referenceDict =  dict()
             
             # Get the file name and frequency
-            fileNameProc = test['reference']['files'][reference]['fileNameProc']
-            frequency_ref = test['reference']['files'][reference]['index']['frequency']
+            fileNameProc = test['test']['devices']['reference'][reference]['fileNameProc']
+            frequency_ref = test['test']['devices']['reference'][reference]['index']['frequency']
             if target_raster != frequency_ref:
                 print ('Resampling reference')
 
             # Check the index name
-            timeIndex = test['reference']['files'][reference]['index']['name']
-            location = test['reference']['files'][reference]['location']
+            timeIndex = test['test']['devices']['reference'][reference]['index']['name']
+            location = test['test']['devices']['reference'][reference]['location']
             display(Markdown('Reference location **{}**'.format(location)))
             
             # Open it with pandas    
@@ -252,9 +247,9 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
             
             ## Convert units
             # Get which pollutants are available in the reference
-            pollutants = test['reference']['files'][reference]['channels']['pollutants']
-            channels = test['reference']['files'][reference]['channels']['names']
-            units = test['reference']['files'][reference]['channels']['units']
+            pollutants = test['test']['devices']['reference'][reference]['channels']['pollutants']
+            channels = test['test']['devices']['reference'][reference]['channels']['names']
+            units = test['test']['devices']['reference'][reference]['channels']['units']
             
             for index in range(len(channels)):
                 

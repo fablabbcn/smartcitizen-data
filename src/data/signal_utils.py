@@ -274,7 +274,7 @@ def plotModelResults(X, y, index, prediction, name, lower, upper, plot_intervals
     plot.grid(True);
     plot.show()
 
-def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasses = 1, _plotModelAnom = True, _scaleAnom = 1.9, _narrowDownFactor = 1, _methodAnom = 'before-after-avg', _append_clean = '_CLEAN'):
+def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasses = 1, _plotModelAnom = True, _scaleAnom = 1.9, _narrowDownFactor = 1, _methodAnom = 'before-after-avg', _windowSize = 2, _append_clean = '_CLEAN'):
     '''
         Function for Dataframe preparation: resampling and anomalies cleaning
         data: Pandas dataframe with datetime index
@@ -386,7 +386,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasse
         
         return anomalies_calculate
     
-    def cleanAnomalies(values_array, anomalies_array, method):
+    def cleanAnomalies(values_array, anomalies_array, method, window_size = 2):
         '''
             Function to clean dataframe, provided a column with anomalies and a marker
             column, with ones where the anomalies are found.
@@ -396,6 +396,7 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasse
                     - zeroes: inputs a 0 in the anomaly
                     - nan: inputs a nan in the anomaly
                     - avg: 
+            If the method is before-after-avg: the window-size can be selected for the average (must be even number)
         '''
 
         list_anom = list(np.where(anomalies_array == 1)[0])
@@ -403,10 +404,17 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasse
         
         if method == 'before-after-avg':
             for item_anomaly in list_anom:
-                if item_anomaly < len(values_array_clean)-2:
+                if item_anomaly < len(values_array_clean)-window_size and item_anomaly > window_size:
+                    value_correction = 0
+                    for window_point in range(1,int(window_size/2)+1):
+                        value_correction = value_correction + values_array_clean[item_anomaly - window_point]\
+                                            + values_array_clean[item_anomaly + window_point]
+                        values_array_clean[item_anomaly] = value_correction/window_size
+                else:
+                    average = np.mean(values_array_clean)
+                    values_array_clean[item_anomaly] = average
 
-                    values_array_clean[item_anomaly] = (values_array_clean[item_anomaly - 1]\
-                                + values_array_clean[item_anomaly + 1])/2
+                
 
 
         elif method == 'fill-zeroes':

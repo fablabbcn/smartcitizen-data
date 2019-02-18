@@ -82,8 +82,10 @@ class recordings:
 						dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
 					elif clean_na_method == 'drop':
 						dataframeModel = dataframeModel.dropna()
-				dataframeModel = dataframeModel[dataframeModel.index > min_date]
-				dataframeModel = dataframeModel[dataframeModel.index < max_date]
+				if min_date != None:
+					dataframeModel = dataframeModel[dataframeModel.index > min_date]
+				if max_date != None:
+					dataframeModel = dataframeModel[dataframeModel.index < max_date]
 				if 'models' not in self.readings[reading_name].keys():
 					print ('Creating models dict')
 					self.readings[reading_name]['models']=dict()

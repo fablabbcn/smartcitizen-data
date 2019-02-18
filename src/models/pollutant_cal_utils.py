@@ -276,6 +276,8 @@ def calculateBaselineDay(_dataFrame, _typeSensor, _listNames, _deltas, _type_reg
         ## Un-pack list names
         alphaW, alphaA, temp, hum = _listNames
 
+        # print (alphaW, alphaA, temp, hum)
+
         ## Correlation between Baseline and original auxiliary
         slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc.iloc[:,1].values))
 
