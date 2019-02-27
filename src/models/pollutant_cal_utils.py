@@ -36,7 +36,7 @@ backgroundConc_NO2 = 8 # ppb
 backgroundConc_OX = 40 # ppb
 
 # Overlap in hours for each day (index = [day(i)-overlapHours, day(i+1)+overlapHours])
-overlapHours = 2 
+overlapHours = 5
 
 # Filter Smoothing 
 filterExpSmoothing = 0.2

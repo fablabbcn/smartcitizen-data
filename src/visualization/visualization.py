@@ -21,12 +21,15 @@ def targetDiagram(models, plot_train):
 
     fig  = plot.figure(figsize=(13,13))
     for model in models:
-        metrics_model = models[model]['metrics']
-    
-        if plot_train == True:
-            plot.scatter(metrics_model['train']['sign_sigma']*metrics_model['train']['RMSD_norm_unb'], metrics_model['train']['normalised_bias'], label = 'Train ' + model)
-        plot.scatter(metrics_model['test']['sign_sigma']*metrics_model['test']['RMSD_norm_unb'], metrics_model['test']['normalised_bias'], label = 'Test ' + model)
-    
+        try:
+            metrics_model = models[model]['metrics']
+        
+            if plot_train == True:
+                plot.scatter(metrics_model['train']['sign_sigma']*metrics_model['train']['RMSD_norm_unb'], metrics_model['train']['normalised_bias'], label = 'Train ' + model)
+            plot.scatter(metrics_model['test']['sign_sigma']*metrics_model['test']['RMSD_norm_unb'], metrics_model['test']['normalised_bias'], label = 'Test ' + model)
+        except:
+            print ('Cannot plot model {}'.format(model))
+
     ## Add circles
     ax = plot.gca()
     circle1 = plot.Circle((0, 0), 1, linewidth = 0.8, color='k', fill =False)

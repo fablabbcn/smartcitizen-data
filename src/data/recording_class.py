@@ -44,9 +44,14 @@ class recordings:
 			## Since we don't know if there are more or less channels than last time
 			## (and tbh, I don't feel like checking), remove the key
 			self.readings[reading_name]['devices'].pop(name_combined_data, None)
-			
+			ignore_keys = []
+			if 'models' in self.readings[reading_name].keys():
+				ignore_keys = self.readings[reading_name]['models'].keys()
+
+			print ('\tIgnoring keys', ignore_keys)
 			## And then add it again
-			dataframe = combine_data(self.readings[reading_name]['devices'], True)
+			dataframe = combine_data(self.readings[reading_name]['devices'], True, ignore_keys)
+
 			self.readings[reading_name]['devices'][name_combined_data] = dict()
 			self.readings[reading_name]['devices'][name_combined_data]['data'] = dict()
 			self.readings[reading_name]['devices'][name_combined_data]['data'] = dataframe
@@ -70,9 +75,8 @@ class recordings:
 					item_name = item[1] + '_' + item[2]
 					list_features.append(item_name)
 				dataframeModel = self.readings[reading_name]['devices'][name_combined_data]['data'].loc[:,list_features]
-				# Check for weird things in the data
-				dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 				
+				dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 				# Resample
 				dataframeModel = dataframeModel.resample(target_raster).mean()
 				
@@ -82,12 +86,14 @@ class recordings:
 						dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
 					elif clean_na_method == 'drop':
 						dataframeModel = dataframeModel.dropna()
+				
 				if min_date != None:
 					dataframeModel = dataframeModel[dataframeModel.index > min_date]
 				if max_date != None:
 					dataframeModel = dataframeModel[dataframeModel.index < max_date]
+
 				if 'models' not in self.readings[reading_name].keys():
-					print ('Creating models dict')
+					print ('\tCreating models dict')
 					self.readings[reading_name]['models']=dict()
 
 				self.readings[reading_name]['models'][model_name]=dict()
@@ -98,6 +104,7 @@ class recordings:
 					if item[0] == 'REF': 
 						reference = dataframeModel.loc[:,item[1] + '_' + item[2]]
 						reference_name = reference.name
+						print ('\tUsing reference as', reference_name)
 				self.readings[reading_name]['models'][model_name]['reference'] = reference_name
 				
 				# Set flag
@@ -109,7 +116,7 @@ class recordings:
 			else: 
 				print ('\tDataframe model generated successfully')
 
-	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = '', n_lags = None, scalerX = None, scalery = None):
+	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = '', n_lags = None, scalerX = None, scalery = None, shuffle_split = False):
 		try:
 			# Metrics
 			self.readings[reading_name]['models'][model_name]['metrics'] = metrics_model
@@ -133,6 +140,7 @@ class recordings:
 			# Dataframe
 			self.readings[reading_name]['devices'][model_name] = dict()
 			self.readings[reading_name]['devices'][model_name]['data'] = dataframe
+			self.readings[reading_name]['models'][model_name]['parameters']['shuffle_split'] = shuffle_split
 		
 		except:
 			print ('Problem occured')
