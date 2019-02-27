@@ -106,6 +106,42 @@
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
 
+'TB03':
+  hardware_id: ''
+  sck_id: '-'
+  id: 'SCS21012'
+  type: 'station'
+  mac: 'F438'
+  internal_ref: 'UOS_DELIVERY_3'
+  date_from: '2019-02-21'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581707
+    NO2: 202160423
+    O3: 204160151
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: na
+    PMS5003_2: na
+
+'TB04':
+  hardware_id: ''
+  sck_id: '-'
+  id: 'SCS21013'
+  type: 'station'
+  mac: '027E'
+  internal_ref: 'UOS_DELIVERY_4'
+  date_from: '2019-02-21'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581714
+    NO2: 202160422
+    O3: 204160143
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: na
+    PMS5003_2: na
+
 '4816':
   hardware_id: '964bf80d-504e4b4b-372e314a-ff03190f'
   sck_id: 'SCK2118080019'
