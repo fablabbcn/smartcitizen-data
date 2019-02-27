@@ -125,11 +125,12 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
         reference = data['REF']
         ref_avail = True
         mask = data.columns.str.contains('REF')
+        print (type(mask))
     except:
         # Do nothing
         ref_avail = False
-        mask = data.columns
-        print ('No reference available')
+        mask = None
+        print ('\tNo reference available')
 
     ## Predict Results
     if train_test == 'train':
@@ -171,7 +172,10 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
 
     elif train_test == 'test':
 
-        predictionTest = model.get_prediction(data.loc[:,~mask])
+        if ref_avail:
+            predictionTest = model.get_prediction(data.loc[:,~mask])
+        else:
+            predictionTest = model.get_prediction(data)
 
         ## Get confidence intervals
         # For test
@@ -204,12 +208,13 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
             plot.show()
 
         if ref_avail:
-            # Put test into pd dataframe
-            dataFrameTest = pd.DataFrame(data = {'reference': reference, 'prediction': test_mean}, 
+            # Put test into pd dataframe 
+            return pd.DataFrame(data = {'reference': reference, 'prediction': test_mean}, 
                               index = data.index)
-            return dataFrameTest
         else:
-            return test_mean
+            print ('Returning only prediction')
+            return pd.DataFrame(data = {'prediction': test_mean}, 
+                              index = data.index)
 
 def model_R_plots(model, dataTrain, dataTest):
     

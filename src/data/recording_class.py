@@ -2,7 +2,15 @@ from src.data.test_utils import *
 from src.data.api_utils import *
 from os.path import join
 from sklearn.externals import joblib
+import matplotlib.pyplot as plot
 import json
+
+from sklearn.ensemble import RandomForestRegressor
+from src.models.ml_utils import prep_prediction_ML, predict_ML
+from src.models.linear_regression_utils import predict_OLS, prep_data_OLS
+
+import pandas as pd
+import numpy as np
 
 class recordings:
 	def __init__(self):
@@ -92,23 +100,25 @@ class recordings:
 				if max_date != None:
 					dataframeModel = dataframeModel[dataframeModel.index < max_date]
 
-				if 'models' not in self.readings[reading_name].keys():
-					print ('\tCreating models dict')
-					self.readings[reading_name]['models']=dict()
+				if model_name != None:
+					# Don't create the model structure, since we are predicting
+					if 'models' not in self.readings[reading_name].keys():
+						print ('\tCreating models dict')
+						self.readings[reading_name]['models']=dict()
 
-				self.readings[reading_name]['models'][model_name]=dict()
-				self.readings[reading_name]['models'][model_name]['data'] = dataframeModel
-				self.readings[reading_name]['models'][model_name]['features'] = tuple_features
+					self.readings[reading_name]['models'][model_name]=dict()
+					self.readings[reading_name]['models'][model_name]['data'] = dataframeModel
+					self.readings[reading_name]['models'][model_name]['features'] = tuple_features
 
-				for item in tuple_features:
-					if item[0] == 'REF': 
-						reference = dataframeModel.loc[:,item[1] + '_' + item[2]]
-						reference_name = reference.name
-						print ('\tUsing reference as', reference_name)
-				self.readings[reading_name]['models'][model_name]['reference'] = reference_name
-				
-				# Set flag
-				self.readings[reading_name]['ready_to_model'] = True
+					for item in tuple_features:
+						if item[0] == 'REF':
+							reference = dataframeModel.loc[:,item[1] + '_' + item[2]]
+							reference_name = reference.name
+							self.readings[reading_name]['models'][model_name]['reference'] = reference_name
+							print ('\tModel reference is', reference_name)
+
+					# Set flag
+					self.readings[reading_name]['ready_to_model'] = True
 				
 			except:
 				if item_name not in self.readings[reading_name]['devices'][name_combined_data]['data'].columns:
@@ -116,7 +126,7 @@ class recordings:
 			else: 
 				print ('\tDataframe model generated successfully')
 
-	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = '', n_lags = None, scalerX = None, scalery = None, shuffle_split = False):
+	def archive_model(self, reading_name, model_name, metrics_model, dataframe, model, model_type, model_target, ratio_train, formula = '', n_lags = None, scalerX = None, scalery = None, shuffle_split = None, alpha_filter = None):
 		try:
 			# Metrics
 			self.readings[reading_name]['models'][model_name]['metrics'] = metrics_model
@@ -125,8 +135,7 @@ class recordings:
 			self.readings[reading_name]['models'][model_name]['model'] = model
 			self.readings[reading_name]['models'][model_name]['model_type'] = model_type
 			self.readings[reading_name]['models'][model_name]['model_target'] = model_target
-			if formula != '':
-				self.readings[reading_name]['models'][model_name]['formula'] = formula
+			self.readings[reading_name]['models'][model_name]['formula'] = formula
 	
 			# Parameters
 			self.readings[reading_name]['models'][model_name]['parameters'] = dict()
@@ -137,10 +146,15 @@ class recordings:
 				self.readings[reading_name]['models'][model_name]['parameters']['scalery'] = scalery
 			if n_lags != None:
 				self.readings[reading_name]['models'][model_name]['parameters']['n_lags'] = n_lags
+			if shuffle_split != None:
+				self.readings[reading_name]['models'][model_name]['parameters']['shuffle_split'] = shuffle_split
+			if alpha_filter != None:
+				self.readings[reading_name]['models'][model_name]['parameters']['alpha_filter'] = alpha_filter
+			
 			# Dataframe
 			self.readings[reading_name]['devices'][model_name] = dict()
 			self.readings[reading_name]['devices'][model_name]['data'] = dataframe
-			self.readings[reading_name]['models'][model_name]['parameters']['shuffle_split'] = shuffle_split
+			
 		
 		except:
 			print ('Problem occured')
@@ -181,3 +195,86 @@ class recordings:
 			json_file.close()
 
 		print("Model included in summary")
+
+	def predict_channels(self, test, device, model, features, params, model_type, model_name, prediction_name, plot_result = True, min_date = None, max_date = None, clean_na = True, clean_na_method = 'drop', target_raster = '1Min'):
+
+		if model_type == 'LSTM':
+			scalerX_predict = params['scalerX']
+			scalery_predict = params['scalery']
+			n_lags = params['n_lags']
+			try:
+				alpha_filter = params['alpha_filter']
+			except:
+				alpha_filter = None
+		elif model_type == 'RF' or model_type == 'SVR':
+			print ('No specifics for {} type'.format(model_type))
+		elif model_type == 'OLS':
+			try:
+				alpha_filter = params['alpha_filter']
+			except:
+				alpha_filter = None
+
+		n_train_periods = params['ratio_train']
+
+		print ('Preparing devices from test {}'.format(test))
+		self.prepare_dataframe_model(features, test, min_date, max_date, 
+											  None, clean_na = clean_na, clean_na_method = clean_na_method, 
+											  target_raster = target_raster)
+
+		## Prep Dataframe
+		list_features = list()
+		for item in features:
+			if 'REF' != item[0]:
+				list_features.append(item[1])
+				if item[1] not in self.readings[test]['devices'][device]['data'].columns:
+					print ('{} not in {}. Cannot predict using this model'.format(item[1], test))
+					break
+
+		dataframeModel = self.readings[test]['devices'][device]['data'].loc[:, list_features]
+		indexModel = dataframeModel.index
+
+		# List of features for later use
+		feature_list = list(dataframeModel.columns)
+		features_array = np.array(dataframeModel)
+
+		if model_type == 'RF' or model_type == 'SVR':
+			
+			## Get model prediction
+
+			self.readings[test]['devices'][device]['data'][prediction_name] = model.predict(features_array)
+			print ('Channel {} prediction finished'.format(prediction_name))
+
+
+		elif model_type == 'LSTM':
+			# To fix
+			test_X, index_pred, n_obs = prep_prediction_ML(dataframeModel, list_features_predict, n_lags, alpha_filter, scalerX_predict, verbose = True)
+			prediction = predict_ML(model, test_X, n_lags, scalery_predict)
+			dataframe = pd.DataFrame(prediction, columns = [prediction_name]).set_index(index_pred)
+			readings[test]['devices'][device_name]['data'][prediction_name] = dataframe.loc[:,prediction_name]
+		
+		elif model_type == 'OLS':
+
+			if self.readings[test]['models'][model_name]['formula']:
+				# Rename to formula
+				for item in features:
+					dataframeModel.rename(columns={item[1]: item[0]}, inplace=True)
+
+			## Predict the model results
+			datapredict, _ = prep_data_OLS(dataframeModel, features, 1)
+			prediction = predict_OLS(model, datapredict, False, False, 'test')
+			
+			self.readings[test]['devices'][device]['data'][prediction_name] = prediction
+
+		if plot_result:
+			# Plot
+			fig = plot.figure(figsize=(15,10))
+		
+			# Fitted values
+			plot.plot(self.readings[test]['devices'][device]['data'].index, \
+					  self.readings[test]['devices'][device]['data'][prediction_name], 'g', alpha = 0.5, label = 'Predicted value')
+			plot.grid(True)
+			plot.legend(loc='best')
+			plot.title('Model prediction for {}'.format(prediction_name))
+			plot.xlabel('Time (-)')
+			plot.ylabel(prediction_name)
+			plot.show()
