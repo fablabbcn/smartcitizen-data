@@ -16,8 +16,8 @@ class recordings:
 	def __init__(self):
 		self.readings = dict()
 
-	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
-		data = loadTest(source_id, target_raster, currentSensorNames, clean_na, clean_na_method)
+	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill'):
+		data = loadTest(source_id, target_raster, currentSensorNames, clean_na, clean_na_method, dataDirectory)
 		self.readings[reading_name] = dict()
 		self.readings[reading_name] = data[reading_name]
 
@@ -216,12 +216,6 @@ class recordings:
 
 		n_train_periods = params['ratio_train']
 
-		print ('Preparing devices from test {}'.format(test))
-		self.prepare_dataframe_model(features, test, min_date, max_date, 
-											  None, clean_na = clean_na, clean_na_method = clean_na_method, 
-											  target_raster = target_raster)
-
-		## Prep Dataframe
 		list_features = list()
 		for item in features:
 			if 'REF' != item[0]:
@@ -230,7 +224,25 @@ class recordings:
 					print ('{} not in {}. Cannot predict using this model'.format(item[1], test))
 					break
 
+		print ('Preparing devices from test {}'.format(test))
 		dataframeModel = self.readings[test]['devices'][device]['data'].loc[:, list_features]
+		dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
+		
+		# Resample
+		dataframeModel = dataframeModel.resample(target_raster).mean()
+		
+		# Remove na
+		if clean_na:
+			if clean_na_method == 'fill':
+				dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
+			elif clean_na_method == 'drop':
+				dataframeModel = dataframeModel.dropna()
+		
+		if min_date != None:
+			dataframeModel = dataframeModel[dataframeModel.index > min_date]
+		if max_date != None:
+			dataframeModel = dataframeModel[dataframeModel.index < max_date]
+
 		indexModel = dataframeModel.index
 
 		# List of features for later use
@@ -238,10 +250,10 @@ class recordings:
 		features_array = np.array(dataframeModel)
 
 		if model_type == 'RF' or model_type == 'SVR':
-			
 			## Get model prediction
-
-			self.readings[test]['devices'][device]['data'][prediction_name] = model.predict(features_array)
+			dataframe = pd.DataFrame(model.predict(features_array), columns = ['prediction']).set_index(indexModel)
+			dataframeModel = dataframeModel.combine_first(dataframe)
+			self.readings[test]['devices'][device]['data'][prediction_name] = dataframeModel['prediction']
 			print ('Channel {} prediction finished'.format(prediction_name))
 
 

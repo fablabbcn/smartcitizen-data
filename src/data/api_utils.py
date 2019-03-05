@@ -2,6 +2,7 @@ import requests
 from tzwhere import tzwhere
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 import yaml
 from os import getcwd, walk
@@ -107,8 +108,18 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         deviceRJSON = deviceR.json()
 
         # Get min and max dates
-        toDate = deviceRJSON['last_reading_at']
+        toDate = deviceRJSON['updated_at']
         fromDate = deviceRJSON['added_at']
+
+        if start_date == None:
+            start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ') 
+        if end_date == None:
+            end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
+        
+        print ('api_utils')
+        print (start_date)
+        print 
+        print (end_date)
         
         # Get available sensors
         sensors = deviceRJSON['data']['sensors']

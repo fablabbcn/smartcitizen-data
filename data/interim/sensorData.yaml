@@ -408,6 +408,24 @@
     PMS5003_1: 2018052503817
     PMS5003_2: 2018052503804
 
+'5631':
+  hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
+  sck_id: 'SCK2118080035'
+  id: 'SCS21010'
+  type: 'station'
+  mac: '04E1'
+  internal_ref: 'HASSELT_STABILISATION_1'
+  date_from: '2019-02-20'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581722
+    NO2: 202160404
+    O3: 204160157
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503817
+    PMS5003_2: 2018052503804
+
 '4748':
   hardware_id: ''
   sck_id: ''
