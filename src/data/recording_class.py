@@ -16,7 +16,7 @@ class recordings:
 	def __init__(self):
 		self.readings = dict()
 
-	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill'):
+	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill', load_processed = True):
 		data = loadTest(source_id, target_raster, currentSensorNames, clean_na, clean_na_method, dataDirectory)
 		self.readings[reading_name] = dict()
 		self.readings[reading_name] = data[reading_name]

@@ -145,7 +145,7 @@ def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_metho
 
         return df
 
-def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill', dataDirectory = ''):
+def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill', dataDirectory = '', load_processed = True):
 
     _readings = dict()
 
@@ -211,6 +211,15 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
             kitDict['location'] = location
             kitDict['data'] = readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_method, targetSensorNames, testSensorNames)
             
+            if load_processed:
+                kitDict_processed = dict()
+                kitDict_processed['location'] = location
+                filePath_processed = join(testPath, 'processed', kit + '.csv')
+                if os.path.exists(filePath_processed):
+                    display(Markdown('Found processed data. Loading...'))
+                    kitDict_processed['data'] = readDataframeCsv(filePath_processed, location, target_raster, clean_na, clean_na_method, targetSensorNames, testSensorNames)
+                    _readings[test_id]['devices'][kit + '_processed'] = kitDict_processed
+
             _readings[test_id]['devices'][kit] = kitDict
             
             ## Check if it's a STATION and retrieve alphadelta codes
@@ -222,8 +231,8 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
                 alphasense['O3'] = test['test']['devices']['kits'][kit]['alphasense']['O3']
                 alphasense['slots'] = test['test']['devices']['kits'][kit]['alphasense']['slots']
                 _readings[test_id]['devices'][kit]['alphasense'] = alphasense
-                print ('\t\t**ALPHASENSE**')
-                print ('\t\t' + str(alphasense))
+                display(Markdown('\t\tALPHASENSE'))
+                display(Markdown('\t\t' + str(alphasense)))
                 
             display(Markdown('Kit **{}** has been loaded'.format(kit)))
         
