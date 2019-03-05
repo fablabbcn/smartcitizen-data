@@ -116,11 +116,6 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         if end_date == None:
             end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
         
-        print ('api_utils')
-        print (start_date)
-        print 
-        print (end_date)
-        
         # Get available sensors
         sensors = deviceRJSON['data']['sensors']
         

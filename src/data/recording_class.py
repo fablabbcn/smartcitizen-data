@@ -274,7 +274,7 @@ class recordings:
 			## Predict the model results
 			datapredict, _ = prep_data_OLS(dataframeModel, features, 1)
 			prediction = predict_OLS(model, datapredict, False, False, 'test')
-			
+
 			self.readings[test]['devices'][device]['data'][prediction_name] = prediction
 
 		if plot_result:
