@@ -108,7 +108,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         deviceRJSON = deviceR.json()
 
         # Get min and max dates
-        toDate = deviceRJSON['updated_at']
+        toDate = deviceRJSON['last_reading_at'] 
         fromDate = deviceRJSON['added_at']
 
         if start_date == None:

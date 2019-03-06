@@ -55,24 +55,15 @@ def getSensorNames(_sensorsh, nameDictPath):
                             lineTokenizedSub.append(item)
                     lineTokenizedSub = lineTokenizedSub[:-1]
 
-
                     if len(lineTokenizedSub) > 2:
-                            sensorLocation = re.sub(' ', '', lineTokenizedSub[0])
-                            sensorID = re.sub(' ','', lineTokenizedSub[1])
-                            sensorNames[sensorID] = dict()
-                            sensorNames[sensorID]['SensorLocation'] = sensorLocation
-                            if len(lineTokenizedSub)>7:
-                                    sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[2])
-                                    sensorNames[sensorID]['title'] = lineTokenizedSub[3]
-                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[4])
-                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
-                            else:
-                                    sensorNames[sensorID]['shortTitle'] = lineTokenizedSub[2]
-                                    sensorNames[sensorID]['title'] = lineTokenizedSub[2]
-                                    sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[3])
-                                    sensorNames[sensorID]['unit'] = lineTokenizedSub[len(lineTokenizedSub)-1]
-                            # print (sensorNames[sensorID])
-        
+                            sensorID = re.sub(' ','', lineTokenizedSub[5])
+                            if len(lineTokenizedSub)>9:
+                                sensorNames[sensorID] = dict()
+                                sensorNames[sensorID]['SensorLocation'] = re.sub(' ', '', lineTokenizedSub[0])
+                                sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[3])
+                                sensorNames[sensorID]['title'] = lineTokenizedSub[4]
+                                sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[5])
+                                sensorNames[sensorID]['unit'] = lineTokenizedSub[-1]
         # Save everything to the most recent one
         joblib.dump(sensorNames, nameDictPath)
         print ('Loaded updated sensor names and dumped into', nameDictPath)
@@ -177,7 +168,6 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
             format_csv = True
         elif 'api' in test['test']['devices']['kits'][kit]['source']:
             format_csv = False
-            print ('api', kit)
         
         if format_csv:
             
@@ -251,11 +241,6 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
                 max_date=datetime.strptime(test['test']['devices']['kits'][kit]['max_date'], '%Y-%m-%d')
             else:
                 max_date = None
-
-            print (min_date)
-            print (type(min_date))
-            print (max_date)
-            print (type(max_date))
 
             data = getReadingsAPI(list_devices_api, target_raster, min_date, max_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
 
