@@ -357,6 +357,23 @@
     PMS5003_1: 2018052503821
     PMS5003_2: 2018052503814
 
+'5320':
+  hardware_id: '6fec749e-504e4b4b-372e314a-ff032e0d'
+  sck_id: 'SCK2118080002'
+  id: 'SCS21007'
+  type: 'station'
+  mac: '1E4A'
+  date_from: '2018-11-28'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581710
+    NO2: 202160420
+    O3: 204160147
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503821
+    PMS5003_2: 2018052503814
+
 '4826':
   hardware_id: 'beccbf5d-504e4b4b-372e314a-ff032526'
   sck_id: 'SCK2118080012'
@@ -414,8 +431,26 @@
   id: 'SCS21010'
   type: 'station'
   mac: '04E1'
-  internal_ref: 'HASSELT_STABILISATION_1'
+  internal_ref: 'HASSELT_STABILISATION_1_INDOOR'
   date_from: '2019-02-20'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581722
+    NO2: 202160404
+    O3: 204160157
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503817
+    PMS5003_2: 2018052503804
+
+'5653':
+  hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
+  sck_id: 'SCK2118080035'
+  id: 'SCS21010'
+  type: 'station'
+  mac: '04E1'
+  internal_ref: 'HASSELT_STABILISATION_1_OUTDOOR'
+  date_from: '2019-03-06'
   date_to: '-'
   gas_pro_board: 
     CO: 162581722
