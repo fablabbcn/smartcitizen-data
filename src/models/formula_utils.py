@@ -168,6 +168,9 @@ def derivative(y, x):
     result = dy
     return result
 
+def time_derivative(series, window = 1):
+    return series.diff(periods = -window)*60/series.index.to_series().diff(periods = -window).dt.total_seconds()
+
 def exponential_func(x, a, b, c):
      return a * np.exp(b * x) + c
 

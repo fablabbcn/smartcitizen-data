@@ -2,7 +2,7 @@ import requests
 from tzwhere import tzwhere
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import yaml
 from os import getcwd, walk
@@ -113,8 +113,11 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
 
         if start_date == None:
             start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ') 
+            print ('Min Date', start_date)
+
         if end_date == None:
-            end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
+            end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ') + timedelta(days=1)
+            print ('Max Date (adding one day)', end_date)
         
         # Get available sensors
         sensors = deviceRJSON['data']['sensors']
@@ -141,7 +144,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                         break
                 except:
                     pass
-        
+
         # Get location
         latitude = deviceRJSON['data']['location']['latitude']
         longitude = deviceRJSON['data']['location']['longitude']
@@ -169,7 +172,9 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             dataDF = list()
             # Request sensor per ID
             sensor_id_r = requests.get(base_url + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
+            
             sensor_id_rJSON = sensor_id_r.json()
+            
             # Put the data in lists
             if 'readings' in sensor_id_rJSON:
                 for item in sensor_id_rJSON['readings']:
@@ -192,13 +197,29 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                         dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
                         dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
                         dfT.sort_index(inplace=True)
-                        dfT = dfT.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
-
+                        dfT = dfT[~dfT.index.duplicated(keep='first')]
+                        # Drop unnecessary columns
+                        dfT.drop([i for i in dfT.columns if 'Unnamed' in i], axis=1, inplace=True)
+                        # Check for weird things in the data
+                        dfT = dfT.apply(pd.to_numeric,errors='coerce')
+                        # Resample
+                        dfT = dfT.resample(frequency).mean()
+                        # Remove na
+                        if clean_na:
+                            if clean_na_method == 'fill':
+                                dfT = dfT.fillna(method='bfill').fillna(method='ffill')
                         df = df.combine_first(dfT)
         
         df = df.reindex(df.index.rename('Time'))
+        
+        if clean_na:
+            if clean_na_method == 'drop':
+                df = df.dropna()
+        
         return df, toDate, fromDate, hasAlpha
+    
     else:
+    
         return (deviceR.status_code)
 
 def getDeviceLocation(_device):
@@ -252,4 +273,5 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames)
                     print ('\tDevice not in history')
         
         print ('\tLoading Sensor Done')
+    
     return readingsAPI

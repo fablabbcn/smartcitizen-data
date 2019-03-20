@@ -43,7 +43,7 @@ class test_object:
 			print ('Add details NOK')
 			pass
 
-	def add_device(self, device, device_type = 'KIT', sck_version = '2.0', pm_sensor = '', alphasense = {}, device_history = None,location = 'Europe/Madrid', device_files = {}):
+	def add_device(self, device, device_type = 'KIT', sck_version = '2.0', pm_sensor = '', alphasense = {}, device_history = None, location = 'Europe/Madrid', device_files = {}):
 		try:
 			self.yaml['test']['devices']['kits'][device] = dict()
 			self.yaml['test']['devices']['kits'][device]['type'] = device_type
@@ -202,21 +202,37 @@ class test_object:
 						## Import units and ids
 						if self.yaml['test']['devices']['kits'][kit]['source'] == 'csv_new':
 							dict_header = dict()
-							with open(src_path, 'rb') as csvfile:
-								readercsv = csv.reader(csvfile, delimiter = ',')
-								line = 0
-							
-								header = next(readercsv)[1:]
-								unit = next(readercsv)[1:]
-								ids = next(readercsv)[1:]
-							
-								for key in header:
-									dict_header[key] = dict()
-									dict_header[key]['unit'] = unit[header.index(key)]
-									dict_header[key]['id'] = ids[header.index(key)]
+							try:
+								with open(src_path, 'rt') as csvfile:
+									readercsv = csv.reader(csvfile, delimiter = ',')
+									line = 0
 								
-								self.yaml['test']['devices']['kits'][kit]['metadata'] = dict_header
-						
+									header = next(readercsv)[1:]
+									unit = next(readercsv)[1:]
+									ids = next(readercsv)[1:]
+								
+									for key in header:
+										dict_header[key] = dict()
+										dict_header[key]['unit'] = unit[header.index(key)]
+										dict_header[key]['id'] = ids[header.index(key)]
+									
+									self.yaml['test']['devices']['kits'][kit]['metadata'] = dict_header
+							except:
+								with open(src_path, 'rb') as csvfile:
+									readercsv = csv.reader(csvfile, delimiter = ',')
+									line = 0
+								
+									header = next(readercsv)[1:]
+									unit = next(readercsv)[1:]
+									ids = next(readercsv)[1:]
+								
+									for key in header:
+										dict_header[key] = dict()
+										dict_header[key]['unit'] = unit[header.index(key)]
+										dict_header[key]['id'] = ids[header.index(key)]
+									
+									self.yaml['test']['devices']['kits'][kit]['metadata'] = dict_header
+							
 						## Load txt info
 						if self.yaml['test']['devices']['kits'][kit]['fileNameInfo'] != '':
 							src_path_info = join(raw_src_path, self.yaml['test']['devices']['kits'][kit]['fileNameInfo'])

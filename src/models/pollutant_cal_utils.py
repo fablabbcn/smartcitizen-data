@@ -1,5 +1,5 @@
 import matplotlib
-import matplotlib.pyplot as plot                  # plots
+import matplotlib.pyplot as plt                  # plots
 import seaborn as sns                            # more plots
 sns.set(color_codes=True)
 matplotlib.style.use('seaborn-whitegrid')
@@ -26,6 +26,9 @@ from src.models.formula_utils import exponential_smoothing, miner, maxer
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 from math import sqrt, isnan
+
+import statsmodels.api as smapi
+
 
 # AlphaDelta PCB factor
 factorPCB = 6.36
@@ -103,9 +106,17 @@ def findMax(_listF):
     
     return valMax, indexMax
 
-def exponential_func(x, a, b, c):
-    # Returns exponential function with the formula: y = a*e^(bx) + c
-    return a * np.exp(b * x) + c
+def exponential_func(x, A, B, C):
+    # Returns exponential function with the formula: y = A*e^(Bx) + C
+    return A * np.exp(B * x) + C
+
+def fit_exponential_func(y, x):
+    ## Fit with y = Ae^(Bx) -> logy = logA + Bx
+    # Returns A and B of a function as: y = A*e^(Bx)
+
+    B, logA, r_value, p_value, std_err = linregress(np.transpose(x.values), np.log(y))
+    
+    return np.exp(logA), B  
 
 def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plots = False, _verbose = False):
     '''
@@ -177,7 +188,7 @@ def createBaselines(_dataBaseline, _numberDeltas, _type_regress = 'linear', _plo
         
     if _plots == True:
         with plot.style.context('seaborn-white'):
-            fig1, (ax1, ax2) = plot.subplots(nrows=1, ncols=2, figsize=(20,8))
+            fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20,8))
             
             ax1.plot(resultData.iloc[:,1].values, resultData[(name + '_'+str(_numberDeltas[indexMax]))], label = 'Baseline', linestyle='-', linewidth=0, marker='o')
             ax1.plot(resultData.iloc[:,1].values, baseline[(name + '_' + 'baseline_' +  _type_regress)] , label = 'Regressed value', linestyle='-', linewidth=1, marker=None)
@@ -362,7 +373,7 @@ def findDates(_dataframe):
     
     return min_date_df, max_date_df, range_days
 
-def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = ''):
+def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = ''):
     '''
         Function to calculate alphasense pollutants with baseline technique
         Input:
@@ -380,7 +391,6 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                     'single_hum'
                 sensor_slot), 
                 ...]'
-            _append: suffix to the new channel name (pollutant + append)
             _refAvail: True or False if there is a reference available
             _dataframeRef: reference dataframe if available
             _overlapHours: number of hours to overlap over the day -> -_overlapHours+day:day+1+_overlapHours
@@ -409,11 +419,15 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
         pollutant = _pollutantTuples[sensor][0]
         sensorID = _pollutantTuples[sensor][1]
         method = _pollutantTuples[sensor][2]
-        if method == 'baseline':
-            baselineType = _pollutantTuples[sensor][3]
         slot = _pollutantTuples[sensor][4]
         _deltas = _pollutantTuples[sensor][5]
-        
+        if method == 'baseline':
+            baselineType = _pollutantTuples[sensor][3]
+            _append = 'BASE_' + str(_deltas[0]) + '-' + str(_deltas[-1])
+        elif method == 'classic':
+            _append = 'CLASSIC'  
+        elif method == 'classic_no_zero':
+            _append = 'CLASSIC_NZ'      
         # Get Sensor data
         Sensitivity_1 = alpha_calData.loc[sensorID,'Sensitivity 1']
         Sensitivity_2 = alpha_calData.loc[sensorID,'Sensitivity 2']
@@ -549,7 +563,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                         dataframeTrim[pollutant_column] = backgroundConc_OX + factor_unit_1*(factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append]) - (dataframeTrim[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
                     
                     # ADD IT TO THE DATAFRAME
-                    dataframeTrim[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeTrim[pollutant_column].fillna(0), filterExpSmoothing)
+                    # dataframeTrim[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeTrim[pollutant_column].fillna(0), filterExpSmoothing)
                     dataframeResult = dataframeResult.combine_first(dataframeTrim)
 
                     if _refAvail:
@@ -608,17 +622,20 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _append, _refAvail, _
                 print ('Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_std, ratioAuxBas_std))
                 print ('------------------------')
                     
-        elif method == 'classic':
-            
+        elif method == 'classic' or method == 'classic_no_zero':
+            if method == 'classic':
+                factor_zero_current = 1
+            elif method == 'classic_no_zero':
+                factor_zero_current = nWA
             ## CorrParams
             CorrParamsTrim = list()
             
             if pollutant == 'CO': 
-                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_CO
+                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_CO
             elif pollutant == 'NO2':
-                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_NO2
+                dataframeResult[pollutant_column] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_NO2
             elif pollutant == 'O3':
-                dataframeResult[pollutant_column] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
+                dataframeResult[pollutant_column] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
             
             dataframeResult[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
 

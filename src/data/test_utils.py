@@ -244,7 +244,13 @@ def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean
 
             data = getReadingsAPI(list_devices_api, target_raster, min_date, max_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
 
-            _readings[test_id]['devices'][kit] = data['devices'][kit]
+            if kit not in data.keys():
+                print ('Device name in platform is not the same as test name, using test name')
+                list_keys = list(data['devices'])
+                _readings[test_id]['devices'][kit] = data['devices'][list_keys[0]]
+            else:
+                print ('Device name in platform is the same as test name')
+                _readings[test_id]['devices'][kit] = data['devices'][kit]
 
     ## Check if there's was a reference equipment during the test
     if 'reference' in test['test']['devices'].keys():
