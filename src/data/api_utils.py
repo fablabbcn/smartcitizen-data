@@ -28,9 +28,8 @@ frequencyConvertLUT = (['y','A'],
     ['s','S'],
     ['ms','ms'])
 
-def getSensors(directory):
+def getSensors(mydir):
     devices = dict()
-    mydir = join(directory, 'sensorData')
     for root, dirs, files in walk(mydir):
         for _file in files:
             if _file.endswith(".yaml"):
@@ -80,7 +79,7 @@ def getPlatformSensorID():
         return 'API reported {}'.format(sensors.status_code)   
     return sensors
 
-def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames):
+def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method):
 
     # Convert frequency from pandas to API's
     for index, letter in enumerate(frequency):
@@ -180,15 +179,26 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                 for item in sensor_id_rJSON['readings']:
                     indexDF.append(item[0])
                     dataDF.append(item[1])
-                
+
                 # Create result dataframe for first dataframe
                 if sensor_real_ids.index(sensor_id) == 0:
                     # print 'getting sensor id # 0 at {}'.format(sensor_id)
                     df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
                     df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
                     df.sort_index(inplace=True)
-                    df = df.groupby(pd.Grouper(freq=frequency)).aggregate(np.mean)
+                    df = df[~df.index.duplicated(keep='first')]
+                    # Drop unnecessary columns
                     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+                    # Check for weird things in the data
+                    df = df.apply(pd.to_numeric,errors='coerce')
+                    # Resample
+                    df = df.resample(frequency).mean()
+                    # Remove na
+                    if clean_na:
+                        if clean_na_method == 'fill':
+                            df = df.fillna(method='bfill').fillna(method='ffill')
+                        elif clean_na_method == 'drop':
+                            df = df.dropna()
 
                 # Add it to dataframe for each sensor
                 else:
@@ -208,6 +218,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                         if clean_na:
                             if clean_na_method == 'fill':
                                 dfT = dfT.fillna(method='bfill').fillna(method='ffill')
+
                         df = df.combine_first(dfT)
         
         df = df.reindex(df.index.rename('Time'))
@@ -240,15 +251,15 @@ def getDeviceLocation(_device):
 
     return location, latitude, longitude
 
-def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames):
+def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, clean_na = True, clean_na_method = 'fill'):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
     # Get dict with sensor history
-    sensorHistory = getSensors(getcwd())
+    sensorHistory = getSensors(join(dataDirectory, 'interim'))
 
     for device in devices:
         print ('Loading device {}'.format(device))
-        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames)
+        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
         location, _, _ = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
         if (type(data) == int) and (not (data == 200 or data == 201)):
@@ -268,7 +279,6 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames)
                 readingsAPI['devices'][device]['alphasense'] = dict()
                 try:
                     readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['gas_pro_board']
-                    print ('\tDevice not in history')
                 except:
                     print ('\tDevice not in history')
         
