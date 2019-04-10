@@ -56,4 +56,3 @@ This will open a web browser instance (by default [localhost:8888/lab]()) which 
     - OLS and ARIMA with [statsmodels](https://www.statsmodels.org/stable/index.html)
     - Random Forests and SVR for time series ([scikit-learn](http://scikit-learn.org/)) 
     - LSTMs and other Deep Learning time series model approaches ([keras](https://keras.io/) with [tensorflow](https://www.tensorflow.org/) backend)
->>>>>>> Fix calculator, data export, data import and anomaly detection for python3
