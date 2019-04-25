@@ -24,8 +24,8 @@ class recordings:
 		# Set flag
 		self.readings[reading_name]['ready_to_model'] = False
 
-	def add_recording_API(self, reading_name, source_id,currentSensorNames, min_date, max_date, target_raster = '1Min'):
-		data = getReadingsAPI(source_id, target_raster, min_date, max_date, currentSensorNames)
+	def add_recording_API(self, reading_name, source_id, currentSensorNames, min_date, max_date, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill'):
+		data = getReadingsAPI(source_id, target_raster, min_date, max_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
 		# Case for non merged API to CSV
 		if reading_name not in self.readings.keys():
 			self.readings[reading_name] = dict()
