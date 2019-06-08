@@ -184,9 +184,9 @@
   id: 'SCS21003'
   type: 'station'
   mac: 'EE42'
-  internal_ref: 'UCD_URBAN_BACKGROUND_2'
+  internal_ref: 'UCD_URBAN_BACKGROUND_2_DOWN'
   date_from: '2018-09-28'
-  date_to: '-'
+  date_to: '2019-05-15'
   gas_pro_board: 
     CO: 162581708
     NO2: 202160421
@@ -204,7 +204,7 @@
   mac: 'EE42'
   internal_ref: 'UCD_URBAN_BACKGROUND_2'
   date_from: '2018-09-28'
-  date_to: '-'
+  date_to: '2019-05-15'
   gas_pro_board: 
     CO: 162581708
     NO2: 202160421
@@ -258,7 +258,7 @@
   mac: 'F885'
   internal_ref: 'UCD_URBAN_BACKGROUND_1'
   date_from: '2018-11-23'
-  date_to: '-'
+  date_to: '2019-05-15'
   gas_pro_board: 
     CO: 162581712
     NO2: 202160416
@@ -494,3 +494,57 @@
   pm_board:
     PMS5003_1: 'na'
     PMS5003_2: 'na'
+
+'9441':
+  hardware_id: '18AFB4A0504E4B4B372E314AFF031829'
+  sck_id: ''
+  id: 'SCS21014'
+  type: 'station'
+  mac: '6A:C6:3A:CD:00:61'
+  internal_ref: 'MUV_STATION_PALAU_REIAL'
+  date_from: '2019-05-15'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581717
+    NO2: 202160410
+    O3: 204160154
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 'na'
+    PMS5003_2: 'na'
+
+'9457':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21003'
+  type: 'station'
+  mac: 'EE42'
+  internal_ref: 'UCD_URBAN_TRAFFIC_2'
+  date_from: '2019-05-19'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581708
+    NO2: 202160421
+    O3: 204160144
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503810
+    PMS5003_2: 2018052503835
+
+'9456':
+  hardware_id: '-'
+  sck_id: '-'
+  id: 'SCS21004'
+  type: 'station'
+  mac: 'F885'
+  internal_ref: 'UCD_URBAN_TRAFFIC_1'
+  date_from: '2019-05-19'
+  date_to: '-' 
+  gas_pro_board: 
+    CO: 162581712
+    NO2: 202160416
+    O3: 204160163
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503827
+    PMS5003_2: 2018052503991
