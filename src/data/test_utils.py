@@ -4,7 +4,7 @@ import os
 from os.path import join
 from os import getcwd
 from sklearn.externals import joblib
-import yaml
+import yaml, json
 from tzwhere import tzwhere
 import pandas as pd
 import numpy as np
@@ -24,7 +24,7 @@ ref_append = 'REF'
 def getSensorNames(_sensorsh, nameDictPath):
     try:
         # Directory
-        nameDictPath = join(nameDictPath, 'sensorNames.sav')
+        nameDictPath = join(nameDictPath, 'sensorNames.json')
 
         # Read only 20000 chars
         data = urlopen(_sensorsh).read(20000).decode('utf-8')
@@ -67,15 +67,18 @@ def getSensorNames(_sensorsh, nameDictPath):
                                 sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[5])
                                 sensorNames[sensorID]['unit'] = lineTokenizedSub[-1]
         # Save everything to the most recent one
-        joblib.dump(sensorNames, nameDictPath)
+        with open(nameDictPath, 'w') as fp:
+            json.dump(sensorNames, fp)
         print ('Loaded updated sensor names and dumped into', nameDictPath)
     
     except:
 
         # Directory
         # Load sensors
+        with open(nameDictPath) as handle:
+            dictdump = json.loads(handle.read())
         print ('No connection - Retrieving local version for sensors names')
-        sensorNames = joblib.load(nameDictPath)
+        # sensorNames = json.load(nameDictPath)
 
     return sensorNames
 

@@ -333,49 +333,51 @@ class recording:
 		# methods[2][0] # OX baseline
 		# methods[2][1] # OX single_aux
 
-		for reading in self.readings[reading_name]['devices']:
-			if 'is_reference' in self.readings[reading_name]['devices'][reading]:
+		# Check if we have a reference first in the dataset
+		for kit in self.readings[reading_name]['devices']:
+			if 'is_reference' in self.readings[reading_name]['devices'][kit]:
 				print ('Reference found')
 				refAvail = True
-				dataframeRef = self.readings[reading_name]['devices'][reading]['data']
+				dataframeRef = self.readings[reading_name]['devices'][kit]['data']
 				break
 			else:
 				refAvail = False
 				dataframeRef = ''
 
-			for kit in self.readings[reading_name]['devices']:
-				if 'alphasense' in self.readings[reading_name]['devices'][kit]:
-					print ('Calculating test {} for kit {}. Appending {}'.format(reading_name, kit, append_name))
-					
-					sensorIDs = self.readings[reading_name]['devices'][kit]['alphasense']
-					sensorID_CO = self.readings[reading_name]['devices'][kit]['alphasense']['CO']
-					sensorID_NO2 = self.readings[reading_name]['devices'][kit]['alphasense']['NO2']
-					sensorID_OX = self.readings[reading_name]['devices'][kit]['alphasense']['O3']
-					sensorSlots = self.readings[reading_name]['devices'][kit]['alphasense']['slots']
-								  
-					sensorIDs = (['CO', sensorID_CO, methods[0][0], methods[0][1], sensorSlots.index('CO')+1, deltas[0]], 
-								['NO2', sensorID_NO2, methods[1][0], methods[1][1], sensorSlots.index('NO2')+1, deltas[1]], 
-								['O3', sensorID_OX, methods[2][0], methods[2][1], sensorSlots.index('O3')+1, deltas[2]])
-										
-					# Calculate correction
-					self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'] = dict()
-					self.readings[reading_name]['ready_to_model'] = False
-					self.readings[reading_name]['devices'][kit]['data'], self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'][append_name] = calculatePollutantsAlpha(
-							_dataframe = self.readings[reading_name]['devices'][kit]['data'], 
-							_pollutantTuples = sensorIDs,
-							_refAvail = refAvail, 
-							_dataframeRef = dataframeRef, 
-							_overlapHours = overlapHours, 
-							_type_regress = 'best', 
-							_filterExpSmoothing = filterExpSmoothing, 
-							_trydecomp = options['checkBoxDecomp'],
-							_plotsInter = options['checkBoxPlotsIn'], 
-							_plotResult = options['checkBoxPlotsResult'],
-							_verbose = options['checkBoxVerb'], 
-							_printStats = options['checkBoxStats'],
-							_calibrationDataPath = os.path.join(self.dataDirectory, 'interim/CalibrationData/'),
-							_currentSensorNames = self.currentSensorNames,
-							_append_name = append_name)
+		# For each kit in the requested reading, calculate the pollutants
+		for kit in self.readings[reading_name]['devices']:
+			if 'alphasense' in self.readings[reading_name]['devices'][kit]:
+				print ('Calculating test {} for kit {}. Appending {}'.format(reading_name, kit, append_name))
+				
+				sensorIDs = self.readings[reading_name]['devices'][kit]['alphasense']
+				sensorID_CO = self.readings[reading_name]['devices'][kit]['alphasense']['CO']
+				sensorID_NO2 = self.readings[reading_name]['devices'][kit]['alphasense']['NO2']
+				sensorID_OX = self.readings[reading_name]['devices'][kit]['alphasense']['O3']
+				sensorSlots = self.readings[reading_name]['devices'][kit]['alphasense']['slots']
+							  
+				sensorIDs = (['CO', sensorID_CO, methods[0][0], methods[0][1], sensorSlots.index('CO')+1, deltas[0]], 
+							['NO2', sensorID_NO2, methods[1][0], methods[1][1], sensorSlots.index('NO2')+1, deltas[1]], 
+							['O3', sensorID_OX, methods[2][0], methods[2][1], sensorSlots.index('O3')+1, deltas[2]])
+									
+				# Calculate correction
+				self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'] = dict()
+				self.readings[reading_name]['ready_to_model'] = False
+				self.readings[reading_name]['devices'][kit]['data'], self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'][append_name] = calculatePollutantsAlpha(
+						_dataframe = self.readings[reading_name]['devices'][kit]['data'], 
+						_pollutantTuples = sensorIDs,
+						_refAvail = refAvail, 
+						_dataframeRef = dataframeRef, 
+						_overlapHours = overlapHours, 
+						_type_regress = 'best', 
+						_filterExpSmoothing = filterExpSmoothing, 
+						_trydecomp = options['checkBoxDecomp'],
+						_plotsInter = options['checkBoxPlotsIn'], 
+						_plotResult = options['checkBoxPlotsResult'],
+						_verbose = options['checkBoxVerb'], 
+						_printStats = options['checkBoxStats'],
+						_calibrationDataPath = os.path.join(self.dataDirectory, 'interim/CalibrationData/'),
+						_currentSensorNames = self.currentSensorNames,
+						_append_name = append_name)
 
 	def addChannelFormula(self, reading_name, device_name, new_channel_name, terms, formula):
 
@@ -407,24 +409,68 @@ class recording:
 		self.readings[reading_name]['ready_to_model'] = False
 		print()
 
-	def export_data(self, reading_name, device_export, export_path, to_processed_folder):
+	def export_data(self, reading_name, device_export, export_path, to_processed_folder, processed_only, rename):
 
 
-		def exportFile(_savePath, _test_export, _device_export):
+		def exportFile(_savePath, _name, _df):
 
 			if not os.path.exists(_savePath):
 				os.mkdir(_savePath)
 
-			if not os.path.exists(_savePath + '/' + _device_export + '.csv'):
-				self.readings[_test_export]['devices'][_device_export]['data'].to_csv(_savePath + '/' + _device_export + '.csv', sep=",")
-				print ('File saved to: ' + _savePath + '/' + _device_export +  '.csv')
+			if not os.path.exists(_savePath + '/' + _name + '.csv'):
+				_df.to_csv(_savePath + '/' + _name + '.csv', sep=",")
+				print ('\tFile saved to: \n' + _savePath + '/' + _name +  '.csv')
 			else:
-				print('File Already exists!')
+				print("\tFile Already exists - delete it first, I don't want to overwrite anything!")
 
-		exportFile(export_path, reading_name, device_export)
+
+		df = self.readings[reading_name]['devices'][device_export]['data'].copy()
+
+		with open(join(self.interimDirectory, 'sensorNamesExport.json')) as handle:
+			sensorsDict = json.loads(handle.read())
+
+		sensorShortTitles = list()
+		sensorExportNames = list()
+		sensorExportMask = list()
+
+		for sensor in sensorsDict.keys():
+			sensorShortTitles.append(sensorsDict[sensor]['shortTitle'])
+			sensorExportNames.append(sensorsDict[sensor]['exportName'])
+			if processed_only and sensorsDict[sensor]['processed'] != 'raw': sensorExportMask.append(True)
+			elif processed_only and sensorsDict[sensor]['processed'] == 'raw': sensorExportMask.append(False)
+			elif not processed_only: sensorExportMask.append(True)
+
+		channels = list()
+
+		for sensor in sensorShortTitles:
+			if sensorExportMask[sensorShortTitles.index(sensor)]:
+
+				if any(sensor == column for column in df.columns): exactMatch = True
+				else: exactMatch = False
+				
+				for column in df.columns:
+					if sensor in column and not exactMatch:
+						if rename:
+							df.rename(columns={column: sensorExportNames[sensorShortTitles.index(sensor)]}, inplace=True)
+							channels.append(sensorExportNames[sensorShortTitles.index(sensor)])
+						else:
+							channels.append(column)
+						break
+					elif sensor == column and exactMatch:
+						if rename:
+							df.rename(columns={column: sensorExportNames[sensorShortTitles.index(sensor)]}, inplace=True)
+							channels.append(sensorExportNames[sensorShortTitles.index(sensor)])
+						else:
+							channels.append(column)
+						break
+		print ('Exporting channels: \n {}'.format(channels))
+		df = df.loc[:, channels]
+
+		exportFile(export_path, device_export, df)
 		
 		if to_processed_folder:
 			year = reading_name[0:4]
 			month = reading_name[5:7]
 			exportDir = os.path.join(self.dataDirectory, 'processed', year, month, reading_name, 'processed')
-			exportFile(exportDir, reading_name, device_export)
+			print ('\tSaving files to: \n{}'.format(exportDir))
+			exportFile(exportDir, device_export,  df)
