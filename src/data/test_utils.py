@@ -5,12 +5,14 @@ from os.path import join
 from os import getcwd
 from sklearn.externals import joblib
 import yaml
-from IPython.display import display, Markdown
 from tzwhere import tzwhere
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from src.data.api_utils import *
+
+from IPython.display import HTML, display, clear_output, Markdown
+
 
 pollutantLUT = (['CO', 28, 'ppm'],
                 ['NO', 30, 'ppb'],
@@ -98,8 +100,9 @@ def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_metho
             df = df.set_index('Time')
         elif 'TIME' in df.columns:
             df = df.set_index('TIME')
+        elif refIndex != '':
+            df = df.set_index(refIndex)
         else:
-            refIndex
             print ('No known index found')
 
         # Set index
@@ -126,6 +129,8 @@ def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_metho
                 df = df.fillna(method='bfill').fillna(method='ffill')
             elif clean_na_method == 'drop':
                 df = df.dropna()
+
+        print ('---------------------------------------------')
         
         # Create dictionary and add it to the _readings key
         if len(targetNames) == len(testNames) and len(targetNames) > 0:
@@ -347,4 +352,3 @@ def combine_data(list_of_datas, check_reference, ignore_keys = []):
             dataframe_result = dataframe_result.combine_first(dataframe)
 
     return dataframe_result
-

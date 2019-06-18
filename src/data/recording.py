@@ -12,24 +12,51 @@ from src.models.linear_regression_utils import predict_OLS, prep_data_OLS
 import pandas as pd
 import numpy as np
 
-class recordings:
-	def __init__(self):
-		self.readings = dict()
+## Initialise paths and working directories
+from os import pardir, getcwd
+from os.path import join, abspath, normpath, basename
+from src.data.test_utils import getSensorNames, getTests
+from src.models.pollutant_cal_utils import *
+from src.models.formula_utils import *
 
-	def add_recording_CSV(self, reading_name, source_id, currentSensorNames, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill', load_processed = True):
-		data = loadTest(source_id, target_raster, currentSensorNames, clean_na, clean_na_method, dataDirectory, load_processed)
+class recording:
+
+	def __init__(self):
+		
+		self.readings = dict()
+		self.rootDirectory = abspath(abspath(join(getcwd(), pardir)))
+		self.dataDirectory = join(self.rootDirectory, 'data')
+		self.interimDirectory = join(self.dataDirectory, 'interim')
+		self.modelDirectory = join(self.rootDirectory, 'models')
+		currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/dev/lib/Sensors/Sensors.h')
+		self.availablereadings = getTests(self.dataDirectory)
+		
+		try:
+			self.currentSensorNames = getSensorNames(currentSensorsh, join(self.dataDirectory, 'interim'))
+		except:
+			raise SystemError('Sensor names could not be loaded')
+		else:
+			print ('Sensor names loaded OK')
+
+	def reload_tests(self):
+		self.availablereadings = getTests(self.dataDirectory)
+	
+	def load_recording_CSV(self, reading_name, source_id, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = True):
+		data = loadTest(source_id, target_raster, self.currentSensorNames, clean_na, clean_na_method, self.dataDirectory, load_processed)
 		self.readings[reading_name] = dict()
 		self.readings[reading_name] = data[reading_name]
 
 		# Set flag
 		self.readings[reading_name]['ready_to_model'] = False
 
-	def add_recording_API(self, reading_name, source_id, currentSensorNames, min_date, max_date, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill'):
-		data = getReadingsAPI(source_id, target_raster, min_date, max_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
+	def load_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min', dataDirectory = '', clean_na = True, clean_na_method = 'fill'):
+		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, clean_na, clean_na_method)
+		
 		# Case for non merged API to CSV
 		if reading_name not in self.readings.keys():
 			self.readings[reading_name] = dict()
 			self.readings[reading_name] = data
+		
 		# Case for merged API to CSV
 		else:
 			for key in data['devices'].keys():
@@ -162,13 +189,13 @@ class recordings:
 		else:
 			print('Model archived correctly')
 
-	def export_model(self, reading_name, model_name, model_directory):
+	def export_model(self, reading_name, model_name):
 		model_target = self.readings[reading_name]['models'][model_name]['model_target']
 		model_type = self.readings[reading_name]['models'][model_name]['model_type']
 		model = self.readings[reading_name]['models'][model_name]['model']
 
-		modelDir = join(model_directory, model_target)
-		summaryDir = join(model_directory, 'summary.json')
+		modelDir = join(self.modelDirectory, model_target)
+		summaryDir = join(self.modelDirectory, 'summary.json')
 		filename = join(modelDir, model_name)
 
 		joblib.dump(self.readings[reading_name]['models'][model_name]['metrics'], filename + '_metrics.sav')
@@ -290,3 +317,114 @@ class recordings:
 			plot.xlabel('Time (-)')
 			plot.ylabel(prediction_name)
 			plot.show()
+
+	def calculateAlphaSense(self, reading_name, append_name, variables, options):
+		# variables =  deltas, methods, overlapHours
+		deltas = variables[0]
+		methods = variables[1]
+		overlapHours = variables[2]
+
+		# methods[0][0] # CO classic
+		# methods[0][1] # CO n/a
+
+		# methods[1][0] # NO2 baseline
+		# methods[1][1] # NO2 single_aux
+
+		# methods[2][0] # OX baseline
+		# methods[2][1] # OX single_aux
+
+		for reading in self.readings[reading_name]['devices']:
+			if 'is_reference' in self.readings[reading_name]['devices'][reading]:
+				print ('Reference found')
+				refAvail = True
+				dataframeRef = self.readings[reading_name]['devices'][reading]['data']
+				break
+			else:
+				refAvail = False
+				dataframeRef = ''
+
+			for kit in self.readings[reading_name]['devices']:
+				if 'alphasense' in self.readings[reading_name]['devices'][kit]:
+					print ('Calculating test {} for kit {}. Appending {}'.format(reading_name, kit, append_name))
+					
+					sensorIDs = self.readings[reading_name]['devices'][kit]['alphasense']
+					sensorID_CO = self.readings[reading_name]['devices'][kit]['alphasense']['CO']
+					sensorID_NO2 = self.readings[reading_name]['devices'][kit]['alphasense']['NO2']
+					sensorID_OX = self.readings[reading_name]['devices'][kit]['alphasense']['O3']
+					sensorSlots = self.readings[reading_name]['devices'][kit]['alphasense']['slots']
+								  
+					sensorIDs = (['CO', sensorID_CO, methods[0][0], methods[0][1], sensorSlots.index('CO')+1, deltas[0]], 
+								['NO2', sensorID_NO2, methods[1][0], methods[1][1], sensorSlots.index('NO2')+1, deltas[1]], 
+								['O3', sensorID_OX, methods[2][0], methods[2][1], sensorSlots.index('O3')+1, deltas[2]])
+										
+					# Calculate correction
+					self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'] = dict()
+					self.readings[reading_name]['ready_to_model'] = False
+					self.readings[reading_name]['devices'][kit]['data'], self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'][append_name] = calculatePollutantsAlpha(
+							_dataframe = self.readings[reading_name]['devices'][kit]['data'], 
+							_pollutantTuples = sensorIDs,
+							_refAvail = refAvail, 
+							_dataframeRef = dataframeRef, 
+							_overlapHours = overlapHours, 
+							_type_regress = 'best', 
+							_filterExpSmoothing = filterExpSmoothing, 
+							_trydecomp = options['checkBoxDecomp'],
+							_plotsInter = options['checkBoxPlotsIn'], 
+							_plotResult = options['checkBoxPlotsResult'],
+							_verbose = options['checkBoxVerb'], 
+							_printStats = options['checkBoxStats'],
+							_calibrationDataPath = os.path.join(self.dataDirectory, 'interim/CalibrationData/'),
+							_currentSensorNames = self.currentSensorNames,
+							_append_name = append_name)
+
+	def addChannelFormula(self, reading_name, device_name, new_channel_name, terms, formula):
+
+
+		def functionFormula(reading_name, device_name, Aname, Bname, Cname, Dname, formula):
+			# Create dataframe and merge everything
+			calcData = pd.DataFrame()
+			mergeData = pd.merge(pd.merge(pd.merge(self.readings[reading_name]['devices'][device_name]['data'].loc[:,(Aname,)],\
+												   self.readings[reading_name]['devices'][device_name]['data'].loc[:,(Bname,)],\
+												   left_index=True, right_index=True), \
+										  self.readings[reading_name]['devices'][device_name]['data'].loc[:,(Cname,)], \
+										  left_index=True, right_index=True),\
+								 self.readings[reading_name]['devices'][device_name]['data'].loc[:,(Dname,)],\
+								 left_index=True, right_index=True)
+			# Assign names to columns
+			calcData[Aname] = mergeData.iloc[:,0] #A
+			calcData[Bname] = mergeData.iloc[:,1] #B
+			calcData[Cname] = mergeData.iloc[:,2] #C
+			calcData[Dname] = mergeData.iloc[:,3] #D
+			A = calcData[Aname]
+			B = calcData[Bname]
+			C = calcData[Cname]
+			D = calcData[Dname]
+			# Eval the formula
+			result = eval(formula)
+			return result
+
+		self.readings[reading_name]['devices'][device_name]['data'][new_channel_name] = functionFormula(reading_name, device_name,terms[0],terms[1], terms[2],terms[3], formula)    
+		self.readings[reading_name]['ready_to_model'] = False
+		print()
+
+	def export_data(self, reading_name, device_export, export_path, to_processed_folder):
+
+
+		def exportFile(_savePath, _test_export, _device_export):
+
+			if not os.path.exists(_savePath):
+				os.mkdir(_savePath)
+
+			if not os.path.exists(_savePath + '/' + _device_export + '.csv'):
+				self.readings[_test_export]['devices'][_device_export]['data'].to_csv(_savePath + '/' + _device_export + '.csv', sep=",")
+				print ('File saved to: ' + _savePath + '/' + _device_export +  '.csv')
+			else:
+				print('File Already exists!')
+
+		exportFile(export_path, reading_name, device_export)
+		
+		if to_processed_folder:
+			year = reading_name[0:4]
+			month = reading_name[5:7]
+			exportDir = os.path.join(self.dataDirectory, 'processed', year, month, reading_name, 'processed')
+			exportFile(exportDir, reading_name, device_export)

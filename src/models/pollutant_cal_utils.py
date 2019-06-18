@@ -29,7 +29,6 @@ from math import sqrt, isnan
 
 import statsmodels.api as smapi
 
-
 # AlphaDelta PCB factor
 factorPCB = 6.36
 
@@ -39,7 +38,7 @@ backgroundConc_NO2 = 8 # ppb
 backgroundConc_OX = 40 # ppb
 
 # Overlap in hours for each day (index = [day(i)-overlapHours, day(i+1)+overlapHours])
-overlapHours = 5
+# overlapHours = 0
 
 # Filter Smoothing 
 filterExpSmoothing = 0.2
@@ -373,7 +372,7 @@ def findDates(_dataframe):
     
     return min_date_df, max_date_df, range_days
 
-def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = ''):
+def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = '', _append_name = ''):
     '''
         Function to calculate alphasense pollutants with baseline technique
         Input:
@@ -423,7 +422,7 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _refAvail, _dataframe
         _deltas = _pollutantTuples[sensor][5]
         if method == 'baseline':
             baselineType = _pollutantTuples[sensor][3]
-            _append = 'BASE_' + str(_deltas[0]) + '-' + str(_deltas[-1])
+            _append = _append_name
         elif method == 'classic':
             _append = 'CLASSIC'  
         elif method == 'classic_no_zero':
@@ -453,15 +452,17 @@ def calculatePollutantsAlpha(_dataframe, _pollutantTuples, _refAvail, _dataframe
                 alphaA = _currentSensorNames[currentSensorName]['shortTitle']
        
         # Retrieve temperature and humidity names
+        temp = ''
+        hum = ''
         for item in th_ids_table:
             for currentSensorName in _currentSensorNames:      
-                if item[1] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
+                if temp == '' and item[1] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
                     temp = _currentSensorNames[currentSensorName]['shortTitle']
                     break
         
         for item in th_ids_table:
             for currentSensorName in _currentSensorNames:   
-                if item[2] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
+                if hum == '' and item[2] == _currentSensorNames[currentSensorName]['id'] and _currentSensorNames[currentSensorName]['shortTitle'] in dataframeResult.columns:
                     hum = _currentSensorNames[currentSensorName]['shortTitle']
                     break
 

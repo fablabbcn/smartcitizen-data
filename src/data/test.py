@@ -44,11 +44,8 @@ class test:
 			self.yaml['test']['id'] = ID
 			self.yaml['test']['devices'] = dict()
 			self.yaml['test']['devices']['kits'] = dict()
-			print ('hola')
 
 		else:
-			print ('holaasas')
-
 			self.std_out('Updating test...')
 			with open(join(self.newpath, 'test_description.yaml'), 'r') as yml:
 				self.yaml = yaml.load(yml)
@@ -57,9 +54,6 @@ class test:
 		
 	def std_out(self, msg):
 		if self.verbose: print(msg)
-
-	def getTestList(self):
-		return self.testList
 
 	def add_details(self, project = 'smartcitizen', commit = '', author = '', type_test = '', report = '', comment = ''):
 		try:
@@ -113,7 +107,9 @@ class test:
 			pass
 	
 	def add_reference(self, reference, fileNameRaw = '', index = {}, channels = {}, location = ''):
-		self.std_out ('Adding reference: {}'.format(reference))
+
+		self.std_out('Adding reference {}'.format(reference))
+
 		if 'reference' not in self.yaml['test']['devices']:
 			self.yaml['test']['devices']['reference'] = dict()
 		
@@ -124,7 +120,7 @@ class test:
 		self.yaml['test']['devices']['reference'][reference]['channels'] = channels
 		self.yaml['test']['devices']['reference'][reference]['location'] = location
 
-		self.std_out('Add reference {}... \n\tOK').format(reference)
+		self.std_out(('Add reference {}... \n\tOK').format(reference))
 	
 	def process_files(self):
 		
@@ -136,14 +132,13 @@ class test:
 						if 'csv' in self.yaml['test']['devices']['kits'][kit]['source']:
 							list_raw_files.append(self.yaml['test']['devices']['kits'][kit]['fileNameRaw'])
 						
-				if 'references' in self.yaml['test']['devices']:
+				if 'reference' in self.yaml['test']['devices']:
 					for reference in self.yaml['test']['devices']['reference']:
-						list_raw_files.append(self.yaml['test']['devices']['references'][reference]['fileNameRaw'])
+						list_raw_files.append(self.yaml['test']['devices']['reference'][reference]['fileNameRaw'])
 						
 				return list_raw_files    
 		
 		def copy_raw_files(_raw_src_path, _raw_dst_path, _list_raw_files):
-			
 				try: 
 
 					for item in _list_raw_files:
