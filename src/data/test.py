@@ -76,6 +76,7 @@ class test:
 			self.yaml['test']['devices']['kits'][device]['SCK'] = sck_version
 			self.yaml['test']['devices']['kits'][device]['PM'] = pm_sensor
 			self.yaml['test']['devices']['kits'][device]['location'] = location
+			self.yaml['test']['devices']['kits'][device]['up2date'] = False
 			
 			#### Alphasense
 			if alphasense != {}:
@@ -119,22 +120,25 @@ class test:
 		self.yaml['test']['devices']['reference'][reference]['index'] = index
 		self.yaml['test']['devices']['reference'][reference]['channels'] = channels
 		self.yaml['test']['devices']['reference'][reference]['location'] = location
+		self.yaml['test']['devices']['reference'][reference]['up2date'] = False
 
 		self.std_out(('Add reference {}... \n\tOK').format(reference))
 	
 	def process_files(self):
+		self.std_out('Processing files...')
 		
 		def get_raw_files():
 				list_raw_files = []
 				
 				if 'kits' in self.yaml['test']['devices']:
 					for kit in self.yaml['test']['devices']['kits']:
-						if 'csv' in self.yaml['test']['devices']['kits'][kit]['source']:
+						if 'csv' in self.yaml['test']['devices']['kits'][kit]['source'] and not self.yaml['test']['devices']['kits'][kit]['up2date']:
 							list_raw_files.append(self.yaml['test']['devices']['kits'][kit]['fileNameRaw'])
 						
 				if 'reference' in self.yaml['test']['devices']:
 					for reference in self.yaml['test']['devices']['reference']:
-						list_raw_files.append(self.yaml['test']['devices']['reference'][reference]['fileNameRaw'])
+						if not self.yaml['test']['devices']['reference'][reference]['up2date']:
+							list_raw_files.append(self.yaml['test']['devices']['reference'][reference]['fileNameRaw'])
 						
 				return list_raw_files    
 		
@@ -151,8 +155,11 @@ class test:
 					return True
 				
 				except:
-
-					return False
+					if self.new: 
+						pass
+					else:
+						self.std_out('Problem copying raw files')
+						return False
 				
 		def date_parser(s, a):
 			return parser.parse(s).replace(microsecond=int(a[-3:])*1000)
@@ -171,32 +178,35 @@ class test:
 			# Process references
 			if 'reference' in self.yaml['test']['devices']:
 				for reference in self.yaml['test']['devices']['reference']:
-					self.std_out ('Processing reference: {}'.format(reference))
-					src_path = join(raw_src_path, self.yaml['test']['devices']['reference'][reference]['fileNameRaw'])
-					dst_path = join(self.newpath, self.yaml['test']['id'] + '_' + str(reference) + '_REF.csv')
-					
-					# Time Name
-					timeName = self.yaml['test']['devices']['reference'][reference]['index']['name']
-					
-					# Load Dataframe
-					df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(timeName)
-					df.index = pd.to_datetime(df.index)
-					df.sort_index(inplace=True)
-					
-					df = df.groupby(pd.Grouper(freq = self.yaml['test']['devices']['reference'][reference]['index']['frequency'])).aggregate(np.mean)
-					
-					# Remove Duplicates and drop unnamed columns
-					df = df[~df.index.duplicated(keep='first')]
-					df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-					
-					# Export to csv in destination path
-					df.to_csv(dst_path, sep=",")
+					if not self.yaml['test']['devices']['reference'][reference]['up2date']:
+						self.std_out ('Processing reference: {}'.format(reference))
+						src_path = join(raw_src_path, self.yaml['test']['devices']['reference'][reference]['fileNameRaw'])
+						dst_path = join(self.newpath, self.yaml['test']['id'] + '_' + str(reference) + '_REF.csv')
+						
+						# Time Name
+						timeName = self.yaml['test']['devices']['reference'][reference]['index']['name']
+						
+						# Load Dataframe
+						df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(timeName)
+						df.index = pd.to_datetime(df.index)
+						df.sort_index(inplace=True)
+						
+						df = df.groupby(pd.Grouper(freq = self.yaml['test']['devices']['reference'][reference]['index']['frequency'])).aggregate(np.mean)
+						
+						# Remove Duplicates and drop unnamed columns
+						df = df[~df.index.duplicated(keep='first')]
+						df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+						
+						# Export to csv in destination path
+						df.to_csv(dst_path, sep=",")
+
+						self.yaml['test']['devices']['reference'][reference]['up2date'] = True
 					
 			
 			# Process kits
 			if 'kits' in self.yaml['test']['devices']:
 				for kit in self.yaml['test']['devices']['kits']:
-					if 'csv' in self.yaml['test']['devices']['kits'][kit]['source']:
+					if 'csv' in self.yaml['test']['devices']['kits'][kit]['source'] and not self.yaml['test']['devices']['kits'][kit]['up2date']:
 						self.std_out ('Processing csv from device {}'.format(kit))
 						src_path = join(raw_src_path, self.yaml['test']['devices']['kits'][kit]['fileNameRaw'])
 						dst_path = join(self.newpath, self.yaml['test']['id'] + '_' + self.yaml['test']['devices']['kits'][kit]['type'] + '_' + str(kit) + '.csv')
@@ -278,10 +288,15 @@ class test:
 							self.yaml['test']['devices']['kits'][kit]['info'] = dict_info
 						else:
 							self.std_out('\tNo txt info available')
+
+						self.yaml['test']['devices']['kits'][kit]['up2date'] = True
+
 					
 			
 			# Create yaml with test description
 			with open(join(self.newpath, 'test_description.yaml'), 'w') as yaml_file:
 				yaml.dump(self.yaml, yaml_file)
-				
-			self.std_out ('Test Creation Finished')
+			
+			# Cosmetic output
+			if self.new: self.std_out ('Test Creation Finished')
+			else: self.std_out('Test Update Finished')
