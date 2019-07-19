@@ -2,16 +2,98 @@ from shutil import copyfile
 import io, pytz, os, time, datetime
 from os.path import dirname, join, abspath
 from os import getcwd, pardir
+import os
+import re
 
-import yaml
+import yaml, json
 import pandas as pd
 import numpy as np
 
-import markdown
 from dateutil import parser
 	
 import csv
-from src.data.api_utils import *
+from src.data.api_tools import *
+from urllib.request import urlopen
+
+import traceback
+
+pollutantLUT = (['CO', 28, 'ppm'],
+				['NO', 30, 'ppb'],
+				['NO2', 46, 'ppb'],
+				['O3', 48, 'ppb'])
+
+def getSensorNames(_sensorsh, nameDictPath):
+	try:
+		# Directory
+		nameDictPath = join(nameDictPath, 'sensorNames.json')
+
+		# Read only 20000 chars
+		data = urlopen(_sensorsh).read(20000).decode('utf-8')
+		# split it into lines
+		data = data.split('\n')
+		sensorNames = dict()
+		lineSensors = len(data)
+		for line in data:
+			if 'class AllSensors' in line:
+				lineSensors = data.index(line)
+				
+			if data.index(line) > lineSensors:
+
+				if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
+					# Split commas
+					lineTokenized =  line.strip('').split(',')
+
+					# Elimminate unnecessary elements
+					lineTokenizedSub = list()
+					for item in lineTokenized:
+							item = re.sub('\t', '', item)
+							item = re.sub('OneSensor', '', item)
+							item = re.sub('{', '', item)
+							item = re.sub('}', '', item)
+							#item = re.sub(' ', '', item)
+							item = re.sub('"', '', item)
+							
+							if item != '' and item != ' ':
+								while item[0] == ' ' and len(item)>0: item = item[1:]
+							lineTokenizedSub.append(item)
+					lineTokenizedSub = lineTokenizedSub[:-1]
+
+					if len(lineTokenizedSub) > 2:
+							sensorID = re.sub(' ','', lineTokenizedSub[5])
+							if len(lineTokenizedSub)>9:
+								sensorNames[sensorID] = dict()
+								sensorNames[sensorID]['SensorLocation'] = re.sub(' ', '', lineTokenizedSub[0])
+								sensorNames[sensorID]['shortTitle'] = re.sub(' ', '', lineTokenizedSub[3])
+								sensorNames[sensorID]['title'] = lineTokenizedSub[4]
+								sensorNames[sensorID]['id'] = re.sub(' ', '', lineTokenizedSub[5])
+								sensorNames[sensorID]['unit'] = lineTokenizedSub[-1]
+		# Save everything to the most recent one
+		with open(nameDictPath, 'w') as fp:
+			json.dump(sensorNames, fp)
+		print ('Saved updated sensor names and dumped into', nameDictPath)
+
+	except:
+	    # Load sensors
+	    traceback.print_exc()
+	    with open(nameDictPath) as handle:
+	        sensorNames = json.loads(handle.read())
+	    print ('No connection - Retrieving local version for sensors names')
+	
+	return sensorNames
+
+def getTests(directory):
+	# Get available tests in the data folder structure
+	tests = dict()
+	mydir = join(directory, 'processed')
+	for root, dirs, files in os.walk(mydir):
+		for _file in files:
+			if _file.endswith(".yaml"):
+				filePath = join(root, _file)
+				stream = open(filePath)
+				yamlFile = yaml.load(stream)
+				tests[yamlFile['test']['id']] = root
+				
+	return tests
 
 class test:
 	
@@ -62,11 +144,12 @@ class test:
 			self.yaml['test']['author'] = author
 			self.yaml['test']['type_test'] = type_test
 			self.yaml['test']['report'] = report
-			self.yaml['test']['comment'] = markdown.markdown(comment)
-			self.std_out ('Add details... \n\tOK')
+			self.yaml['test']['comment'] = comment
+			self.std_out ('Add details... \nOK')
 
 		except:
-			self.std_out ('Add details... \n\tNOK')
+			self.std_out ('Add details... \nNOK')
+			traceback.print_exc()
 			pass
 
 	def add_device(self, device, device_type = 'KIT', sck_version = '2.0', pm_sensor = '', alphasense = {}, device_history = None, location = 'Europe/Madrid', device_files = {}):
@@ -87,6 +170,7 @@ class test:
 			
 			source = device_files['source']
 			self.yaml['test']['devices']['kits'][device]['source'] = source
+
 			if 'csv' in source:
 				self.yaml['test']['devices']['kits'][device]['fileNameRaw'] = device_files['fileNameRaw']
 				self.yaml['test']['devices']['kits'][device]['fileNameInfo'] = device_files['fileNameInfo']
@@ -101,11 +185,12 @@ class test:
 				self.yaml['test']['devices']['kits'][device]['min_date'] = device_files['min_date']
 				self.yaml['test']['devices']['kits'][device]['max_date'] = device_files['max_date']
 
-			self.std_out ('Add device files {}... \n\tOK'.format(device))
+			self.std_out ('Add device files {}... \nOK'.format(device))
 			
 		except:
-			self.std_out ('Add device files {}... \n\tNOK'.format(device))
-			pass
+			self.std_out ('Add device files {}... \nNOK'.format(device))
+			traceback.print_exc()
+			return
 	
 	def add_reference(self, reference, fileNameRaw = '', index = {}, channels = {}, location = ''):
 
@@ -159,6 +244,7 @@ class test:
 						pass
 					else:
 						self.std_out('Problem copying raw files')
+						traceback.print_exc()
 						return False
 				
 		def date_parser(s, a):
@@ -291,8 +377,6 @@ class test:
 
 						self.yaml['test']['devices']['kits'][kit]['up2date'] = True
 
-					
-			
 			# Create yaml with test description
 			with open(join(self.newpath, 'test_description.yaml'), 'w') as yaml_file:
 				yaml.dump(self.yaml, yaml_file)

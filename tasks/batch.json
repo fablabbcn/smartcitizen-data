@@ -1,0 +1,81 @@
+{
+	"RF_MODEL_W_DELTAS": 
+		{
+			"pre-processing": {
+				"alphasense": {"baseline_method": "deltas",
+								"parameters": [1, 10, 10],
+								"methods": {"CO": ["classic", "na"],
+											"NO2": ["classic", "na"],
+											"O3": ["classic", "na"]
+											},
+								"overlapHours": 0
+							}
+			},
+
+			"model": {
+					"model_name": "RF_ALPHASENSE_DELTA",
+					"model_type": "RF",
+					"data": {"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5262"]},
+							"test": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
+									"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5565"]
+									},
+							"reference_device": "CITY_COUNCIL",
+							"features": {"REF": "NO2_REF",
+										"A":  "GB_2W",
+	            						"B": "GB_2A",
+	            						"C": "HUM"
+	            						}
+							},
+					"hyperparameters": {"ratio_train": 0.75,
+										"n_estimators": 100,
+										"shuffle_split": true
+										},
+					"target": "ALPHASENSE",
+					"options": {"session_active_model": false,
+								"export_model": false,
+								"export_model_file": false,
+								"extract_metrics": true,
+								"save_plots": false,
+								"show_plots": false
+								}
+					},
+
+			"options": {"model_target": "ALPHASENSE",
+						"export_data": "All",
+						"target_raster": "1Min",
+						"clean_na": true,
+						"clean_na_method": "fill",
+						"use_cache": true,
+						"rename_export_data": false
+						}
+		},
+
+	"PROCESS_ISCAPE_W_DELTAS": 
+		{
+			"pre-processing": {
+				"alphasense": {"baseline_method": "deltas",
+								"parameters": [30, 45, 5],
+								"methods": {"CO": ["classic", "na"],
+											"NO2": ["baseline", "single_aux"],
+											"O3": ["baseline", "single_aux"]
+											},
+								"overlapHours": 0
+							}
+			},
+
+			"data": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
+					"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
+					"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
+					"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]
+					},
+
+			"options": {"model_target": "ALPHASENSE",
+						"export_data": "Only Generic",
+						"target_raster": "1Min",
+						"clean_na": true,
+						"clean_na_method": "fill",
+						"use_cache": true,
+						"rename_export_data": false
+						}
+		}
+}

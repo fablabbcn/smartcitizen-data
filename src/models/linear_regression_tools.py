@@ -18,8 +18,8 @@ from sklearn.metrics import median_absolute_error, mean_squared_error#, mean_squ
 import matplotlib.pyplot as plot
 import seaborn as sns
 # Others
-from src.models.formula_utils import exponential_smoothing
-from src.data.signal_utils import metrics
+from src.models.formulas import exponential_smoothing
+from src.data.signal_tools import metrics
 
 def tfuller_plot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
     
@@ -50,7 +50,7 @@ def tfuller_plot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
         smgraph.tsaplots.plot_pacf(_x, lags=lags, ax=pacf_ax)
         plot.tight_layout()
 
-def prep_data_OLS(dataframeModel, tuple_features, ratio_train):
+def prep_data_OLS(dataframeModel, ratio_train):
     '''
         Prepare Dataframe for Ordinary Linear Regression with StatsModels.
         Input:
@@ -65,11 +65,7 @@ def prep_data_OLS(dataframeModel, tuple_features, ratio_train):
 
     # Train Dataframe
     total_len = len(dataframeModel.index)
-    n_train_periods = int(round(total_len*ratio_train))
-    
-    # Rename to formula
-    for item in tuple_features:
-        dataframeModel.rename(columns={'_'.join([item[1],item[2]]): item[0]}, inplace=True)
+    n_train_periods = int(round(total_len*ratio_train))        
     
     dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
 

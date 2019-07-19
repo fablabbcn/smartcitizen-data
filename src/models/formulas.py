@@ -15,12 +15,12 @@ def exponential_smoothing(series, alpha):
         result.append(alpha * series[n] + (1 - alpha) * result[n-1])
     return result
 
-def SMOOTH(y, box_pts):
+def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
-def AD_FORMULA(WE, AE, SensorType, I0WE, I0AE, SENSITIVITY1, SENSITIVITY2, AUX, UNIT1, UNIT2):
+def alphasense_manufacturer(WE, AE, SensorType, I0WE, I0AE, SENSITIVITY1, SENSITIVITY2, AUX, UNIT1, UNIT2):
     
     FACTORWE = 6.39
     FACTORAE = 6.35
@@ -53,16 +53,16 @@ def AD_FORMULA(WE, AE, SensorType, I0WE, I0AE, SENSITIVITY1, SENSITIVITY2, AUX, 
 
     return result
 
-def LINE_COEFF(X1,X2,Y1,Y2):
+def line_coefficients(X1,X2,Y1,Y2):
     a = float(Y2-Y1)/(X2-X1)
     b = Y1-a*X1
     return a,b
 
-def LINE(x,a,b):
+def line(x,a,b):
     y = [i*a+b for i in x]
     return y
 
-def MICS_FORMULA(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor3, Intercept, B, C, D, E, F, G):
+def mics(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor3, Intercept, B, C, D, E, F, G):
     SensorType = [Sensor1Type, Sensor2Type, Sensor3Type]
     Sensor = [Sensor1, Sensor2, Sensor3]
     Sens = Sensor
@@ -75,7 +75,7 @@ def MICS_FORMULA(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor
     # MICS_Formula("Inverse", A, "Direct", B, "Direct", C, -1.615e-01 , 210.08064516, -10236.73257, 0, 0, 0, 0)
     return result
 
-def ABS_HUM(temperature, rel_humidity, pressure):
+def absolute_humidity(temperature, rel_humidity, pressure):
     '''
         Calculate Absolute humidity based on vapour equilibrium:
         Input: 

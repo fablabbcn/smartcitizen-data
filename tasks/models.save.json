@@ -1,0 +1,140 @@
+{
+	"MODEL_1": 
+		{
+			"model_type": "RF",
+			"pre-processing": {
+				"alphasense": {"baseline_method": "deltas",
+								"parameters": [1, 10, 1],
+								"methods": {"CO": ["classic", "na"],
+											"NO2": ["baseline", "single_aux"],
+											"OX": ["baseline", "single_aux"]
+											},
+								"overlapHours": 0
+							}
+			},
+			"data": {
+				"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["DEVICE"]},
+				"test": {"2019-06_EXT_HASSELT_SCHOOL": ["DEVICE_1", "DEVICE_2"],
+						 "2019-06_INT_MUV_CORRELATION_TEST_STATION_21_CSIC": ["DEVICE_1", "DEVICE_2"]
+						},
+				"features": {"REF": "NO2_REF",
+							"A":  "GB_2W",
+	            			"B": "GB_2A",
+	            			"C": "HUM"
+							}
+					},
+			"hyperparameters": {"ratio_train": 0.75,
+								"n_estimators": 100,
+								"shuffle_split": "True"},
+			"options": {"model_target": "ALPHASENSE",
+						"session_active_model": "False",
+						"export_model": "False",
+						"dump_model_file": "False",
+						"export_data": "False",
+						"extract_metrics": "True",
+						"save_plots": "True"
+						}
+		},
+	"MODEL_2": 
+		{
+			"type": "OLS",
+			"pre-processing": {
+				"alphasense": {"baseline_method": "als",
+								"parameters": {"lambda" : [1e3, 1e4],
+												"p":  0.01},
+								"methods": {"CO": ["classic", "na"],
+											"NO2": ["baseline", "single_aux"],
+											"OX": ["baseline", "single_aux"]
+											},
+								"overlapHours": 0
+							}
+			},
+			"data": {
+				"train": "2019-03_EXT_UCD_URBAN_BACKGROUND_API",
+				"test": ["2019-06_EXT_HASSELT_SCHOOL",
+						 "2019-06_INT_MUV_CORRELATION_TEST_STATION_21_CSIC"]
+			},
+			"hyperparameters": {"ratio_train": 0.75},
+			"options": {"expression": "REF ~ np.log10(A) + np.power(np.log10(A),2) + B + np.power(B,2) + D",
+						"model_target": "ALPHASENSE",
+						"archive_model": "False",
+						"export_model": "False",
+						"extract_metrics": "True",
+						"save_plots": "True"},
+			"features": {
+				"REF": "NO2_REF",
+				"A": "GB_2W",
+	            "B": "GB_2A",
+	            "C": "HUM"
+			}
+		},
+	"MODEL_3": 
+		{
+			"type": "LSTM",
+			"pre-processing": {
+				"alphasense": {"baseline_method": "als",
+								"parameters": {"lambda" : [1e3, 1e4],
+												"p":  0.01},
+								"methods": {"CO": ["classic", "na"],
+											"NO2": ["baseline", "single_aux"],
+											"OX": ["baseline", "single_aux"]
+											},
+								"overlapHours": 0
+							}
+			},
+			"data": {
+				"train": "2019-03_EXT_UCD_URBAN_BACKGROUND_API",
+				"test": ["2019-06_EXT_HASSELT_SCHOOL",
+						 "2019-06_INT_MUV_CORRELATION_TEST_STATION_21_CSIC"]
+			},
+
+			"hyperparameters": {"ratio_train": 0.75,
+								"n_lags": 3,
+								"epochs": 100,
+								"batch_size": 72, 
+								"loss": "mse",
+								"optimizer": "adam",
+								"verbose":0,
+								"layers": [{
+										"type": "lstm",
+										"neurons": 100,
+										"return_seq": true
+									},
+									{
+										"type": "dropout",
+										"rate": 0.05
+									},
+									{
+										"type": "lstm",
+										"neurons": 100,
+										"return_seq": true
+									},
+									{
+										"type": "lstm",
+										"neurons": 50,
+										"return_seq": false
+									},
+									{
+										"type": "dropout",
+										"rate": 0.05
+									},
+									{
+										"type": "dense",
+										"neurons": 1,
+										"activation": "linear"
+									}
+								]},
+
+			"options": {"model_target": "ALPHASENSE",
+						"archive_model": "False",
+						"export_model": "False",
+						"extract_metrics": "True",
+						"save_plots": "True"},
+			"features": {
+				"REF": "NO2_REF",
+				"A": "GB_2W",
+	            "B": "GB_2A",
+	            "C": "HUM"
+			}
+		}
+}

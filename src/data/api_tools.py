@@ -79,6 +79,14 @@ def getPlatformSensorID():
         return 'API reported {}'.format(sensors.status_code)   
     return sensors
 
+def getDateLastReading(_device):
+    # Get device
+    deviceR = requests.get(base_url + '{}/'.format(_device))
+    if deviceR.status_code == 200 or deviceR.status_code == 201:
+        return deviceR.json()['last_reading_at']
+    else:
+        return None
+
 def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method):
 
     # Convert frequency from pandas to API's
@@ -163,8 +171,8 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         else:
             hasAlpha = False
         
-        print ('\t Sensor IDs')
-        print ('\t',sensor_real_ids)
+        print ('\tSensor IDs')
+        print ('\t{}'.format(sensor_real_ids))
         # Request sensor ID
         for sensor_id in sensor_real_ids:
             indexDF = list()
@@ -258,7 +266,7 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames,
     sensorHistory = getSensors(join(dataDirectory, 'interim'))
 
     for device in devices:
-        print ('Loading device {}'.format(device))
+        print ('Loading device {} from API'.format(device))
         data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
         location, _, _ = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()

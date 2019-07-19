@@ -1,7 +1,6 @@
 import numpy as np
 from math import sqrt
 import pandas as pd
-from src.data.test_utils import combine_data
 from dateutil import relativedelta
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -413,9 +412,6 @@ def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasse
                 else:
                     average = np.mean(values_array_clean)
                     values_array_clean[item_anomaly] = average
-
-                
-
 
         elif method == 'fill-zeroes':
             for item_anomaly in list_anom:
