@@ -31,7 +31,6 @@ testNames = ['dB', 'h', 'no2op1', 'no2op2', 'o3op1', 'o3op2', 'p10', 'p25', 't',
 targetNames= ['NOISE_A', 'HUM', 'GB_2W', 'GB_2A', 'GB_3W', 'GB_3A', 'EXT_PM_10', 'EXT_PM_25', 'TEMP', 'Time']
 
 def get_bcn_sensors_csv():
-    #output_path = '/home/dataportal/data_samples/bcn_monitoring_stations.csv'
     bcn_sensor_ids =  ['1340424','1340511','5801167','5799871','5801118',
                         '5800177','5801988','5802283','1340722','5801123','5800147','5800390']
 
@@ -49,10 +48,15 @@ def get_bcn_sensors_csv():
         df.drop('id', axis=1, inplace=True)
         df = df.set_index('Time')
         df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert('Europe/Madrid')
-        print ('Device {} contains {} points'.format(sensor_id, len(df.index)))
-        print ('First measurement on {} - last measurement on {}'.format(df.index[0], df.index[-1]))
-        print ('------')
-        df.to_csv("MUV_{}.csv".format(sensor_id), index=True, quoting=csv.QUOTE_NONNUMERIC)
+        min_date = '2019-07-02'
+        df = df[df.index > min_date]
+        if len(df.index) > 0:
+            print ('Device {} contains {} points'.format(sensor_id, len(df.index)))
+            print ('First measurement on {} - last measurement on {}'.format(df.index[0], df.index[-1]))
+            print ('------')
+            df.to_csv("MUV_{}.csv".format(sensor_id), index=True, quoting=csv.QUOTE_NONNUMERIC)
+        else:
+            print ('No data between dates')
     # print(df.head())
 
 if __name__ == "__main__":

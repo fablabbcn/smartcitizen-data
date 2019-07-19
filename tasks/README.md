@@ -1,6 +1,6 @@
 # Task automation
 
-This folder contains the `json` files that describe the batch processes to be done by the scripts in `src/models/batch.py`. An example of the usage of this functionality is shown in `notebooks/batch_analysis.ipynb`:
+This folder contains the `json` files that describe the batch processes to be done by the scripts in `src/models/batch.py`. An example of how to run it is shown in `notebooks/batch_analysis.ipynb`:
 
 ```
 # Load the object
@@ -11,22 +11,12 @@ batch_session = batch_analysis(tasks_file, verbose = True)
 batch_session.run()
 ```
 
-## Tasks sequence
-
-The tasks will be run in the following order:
-
-- Load data (if needed)
-- Sanity checks, verifying that the `json` file contains all the necessary data
-- Pre-process data
-- Model data
-- Export
-
-## Possibilities
+## Functionality
 
 These tasks are intended to automatise data analysis tasks as the following:
 
 - Load, process and export data
-- Generate models and apply them, extracting metrics and comparing if they extrapolate to different set of sensors in different conditions
+- Generate models and apply them, extracting metrics and comparing if they extrapolate to different set of sensors in different datasets, without having to run extra code
 - Make plots for different metrics in an automatic way, and export their renders
 
 ## Json task description
@@ -166,17 +156,51 @@ An example is shown below:
 - `hyperparameters`: dict containing different hyperparameters, depending on the type of model:
     + For all:
         *  `ratio_train`: generic, train-test split ratio
+    +  OLS:
+        *  `formula_expresion`: stats models formula type, accepting `numpy` expressions This formula has to reference the features described under the `data` section. Example: `REF ~ A * B + np.log(C/2)`
     + Random Forest:
         * `n_estimators`: only for `RF`. number of forests to use
         * `shuffle_split`: only for `RF`. whether or not use shuffle split
     + LSTM:
         * `n_lags`: number of lags to account in the LSTM input
-        * `epochs`: number of epochs
-        * `batch_size`: batch size                
+        * `epochs`: number of epochs (100 or more recommended)
+        * `batch_size`: batch size (72 recommended)              
         * `verbose`: verbose output during training
         * `loss`: loss function ('mse' or others)
         * `optimizer`: optimizer to use (`adam` or others)
-        * `layers`: specific layer structure
+        * `layers`: specific layer structure. Example below:
+
+        ```
+        "layers": [{"type": "lstm",
+                    "neurons": 100,
+                    "return_seq": true
+                },
+                {
+                    "type": "dropout",
+                    "rate": 0.05
+                },
+                {
+                    "type": "lstm",
+                    "neurons": 100,
+                    "return_seq": true
+                },
+                {
+                    "type": "lstm",
+                    "neurons": 50,
+                    "return_seq": false
+                },
+                {
+                    "type": "dropout",
+                    "rate": 0.05
+                },
+                {
+                    "type": "dense",
+                    "neurons": 1,
+                    "activation": "linear"
+                }
+            ]},
+        ```
+
 - `options`: different options for the model calculated
     + `session_active_model`: keep the model active after the task is completed
     + `export_model`: export the model (parameters, hyperparameters, weights) to the `model/model_type` folder after the task is completed
