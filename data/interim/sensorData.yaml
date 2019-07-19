@@ -106,14 +106,14 @@
     PMS5003_1: 2017123000719
     PMS5003_2: 2017123000700
 
-'TB03':
+'8739':
   hardware_id: ''
   sck_id: '-'
   id: 'SCS21012'
   type: 'station'
   mac: 'F438'
-  internal_ref: 'UOS_DELIVERY_3'
-  date_from: '2019-02-21'
+  internal_ref: 'UOS_URBAN_BACKGROUND_3'
+  date_from: '2019-06-18'
   date_to: '-'
   gas_pro_board:
     CO: 162581707
@@ -124,14 +124,14 @@
     PMS5003_1: na
     PMS5003_2: na
 
-'TB04':
+'9397':
   hardware_id: ''
   sck_id: '-'
   id: 'SCS21013'
   type: 'station'
   mac: '027E'
-  internal_ref: 'UOS_DELIVERY_4'
-  date_from: '2019-02-21'
+  internal_ref: 'UOS_URBAN_BACKGROUND_4'
+  date_from: '2019-06-18'
   date_to: '-'
   gas_pro_board:
     CO: 162581714
@@ -548,3 +548,40 @@
   pm_board:
     PMS5003_1: 2018052503827
     PMS5003_2: 2018052503991
+
+'9694':
+  hardware_id: '127b5531-504e4b4b-372e314a-ff031926'
+  sck_id: 'SCK2118080024'
+  id: 'SCS21009'
+  type: 'station'
+  mac: 'F174'
+  internal_ref: 'HASSELT_URBAN_BACKGROUND_1'
+  date_from: '2019-06-19'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581723
+    NO2: 202160412
+    O3: 204160155
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018062901635
+    PMS5003_2: 2018062901643
+
+'9530':
+  hardware_id: '8f185d22-504e4b4b-372e314a-ff021d27'
+  sck_id: 'SCK2118080035'
+  id: 'SCS21010'
+  type: 'station'
+  mac: '04E1'
+  internal_ref: 'HASSELT_URBAN_BACKGROUND_2'
+  date_from: '2019-06-19'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162581722
+    NO2: 202160404
+    O3: 204160157
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2018052503817
+    PMS5003_2: 2018052503804
+
