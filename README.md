@@ -7,7 +7,9 @@ Welcome to the [SmartCitizen-iScape Sensor Analysis Framework](https://docs.isca
 
 ![](https://i.imgur.com/CvUuWpL.gif)
 
-You can find more information in the [Official iScape Documentation](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework).
+You can find more information in the:
+- [Official iScape Documentation](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework).
+- [Smart Citizen Documentation](ttps://docs.smartcitizen.me/Sensor%20Analysis%20Framework)
 
 ## Funding
 
@@ -15,7 +17,7 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 ## Compatibility
 
-`Python 3.6` compatible. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. The notebooks in the `notebooks` folder are meant as examples and interfaces to the `python` code in `src`.
+`Python 3.6` compatible. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. The notebooks in the `notebooks` folder are meant as examples and interfaces to the `python` code in the `src` folder.
 
 ## Installation
 
@@ -37,7 +39,27 @@ conda env create -f environment.yml
 The code in the framework is managed as internal dependencies. To activate this, you can run:
 
 ```
-pip install --editable .
+pip install --editable . --verbose
+```
+
+**Note:**
+
+Verify that the `src.egg-link` is performed properly within your environment. You can check this in the final lines of the previous command.
+
+Additional commands to install jupyter lab extensions are given in the `.dotfile`:
+
+```
+pip install ipywidgets --upgrade
+jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.0
+jupyter labextension install @jupyterlab/toc
+conda install -c conda-forge jupyter_nbextensions_configurator
+```
+
+You can run it by:
+
+```
+chmod +x .dotfile
+./.dotfile
 ```
 
 ### Note
