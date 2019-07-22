@@ -4,7 +4,7 @@ setup(
     name='src',
     packages=find_packages(),
     version='0.1.0',
-    description='iScape Sensor Analysis Framework',
+    description='SmartCitizen Sensor Analysis Framework',
     author='oscgonfer',
-    license='MIT',
+    license='GNU-GPL3.0',
 )
