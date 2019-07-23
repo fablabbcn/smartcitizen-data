@@ -1,0 +1,4 @@
+# Urls file
+SENSOR_NAMES_URL=https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h
+API_BASE_URL=https://api.smartcitizen.me/v0/devices/
+API_KITS_URL=https://api.smartcitizen.me/v0/kits/
