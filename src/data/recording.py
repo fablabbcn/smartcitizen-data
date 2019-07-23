@@ -1,6 +1,7 @@
 from src.data.api_tools import *	
 from os.path import join
-from sklearn.externals import joblib
+# from sklearn.externals import joblib #TO-DO: check if all works with to joblib
+import joblib
 import json
 
 import pandas as pd
@@ -10,6 +11,7 @@ import numpy as np
 from os import pardir, getcwd
 from os.path import join, abspath, normpath, basename
 from src.data.test_tools import getSensorNames, getTests
+from src.data.variables import *
 from src.models.baseline_tools import *
 
 import traceback
@@ -19,15 +21,16 @@ class recording:
 	def __init__(self, verbose = True):
 		
 		self.readings = dict()
-		self.rootDirectory = abspath(abspath(join(getcwd(), pardir)))
+		self.rootDirectory = rootDirectory
 		self.dataDirectory = join(self.rootDirectory, 'data')
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
-		currentSensorsh = ('https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/2.1-dev/lib/Sensors/Sensors.h')
+		currentSensorsh = SENSOR_NAMES_URL
+		# currentSensorsh = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
 		self.availableTests = getTests(self.dataDirectory)
 		self.verbose = verbose
 		self.currentSensorNames = getSensorNames(currentSensorsh, join(self.dataDirectory, 'interim'))
-		self.name_combined_data = 'COMBINED_DEVICES'
+		self.name_combined_data = NAME_COMBINED_DATA
 
 	def available_tests(self):
 		self.availableTests = getTests(self.dataDirectory)
@@ -75,28 +78,32 @@ class recording:
 					format_csv = True
 				elif 'api' in test['test']['devices']['kits'][kit]['source']:
 					format_csv = False
+
+				try:
+					metadata = test['test']['devices']['kits'][kit]['metadata']
+				except:
+					metadata = ''
+					self.std_out('No metadata found - skipping')
+					pass
+				else:
+					self.std_out('Found metadata')
+					
+				# List for names conversion
+				targetSensorNames = list()
+				testSensorNames = list()
+
+				for item_test in metadata:
+					id_test = metadata[item_test]['id']
+
+					for item_target in currentSensorNames:
+						if currentSensorNames[item_target]['id'] == id_test and id_test != '0' and item_test not in testSensorNames:
+							targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
+							testSensorNames.append(item_test)            
+				
 				
 				if format_csv:
 					
-					try:
-						metadata = test['test']['devices']['kits'][kit]['metadata']
-					except:
-						traceback.print_exc()
-						metadata = ''
-						pass
-					
-					# List for names conversion
-					targetSensorNames = list()
-					testSensorNames = list()
 
-					for item_test in metadata:
-						id_test = metadata[item_test]['id']
-
-						for item_target in currentSensorNames:
-							if currentSensorNames[item_target]['id'] == id_test and id_test != '0' and item_test not in testSensorNames:
-								targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
-								testSensorNames.append(item_test)            
-					
 					# Get fileName
 					fileNameProc = test['test']['devices']['kits'][kit]['fileNameProc']
 					
@@ -158,7 +165,7 @@ class recording:
 
 						except:
 							self.std_out('Problem loading cached data, requesting to API')
-							traceback.print_exc()
+							# traceback.print_exc()
 							load_API = True
 						
 						else:
@@ -167,13 +174,16 @@ class recording:
 							last_reading_cached = _readings[test_id]['devices'][kit]['data'].index[-1]
 							self.std_out('Last day in cached data {}'.format(last_reading_cached))
 							last_reading_api = datetime.strptime(getDateLastReading(device_id), '%Y-%m-%dT%H:%M:%SZ')
+							# last_reading_api = pd.to_datetime(last_reading_api).tz_convert(location)
 							last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
+
 							self.std_out('Last reading in API {}'.format(last_reading_api))
 							
 
 							# Check which dates to load
 							if max_date != None:
 								# Localize max test date for comparison
+								# max_date_localized = pd.to_datetime(max_date).tz_convert(location)
 								max_date_localized = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
 								self.std_out('Max date in test {}'.format(max_date_localized))
 								# Check what where we need to load data from, if any
@@ -338,6 +348,7 @@ class recording:
 				self.std_out('No known index found')
 
 			# Set index
+			# df.index = pd.to_datetime(df.index).tz_convert(location)
 			df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
 
 			# Remove duplicates
@@ -451,12 +462,19 @@ class recording:
 			self.std_out('Data combined successfully')
 			return True
 
-	def prepare_dataframe_model(self, reading_name, features, device, reference, min_date, max_date, model_name, clean_na = True, clean_na_method = 'fill' , target_raster = '1Min'):
+	def prepare_dataframe_model(self, model_object):
+
+		# Retrieve input
+		reading_name = list(model_object.data['train'].keys())[0]
+		device = model_object.data['train'][reading_name]
+		reference = model_object.data['reference_device']
+
 		self.std_out('Preparing dataframe model for test {}'.format(reading_name))
 		if self.combine_readings(reading_name):
 
 			## Send only the needed features
 			list_features = list()
+			features = model_object.data['features']
 			try:
 				# Create the list of features needed
 				for item in features.keys():
@@ -475,34 +493,32 @@ class recording:
 				dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
 
 				# Resample
-				dataframeModel = dataframeModel.resample(target_raster).mean()
+				dataframeModel = dataframeModel.resample(model_object.data['options']['target_raster']).mean()
 				
 				# Remove na
-				if clean_na:
-					if clean_na_method == 'fill':
+				if model_object.data['options']['clean_na']:
+					if model_object.data['options']['clean_na_method'] == 'fill':
 						dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
-					elif clean_na_method == 'drop':
+					elif model_object.data['options']['clean_na_method'] == 'drop':
 						dataframeModel = dataframeModel.dropna()
 				
-				if min_date != None:
-					dataframeModel = dataframeModel[dataframeModel.index > min_date]
-				if max_date != None:
-					dataframeModel = dataframeModel[dataframeModel.index < max_date]
+				if model_object.data['options']['min_date'] != None:
+					dataframeModel = dataframeModel[dataframeModel.index > model_object.data['options']['min_date']]
+				if model_object.data['options']['max_date'] != None:
+					dataframeModel = dataframeModel[dataframeModel.index < model_object.data['options']['max_date']]
 
-				if model_name != None:
+				if model_object.name != None:
 					# Don't create the model structure, since we are predicting
 					if 'models' not in self.readings[reading_name].keys():
 						self.std_out('Creating models session in recordings')
 						self.readings[reading_name]['models']=dict()
 
-					self.readings[reading_name]['models'][model_name]=dict()
-					self.readings[reading_name]['models'][model_name]['data'] = dataframeModel
-					self.readings[reading_name]['models'][model_name]['features'] = features
+					# Create model_name entry
+					self.readings[reading_name]['models'][model_object.name]=dict()
 
-					# Put reference name
-					self.readings[reading_name]['models'][model_name]['reference'] = reference_name
-					self.std_out('Model reference is {}'.format(reference))
-
+					self.readings[reading_name]['models'][model_object.name]['data'] = dataframeModel
+					self.readings[reading_name]['models'][model_object.name]['features'] = features
+					self.readings[reading_name]['models'][model_object.name]['reference'] = reference_name
 					# Set flag
 					self.readings[reading_name]['ready_to_model'] = True
 				
@@ -514,25 +530,15 @@ class recording:
 				self.std_out('Dataframe model generated successfully')
 				return True
 
-	def archive_model(self, reading_name, model_name, model_type, metrics_model, hyperparameters, options, dataframe = None, model = None):
+	def archive_model(self, reading_name, model_object, dataframe = None):
 		try:
-			# Metrics
-			if metrics_model != None: self.readings[reading_name]['models'][model_name]['metrics'] = metrics_model
-	
-			# Model and modelType
-			if model != None: self.readings[reading_name]['models'][model_name]['model'] = model
-			
-			self.readings[reading_name]['models'][model_name]['model_type'] = model_type
-			self.readings[reading_name]['models'][model_name]['model_target'] = options['model_target']
-			if 'formula' in options.keys(): self.readings[reading_name]['models'][model_name]['formula'] = options['formula']
-	
-			# Parameters
-			self.readings[reading_name]['models'][model_name]['hyperparameters'] = hyperparameters
+			# Model savin in previous entry
+			self.readings[reading_name]['models'][model_object.name]['model_object'] = model_object
 			
 			# Dataframe
-			if dataframe != None:
-				self.readings[reading_name]['devices'][model_name] = dict()
-				self.readings[reading_name]['devices'][model_name]['data'] = dataframe
+			if dataframe is not None:
+				self.readings[reading_name]['devices'][model_object.name] = dict()
+				self.readings[reading_name]['devices'][model_object.name]['data'] = dataframe
 			
 		except:
 			self.std_out('Problem occured while archiving model')

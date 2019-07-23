@@ -15,6 +15,7 @@
 			"model": {
 					"model_name": "RF_ALPHASENSE_DELTA",
 					"model_type": "RF",
+					"model_target": "ALPHASENSE",
 					"data": {"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5262"]},
 							"test": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
 									"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5565"]
@@ -24,28 +25,27 @@
 										"A":  "GB_2W",
 	            						"B": "GB_2A",
 	            						"C": "HUM"
-	            						}
+	            						},
+	            			"options": {"target_raster": "1Min",
+										"clean_na": true,
+										"clean_na_method": "fill",
+										"min_date": null,
+										"max_date": null,
+										"use_cache": true}
 							},
 					"hyperparameters": {"ratio_train": 0.75,
 										"n_estimators": 100,
 										"shuffle_split": true
 										},
-					"target": "ALPHASENSE",
 					"options": {"session_active_model": false,
 								"export_model": false,
 								"export_model_file": false,
 								"extract_metrics": true,
 								"save_plots": false,
-								"show_plots": false
-								}
+								"show_plots": false}
 					},
 
-			"options": {"model_target": "ALPHASENSE",
-						"export_data": "All",
-						"target_raster": "1Min",
-						"clean_na": true,
-						"clean_na_method": "fill",
-						"use_cache": true,
+			"options": {"export_data": "All",
 						"rename_export_data": false
 						}
 		},
@@ -63,19 +63,19 @@
 							}
 			},
 
-			"data": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
-					"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
-					"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
-					"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]
+			"data": {"datasets": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
+									"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
+									"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
+									"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]},
+					"options": {"target_raster": "1Min",
+								"clean_na": true,
+								"use_cache": true,
+								"clean_na_method": "fill",
+								"min_date": null,
+								"max_date": null}
 					},
 
-			"options": {"model_target": "ALPHASENSE",
-						"export_data": "Only Generic",
-						"target_raster": "1Min",
-						"clean_na": true,
-						"clean_na_method": "fill",
-						"use_cache": true,
-						"rename_export_data": false
-						}
+			"options": {"export_data": "Only Generic",
+						"rename_export_data": false}
 		}
 }

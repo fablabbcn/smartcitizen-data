@@ -8,6 +8,14 @@ import yaml
 from os import getcwd, walk
 from os.path import join
 
+# import os
+
+# # Env file
+# with open(join(getcwd(), '.env')) as environment:
+#     for var in environment:
+#         key = var.split('=')
+#         os.environ[key[0]] = re.sub('\n','',key[1])
+
 # Define base url
 base_url = 'https://api.smartcitizen.me/v0/devices/'
 kits_url = 'https://api.smartcitizen.me/v0/kits/'
@@ -192,7 +200,9 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                 if sensor_real_ids.index(sensor_id) == 0:
                     # print 'getting sensor id # 0 at {}'.format(sensor_id)
                     df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
+                    # df.index = pd.to_datetime(df.index).tz_convert(location)
                     df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
+
                     df.sort_index(inplace=True)
                     df = df[~df.index.duplicated(keep='first')]
                     # Drop unnecessary columns
@@ -213,7 +223,9 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                     
                     if dataDF != []:
                         dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
+                        # dfT.index = pd.to_datetime(dfT.index).tz_convert(location)
                         dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
+
                         dfT.sort_index(inplace=True)
                         dfT = dfT[~dfT.index.duplicated(keep='first')]
                         # Drop unnecessary columns

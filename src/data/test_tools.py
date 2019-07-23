@@ -316,7 +316,9 @@ class test:
 							if index_name in column: index_found = column
 								
 						df.set_index(index_found, inplace = True)
-						df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.yaml['test']['devices']['kits'][kit]['location'])
+						df.index = pd.to_datetime(df.index).tz_convert(self.yaml['test']['devices']['kits'][kit]['location'])
+						# df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.yaml['test']['devices']['kits'][kit]['location'])
+
 						df.sort_index(inplace=True)
 								
 						# Remove Duplicates and drop unnamed columns

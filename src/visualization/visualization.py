@@ -22,7 +22,7 @@ def targetDiagram(models, plot_train):
     fig  = plot.figure(figsize=(13,13))
     for model in models:
         try:
-            metrics_model = models[model]['metrics']
+            metrics_model = models[model]
         
             if plot_train == True:
                 plot.scatter(metrics_model['train']['sign_sigma']*metrics_model['train']['RMSD_norm_unb'], metrics_model['train']['normalised_bias'], label = 'Train ' + model)

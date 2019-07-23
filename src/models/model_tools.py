@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, median_absolute_error
 from sklearn.metrics import mean_absolute_error, mean_squared_error #, mean_squared_log_error 
-from sklearn.externals import joblib
+import joblib
 
 from src.models.linear_regression_tools import prep_data_OLS, fit_model_OLS, predict_OLS
 import pandas as pd
@@ -166,7 +166,7 @@ def fit_model_ML(model_type, train_X, train_y, test_X, test_y, epochs = 50, batc
 
 	return model
 
-def predict_ML(model, X, y, index, scalery = None, plot_figures = False, verbose = True):
+def predict_ML(model, X, scalery = None):
 
 	# Make a prediction for test
 	predictions = model.predict(X)
@@ -176,36 +176,8 @@ def predict_ML(model, X, y, index, scalery = None, plot_figures = False, verbose
 		inv_predictions = inv_predictions[:,-1]
 	else:
 		inv_predictions = predictions
-
-	errors = abs(inv_predictions - y)
-	rerror = np.maximum(np.minimum(np.divide(errors, y),1),-1)
-	mape = 100 * np.mean(rerror)
-	accuracy = 100 - mape
 	
-	if plot_figures:
-		fig, ax = plot.subplots(figsize=(15,12))
-		lns1 = ax.plot(y, label = 'Reference')
-		lns2 = ax.plot(inv_predictions, linestyle=':', linewidth=1, marker=None, label = 'Prediction')
-		# plot.plot(errors, label = 'Errors')
-		
-		ax2 = ax.twinx()
-		lns3 = ax2.plot(rerror, label = 'Relative Error')
-		ax2.legend(loc='best')
-		ax2.set_ylim([0,100])
-
-		lns = lns1+lns2+lns3
-		labs = [l.get_label() for l in lns]
-		ax2.legend(lns, labs, loc='best')
-
-	if verbose:
-		print('Model Performance')
-		print('\tAverage Error: {:0.4f}.'.format(np.mean(errors)))
-		print('\tAccuracy = {:0.2f}%.'.format(accuracy))
-
-	dataFrame = pd.DataFrame(data = {'reference': y, 'prediction': inv_predictions}, 
-							  index = index)
-	
-	return dataFrame
+	return inv_predictions
 
 def get_inverse_transform_ML(y, scalery):
 	
@@ -278,7 +250,7 @@ def plot_model_ML(model, dataFrameTrain, dataFrameTest, feature_list, model_type
 		# list of x locations for plotting
 		x_values = list(range(len(importances)))
 		
-		fig= plot.figure(figsize = (12,6))
+		fig= plot.figure(figsize = (15,8))
 		plot.subplot(1,2,1)
 		# Make a bar chart
 		plot.bar(x_values, importances, orientation = 'vertical', color = 'r', edgecolor = 'k', linewidth = 1.2)
@@ -311,7 +283,6 @@ def plot_model_ML(model, dataFrameTrain, dataFrameTest, feature_list, model_type
 
 	except:
 		print ('Could not plot feature importances. If model is sequential(), this is not possible')
-		traceback.print_exc()
 		pass
 
 class model_wrapper:
@@ -394,23 +365,26 @@ class model_wrapper:
 			# Fit model
 			self.model.fit(train_X, train_y)
 			
-			## Get model prediction
-			self.dataFrameTrain = predict_ML(self.model, 
-											features[:n_train_periods], 
-											labels[:n_train_periods], 
-											dataframeModel.index[:n_train_periods],
-											plot_figures = self.plots, verbose = self.verbose)
+			## Get model prediction for training dataset
+			predictionTrain = predict_ML(self.model, features[:n_train_periods])
 			
-			self.dataFrameTest = predict_ML(self.model, 
-											features[n_train_periods:], 
-											labels[n_train_periods:], 
-											dataframeModel.index[n_train_periods:],
-											plot_figures = self.plots, verbose = self.verbose)
+			self.dataFrameTrain = pd.DataFrame(data = {'reference': labels[:n_train_periods], 'prediction': predictionTrain}, 
+												index = dataframeModel.index[:n_train_periods])
+
+			## Get model prediction for training dataset			
+			predictionTest = predict_ML(self.model, features[n_train_periods:])
+
+			self.dataFrameTest = pd.DataFrame(data = {'reference': labels[n_train_periods:], 'prediction': predictionTest}, 
+												index = dataframeModel.index[n_train_periods:])
+
+			if self.plots:
+				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
 
 		elif self.type == "OLS":
 			# OLS can be done with a formula, and the model needs to be renamed accordingly
 			reference_device = self.data['reference_device']
-			device = list(self.data['train'].keys())[0]
+			train_dataset = list(self.data['train'].keys())[0]
+			device = self.data['train'][train_dataset]
 			
 			for item in self.data['features'].keys():
 				target_name = item
@@ -430,11 +404,24 @@ class model_wrapper:
 			self.model = fit_model_OLS(expression, dataTrain, printSummary = False)
 
 			## Get model prediction
-			self.dataFrameTrain = predict_OLS(self.model, dataTrain, True, False, 'train')
-			self.dataFrameTest = predict_OLS(self.model, dataTest, True, False, 'test')
+			self.dataFrameTrain = predict_OLS(self.model, 
+											  dataTrain, 
+											  plotResult = self.plot, 
+											  plotAnomalies = False, 
+											  train_test = 'train')
+
+			self.dataFrameTest = predict_OLS(self.model, 
+											  dataTest, 
+											  plotResult = self.plot, 
+											  plotAnomalies = False, 
+											  train_test = 'test')
+
+			if self.plots:
+				plot_OLS_coeffs(self.model)
+				model_R_plots(self.model, dataTrain, dataTest)
 
 		elif self.type == "LSTM":
-			n_features = len(features)
+			n_features = len(feature_list)
 			
 			# Data Split
 			train_X, train_y, test_X, test_y, scalerX, scalery = prep_dataframe_ML(dataframeModel, 
@@ -447,29 +434,124 @@ class model_wrapper:
 			
 			# Model Fit
 			self.std_out ('Model training...')
+
+			# Check if we have specific layers
+			if 'layers' in self.hyperparameters.keys():
+				layers = self.hyperparameters['layers']
+			else:
+				layers = ''
+
 			self.model = fit_model_ML('LSTM', train_X, train_y, 
 								   test_X, test_y, 
 								   epochs = self.hyperparameters['epochs'], batch_size = self.hyperparameters['batch_size'], 
-								   verbose = self.hyperparameters['verbose'], plotResult = False, 
-								   loss = self.hyperparameters['mse'], optimizer = self.hyperparameters['adam'], layers = self.hyperparameters['layers'])
+								   verbose = self.hyperparameters['verbose'], plotResult = self.plots, 
+								   loss = self.hyperparameters['loss'], optimizer = self.hyperparameters['optimizer'], layers = layers)
 			
 			inv_train_y = get_inverse_transform_ML(train_y, scalery)
-			self.dataFrameTrain = predict_ML(self.model, train_X, 
-										inv_train_y, index[:n_train_periods],
-										scalery)
-			
 			inv_test_y = get_inverse_transform_ML(test_y, scalery)
-			self.dataFrameTest = predict_ML(self.model, test_X, 
-									   inv_test_y, index[n_train_periods+n_lags:], 
-									   scalery)
-			
+
+			predictionTrain = predict_ML(self.model, train_X, scalery)
+			predictionTest = predict_ML(self.model, test_X, scalery)
+
+			self.dataFrameTrain = pd.DataFrame(data = {'reference': inv_train_y, 'prediction': predictionTrain}, 
+												index = dataframeModel.index[:n_train_periods])
+
+			self.dataFrameTest= pd.DataFrame(data = {'reference': inv_test_y, 'prediction': predictionTest}, 
+												index = index[n_train_periods+self.hyperparameters['n_lags']:])
+						
 			self.parameters['scalerX'] = scalerX
 			self.parameters['scalery'] = scalery
+
+			if self.plots:
+				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
 
 		self.parameters['n_train_periods'] = n_train_periods
 
 		if self.options['extract_metrics']: self.metrics = self.extract_metrics()
 		else: self.metrics = None
+
+	def predict_channels(self, data_input, prediction_name):
+		
+		# Get specifics
+		if self.type == 'LSTM':
+			scalerX_predict = self.parameters['scalerX']
+			scalery_predict = self.parameters['scalery']
+			n_lags = self.hyperparameters['n_lags']
+			self.std_out('Loading parameters for ')
+		elif self.type == 'RF' or self.type == 'SVR' or self.type == 'OLS':
+			self.std_out('No specifics for {} type'.format(self.type))
+
+		list_features = list()
+		for item in self.data['features']:
+			if item != 'REF':
+				list_features.append(self.data['features'][item])
+				if self.data['features'][item] not in data_input.columns:
+					self.std_out('{} not in input data. Cannot predict using this model'.format(self.data['features'][item]))
+					break
+
+		self.std_out('Preparing devices from prediction')
+		dataframeModel = data_input.loc[:, list_features]
+		# dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
+		
+		# # Resample
+		# dataframeModel = dataframeModel.resample(self.options['target_raster']).mean()
+		
+		# # Remove na
+		# if self.options['clean_na']:
+		# 	if self.options['clean_na_method'] == 'fill':
+		# 		dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
+		# 	elif self.options['clean_na_method'] == 'drop':
+		# 		dataframeModel = dataframeModel.dropna()
+
+		indexModel = dataframeModel.index
+
+		# List of features for later use
+		feature_list = list(dataframeModel.columns)
+		features_array = np.array(dataframeModel)
+
+		if self.type == 'RF' or self.type == 'SVR':
+			## Get model prediction
+			dataframe = pd.DataFrame(self.model.predict(features_array), columns = ['prediction']).set_index(indexModel)
+			dataframeModel = dataframeModel.combine_first(dataframe)
+			data_input[prediction_name] = dataframeModel['prediction']
+
+		elif self.type == 'LSTM':
+			# To fix
+			test_X, index_pred, n_obs = prep_prediction_ML(dataframeModel, list_features, n_lags, scalerX_predict, verbose = self.verbose)
+			prediction = predict_ML(self.model, test_X, scalery_predict)
+
+			dataframe = pd.DataFrame(prediction, columns = [prediction_name]).set_index(index_pred)
+			data_input[prediction_name] = dataframe.loc[:,prediction_name]
+		
+		elif self.type == 'OLS':
+
+			if 'formula' in self.options.keys(): 
+
+				# Rename to formula
+				for item in features.keys():
+					dataframeModel.rename(columns={features[item]: item}, inplace=True)
+
+			## Predict the model results
+			datapredict, _ = prep_data_OLS(dataframeModel, features, 1)
+			prediction = predict_OLS(model, datapredict, False, False, 'test')
+
+			data_input[prediction_name] = prediction
+		
+		self.std_out('Channel {} prediction finished'.format(prediction_name))
+
+		if self.plots:
+			# Plot
+			fig = plot.figure(figsize=(15,10))
+			# Fitted values
+			plot.plot(data_input.index, data_input[prediction_name], 'b', label = 'Predicted value')
+			plot.grid(True)
+			plot.legend(loc='best')
+			plot.title('Model prediction for {}'.format(prediction_name))
+			plot.xlabel('Time (-)')
+			plot.ylabel(prediction_name)
+			plot.show()
+
+		return data_input
 
 	def export(self, directory):
 
@@ -507,88 +589,3 @@ class model_wrapper:
 			json_file.close()
 
 		self.std_out("Model included in summary")
-
-	def predict_channels(self, data_input, prediction_name):
-		
-		# Get specifics
-		if self.type == 'LSTM':
-			scalerX_predict = self.parameters['scalerX']
-			scalery_predict = self.parameters['scalery']
-			n_lags = self.hyperparameters['n_lags']
-			self.std_out('Loading parameters for ')
-		elif self.type == 'RF' or self.type == 'SVR' or self.type == 'OLS':
-			self.std_out('No specifics for {} type'.format(self.type))
-
-		list_features = list()
-		for item in self.data['features']:
-			if item != 'REF':
-				list_features.append(self.data['features'][item])
-				if self.data['features'][item] not in data_input.columns:
-					self.std_out('{} not in input data. Cannot predict using this model'.format(self.data['features'][item]))
-					break
-
-		self.std_out('Preparing devices from prediction')
-
-		dataframeModel = data_input.loc[:, list_features]
-		# dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
-		
-		# # Resample
-		# dataframeModel = dataframeModel.resample(self.options['target_raster']).mean()
-		
-		# # Remove na
-		# if self.options['clean_na']:
-		# 	if self.options['clean_na_method'] == 'fill':
-		# 		dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
-		# 	elif self.options['clean_na_method'] == 'drop':
-		# 		dataframeModel = dataframeModel.dropna()
-
-		indexModel = dataframeModel.index
-
-		# List of features for later use
-		feature_list = list(dataframeModel.columns)
-		features_array = np.array(dataframeModel)
-
-		if self.type == 'RF' or self.type == 'SVR':
-			## Get model prediction
-			dataframe = pd.DataFrame(self.model.predict(features_array), columns = ['prediction']).set_index(indexModel)
-			dataframeModel = dataframeModel.combine_first(dataframe)
-			data_input[prediction_name] = dataframeModel['prediction']
-
-		elif self.type == 'LSTM':
-			# To fix
-			test_X, index_pred, n_obs = prep_prediction_ML(dataframeModel, list_features, n_lags, scalerX_predict, verbose = self.verbose)
-			prediction = predict_ML(self.model, test_X, n_lags, scalery_predict)
-			dataframe = pd.DataFrame(prediction, columns = [prediction_name]).set_index(index_pred)
-			data_input[prediction_name] = dataframe.loc[:,prediction_name]
-		
-		elif self.type == 'OLS':
-
-			if 'formula' in self.options.keys(): 
-
-				# Rename to formula
-				for item in features.keys():
-					dataframeModel.rename(columns={features[item]: item}, inplace=True)
-
-			## Predict the model results
-			datapredict, _ = prep_data_OLS(dataframeModel, features, 1)
-			prediction = predict_OLS(model, datapredict, False, False, 'test')
-
-			data_input[prediction_name] = prediction
-		
-		self.std_out('Channel {} prediction finished'.format(prediction_name))
-
-		if self.plots:
-			# Plot
-			fig = plot.figure(figsize=(15,10))
-		
-			# Fitted values
-			plot.plot(data_input.index, \
-					  data_input[prediction_name], 'g', alpha = 0.5, label = 'Predicted value')
-			plot.grid(True)
-			plot.legend(loc='best')
-			plot.title('Model prediction for {}'.format(prediction_name))
-			plot.xlabel('Time (-)')
-			plot.ylabel(prediction_name)
-			plot.show()
-
-		return data_input

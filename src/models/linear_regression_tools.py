@@ -121,26 +121,30 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
         reference = data['REF']
         ref_avail = True
         mask = data.columns.str.contains('REF')
-        print (type(mask))
     except:
         # Do nothing
         ref_avail = False
         mask = None
-        print ('\tNo reference available')
+        print ('No reference available')
 
     ## Predict Results
     if train_test == 'train':
 
         predictionTrain = model.predict(data.loc[:,~mask])
-        
+        print (len(predictionTrain))
+        print (len(data.index))
+
         ## Get confidence intervals
         # For training
         st, summary_train, ss2 = summary_table(model, alpha=0.05)
         
+        print (summary_train.shape)
         train_mean_se  = summary_train[:, 3]
         train_mean_ci_low, train_mean_ci_upp = summary_train[:, 4:6].T
         train_ci_low, train_ci_upp = summary_train[:, 6:8].T
-
+        print (len(train_ci_low))
+        print (len(train_ci_upp))
+        
         if plotResult:
             # Plot the stuff
             fig = plot.figure(figsize=(15,10))
@@ -150,12 +154,13 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
         
             # Fitted Values for Training
             plot.plot(data.index, predictionTrain, 'r', label = 'Prediction Train')
-            plot.plot(data.index, train_ci_low, 'k--', lw=0.7, alpha = 0.5)
-            plot.plot(data.index, train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-            plot.fill_between(data.index, train_ci_low, train_ci_upp, alpha = 0.05 )
-            plot.plot(data.index, train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-            plot.plot(data.index, train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-            plot.fill_between(data.index, train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
+            # TO-DO: Fix
+            # plot.plot(data.index, train_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            # plot.plot(data.index, train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            # plot.fill_between(data.index, train_ci_low, train_ci_upp, alpha = 0.05 )
+            # plot.plot(data.index, train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            # plot.plot(data.index, train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            # plot.fill_between(data.index, train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
             plot.grid(True)
 
         if ref_avail:
@@ -188,13 +193,13 @@ def predict_OLS(model, data, plotResult = True, plotAnomalies = True, train_test
             # Fitted Values for Test
             plot.plot(data.index, reference, 'b', label = 'Reference Test', alpha = 0.3)
 
-            plot.plot(data.index, test_mean, 'b', label = 'Prediction Test')
-            plot.plot(data.index, test_ci_low, 'k--', lw=0.7, alpha = 0.5)
-            plot.plot(data.index, test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
-            plot.fill_between(data.index, test_ci_low, test_ci_upp, alpha = 0.05 )
-            plot.plot(data.index, test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
-            plot.plot(data.index, test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
-            plot.fill_between(data.index, test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+            # plot.plot(data.index, test_mean, 'b', label = 'Prediction Test')
+            # plot.plot(data.index, test_ci_low, 'k--', lw=0.7, alpha = 0.5)
+            # plot.plot(data.index, test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+            # plot.fill_between(data.index, test_ci_low, test_ci_upp, alpha = 0.05 )
+            # plot.plot(data.index, test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+            # plot.plot(data.index, test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+            # plot.fill_between(data.index, test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
         
             plot.title('Linear Regression Results')
             plot.grid(True)

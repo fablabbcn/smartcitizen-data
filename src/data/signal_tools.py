@@ -99,7 +99,8 @@ def split_agnostisise(_readings, _reading, _channel):
     dataframe_combined['change'] = count_peak(dataframe_combined[_channel])
 
     df = [x for _, x in dataframe_combined.groupby('change')]
-    init_date = pd.to_datetime(begining_date).tz_localize('UTC').tz_convert('UTC')
+    init_date = pd.to_datetime(begining_date).tz_convert('UTC')
+    # init_date = pd.to_datetime(begining_date).tz_localize('UTC').tz_convert('UTC')
     dataframeAgnostic = pd.DataFrame()
     for i in range(len(df)):
         min_date= pd.to_datetime(df[i].index.min()).tz_convert('UTC')

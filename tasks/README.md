@@ -39,44 +39,48 @@ In case no model needs to be calculated, the data can be specified directly in t
 
 ```
 {
-    "TASK_1":{"data":{"TEST_1": ["DEVICE_11","DEVICE_12"],
-                    "TEST_2": ["DEVICE_21", "DEVICE_22", "DEVICE_23"],
-                    ...
-                    },
+    "TASK_1":{"data":   {"datasets": {"TEST_1": ["DEVICE_11","DEVICE_12"],
+                                    "TEST_2": ["DEVICE_21", "DEVICE_22", "DEVICE_23"],
+                                    ...
+                                    },
+                        "options": {"target_raster": "1Min",
+                                "clean_na": true,
+                                "use_cache": true,
+                                "min_date": null,
+                                "max_date": null,
+                                "clean_na_method": "fill"}
+                        },
         },
-
 }
 ```
 
-If a model is to be calculated, the data is defined within the model key as seen below.
+If a model is to be calculated, the data is defined within the model key as seen below. 
 
-### Options
+#### Data loading options
+
+- `target_raster`: frequency at which load the data (as defined in `pandas` [here](https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
+))
+- `clean_na`: clean or not NaN
+- `clean_na_method`: `drop` or `fill` with back-forward filling
+- `use_cache`: whether or not to use file chaching for the analysis. This adds a `cached` folder in the corresponding `test` directory, which allows faster download from the `API`. It is implemented so that the only data to be downloaded is the one that is not cached
+- `min_date`, `max_date`: for data loading
+
+### General Options
 
 `options` can be defined for different cases:
 
 ```
-"options": {"model_target": "ALPHASENSE",
-            "export_data": "Only Processed",
+"options": {"export_data": "Only Processed",
             "rename_export_data": true
-            "target_raster": "1Min",
-            "clean_na": true,
-            "clean_na_method": "fill",
-            "use_cache": true,
             }
 ```
 
-- `model_target`: if the model is to be stored under a specific category of models under the `models/` folder
 - `export_data`: if the processed data (after pre-processing and modeling) has to be exported. It will be saved in the corresponding `test` folder, under `processed`. Options are:
     + `None`: don't export anything
     + `All`: all channels in the `pandas dataframe`
     + `Only Generic`: Export only channels that are under the `data/interim/sensorNamesExport.json`
     + `Only Processed`: Export only channels that are tagged as `processed` under the `data/interim/sensorNamesExport.json`
 - `rename_export_data`: Rename the exported channels for better readability using the file `data/interim/sensorNamesExport.json`
-- `target_raster`: frequency at which load the data (as defined in `pandas` [here](# https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
-))
-- `clean_na`: clean or not NaN
-- `clean_na_method`: `drop` or `fill` with back-forward filling
-- `use_cache`: whether or not to use file chaching for the analysis. This adds a `cached` folder in the corresponding `test` directory, which allows faster download from the `API`. It is implemented so that the only data to be downloaded is the one that is not cached
 
 ### Pre-process data
 
@@ -121,6 +125,7 @@ An example is shown below:
 "model": {
         "model_name": "Random_Forest_100",
         "model_type": "RF",
+        "model_target": "ALPHASENSE",
         "data": {"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5262"]},
                 "test": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
                         "2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5565"]
@@ -131,12 +136,17 @@ An example is shown below:
                             "B": "GB_2A",
                             "C": "HUM"
                             }
+                "options": {"target_raster": "1Min",
+                            "clean_na": true,
+                            "clean_na_method": "fill",
+                            "min_date": null,
+                            "max_date": null,
+                            "use_cache": true}
                 },
         "hyperparameters": {"ratio_train": 0.75,
                             "n_estimators": 100,
                             "shuffle_split": true
                             },
-        "target": "ALPHASENSE",
         "options": {"session_active_model": false,
                     "export_model": false,
                     "export_model_file": false,
@@ -150,6 +160,7 @@ An example is shown below:
 
 - `model_name`: model name to be saved
 - `model_type`: 'RF', 'SVR', 'LSTM' or 'OLS'
+- `model_target`: if the model is to be stored under a specific category of models under the `models/` folder
 - `data`: dict containing the data to use for training, and features description. Under `train`, we define which of the tests and devices is to be used for the model definition, with the format `{"TEST": ["DEVICE"]}`. Under `test`, we define a series of `test` in which we'll evaluate the model extracted from the `train` dataset.
     + `reference_device`: `device` that contains the reference data
     + `features`: dict of `devices` tagged as `REF`, `A`, `B`, `C`... to define the features of the model, being `REF` the reference channel in the `reference_device`

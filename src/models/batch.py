@@ -44,7 +44,7 @@ class batch_analysis:
             self.std_out('Data load OK')
             return True
 
-    def pre_process_data(self, task, tests):
+    def pre_process_data(self, task, tests, options):
         
             for data in tests:
                 self.std_out('Pre-processing {}'.format(data))
@@ -56,7 +56,7 @@ class batch_analysis:
                         pre_processing_needed = True
                         
                         # Find out if in the cached, we have something that matches our variables
-                        if task['options']['use_cache']:
+                        if options['use_cache']:
                             self.std_out('Checking if we can use cached data')
                             # Open cached info file
                             with open(join(self.available_tests[data], 'cached', 'cache_info.json')) as handle:
@@ -89,17 +89,17 @@ class batch_analysis:
                             variables.append(baseline_method)
 
                             # Display options
-                            options = dict()
-                            options['checkBoxDecomp'] = False
-                            options['checkBoxPlotsIn'] = False
-                            options['checkBoxPlotsResult'] = False
-                            options['checkBoxVerb'] = False
-                            options['checkBoxStats'] = False
+                            options_alphasense = dict()
+                            options_alphasense['checkBoxDecomp'] = False
+                            options_alphasense['checkBoxPlotsIn'] = False
+                            options_alphasense['checkBoxPlotsResult'] = False
+                            options_alphasense['checkBoxVerb'] = False
+                            options_alphasense['checkBoxStats'] = False
                             # Calculate Alphasense
-                            self.records.calculateAlphaSense(data, self.append_alphasense, variables, options)
+                            self.records.calculateAlphaSense(data, self.append_alphasense, variables, options_alphasense)
                             
                             # Store the data in the info file and export csvs for next time
-                            if task['options']['use_cache']:
+                            if options['use_cache']:
                                 # Set the flag of pre-processed data to False
                                 cached_info['new_data_wo_process'] = False
                                 # Store what we used as parameters for the pre-processing
@@ -204,8 +204,7 @@ class batch_analysis:
                 
                 # Create model_wrapper instance
                 self.std_out('Task {} involves modeling, initialising model'.format(task))
-                current_model = model_wrapper(self.tasks[task]['model'],  
-                                            verbose = self.verbose)
+                current_model = model_wrapper(self.tasks[task]['model'], verbose = self.verbose)
                 
                 # Parse current model instance
                 has_model = True
@@ -213,21 +212,23 @@ class batch_analysis:
                 # Ignore extra data in json if present in the task
                 if 'data' in self.tasks[task].keys(): self.std_out('Ignoring additional data in task')
 
-                # Model dataset names
+                # Model dataset names and options
                 tests = list(set(itertools.chain(self.tasks[task]['model']['data']['train'], self.tasks[task]['model']['data']['test'])))
-
+                data_load_options = self.tasks[task]['model']['data']['options']
             else:
                 self.std_out('No model involved in task {}'.format(task))
-                # Model dataset names
-                tests = list(self.tasks[task]['data'])
-                has_model = False
+                
+                # Model dataset names and options
+                tests = list(self.tasks[task]['data']['datasets'])
+                data_load_options = self.tasks[task]['data']['options']
 
+                has_model = False
 
             # Cosmetic output
             self.std_out('Loading data...')
 
             # Load data
-            if not self.load_data(tests, self.tasks[task]['options']):
+            if not self.load_data(tests, data_load_options):
                 self.std_out('Failed loading data')
                 return
 
@@ -243,7 +244,7 @@ class batch_analysis:
                 # Cosmetic output
                 self.std_out('Pre-processing needed...')
 
-                if not self.pre_process_data(self.tasks[task], tests): 
+                if not self.pre_process_data(self.tasks[task], tests, data_load_options): 
                     self.std_out('Failed preprocessing')
                     return
             
@@ -252,10 +253,7 @@ class batch_analysis:
                 # Prepare dataframe for training
                 train_dataset = list(current_model.data['train'].keys())[0]
 
-                if not self.records.prepare_dataframe_model(train_dataset, current_model.data['features'], 
-                                                            current_model.data['train'][train_dataset], 
-                                                            current_model.data['reference_device'], 
-                                                            min_date = None, max_date = None, model_name = model_name):
+                if not self.records.prepare_dataframe_model(current_model):
                     self.std_out('Failed training dataset dataframe preparation for model')
                     return
                 
@@ -294,8 +292,7 @@ class batch_analysis:
                 # Save model in session
                 if current_model.options['session_active_model']:
                     self.std_out ('Saving model in session records...')
-                    self.records.archive_model(dataset_name, current_model.name, current_model.type, current_model.metrics, 
-                                        current_model.hyperparameters, current_model.options, dataFrameExport, current_model.model)
+                    self.records.archive_model(train_dataset, current_model, dataFrameExport)
 
                 # Export model if requested
                 if current_model.options['export_model']:
@@ -328,10 +325,16 @@ class batch_analysis:
                                                         hide_raw = processed_only, rename = self.tasks[task]['options'], to_processed_folder = True, 
                                                         forced_overwrite = True)
                 else:
-                    for test in self.tasks[task]['data'].keys():
-                        for device in self.tasks[task]['data'][test]:
+                    for test in tests:
+                        # Get devices
+                        if has_model: list_devices = self.tasks[task]['data'][test]
+                        else: list_devices = self.tasks[task]['data']['datasets'][test]
+                        # Iterate and export them
+                        for device in list_devices:
                             self.std_out('Exporting data of device {} in test {} to processed folder'.format(device, test))
                             self.records.export_data(test, device, all_channels = all_channels, 
                                 hide_raw = processed_only, rename = self.tasks[task]['options'], to_processed_folder = True, 
                                 forced_overwrite = True)
-
+        
+        self.std_out('Finished task {}'.format(task))
+        self.std_out('---')
