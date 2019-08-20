@@ -11,7 +11,6 @@
 								"overlapHours": 0
 							}
 			},
-
 			"data": {"datasets": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
 									"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
 									"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],

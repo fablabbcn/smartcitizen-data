@@ -8,17 +8,7 @@ import yaml
 from os import getcwd, walk
 from os.path import join
 
-# import os
-
-# # Env file
-# with open(join(getcwd(), '.env')) as environment:
-#     for var in environment:
-#         key = var.split('=')
-#         os.environ[key[0]] = re.sub('\n','',key[1])
-
-# Define base url
-base_url = 'https://api.smartcitizen.me/v0/devices/'
-kits_url = 'https://api.smartcitizen.me/v0/kits/'
+from src.data.variables import *
 
 # TODO: Get this automatically
 station_kit_ids = (19, 21)
@@ -50,7 +40,7 @@ def getSensors(mydir):
 def getKitID(_device, verbose):
 
     # Get device
-    deviceR = requests.get(base_url + '{}/'.format(_device))
+    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
     # If status code OK, retrieve data
     if deviceR.status_code == 200 or deviceR.status_code == 201:
         
@@ -66,7 +56,7 @@ def getKitID(_device, verbose):
         return 'None'
 
 def getPlatformSensorID():
-    kits = requests.get(kits_url)
+    kits = requests.get(API_KITS_URL)
     # If status code OK, retrieve data
     if kits.status_code == 200 or kits.status_code == 201:
         
@@ -89,7 +79,7 @@ def getPlatformSensorID():
 
 def getDateLastReading(_device):
     # Get device
-    deviceR = requests.get(base_url + '{}/'.format(_device))
+    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
     if deviceR.status_code == 200 or deviceR.status_code == 201:
         return deviceR.json()['last_reading_at']
     else:
@@ -115,7 +105,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
     rollup = rollup_value + rollup_unit
 
     # Get device
-    deviceR = requests.get(base_url + '{}/'.format(_device))
+    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
 
     # If status code OK, retrieve data
     if deviceR.status_code == 200 or deviceR.status_code == 201:
@@ -186,7 +176,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             indexDF = list()
             dataDF = list()
             # Request sensor per ID
-            sensor_id_r = requests.get(base_url + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
+            sensor_id_r = requests.get(API_BASE_URL + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
             
             sensor_id_rJSON = sensor_id_r.json()
             
@@ -255,7 +245,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
 
 def getDeviceLocation(_device):
     # Get device
-    deviceR = requests.get(base_url + '{}/'.format(_device))
+    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
 
     # If status code OK, retrieve data
     if deviceR.status_code == 200 or deviceR.status_code == 201:

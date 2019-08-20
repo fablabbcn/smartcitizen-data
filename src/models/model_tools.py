@@ -406,13 +406,13 @@ class model_wrapper:
 			## Get model prediction
 			self.dataFrameTrain = predict_OLS(self.model, 
 											  dataTrain, 
-											  plotResult = self.plot, 
+											  plotResult = self.plots, 
 											  plotAnomalies = False, 
 											  train_test = 'train')
 
 			self.dataFrameTest = predict_OLS(self.model, 
 											  dataTest, 
-											  plotResult = self.plot, 
+											  plotResult = self.plots, 
 											  plotAnomalies = False, 
 											  train_test = 'test')
 

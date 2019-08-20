@@ -1,4 +1,3 @@
-from src.data.api_tools import *	
 from os.path import join
 # from sklearn.externals import joblib #TO-DO: check if all works with to joblib
 import joblib
@@ -13,6 +12,8 @@ from os.path import join, abspath, normpath, basename
 from src.data.test_tools import getSensorNames, getTests
 from src.data.variables import *
 from src.models.baseline_tools import *
+from src.data.api_tools import *	
+from src.models.formulas import *	
 
 import traceback
 
@@ -26,7 +27,6 @@ class recording:
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
 		currentSensorsh = SENSOR_NAMES_URL
-		# currentSensorsh = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
 		self.availableTests = getTests(self.dataDirectory)
 		self.verbose = verbose
 		self.currentSensorNames = getSensorNames(currentSensorsh, join(self.dataDirectory, 'interim'))
@@ -39,7 +39,20 @@ class recording:
 	def std_out(self, msg):
 		if self.verbose: print(msg)	
 	
-	def load_recording_database(self, reading_name, source_id, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
+	def previewTest(self, testPath):
+		# Find Yaml
+		filePath = join(testPath, 'test_description.yaml')
+		with open(filePath, 'r') as stream:
+			test = yaml.load(stream)
+		
+		test_id = test['test']['id']
+		
+		self.std_out('Test Preview')
+
+		self.std_out('Loading test {}'.format(test_id))
+		self.std_out(test['test']['comment'])
+	
+	def load_recording_database(self, reading_name, testPath, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
 		
 		def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill', dataDirectory = '', load_processed = True, load_cached_API = True, cache_API = True):
 
@@ -333,7 +346,7 @@ class recording:
 					self.std_out('{} reference has been loaded'.format(reference))
 				
 			return _readings
-
+			
 		def readDataframeCsv(filePath, location, target_raster, clean_na, clean_na_method, targetNames = [], testNames = [], refIndex = 'Time'):
 			# Create pandas dataframe
 			df = pd.read_csv(filePath, verbose=False, skiprows=[1])
@@ -382,7 +395,7 @@ class recording:
 
 			return df
 
-		data = loadTest(source_id, target_raster, self.currentSensorNames, clean_na, clean_na_method, self.dataDirectory, load_processed, load_cached_API, cache_API)
+		data = loadTest(testPath, target_raster, self.currentSensorNames, clean_na, clean_na_method, self.dataDirectory, load_processed, load_cached_API, cache_API)
 		self.readings[reading_name] = dict()
 		self.readings[reading_name] = data[reading_name]
 
@@ -408,7 +421,7 @@ class recording:
 	def del_recording(self, reading_name):
 		if reading_name in self.readings.keys():
 			self.readings.pop(reading_name)
-		self.std_out('Deleting', reading_name)
+		self.std_out('Deleting {}'.format(reading_name))
 
 	def clear_recordings(self):
 		self.readings.clear()

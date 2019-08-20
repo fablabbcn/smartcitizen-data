@@ -23,10 +23,10 @@
 							"reference_device": "CITY_COUNCIL",
 							"features": {"REF": "NO2_REF",
 										"A":  "GB_2W",
-	            						"B": "GB_2A",
-	            						"C": "HUM"
-	            						},
-	            			"options": {"target_raster": "1Min",
+										"B": "GB_2A",
+										"C": "HUM"
+										},
+							"options": {"target_raster": "1Min",
 										"clean_na": true,
 										"clean_na_method": "fill",
 										"min_date": null,
@@ -44,6 +44,31 @@
 								"save_plots": false,
 								"show_plots": false}
 					},
+
+			"plot": {
+					"1": {"plot_type": "timeseries",
+							"plotting_library": "matplotlib",
+							"data": {"test": "2019-03_EXT_UCD_URBAN_BACKGROUND_API",
+									"traces": {"1": {"device": "5262",
+													"channel" : "NOISE_A",
+													"subplot": 1}}},
+							"options": {"separate_device_plots": false,
+										"show_plot": false,
+										"target_raster": "10Min",
+										"max_date": null,
+										"min_date": null,
+										"export_path": "/Users/macoscar/Desktop",
+										"file_name": "plot_noise"},
+							"formatting": {"xlabel": "Date (-)",
+									   "ylabel": {"1": "Noise level"},
+									   "yrange": {"1": [0, 90]},
+									   "title": "Noise Concern",
+									   "sharex":true,
+									   "grid": true,
+									   "height": 10,
+									   "width": 12}
+						}
+			},
 
 			"options": {"export_data": "All",
 						"rename_export_data": false

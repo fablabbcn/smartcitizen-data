@@ -3,6 +3,7 @@ from os.path import basename, normpath, join
 import json
 from src.data.recording import recording
 from src.models.model_tools import model_wrapper
+from src.visualization.visualization import plot_wrapper
 import numpy as np
 import traceback
 
@@ -335,6 +336,47 @@ class batch_analysis:
                             self.records.export_data(test, device, all_channels = all_channels, 
                                 hide_raw = processed_only, rename = self.tasks[task]['options'], to_processed_folder = True, 
                                 forced_overwrite = True)
+        
+            # Plot data
+            if "plot" in self.tasks[task].keys():
+                for plot_description in self.tasks[task]["plot"].keys():
+
+                    # Separate device plots
+                    if self.tasks[task]["plot"][plot_description]["options"]["separate_device_plots"] == True:
+                        original_filename = self.tasks[task]['plot'][plot_description]['options']['file_name']
+                        
+                        # Each trace it's own
+                        for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
+                            if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] == 'all':
+                                list_devices_plot = list()
+                                for device in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
+                                    if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"] in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
+                                        list_devices_plot.append(device)
+                            else:
+                                list_devices_plot = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"]      
+                                
+                        # Make a plot for each device        
+                        for device in list_devices_plot:
+                            # Rename the traces
+                            for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
+                                self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] = device
+                            
+                            # Rename the export name
+                            self.tasks[task]['plot'][plot_description]['options']['file_name'] = original_filename + '_' + device
+
+                            # plot it
+                            plot_object = plot_wrapper(self.tasks[task]["plot"][plot_description], True)
+                            plot_object.plot(self.records)
+                            
+                            # Export if we have how to
+                            if self.tasks[task]["plot"][plot_description]['options']['export_path'] is not None and self.tasks[task]["plot"][plot_description]['options']['file_name'] is not None:
+                                plot_object.export_plot()
+                    # Or only one
+                    else:    
+                        plot_object = plot_wrapper(self.tasks[task]["plot"][plot_description], True)
+                        plot_object.plot(self.records)
+                        if self.tasks[task]["plot"][plot_description]['options']['export_path'] is not None and self.tasks[task]["plot"][plot_description]['options']['file_name'] is not None:
+                            plot_object.export_plot()
         
         self.std_out('Finished task {}'.format(task))
         self.std_out('---')
