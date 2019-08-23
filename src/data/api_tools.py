@@ -178,58 +178,62 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             # Request sensor per ID
             sensor_id_r = requests.get(API_BASE_URL + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
             
-            sensor_id_rJSON = sensor_id_r.json()
-            
-            # Put the data in lists
-            if 'readings' in sensor_id_rJSON:
-                for item in sensor_id_rJSON['readings']:
-                    indexDF.append(item[0])
-                    dataDF.append(item[1])
+            try:
+                sensor_id_rJSON = sensor_id_r.json()
+                
+                # Put the data in lists
+                if 'readings' in sensor_id_rJSON:
+                    for item in sensor_id_rJSON['readings']:
+                        indexDF.append(item[0])
+                        dataDF.append(item[1])
 
-                # Create result dataframe for first dataframe
-                if sensor_real_ids.index(sensor_id) == 0:
-                    # print 'getting sensor id # 0 at {}'.format(sensor_id)
-                    df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-                    # df.index = pd.to_datetime(df.index).tz_convert(location)
-                    df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
+                    # Create result dataframe for first dataframe
+                    if sensor_real_ids.index(sensor_id) == 0:
+                        # print 'getting sensor id # 0 at {}'.format(sensor_id)
+                        df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
+                        # df.index = pd.to_datetime(df.index).tz_convert(location)
+                        df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
 
-                    df.sort_index(inplace=True)
-                    df = df[~df.index.duplicated(keep='first')]
-                    # Drop unnecessary columns
-                    df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-                    # Check for weird things in the data
-                    df = df.apply(pd.to_numeric,errors='coerce')
-                    # Resample
-                    df = df.resample(frequency).mean()
-                    # Remove na
-                    if clean_na:
-                        if clean_na_method == 'fill':
-                            df = df.fillna(method='bfill').fillna(method='ffill')
-                        elif clean_na_method == 'drop':
-                            df = df.dropna()
-
-                # Add it to dataframe for each sensor
-                else:
-                    
-                    if dataDF != []:
-                        dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-                        # dfT.index = pd.to_datetime(dfT.index).tz_convert(location)
-                        dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
-
-                        dfT.sort_index(inplace=True)
-                        dfT = dfT[~dfT.index.duplicated(keep='first')]
+                        df.sort_index(inplace=True)
+                        df = df[~df.index.duplicated(keep='first')]
                         # Drop unnecessary columns
-                        dfT.drop([i for i in dfT.columns if 'Unnamed' in i], axis=1, inplace=True)
+                        df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
                         # Check for weird things in the data
-                        dfT = dfT.apply(pd.to_numeric,errors='coerce')
+                        df = df.apply(pd.to_numeric,errors='coerce')
                         # Resample
-                        dfT = dfT.resample(frequency).mean()
+                        df = df.resample(frequency).mean()
                         # Remove na
                         if clean_na:
                             if clean_na_method == 'fill':
-                                dfT = dfT.fillna(method='bfill').fillna(method='ffill')
+                                df = df.fillna(method='bfill').fillna(method='ffill')
+                            elif clean_na_method == 'drop':
+                                df = df.dropna()
 
-                        df = df.combine_first(dfT)
+                    # Add it to dataframe for each sensor
+                    else:
+                        
+                        if dataDF != []:
+                            dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
+                            # dfT.index = pd.to_datetime(dfT.index).tz_convert(location)
+                            dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
+
+                            dfT.sort_index(inplace=True)
+                            dfT = dfT[~dfT.index.duplicated(keep='first')]
+                            # Drop unnecessary columns
+                            dfT.drop([i for i in dfT.columns if 'Unnamed' in i], axis=1, inplace=True)
+                            # Check for weird things in the data
+                            dfT = dfT.apply(pd.to_numeric,errors='coerce')
+                            # Resample
+                            dfT = dfT.resample(frequency).mean()
+                            # Remove na
+                            if clean_na:
+                                if clean_na_method == 'fill':
+                                    dfT = dfT.fillna(method='bfill').fillna(method='ffill')
+
+                            df = df.combine_first(dfT)
+            except:
+                traceback.print_exc()
+                pass
         
         df = df.reindex(df.index.rename('Time'))
         

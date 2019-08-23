@@ -11,17 +11,15 @@
 								"overlapHours": 0
 							}
 			},
-			"data": {"datasets": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
-									"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
+			"data": {"datasets": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
 									"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
 									"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]},
 					"options": {"target_raster": "1Min",
 								"clean_na": true,
 								"use_cache": true,
-								"clean_na_method": "fill"}
-					},
-
-			"options": {"export_data": "Only Generic",
-						"rename_export_data": false}
+								"clean_na_method": "fill",
+								"export_data": "Only Generic",
+								"rename_export_data": false}
+					}
 		}
 }

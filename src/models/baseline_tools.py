@@ -622,6 +622,7 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 					
 					dataframeTrim[pollutant_column] = dataframeTrim[[pollutant_column + '_pre', 'Zero']].max(axis = 1)
 					dataframeTrim.drop(pollutant_column + '_pre', axis=1, inplace=True)
+					dataframeTrim.drop('Zero', axis=1, inplace=True)
 
 					# ADD IT TO THE DATAFRAME
 					# dataframeTrim[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeTrim[pollutant_column].fillna(0), filterExpSmoothing)
@@ -697,6 +698,8 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 				dataframeResult[pollutant_column + '_pre'] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
 			
 			dataframeResult[pollutant_column] = dataframeResult[[pollutant_column + '_pre', 'Zero']].max(axis = 1)
+			dataframeResult.drop(pollutant_column + '_pre', axis=1, inplace=True)
+			dataframeResult.drop('Zero', axis=1, inplace=True)
 			dataframeResult[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
 
 			## Calculate stats day by day to avoid stationarity

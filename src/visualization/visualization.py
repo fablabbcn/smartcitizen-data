@@ -199,6 +199,10 @@ class plot_wrapper():
 		# Resample it
 		if self.options['target_raster'] != None: self.df.resample(self.options['target_raster']).mean()
 
+	def clean_plot(self):
+		# Clean matplotlib cache
+		plt.clf()
+
 	def export_plot(self):
 		savePath = self.options['export_path']
 		fileName = self.options['file_name']

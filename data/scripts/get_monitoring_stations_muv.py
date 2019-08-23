@@ -37,7 +37,7 @@ def get_bcn_sensors_csv():
     df_full = pd.DataFrame()
     for sensor_id in bcn_sensor_ids:
         print ('Requesting device {} ({}/{})'.format(sensor_id, bcn_sensor_ids.index(sensor_id)+1, len(bcn_sensor_ids)))
-        url = 'https://data.waag.org/apimuv/getSensorData?sensor_id=' + sensor_id
+        url = 'https://data.waag.org/api/muv/getSensorData?sensor_id=' + sensor_id
         df = pd.read_json(url)
         for i in range(len(targetNames)):
             if not (testNames[i] == '') and not (testNames[i] == targetNames[i]) and testNames[i] in df.columns:
@@ -48,6 +48,7 @@ def get_bcn_sensors_csv():
         df.drop('id', axis=1, inplace=True)
         df = df.set_index('Time')
         df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert('Europe/Madrid')
+        # df.index = pd.to_datetime(df.index).tz_convert('Europe/Madrid')
         min_date = '2019-07-02'
         df = df[df.index > min_date]
         if len(df.index) > 0:

@@ -3,10 +3,10 @@
 		{
 			"pre-processing": {
 				"alphasense": {"baseline_method": "deltas",
-								"parameters": [1, 10, 10],
+								"parameters": [30, 45, 5],
 								"methods": {"CO": ["classic", "na"],
-											"NO2": ["classic", "na"],
-											"O3": ["classic", "na"]
+											"NO2": ["baseline", "single_aux"],
+											"O3": ["baseline", "single_aux"]
 											},
 								"overlapHours": 0
 							}
@@ -26,7 +26,9 @@
 										"B": "GB_2A",
 										"C": "HUM"
 										},
-							"options": {"target_raster": "1Min",
+							"options": {"export_data": "All",
+										"rename_export_data": false,
+										"target_raster": "1Min",
 										"clean_na": true,
 										"clean_na_method": "fill",
 										"min_date": null,
@@ -46,7 +48,8 @@
 					},
 
 			"plot": {
-					"1": {"plot_type": "timeseries",
+					"1": {
+							"plot_type": "timeseries",
 							"plotting_library": "matplotlib",
 							"data": {"test": "2019-03_EXT_UCD_URBAN_BACKGROUND_API",
 									"traces": {"1": {"device": "5262",
@@ -68,11 +71,7 @@
 									   "height": 10,
 									   "width": 12}
 						}
-			},
-
-			"options": {"export_data": "All",
-						"rename_export_data": false
-						}
+			}
 		},
 
 	"PROCESS_ISCAPE_W_DELTAS": 
@@ -97,10 +96,9 @@
 								"use_cache": true,
 								"clean_na_method": "fill",
 								"min_date": null,
-								"max_date": null}
-					},
-
-			"options": {"export_data": "Only Generic",
-						"rename_export_data": false}
+								"max_date": null,
+								"export_data": "Only Generic",
+								"rename_export_data": false}
+					}
 		}
 }

@@ -2,12 +2,15 @@
 	"PLOT": 
 		{
 			"data": {"datasets": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"]},
-					"options": {"target_raster": "1Min",
+					"options": {"avoid_processed": true,
+								"target_raster": "1Min",
 								"clean_na": true,
 								"use_cache": true,
 								"clean_na_method": "drop",
 								"min_date": null,
-								"max_date": null}
+								"max_date": null,
+								"export_data": null,
+								"rename_export_data": false}
 					},
 			
 			"plot": {
@@ -133,10 +136,6 @@
 									   		"height": 10,
 									   		"width": 12}
 					}
-			},
-
-			"options": {"export_data": "None",
-						"rename_export_data": false
-						}
+			}
 		}
 }

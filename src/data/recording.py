@@ -52,9 +52,9 @@ class recording:
 		self.std_out('Loading test {}'.format(test_id))
 		self.std_out(test['test']['comment'])
 	
-	def load_recording_database(self, reading_name, testPath, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
+	def load_recording_database(self, test_name, testPath, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
 		
-		def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill', dataDirectory = '', load_processed = True, load_cached_API = True, cache_API = True):
+		def loadTest(testPath, target_raster, currentSensorNames, clean_na = True, clean_na_method = 'fill', dataDirectory = '', load_processed = False, load_cached_API = True, cache_API = True):
 
 			# Initialise dict for readings
 			_readings = dict()
@@ -74,16 +74,19 @@ class recording:
 			self.std_out('Loading test {}'.format(test_id))
 			self.std_out(test['test']['comment'])
 
-			# Retrieve cached information, if any
-			try:
-				with open(join(testPath, 'cached', 'cache_info.json')) as handle:
-					cached_info = json.loads(handle.read())
-			except:
-				cached_info = dict()
+			if load_cached_API:
+				# Retrieve cached information, if any
+				try:
+					with open(join(testPath, 'cached', 'cached_info.json')) as handle:
+						cached_info = json.loads(handle.read())
+						self.std_out('Loaded cached info file...')
+				except:
+					cached_info = dict()
 
 			# Open all kits
 			for kit in test['test']['devices']['kits'].keys():
 				self.std_out('Device ID {}'.format(kit))
+				
 				# Assume that if we don't specify the source, it's a csv (old)
 				if 'source' not in test['test']['devices']['kits'][kit]:
 					format_csv = True
@@ -104,7 +107,7 @@ class recording:
 				# List for names conversion
 				targetSensorNames = list()
 				testSensorNames = list()
-
+			
 				for item_test in metadata:
 					id_test = metadata[item_test]['id']
 
@@ -112,11 +115,9 @@ class recording:
 						if currentSensorNames[item_target]['id'] == id_test and id_test != '0' and item_test not in testSensorNames:
 							targetSensorNames.append(currentSensorNames[item_target]['shortTitle'])
 							testSensorNames.append(item_test)            
-				
-				
+
 				if format_csv:
 					
-
 					# Get fileName
 					fileNameProc = test['test']['devices']['kits'][kit]['fileNameProc']
 					
@@ -147,6 +148,7 @@ class recording:
 					self.std_out('Kit {} has been loaded'.format(kit))
 				
 				else:
+					# If device comes from the API, get it from there
 					device_id = test['test']['devices']['kits'][kit]['device_id']
 					list_devices_api = list()
 					list_devices_api.append(device_id)
@@ -160,8 +162,10 @@ class recording:
 						max_date=datetime.strptime(test['test']['devices']['kits'][kit]['max_date'], '%Y-%m-%d')
 					else:
 						max_date = None
+					
 					# Flag to combine cached data and API data if there is newer
 					combine_cache_API = False
+					
 					if load_cached_API:
 						try:
 							# Load cached data here
@@ -171,6 +175,7 @@ class recording:
 							kitDict = dict()
 							location = cached_info[kit]['location']
 							alphasense = cached_info[kit]['alphasense']
+
 							kitDict['location'] = location
 							kitDict['data'] = readDataframeCsv(fileName, location, target_raster, clean_na, clean_na_method)
 							kitDict['alphasense'] = alphasense
@@ -178,7 +183,7 @@ class recording:
 
 						except:
 							self.std_out('Problem loading cached data, requesting to API')
-							# traceback.print_exc()
+							traceback.print_exc()
 							load_API = True
 						
 						else:
@@ -189,7 +194,6 @@ class recording:
 							last_reading_api = datetime.strptime(getDateLastReading(device_id), '%Y-%m-%dT%H:%M:%SZ')
 							# last_reading_api = pd.to_datetime(last_reading_api).tz_convert(location)
 							last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
-
 							self.std_out('Last reading in API {}'.format(last_reading_api))
 							
 
@@ -199,14 +203,17 @@ class recording:
 								# max_date_localized = pd.to_datetime(max_date).tz_convert(location)
 								max_date_localized = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
 								self.std_out('Max date in test {}'.format(max_date_localized))
+								
 								# Check what where we need to load data from, if any
 								if last_reading_cached < max_date_localized and last_reading_api > last_reading_cached + timedelta(days=1):
 									load_API = True
 									combine_cache_API = True
 									min_date = last_reading_cached
 									max_date = min(max_date_localized, last_reading_api)
+									self.std_out('Loading new data from API')
 								else:
 									load_API = False
+									self.std_out('No need to load new data from API')
 							else:
 								# If no test data specified, check the last reading in the API
 								if last_reading_api > last_reading_cached + timedelta(days=1):
@@ -214,8 +221,10 @@ class recording:
 									combine_cache_API = True
 									min_date = last_reading_cached
 									max_date = last_reading_api
+									self.std_out('Loading new data from API')
 								else:
 									load_API = False
+									self.std_out('No need to load new data from API')
 					
 					else:
 						load_API = True
@@ -248,20 +257,24 @@ class recording:
 					# Cache the files if requested
 					if cache_API and load_API:
 						self.std_out('Caching files for {}'.format(kit))
-
+						
 						# New data is cached for later use
 						cached_info[kit] = dict()
 						cached_info[kit]['location'] = location
 						cached_info[kit]['alphasense'] = alphasense_data
-						# New data wo process is cache-wide info
-						cached_info['new_data_wo_process'] = load_API
+						
+						# New data to process is cache-wide info
+						cached_info['new_data_to_process'] = True
 
 						filePath = join(testPath, 'cached')
-						self.exportCSVFile(filePath, kit, _readings[test_id]['devices'][kit]['data'], forced_overwrite = True)
+						self.std_out('Dumping cached info')
 
-						self.std_out('Dumping cache.info')
-						with open(join(filePath, 'cache_info.json'), 'w') as file:
+						# Dump what we processed so far, the fully processed CSV will be saved later on
+						with open(join(filePath, 'cached_info.json'), 'w') as file:
 							json.dump(cached_info, file)
+						
+						filePath = join(testPath, 'cached')
+						self.exportCSVFile(filePath, kit, _readings[test_id]['devices'][kit]['data'], forced_overwrite = True)
 
 				# Load processed data with '_processed' appendix
 				if load_processed:
@@ -271,7 +284,10 @@ class recording:
 					if os.path.exists(filePath_processed):
 						self.std_out('Found processed data. Loading...')
 						kitDict_processed['data'] = readDataframeCsv(filePath_processed, location, target_raster, clean_na, clean_na_method, targetSensorNames, testSensorNames)
-						_readings[test_id]['devices'][kit + '_processed'] = kitDict_processed
+						_readings[test_id]['devices'][kit + '_PROCESSED'] = kitDict_processed
+						self.std_out('Loaded processed data from:\n {}'.format(filePath_processed))
+				else:
+					self.std_out('Not loading processed data')
 
 
 			## Check if there's was a reference equipment during the test
@@ -396,11 +412,11 @@ class recording:
 			return df
 
 		data = loadTest(testPath, target_raster, self.currentSensorNames, clean_na, clean_na_method, self.dataDirectory, load_processed, load_cached_API, cache_API)
-		self.readings[reading_name] = dict()
-		self.readings[reading_name] = data[reading_name]
+		self.readings[test_name] = dict()
+		self.readings[test_name] = data[test_name]
 
 		# Set flag
-		self.readings[reading_name]['ready_to_model'] = False
+		self.readings[test_name]['ready_to_model'] = False
 
 	def load_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
 		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, clean_na, clean_na_method)
@@ -625,7 +641,6 @@ class recording:
 
 	def addChannelFormula(self, reading_name, device_name, new_channel_name, terms, formula):
 
-
 		def functionFormula(reading_name, device_name, Aname, Bname, Cname, Dname, formula):
 			# Create dataframe and merge everything
 			calcData = pd.DataFrame()
@@ -665,10 +680,10 @@ class recording:
 		else:
 			self.std_out("File Already exists - delete it first, I was not asked to overwrite anything!")
 
-	def export_data(self, reading_name, device_export, export_path = '', to_processed_folder = False, all_channels = False, hide_raw = False, rename = False, forced_overwrite = False):
+	def export_data(self, reading_name, device_export, export_path = '', to_processed_folder = False, all_channels = False, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):
 
 		df = self.readings[reading_name]['devices'][device_export]['data'].copy()
-
+		print (df.columns)
 		if not all_channels:
 
 			with open(join(self.interimDirectory, 'sensorNamesExport.json')) as handle:
@@ -681,10 +696,12 @@ class recording:
 			for sensor in sensorsDict.keys():
 				sensorShortTitles.append(sensorsDict[sensor]['shortTitle'])
 				sensorExportNames.append(sensorsDict[sensor]['exportName'])
-				if hide_raw and sensorsDict[sensor]['processed'] != 'raw': sensorExportMask.append(True)
-				elif hide_raw and sensorsDict[sensor]['processed'] == 'raw': sensorExportMask.append(False)
-				elif not hide_raw: sensorExportMask.append(True)
-
+				# Describe all cases for clarity ('na' are both, processed and raw)
+				if include_processed and sensorsDict[sensor]['processed'] == 'processed': sensorExportMask.append(True)
+				elif include_processed and sensorsDict[sensor]['processed'] == 'na': sensorExportMask.append(True)
+				elif include_raw and sensorsDict[sensor]['processed'] == 'na': sensorExportMask.append(True)
+				elif include_raw and sensorsDict[sensor]['processed'] == 'raw': sensorExportMask.append(True)
+				else: sensorExportMask.append(False)
 			channels = list()
 
 			for sensor in sensorShortTitles:
