@@ -1,5 +1,3 @@
-#!/Users/macoscar/anaconda2/bin/python2.7
-
 import pandas as pd
 import os
 from os.path import dirname, join, realpath
@@ -7,10 +5,12 @@ import csv
 
 import argparse
 
-def concatenate(output, index_name, keep, ignore):
+def concatenate(output, index_name, keep, ignore, directory):
 
 	concat = pd.DataFrame()
-	raw_src_path = dirname(realpath(__file__))
+	raw_src_path = join(dirname(realpath(__file__)), directory)
+
+	print ('Using files in', raw_src_path)
 
 	print ('Files to concat:')
 
@@ -22,7 +22,7 @@ def concatenate(output, index_name, keep, ignore):
 				print (item)
 
 				src_path = join(raw_src_path, item)
-				with open(item, 'r') as csv_file:
+				with open(src_path, 'r') as csv_file:
 					header = csv_file.readlines()[0:4]
 
 				if keep:
@@ -82,7 +82,7 @@ def concatenate(output, index_name, keep, ignore):
 			content.insert(2, ','.join(long_h))
 			content.insert(3, ','.join(id_h))
 
-		with open(name_file, 'w') as csv_file:
+		with open(join(raw_src_path, name_file), 'w') as csv_file:
 			print ('Saving file to:', name_file)
 			wr = csv.writer(csv_file, delimiter = '\t')
 			
@@ -91,13 +91,15 @@ def concatenate(output, index_name, keep, ignore):
 
 
 if __name__ == "__main__":
+	ldir = dirname(realpath(__file__))
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--output", "-o", default = "Log_Concat.csv", help="Output file name, including extension")
 	parser.add_argument("--index", "-i", default = "TIME", help="Final name of time index")
 	parser.add_argument("--keep", "-k", dest='keep', action='store_true', help="Keep full CSV header")
-	parser.add_argument("--ignore", "-ig", dest='ignore', default = "Log_Concat.csv", help="Ignore files in concat")
+	parser.add_argument("--ignore", "-ig", dest='ignore', default = "Log_Concat.csv", help="Ignore files in concatenation")
+	parser.add_argument("--directory", "-d", action='store', default=ldir, help="Directory for csv files to concatenate")
 	parser.set_defaults(keep=False)
 	
 	args = parser.parse_args()
-	concatenate(args.output, args.index, args.keep, args.ignore)
+	concatenate(args.output, args.index, args.keep, args.ignore, args.directory)
 
