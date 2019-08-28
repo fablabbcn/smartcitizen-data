@@ -293,6 +293,7 @@ class model_wrapper:
 		self.std_out ('Beginning Model {}'.format(self.name))
 
 		self.type = model_dict['model_type']
+		self.target = model_dict['model_target']
 		self.std_out ('Model type {}'.format(self.type))
 
 		if 'hyperparameters' in model_dict.keys():
@@ -555,7 +556,7 @@ class model_wrapper:
 
 	def export(self, directory):
 
-		modelDir = join(directory, self.options['model_target'])
+		modelDir = join(directory, self.target)
 		summaryDir = join(directory, 'summary.json')
 		filename = join(modelDir, self.name)
 
@@ -581,8 +582,9 @@ class model_wrapper:
 			self.std_out("Model:" + self.name + "\nSaved in " + modelDir)
 		
 		summary = json.load(open(summaryDir, 'r'))
-		summary[self.options['model_target']][self.name] = dict()
-		summary[self.options['model_target']][self.name] = self.type
+		if self.target not in summary.keys(): summary[self.target] = dict()
+		summary[self.target][self.name] = dict()
+		summary[self.target][self.name] = self.type
 
 		with open(summaryDir, 'w') as json_file:
 			json_file.write(json.dumps(summary))

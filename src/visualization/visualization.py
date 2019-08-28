@@ -306,7 +306,6 @@ class plot_wrapper():
 			g = sns.jointplot(self.df[self.subplots_list[0][0]], self.df[self.subplots_list[0][1]], 
 						  data=self.df, kind=self.formatting['jpkind'], color="b", height=self.formatting['height'])
 
-			# , scatter_kws={"s": 10}
 
 			# Set title
 			g.fig.suptitle(self.formatting['title'])
