@@ -44,6 +44,7 @@ dependencies:
   - tensorflow=1.13.*
   - tensorflow-base=1.13.*
   - tensorflow-estimator=1.13.*
+  - tzwhere
   - urllib3=1.24.*
   - werkzeug=0.15.*
   - wheel=0.33.*
