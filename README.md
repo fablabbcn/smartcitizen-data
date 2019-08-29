@@ -21,6 +21,8 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 ## Installation
 
+Note: additionally, the [official docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/guides/Install%20the%20framework/) have extra information on installation.
+
 Easiest installation is done through [Anaconda](https://docs.anaconda.com/anaconda/install/). The installation of Anaconda for different platforms is widely supported and documented. An `environment.yml` file is provided.
 
 Simply clone the repository with:
@@ -87,26 +89,3 @@ This will open a web browser instance (by default [localhost:8888/lab]()) which 
 ## Features
 
 A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework.
-
-### Data load and cleaning
-
-- `test` creation for sensor co-location and archiving
-- Data load and import from CSV, local `test` and the [SmartCitizen API](https://api.smartcitizen.me/)
-- Data caching for API tests, to avoid requesting to the API the same data over and over
-- Data cleaning with anomaly detection via [XGBoost regressors](https://xgboost.readthedocs.io/en/latest/)
-- Visual calculator for channels
-
-### Data visualisation
-
-- Time series exploration with custom plots via [plotly](https://plot.ly/) or `matplotlib` and custom export options for reporting
-- Correlation analysis plots
-
-### Data model and processing
-
-- Sensor model development and exploration with ML tools:
-    - Time series statistical study (seasonality, correlation, auto-correlation, etc)
-    - OLS models with [statsmodels](https://www.statsmodels.org/stable/index.html)
-    - Random Forests and SVR for time series ([scikit-learn](http://scikit-learn.org/)), including `gridsearch`
-    - LSTMs and other Deep Learning time series model approaches ([keras](https://keras.io/) with [tensorflow](https://www.tensorflow.org/) backend)
-- Sensor model storage, and comparison with statistical methods and plots
-- Data analysis (processing and plots) in batch via `json` descriptor file, included in `tasks/*.json`. Used to run data analysis tasks for several `tests` of files in batch, avoiding manual processing (see the instructions [here](https://github.com/fablabbcn/smartcitizen-iscape-data/tree/master/tasks))
