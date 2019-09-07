@@ -362,7 +362,9 @@ class batch_analysis:
                         include_processed = False
                     elif data_dict['options']["export_data"] == 'All':
                         all_channels = True
-
+                        include_raw = True
+                        include_processed = False
+                        
                     if self.re_processing_needed:
                         # Including pre-processed for next time
                         include_processed = True
@@ -401,23 +403,26 @@ class batch_analysis:
         
             # Plot data
             if "plot" in self.tasks[task].keys():
+                self.std_out('Processing plotting task')
                 try:
                     for plot_description in self.tasks[task]["plot"].keys():
 
                         # Separate device plots
                         if self.tasks[task]["plot"][plot_description]["options"]["separate_device_plots"] == True:
                             original_filename = self.tasks[task]['plot'][plot_description]['options']['file_name']
-                            
                             # Each trace it's own
                             for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
                                 if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] == 'all':
                                     list_devices_plot = list()
+                                    print (self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys())
                                     for device in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
-                                        if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"] in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
+                                        channel = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"]
+                                        if channel in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
                                             list_devices_plot.append(device)
+                                        else:
+                                            self.std_out('Trace ({}) not in readings in device {}'.format(channel, device))
                                 else:
                                     list_devices_plot = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"]      
-                                    
                             # Make a plot for each device
                             for device in list_devices_plot:
                                 # Rename the traces
@@ -435,7 +440,6 @@ class batch_analysis:
                                 if self.tasks[task]["plot"][plot_description]['options']['export_path'] is not None and self.tasks[task]["plot"][plot_description]['options']['file_name'] is not None:
                                     plot_object.export_plot()
                                 plot_object.clean_plot()
-
                         # Or only one
                         else:    
                             plot_object = plot_wrapper(self.tasks[task]["plot"][plot_description], True)

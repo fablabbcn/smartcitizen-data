@@ -49,14 +49,12 @@ def concatenate(output, index_name, keep, ignore, directory):
 	## Sort index
 	concat.sort_index(inplace=True)
 
-	name_file = output
-
 	## Save it as CSV
-	concat.to_csv(name_file)
+	concat.to_csv(join(raw_src_path, output))
 
 	if keep:
 		print ('Updating header')
-		with open(name_file, 'r') as csv_file:
+		with open(join(raw_src_path, output), 'r') as csv_file:
 			content = csv_file.readlines()
 
 			final_header = content[0].strip('\n').split(',')
@@ -82,8 +80,8 @@ def concatenate(output, index_name, keep, ignore, directory):
 			content.insert(2, ','.join(long_h))
 			content.insert(3, ','.join(id_h))
 
-		with open(join(raw_src_path, name_file), 'w') as csv_file:
-			print ('Saving file to:', name_file)
+		with open(join(raw_src_path, output), 'w') as csv_file:
+			print ('Saving file to:', output)
 			wr = csv.writer(csv_file, delimiter = '\t')
 			
 			for row in content:

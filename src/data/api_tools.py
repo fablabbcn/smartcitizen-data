@@ -9,6 +9,7 @@ from os import getcwd, walk
 from os.path import join
 
 from src.data.variables import *
+import traceback
 
 # TODO: Get this automatically
 station_kit_ids = (19, 21)
@@ -116,11 +117,11 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         toDate = deviceRJSON['last_reading_at'] 
         fromDate = deviceRJSON['added_at']
 
-        if start_date == None:
+        if start_date == None and fromDate is not None:
             start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ') 
             print ('Min Date', start_date)
 
-        if end_date == None:
+        if end_date == None and toDate is not None:
             end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ') + timedelta(days=1)
             print ('Max Date (adding one day)', end_date)
         
@@ -171,12 +172,20 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         
         print ('\tSensor IDs')
         print ('\t{}'.format(sensor_real_ids))
+        
         # Request sensor ID
         for sensor_id in sensor_real_ids:
             indexDF = list()
             dataDF = list()
+
             # Request sensor per ID
-            sensor_id_r = requests.get(API_BASE_URL + '{}/readings?from={}&rollup={}&sensor_id={}&to={}'.format(_device, start_date.strftime('%Y-%m-%d'), rollup, sensor_id, end_date.strftime('%Y-%m-%d')))
+            request = API_BASE_URL + '{}/readings?'.format(_device)
+            if start_date is not None: request += 'from={}'.format(start_date.strftime('%Y-%m-%d'))
+            request += '&rollup={}'.format(rollup)
+            request += '&sensor_id={}'.format(sensor_id)
+            if end_date is not None: request += '&to={}'.format(end_date.strftime('%Y-%m-%d'))
+            # Make request
+            sensor_id_r = requests.get(request)
             
             try:
                 sensor_id_rJSON = sensor_id_r.json()
@@ -241,11 +250,11 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             if clean_na_method == 'drop':
                 df = df.dropna()
         
-        return df, toDate, fromDate, hasAlpha
-    
+        return df, hasAlpha
+
     else:
     
-        return (deviceR.status_code)
+        return None
 
 def getDeviceLocation(_device):
     # Get device
@@ -263,39 +272,45 @@ def getDeviceLocation(_device):
         tz_where = tzwhere.tzwhere()
         location = tz_where.tzNameAt(latitude, longitude)
 
-    return location, latitude, longitude
+        return location, latitude, longitude
+    else:
+        return None, None, None
 
 def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, clean_na = True, clean_na_method = 'fill'):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
+    
     # Get dict with sensor history
     sensorHistory = getSensors(join(dataDirectory, 'interim'))
 
     for device in devices:
         print ('Loading device {} from API'.format(device))
-        data, toDate, fromDate, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
+        data, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
+
         location, _, _ = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
-        if (type(data) == int) and (not (data == 200 or data == 201)):
+        
+        if (type(data) == int) and (not (data == 200 or data == 201)) and (location is not None):
+
             readingsAPI['devices'][device]['valid'] = False
             readingsAPI['devices'][device]['status_code'] = data
             
         else:
-            # TODO add other info?
 
             readingsAPI['devices'][device]['data'] = data
             readingsAPI['devices'][device]['valid'] = True
             readingsAPI['devices'][device]['location'] = location
 
             if hasAlpha:
-                print ('\tDevice ID says it had alphasense sensors, loading them...')
+                print ('Device ID says it had alphasense sensors, loading them...')
                 # retrieve data from API for alphasense
                 readingsAPI['devices'][device]['alphasense'] = dict()
                 try:
                     readingsAPI['devices'][device]['alphasense'] = sensorHistory[device]['gas_pro_board']
                 except:
-                    print ('\tDevice not in history')
+                    print ('Device not in history')
         
-        print ('\tLoading Sensor Done')
+        print ('Loading Sensor Done')
+        return readingsAPI
+
     
-    return readingsAPI
