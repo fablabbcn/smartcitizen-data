@@ -80,10 +80,13 @@ def getPlatformSensorID():
 
 def getDateLastReading(_device):
     # Get device
-    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
-    if deviceR.status_code == 200 or deviceR.status_code == 201:
-        return deviceR.json()['last_reading_at']
-    else:
+    try:
+        deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
+        if deviceR.status_code == 200 or deviceR.status_code == 201:
+            return deviceR.json()['last_reading_at']
+        else:
+            return None
+    except:
         return None
 
 def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method):
@@ -258,22 +261,25 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
 
 def getDeviceLocation(_device):
     # Get device
-    deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
+    try:
+        deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
 
-    # If status code OK, retrieve data
-    if deviceR.status_code == 200 or deviceR.status_code == 201:
-        
-        deviceRJSON = deviceR.json()
-        # Get location
-        latitude = deviceRJSON['data']['location']['latitude']
-        longitude = deviceRJSON['data']['location']['longitude']
-        
-        # Localize it
-        tz_where = tzwhere.tzwhere()
-        location = tz_where.tzNameAt(latitude, longitude)
+        # If status code OK, retrieve data
+        if deviceR.status_code == 200 or deviceR.status_code == 201:
+            
+            deviceRJSON = deviceR.json()
+            # Get location
+            latitude = deviceRJSON['data']['location']['latitude']
+            longitude = deviceRJSON['data']['location']['longitude']
+            
+            # Localize it
+            tz_where = tzwhere.tzwhere()
+            location = tz_where.tzNameAt(latitude, longitude)
 
-        return location, latitude, longitude
-    else:
+            return location, latitude, longitude
+        else:
+            return None, None, None
+    except:
         return None, None, None
 
 def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, clean_na = True, clean_na_method = 'fill'):

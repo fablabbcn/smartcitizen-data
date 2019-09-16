@@ -74,7 +74,7 @@ def getSensorNames(_sensorsh, nameDictPath):
 
 	except:
 	    # Load sensors
-	    traceback.print_exc()
+	    # traceback.print_exc()
 	    with open(nameDictPath) as handle:
 	        sensorNames = json.loads(handle.read())
 	    print ('No connection - Retrieving local version for sensors names')

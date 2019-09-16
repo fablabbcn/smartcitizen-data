@@ -205,64 +205,71 @@ class recording:
 
 							# Get last reading from API
 							last_reading_api = getDateLastReading(device_id)
+							self.std_out('Last day in cached data {}'.format(last_reading_cached))
 
 							if last_reading_api is not None:
 								last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
 								if last_reading_api.tzinfo is None: last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
 							
-							self.std_out('Last day in cached data {}'.format(last_reading_cached))
-							self.std_out('Last reading in API {}'.format(last_reading_api))
+								self.std_out('Last reading in API {}'.format(last_reading_api))
 
-							# Localize min test date for comparison
-							if min_date is not None:
-								if min_date.tzinfo is None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
-							# Localize max test date for comparison
-							if max_date is not None:
-								if max_date.tzinfo is None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
-							
-							# Check which dates to load
-							if max_date is not None:
-
-								self.std_out('Max date in test {}'.format(max_date))
+								# Localize min test date for comparison
+								if min_date is not None:
+									if min_date.tzinfo is None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
+								# Localize max test date for comparison
+								if max_date is not None:
+									if max_date.tzinfo is None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
 								
-								# Check what where we need to load data from, if any
-								if last_reading_cached < max_date and last_reading_api > last_reading_cached + timedelta(days=1):
-									load_API = True
-									combine_cache_API = True
-									min_date = last_reading_cached
-									max_date = min(max_date, last_reading_api)
-									self.std_out('Loading new data from API')
+								# Check which dates to load
+								if max_date is not None:
+
+									self.std_out('Max date in test {}'.format(max_date))
+									
+									# Check what where we need to load data from, if any
+									if last_reading_cached < max_date and last_reading_api > last_reading_cached + timedelta(days=1):
+										load_API = True
+										combine_cache_API = True
+										min_date = last_reading_cached
+										max_date = min(max_date, last_reading_api)
+										self.std_out('Loading new data from API')
+									else:
+										load_API = False
+										self.std_out('No need to load new data from API')
 								else:
-									load_API = False
-									self.std_out('No need to load new data from API')
+									# If no test data specified, check the last reading in the API
+									if last_reading_api > last_reading_cached + timedelta(days=1):
+										load_API = True
+										combine_cache_API = True
+										min_date = last_reading_cached
+										max_date = last_reading_api
+										self.std_out('Loading new data from API')
+									else:
+										load_API = False
+										self.std_out('No need to load new data from API')
 							else:
-								# If no test data specified, check the last reading in the API
-								if last_reading_api > last_reading_cached + timedelta(days=1):
-									load_API = True
-									combine_cache_API = True
-									min_date = last_reading_cached
-									max_date = last_reading_api
-									self.std_out('Loading new data from API')
-								else:
-									load_API = False
-									self.std_out('No need to load new data from API')
+								self.std_out('API does not contain valid data for last date, skipping')
+								load_API = False
 					
 					else:
+						cached_info = dict()
 						load_API = True
 
 					# Either we couldn't succeed getting cached data or we were forced to get the API data
 					if load_API:
 						self.std_out('Checking device in API')
 
+
 						location, _, _ = getDeviceLocation(device_id)
 						last_reading_api = getDateLastReading(device_id)
 
 						# Localize min test date for comparison
 						if min_date is not None:
-							if min_date.tzinfo is None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
+							if min_date.tzinfo is None: 
+								if location is not None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
 						# Localize max test date for comparison
 						if max_date is not None:
-							if max_date.tzinfo is None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
+							if max_date.tzinfo is None: 
+								if location is not None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
 
 						if last_reading_api is not None:
 

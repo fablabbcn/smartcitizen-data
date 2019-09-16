@@ -2,6 +2,8 @@
 data/export/*
 data/raw/*
 data/processed/*
+data/interim/deliveries/*
+models/*
 models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
