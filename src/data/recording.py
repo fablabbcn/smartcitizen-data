@@ -192,7 +192,6 @@ class recording:
 							# traceback.print_exc()
 							load_API = True
 
-
 						else:
 							self.std_out('Loaded cached files from: \n{}'.format(fileName))
 
@@ -258,7 +257,6 @@ class recording:
 					if load_API:
 						self.std_out('Checking device in API')
 
-
 						location, _, _ = getDeviceLocation(device_id)
 						last_reading_api = getDateLastReading(device_id)
 
@@ -302,6 +300,7 @@ class recording:
 							else:
 								self.std_out('Requesting all available data')
 								data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
+
 						else:
 							self.std_out('No valid data found in the API, skipping (no last date)')
 							data = None
@@ -771,7 +770,6 @@ class recording:
 	def export_data(self, reading_name, device_export, export_path = '', to_processed_folder = False, all_channels = False, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):
 
 		df = self.readings[reading_name]['devices'][device_export]['data'].copy()
-		print (df.columns)
 		if not all_channels:
 
 			with open(join(self.interimDirectory, 'sensorNamesExport.json')) as handle:

@@ -116,17 +116,19 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         
         deviceRJSON = deviceR.json()
 
-        # Get min and max dates
+        # Get min and max getDateLastReading
         toDate = deviceRJSON['last_reading_at'] 
         fromDate = deviceRJSON['added_at']
 
         if start_date == None and fromDate is not None:
             start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ') 
-            print ('Min Date', start_date)
+        print ('Min Date', start_date)
 
         if end_date == None and toDate is not None:
-            end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ') + timedelta(days=1)
-            print ('Max Date (adding one day)', end_date)
+            end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
+        # elif end_date is not None:
+        #     end_date = end_date + timedelta(days=1)
+        print ('Max Date', end_date)
         
         # Get available sensors
         sensors = deviceRJSON['data']['sensors']
@@ -183,16 +185,17 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
 
             # Request sensor per ID
             request = API_BASE_URL + '{}/readings?'.format(_device)
-            if start_date is not None: request += 'from={}'.format(start_date.strftime('%Y-%m-%d'))
+            if start_date is not None: request += 'from={}'.format(start_date)
             request += '&rollup={}'.format(rollup)
             request += '&sensor_id={}'.format(sensor_id)
-            if end_date is not None: request += '&to={}'.format(end_date.strftime('%Y-%m-%d'))
+            
+            if end_date is not None: request += '&to={}'.format(end_date)
             # Make request
             sensor_id_r = requests.get(request)
             
             try:
                 sensor_id_rJSON = sensor_id_r.json()
-                
+
                 # Put the data in lists
                 if 'readings' in sensor_id_rJSON:
                     for item in sensor_id_rJSON['readings']:
@@ -318,5 +321,3 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames,
         
         print ('Loading Sensor Done')
         return readingsAPI
-
-    

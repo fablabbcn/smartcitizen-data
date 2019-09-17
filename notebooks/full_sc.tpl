@@ -68,7 +68,7 @@
   <div tabindex="-1" id="notebook" class="border-box-sizing">    
     <div class="container" id="notebook-container">
       <div style="text-align: right">
-      <img src="../assets/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=40px height=40px>
+      <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=40px height=40px>
       </div>
       {{ super() }}
     </div>
