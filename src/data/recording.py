@@ -506,6 +506,7 @@ class recording:
 		self.readings[test_name]['ready_to_model'] = False
 
 	def load_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
+		# Load data from the API
 		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, clean_na, clean_na_method)
 		
 		# Case for non merged API to CSV

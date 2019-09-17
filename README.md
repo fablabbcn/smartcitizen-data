@@ -70,11 +70,15 @@ chmod +x .dotfile
 ./.dotfile
 ```
 
-### Note
+### Windows
+
+[xgboost](https://pypi.org/project/xgboost/) is not currently supported in pip for windows users, and needs to be [directly installed from github](https://xgboost.readthedocs.io/en/latest/build.html). Remove the line in the `environment.yml` to avoid installation issues. 
+
+### More info
 
 More information about managing environments in Anaconda can be found [here](https://conda.io/docs/user-guide/tasks/manage-environments.html). The folder structure follows that of [CookieCutter for Data Science](https://drivendata.github.io/cookiecutter-data-science/).
 
-To run the notebooks you will need `Jupyter Lab`. You can install it following the installation instructions in [the official documentation](https://github.com/jupyterlab/jupyterlab#installation).
+To run the notebooks you will need `Jupyter Lab`, although this is not a must. If you rather use the shell, you can launch scripts from there. If you want to use the interface that jupyter provides, you can install it following the installation instructions in [the official documentation](https://github.com/jupyterlab/jupyterlab#installation).
 
 ## Run
 
@@ -84,7 +88,7 @@ For launching the interface simply type:
 jupyter lab
 ```
 
-This will open a web browser instance (by default [localhost:8888/lab]()) which gives access to the tools in the framework. The `analysis.ipynb` is meant as an example, but any configuration is possible, even without the `jupyter lab` interface (of course).
+This will open a web browser instance (by default [localhost:8888/lab]()) which gives access to the tools in the framework. The `main.ipynb` is meant as an example, but any configuration is possible, even without the `jupyter lab` interface (of course).
 
 ## Features
 

@@ -319,5 +319,5 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames,
                 except:
                     print ('Device not in history')
         
-        print ('Loading Sensor Done')
-        return readingsAPI
+    print ('Loading Sensor Done')
+    return readingsAPI
