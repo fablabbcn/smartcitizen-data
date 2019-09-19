@@ -257,7 +257,7 @@ class recording:
 					if load_API:
 						self.std_out('Checking device in API')
 
-						location, _, _ = getDeviceLocation(device_id)
+						location = getDeviceLocation(device_id)
 						last_reading_api = getDateLastReading(device_id)
 
 						# Localize min test date for comparison

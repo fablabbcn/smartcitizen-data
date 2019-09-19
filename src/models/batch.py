@@ -1,5 +1,6 @@
 import itertools
-from os.path import basename, normpath, join
+from os.path import basename, normpath, join, exists
+from os import getcwd, walk, mkdir
 import json
 from src.data.recording import recording
 from src.models.model_tools import model_wrapper
@@ -31,6 +32,7 @@ class batch_analysis:
 
         try:
             for test in tests:
+
                 # Check if we should avoid loading processed data
                 if 'avoid_processed' in options.keys():
                     if options['avoid_processed'] != True: load_processed = True
@@ -45,6 +47,7 @@ class batch_analysis:
                                                     load_cached_API = options['use_cache'], 
                                                     cache_API = options['use_cache'],
                                                     load_processed = load_processed)
+        
         except:
             self.std_out('Problem loading data')
             traceback.print_exc()
@@ -58,42 +61,53 @@ class batch_analysis:
             for test in tests:
                 self.std_out('Pre-processing {}'.format(test))
                 try:
-                    # Check if we need to perform alphasense pollutant calculation
-                    if 'alphasense' in task['pre-processing']:
+                    # Assume we need to re-process:
+                    self.re_processing_needed = True
 
-                        # Assume we need to re-process:
-                        self.re_processing_needed = True
+                    # # Check if we need to perform alphasense pollutant calculation
+                    # if 'alphasense' in task['pre-processing']:
                             
-                        # Find out if in the processed test, we have something that matches our variables
-                        if data['options']['use_cache']:
-                            self.std_out('Checking if we can use previously processed test')
-                            with open(join(self.available_tests[test], 'cached', 'cached_info.json')) as handle:
-                                cached_info = json.loads(handle.read())
+                    # Find out if in the processed test, we have something that matches our variables
+                    if data['options']['use_cache']:
+                        self.std_out('Checking if we can use previously processed test')
+                        with open(join(self.available_tests[test], 'cached', 'cached_info.json')) as handle:
+                            cached_info = json.loads(handle.read())
 
-                            try:
-                                # Open info file
-                                with open(join(self.available_tests[test], 'processed', 'processed_info.json')) as handle:
-                                    processed_info = json.loads(handle.read())
+                        try:
+                            # Open info file
+                            with open(join(self.available_tests[test], 'processed', 'processed_info.json')) as handle:
+                                processed_info = json.loads(handle.read())
 
-                                # Check if there is pre-processing done in info
-                                if 'pre-processing' in processed_info.keys():
-                                    # Check if it has alphasense within it
-                                    if 'alphasense' in processed_info['pre-processing'].keys():
-                                        # Check if the pre-processed parameters are the right ones. Also, that there is no new data to process
-                                        if processed_info['pre-processing']['alphasense'] == task['pre-processing']['alphasense'] and cached_info['new_data_to_process'] == False:
+                            # Check if there is pre-processing done in info
+                            if 'pre-processing' in processed_info.keys():
+                                # Check if it has alphasense within it
+                                if 'alphasense' in processed_info['pre-processing'].keys():
+                                    # Check if the pre-processed parameters are the right ones. Also, that there is no new data to process
+                                    if processed_info['pre-processing']['alphasense'] == task['pre-processing']['alphasense'] and cached_info['new_data_to_process'] == False:
+                                        
+                                        self.std_out('Using cached test, no need to preprocess')
+                                        self.re_processing_needed = False
+
+                                if 'custom' in processed_info['pre-processing'].keys():
+                                    for pre_process in processed_info['pre_processing']['custom'].keys():
+                                        if processed_info['pre-processing']['custom'][pre_process] == task['pre-processing']['custom'][pre_process] and cached_info['new_data_to_process'] == False:
                                             self.std_out('Using cached test, no need to preprocess')
                                             self.re_processing_needed = False
-                            except:
-                                processed_info = dict()
-                                traceback.print_exc()
-                                pass
-   
-                                # TO-DO - Add here other custom function checks
                         
-                        # If we need to re-process data, do it nicely
-                        if self.re_processing_needed:
-                            self.std_out('Pre processing cannot be loaded from cached, calculating')
-                            if cached_info['new_data_to_process']: self.std_out('Reason, new data to process')
+                        except:
+                            processed_info = dict()
+                            processed_info['pre-processing'] = dict()
+                            # traceback.print_exc()
+                            if not exists(join(self.available_tests[test], 'processed', 'processed_info.json')):
+                                self.std_out('Processed Info json file does not exist') 
+                            pass
+                       
+                    # If we need to re-process data, do it nicely
+                    if self.re_processing_needed:
+                        self.std_out('Pre processing cannot be loaded from cached, calculating')
+                        if cached_info['new_data_to_process']: self.std_out('Reason, new data to process')
+
+                        if 'alphasense' in task['pre-processing']:
 
                             # Variables for the two methods (deltas or ALS)
                             variables = list()
@@ -117,55 +131,95 @@ class batch_analysis:
                             options_alphasense['checkBoxPlotsResult'] = False
                             options_alphasense['checkBoxVerb'] = False
                             options_alphasense['checkBoxStats'] = False
+                            
                             # Calculate Alphasense
                             self.records.calculateAlphaSense(test, self.append_alphasense, variables, options_alphasense)
                             
-                            # Store the data in the info file and export csvs for next time
-                            if data['options']['export_data'] is not None:
-                                # Set the flag of pre-processed test to False
-                                cached_info['new_data_to_process'] = False
+                            # Store what we used as parameters for the pre-processing
+                            processed_info['pre-processing']['alphasense'] = task['pre-processing']['alphasense']
+
+                        if 'custom' in task['pre-processing']:
+
+                            # For later info
+                            processed_info['pre-processing']['custom'] = dict()
+
+                            for pre_process in task['pre_processing']['custom']:
+                                self.std_out('Performing custom pre-process')
+                                # TO-DO Put here custom
                                 # Store what we used as parameters for the pre-processing
-                                processed_info['pre-processing'] = dict()
-                                processed_info['pre-processing']['alphasense'] = task['pre-processing']['alphasense']
-                                self.std_out('Saving info file for processed test')
+                                processed_info['pre-processing']['custom'][pre_process] = task['pre-processing']['custom'][pre_process]
+                             
 
-                                # Dump processed info file
-                                with open(join(self.available_tests[test], 'processed', 'processed_info.json'), 'w') as file:
-                                    json.dump(processed_info, file)
+                        # Store the data in the info file and export csvs for next time
+                        if data['options']['export_data'] is not None:
+                            # Set the flag of pre-processed test to False
+                            cached_info['new_data_to_process'] = False
+                            
+                            # Store what we used as parameters for the pre-processing
+                            self.std_out('Saving info file for processed test')
 
-                                # Dump cached info file
-                                with open(join(self.available_tests[test], 'cached', 'cached_info.json'), 'w') as file:
-                                    json.dump(cached_info, file)
+                            if not exists(join(self.available_tests[test], 'processed')):
+                                self.std_out('Making dir for processed files')
+                                mkdir(join(self.available_tests[test], 'processed'))
 
-                                self.std_out('Saving cached and processed info done')
-                                # # Save the files in the corresponding folder
-                                # for device in self.records.readings[test]['devices'].keys():
-                                #     if 'alphasense' in self.records.readings[test]['devices'][device].keys():
-                                #         filePath = join(self.available_tests[test], 'cached')
-                                #         self.records.exportCSVFile(filePath, device, self.records.readings[test]['devices'][device]['test'], forced_overwrite = True) 
+                            # Dump processed info file
+                            with open(join(self.available_tests[test], 'processed', 'processed_info.json'), 'w') as file:
+                                json.dump(processed_info, file)
+
+                            # Dump cached info file
+                            with open(join(self.available_tests[test], 'cached', 'cached_info.json'), 'w') as file:
+                                json.dump(cached_info, file)
+
+                            self.std_out('Saving cached and processed info done')
+
+                            # Export is done later on
+       
+                    # Get list of devices
+                    if has_model:
                         
-                        # Get list of devices
-                        if has_model:
-                            # Do it for both, train and test, if they exist
-                            for dataset in ['train', 'test']:
-                                # Check for datasets that are not reference
-                                if dataset in task['model']['data'].keys():
-                                    if test in task['model']['data'][dataset].keys():
-                                        for device in task['model']['data'][dataset][test]:
-                                            self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))
-                                            self.records.readings[test]['devices'][device]['data'].combine_first(self.records.readings[test]['devices'][device + '_PROCESSED']['data'])
+                        # Do it for both, train and test, if they exist
+                        for dataset in ['train', 'test']:
+                            
+                            # Check for datasets that are not reference
+                            if dataset in task['model']['data'].keys():
+                                if test in task['model']['data'][dataset].keys():
+                                    for device in task['model']['data'][dataset][test]:
+                                        if device + '_PROCESSED' in self.records.readings[test]['devices'].keys():
+                                            print ('PROCESSED columns')
+                                            print (self.records.readings[test]['devices'][device + '_PROCESSED']['data'].columns)
+                                            print ('TARGET columns')
+                                            print (self.records.readings[test]['devices'][device]['data'].columns)
+                                            self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))                           
+                                            self.records.readings[test]['devices'][device]['data'] = self.records.readings[test]['devices'][device]['data'].combine_first(self.records.readings[test]['devices'][device + '_PROCESSED']['data'])
                                             self.records.readings[test]['devices'].pop(device + '_PROCESSED')
-                        else:
-                            for device in data["datasets"][test]:
+                                            print ('Final columns')
+                                            print (self.records.readings[test]['devices'][device]['data'].columns)
+
+                                        else:
+                                            self.std_out("No available PROCESSED data to combine with")
+                    else:
+
+                        for device in data["datasets"][test]:
+                            if device + '_PROCESSED' in self.records.readings[test]['devices'].keys():
                                 self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))
-                                print (self.records.readings[test]['devices'].keys())
-                                self.records.readings[test]['devices'][device]['data'].combine_first(self.records.readings[test]['devices'][device + '_PROCESSED']['data'])
+                                print ('PROCESSED columns')
+                                print (self.records.readings[test]['devices'][device + '_PROCESSED']['data'].columns)
+                                print ('TARGET columns')
+                                print (self.records.readings[test]['devices'][device]['data'].columns)
+                                cols_to_use = self.records.readings[test]['devices'][device + '_PROCESSED']['data'].columns.difference(self.records.readings[test]['devices'][device]['data'].columns)
+                                # self.std_out('cols_to_use')
+                                # self.std_out(cols_to_use)
+                                # self.records.readings[test]['devices'][device]['data'].join(self.records.readings[test]['devices'][device  + '_PROCESSED']['data'][cols_to_use], left_index=True, right_index=True, how='outer')
+                                self.records.readings[test]['devices'][device]['data'] = self.records.readings[test]['devices'][device]['data'].combine_first(self.records.readings[test]['devices'][device + '_PROCESSED']['data'])
                                 self.records.readings[test]['devices'].pop(device + '_PROCESSED')
-                                print (self.records.readings[test]['devices'].keys())
+                                print ('FINAL columns')
+                                print (self.records.readings[test]['devices'][device]['data'].columns)
+                            else:
+                                self.std_out("No available PROCESSED data to combine with")
 
                 # TO-DO put other pre-processing options here - filtering, smoothing?
                 except:
-                    self.std_out("Problem processing test {}".format(test))
+                    self.std_out("Problem pre-processing test {}".format(test))
                     traceback.print_exc()
                     return False
                 else:

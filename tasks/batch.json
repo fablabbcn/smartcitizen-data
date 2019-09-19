@@ -97,7 +97,7 @@
 								"clean_na_method": "fill",
 								"min_date": null,
 								"max_date": null,
-								"export_data": "Only Generic",
+								"export_data": "All",
 								"rename_export_data": false}
 					}
 		}

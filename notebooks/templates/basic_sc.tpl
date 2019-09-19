@@ -8,16 +8,6 @@
 </div>
 {% endblock output_group %}
 
-{% block in_prompt -%}
-<div class="prompt input_prompt">
-    {%- if cell.execution_count is defined -%}
-        
-    {%- else -%}
-        
-    {%- endif -%}
-</div>
-{%- endblock in_prompt %}
-
 {% block empty_in_prompt -%}
 <div class="prompt input_prompt">
 </div>

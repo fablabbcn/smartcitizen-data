@@ -56,3 +56,4 @@ dependencies:
   - yaml=0.1.*
   - pip:
     - termcolor==1.1.0
+    - tzwhere=3.*

@@ -119,15 +119,23 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         # Get min and max getDateLastReading
         toDate = deviceRJSON['last_reading_at'] 
         fromDate = deviceRJSON['added_at']
-
-        if start_date == None and fromDate is not None:
-            start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ') 
+        print (start_date)
+        if start_date is None and fromDate is not None:
+            print ('hola')
+            print (fromDate)
+            start_date = datetime.strptime(fromDate, '%Y-%m-%dT%H:%M:%SZ')
+            print (start_date)
+        elif start_date is not None:
+            start_date = datetime.strftime(start_date, '%Y-%m-%dT%H:%M:%SZ')
         print ('Min Date', start_date)
 
-        if end_date == None and toDate is not None:
+        if end_date is None and toDate is not None:
+            print('hola')
+            print(toDate)
             end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
-        # elif end_date is not None:
-        #     end_date = end_date + timedelta(days=1)
+            print(end_date)
+        elif end_date is not None:
+            end_date = datetime.strftime(end_date, '%Y-%m-%dT%H:%M:%SZ')
         print ('Max Date', end_date)
         
         # Get available sensors
@@ -279,11 +287,11 @@ def getDeviceLocation(_device):
             tz_where = tzwhere.tzwhere()
             location = tz_where.tzNameAt(latitude, longitude)
 
-            return location, latitude, longitude
+            return location
         else:
-            return None, None, None
+            return None
     except:
-        return None, None, None
+        return None
 
 def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, clean_na = True, clean_na_method = 'fill'):
     readingsAPI = dict()
@@ -296,7 +304,7 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames,
         print ('Loading device {} from API'.format(device))
         data, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
 
-        location, _, _ = getDeviceLocation(device)
+        location = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
         
         if (type(data) == int) and (not (data == 200 or data == 201)) and (location is not None):

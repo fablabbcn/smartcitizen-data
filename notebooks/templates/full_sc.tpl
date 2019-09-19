@@ -1,4 +1,4 @@
-{%- extends 'basic_sc.tpl' -%}
+{%- extends 'templates/basic_sc.tpl' -%}
 {% from 'mathjax.tpl' import mathjax %}
 
 
@@ -9,7 +9,7 @@
 {%- block html_head -%}
 <meta charset="utf-8" />
 {% set nb_title = nb.metadata.get('title', '') or resources['metadata']['name'] %}
-<title>'{{nb_title}}'</title>
+<title>{{nb_title}}</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
@@ -27,9 +27,29 @@
     padding: 8px;
   }
 
+  div.prompt{
+    display:none;
+  }
+  div.input_prompt{
+    display:none;
+  }
+
   div#notebook {
     overflow: visible;
     border-top: none;
+    padding-top: 0px;
+  }
+
+  div#notebook-container {
+    padding: 20px;
+    overflow: visible;
+    border-top: none;
+    padding-top: 0px;
+  }
+
+  div.container {
+    margin-top: 0px;
+    width: 100%;
   }
 
   {%- if resources.global_content_filter.no_prompt-%}
@@ -37,6 +57,10 @@
     padding: 6ex 12ex 8ex 12ex;
   }
   {%- endif -%}
+
+  div.text_cell_render{
+    padding: 0px;
+  }
 
   @media print {
     div.cell {
@@ -65,11 +89,9 @@
 
 {% block body %}
 <body>
+  {%- include 'templates/header.tpl' -%} 
   <div tabindex="-1" id="notebook" class="border-box-sizing">    
     <div class="container" id="notebook-container">
-      <div style="text-align: right">
-      <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=40px height=40px>
-      </div>
       {{ super() }}
     </div>
   </div>
