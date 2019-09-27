@@ -206,11 +206,14 @@ class plot_wrapper():
 	def export_plot(self):
 		savePath = self.options['export_path']
 		fileName = self.options['file_name']
-		self.std_out('Exporting {} to {}'.format(fileName, savePath))
+		try:
+			self.std_out('Exporting {} to {}'.format(fileName, savePath))
 		
-		if self.library == 'matplotlib': self.figure.savefig(savePath+ '/' + fileName + '.png', dpi = 300, transparent=True, bbox_inches='tight', pad_inches=0)
-		elif self.library == 'plotly': pio.write_json(self.figure, savePath+ '/' + fileName + '.plotly')
-	
+			if self.library == 'matplotlib': self.figure.savefig(savePath+ '/' + fileName + '.png', dpi = 300, transparent=True, bbox_inches='tight', pad_inches=0)
+			elif self.library == 'plotly': pio.write_json(self.figure, savePath+ '/' + fileName + '.plotly')
+		except:
+			self.std_out('No export requested')
+
 	def plot(self, records):
 		# Clean matplotlib cache
 		plt.clf()
