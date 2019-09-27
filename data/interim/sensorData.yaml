@@ -96,10 +96,28 @@
   mac: 'F9FF'
   internal_ref: 'UOS_URBAN_BACKGROUND_2'
   date_from: '2019-01-18'
-  date_to: '-'
+  date_to: '2019-09-25'
   gas_pro_board:
     CO: 162581724
     NO2: 202160411
+    O3: 204160156
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: 2017123000719
+    PMS5003_2: 2017123000700
+
+'10124':
+  hardware_id: ''
+  sck_id: '-'
+  id: 'SCS21002'
+  type: 'station'
+  mac: 'F9FF'
+  internal_ref: 'UOS_URBAN_BACKGROUND_2'
+  date_from: '2019-09-25'
+  date_to: '-'
+  gas_pro_board:
+    CO: 162581724
+    NO2: 202702025
     O3: 204160156
     slots: !!python/tuple [CO, NO2, O3]
   pm_board:
