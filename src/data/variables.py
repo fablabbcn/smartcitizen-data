@@ -11,7 +11,9 @@ with open(os.path.join(rootDirectory, 'urls.txt')) as environment:
 			key = var.split('=')
 			os.environ[key[0]] = re.sub('\n','',key[1])
 
-SENSOR_NAMES_URL = os.environ['SENSOR_NAMES_URL']
+SENSOR_NAMES_URL_21 = os.environ['SENSOR_NAMES_URL_21']
+SENSOR_NAMES_URL_20 = os.environ['SENSOR_NAMES_URL_20']
+
 API_BASE_URL = os.environ['API_BASE_URL']
 API_KITS_URL = os.environ['API_KITS_URL']
 

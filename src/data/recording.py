@@ -26,10 +26,11 @@ class recording:
 		self.dataDirectory = join(self.rootDirectory, 'data')
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
-		currentSensorsh = SENSOR_NAMES_URL
 		self.availableTests = getTests(self.dataDirectory)
 		self.verbose = verbose
-		self.currentSensorNames = getSensorNames(currentSensorsh, join(self.dataDirectory, 'interim'))
+		sensorNames_21 = getSensorNames(SENSOR_NAMES_URL_21, join(self.dataDirectory, 'interim'), 'sensornames_21')
+		sensorNames_20 = getSensorNames(SENSOR_NAMES_URL_20, join(self.dataDirectory, 'interim'), 'sensornames_20')
+		self.currentSensorNames = {**sensorNames_21, **sensorNames_20}
 		self.name_combined_data = NAME_COMBINED_DATA
 
 	def available_tests(self):
@@ -497,6 +498,7 @@ class recording:
 						self.std_out('Renaming column {} to {}'.format(testNames[i], targetNames[i]))
 
 			return df
+
 
 		data = loadTest(testPath, target_raster, self.currentSensorNames, clean_na, clean_na_method, self.dataDirectory, load_processed, load_cached_API, cache_API)
 		self.readings[test_name] = dict()

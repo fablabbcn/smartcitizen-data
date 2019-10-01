@@ -22,10 +22,10 @@ pollutantLUT = (['CO', 28, 'ppm'],
 				['NO2', 46, 'ppb'],
 				['O3', 48, 'ppb'])
 
-def getSensorNames(_sensorsh, nameDictPath):
+def getSensorNames(_sensorsh, nameDictPath, name):
 	try:
 		# Directory
-		nameDictPath = join(nameDictPath, 'sensorNames.json')
+		nameDictPath = join(nameDictPath, name + '.json')
 
 		# Read only 20000 chars
 		data = urlopen(_sensorsh).read(20000).decode('utf-8')
