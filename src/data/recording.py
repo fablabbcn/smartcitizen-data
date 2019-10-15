@@ -418,31 +418,35 @@ class recording:
 						unit = units[index]
 						
 						# Get molecular weight and target units for the pollutant in question
-						for pollutantItem in pollutantLUT:
-							if pollutantItem[0] == pollutant:
-								molecularWeight = pollutantItem[1]
-								targetUnit = pollutantItem[2]
-								
-						convertionLUT = (['ppm', 'ppb', 1000],
-							 ['mg/m3', 'ug/m3', 1000],
-							 ['mg/m3', 'ppm', 24.45/molecularWeight],
-							 ['ug/m3', 'ppb', 24.45/molecularWeight],
-							 ['mg/m3', 'ppb', 1000*24.45/molecularWeight],
-							 ['ug/m3', 'ppm', 1./1000*24.45/molecularWeight])
-						
-						# Get convertion factor
-						if unit == targetUnit:
+						try:
+							for pollutantItem in pollutantLUT:
+								if pollutantItem[0] == pollutant:
+									molecularWeight = pollutantItem[1]
+									targetUnit = pollutantItem[2]
+									
+							convertionLUT = (['ppm', 'ppb', 1000],
+								 ['mg/m3', 'ug/m3', 1000],
+								 ['mg/m3', 'ppm', 24.45/molecularWeight],
+								 ['ug/m3', 'ppb', 24.45/molecularWeight],
+								 ['mg/m3', 'ppb', 1000*24.45/molecularWeight],
+								 ['ug/m3', 'ppm', 1./1000*24.45/molecularWeight])
+							# Get convertion factor
+							if unit == targetUnit:
 								convertionFactor = 1
 								self.std_out('No unit convertion needed for {}'.format(pollutant))
-						else:
-							for convertionItem in convertionLUT:
-								if convertionItem[0] == unit and convertionItem[1] == targetUnit:
-									convertionFactor = convertionItem[2]
-								elif convertionItem[1] == unit and convertionItem[0] == targetUnit:
-									convertionFactor = 1.0/convertionItem[2]
-							self.std_out('Converting {} from {} to {}'.format(pollutant, unit, targetUnit))
+							else:
+								for convertionItem in convertionLUT:
+									if convertionItem[0] == unit and convertionItem[1] == targetUnit:
+										convertionFactor = convertionItem[2]
+									elif convertionItem[1] == unit and convertionItem[0] == targetUnit:
+										convertionFactor = 1.0/convertionItem[2]
+								self.std_out('Converting {} from {} to {}'.format(pollutant, unit, targetUnit))
+							
+							df.loc[:,pollutant + '_' + ref_append] = df.loc[:,channel]*convertionFactor
+						except:
+							self.std_out(f'Cannot convert units for {pollutant}')
+							pass
 						
-						df.loc[:,pollutant + '_' + ref_append] = df.loc[:,channel]*convertionFactor
 						
 					referenceDict['data'] = df
 					_readings[test_id]['devices'][reference] = referenceDict

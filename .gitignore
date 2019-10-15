@@ -7,11 +7,15 @@ models/*
 models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
+reports/*.html
+reports/*.pdf
 scr.egg-info/*
 scr.egg-info
+TODO.md
 
 # Notebook
 notebooks/temp-plot.html
+notebooks/cheatsheet.ipynb
 .ipynb_checkpoints* 
 
 # MAC stuff
