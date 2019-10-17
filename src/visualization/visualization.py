@@ -15,6 +15,8 @@ style.use('ggplot')
 import seaborn as sns
 import math
 
+from scipy import stats
+
 '''
 Available styles
 ['_classic_test', 'bmh', 'classic', 'dark_background', 'fast', 'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn-bright', 'seaborn-colorblind', 'seaborn-dark-palette', 'seaborn-dark', 'seaborn-darkgrid', 'seaborn-deep', 'seaborn-muted', 'seaborn-notebook', 'seaborn-paper', 'seaborn-pastel', 'seaborn-poster', 'seaborn-talk', 'seaborn-ticks', 'seaborn-white', 'seaborn-whitegrid', 'seaborn', 'Solarize_Light2', 'tableau-colorblind10']
@@ -129,7 +131,7 @@ class plot_wrapper():
 		self.library = plot_description['plotting_library']
 		if self.library not in ['matplotlib', 'plotly']: raise SystemError ('Not supported library')
 		self.type = plot_description['plot_type']
-		self.data = plot_description['data']
+		if 'data' in plot_description.keys(): self.data = plot_description['data']
 		self.options = plot_description['options']
 		self.formatting = plot_description['formatting']
 		self.df = pd.DataFrame()
@@ -215,6 +217,14 @@ class plot_wrapper():
 			self.std_out('No export requested')
 
 	def plot(self, records):
+
+		# Correlation function for plot anotation
+		def corrfunc(x, y, **kws):
+			r, _ = stats.pearsonr(x, y)
+			ax = plt.gca()
+			ax.annotate("r = {:.2f}".format(r),
+						xy=(.1, .9), xycoords=ax.transAxes)
+
 		# Clean matplotlib cache
 		plt.clf()
 
@@ -230,7 +240,7 @@ class plot_wrapper():
 				self.formatting["yrange"][int(axis)] = self.formatting["yrange"].pop(axis)
 		
 		# Prepare data for plot
-		self.prepare_data(records)
+		if records is not None: self.prepare_data(records)
 		n_subplots = len(self.subplots_list)
 
 		# Generate plot depending on type and library
@@ -348,12 +358,14 @@ class plot_wrapper():
 		elif self.type == 'scatter_matrix':
 
 			if self.library == 'matplotlib':
-				g = sns.pairplot(self.df, vars=self.df.columns[:], height=self.formatting['height'])
+				g = sns.pairplot(self.df.dropna(), vars=self.df.columns[:], height=self.formatting['height'], plot_kws={'alpha': self.formatting['alpha']});
+				g.map_upper(corrfunc)
+				# g.map_lower(sns.residplot) 
 				g.fig.suptitle(self.formatting['title'])
 				if 'show_plot' in self.options:
-					if self.options['show_plot']: plt.show()
+					if self.options['show_plot']: plt.show();
 
-				self.figure = g.fig
+				self.figure = g.fig;
 
 			elif self.library == 'plotly':
 
