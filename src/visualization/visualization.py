@@ -358,7 +358,7 @@ class plot_wrapper():
 		elif self.type == 'scatter_matrix':
 
 			if self.library == 'matplotlib':
-				g = sns.pairplot(self.df.dropna(), vars=self.df.columns[:], height=self.formatting['height'], plot_kws={'alpha': self.formatting['alpha']});
+				g = sns.pairplot(self.df.dropna(axis=0, how='all'), vars=self.df.columns[:], height=self.formatting['height'], plot_kws={'alpha': self.formatting['alpha']});
 				g.map_upper(corrfunc)
 				# g.map_lower(sns.residplot) 
 				g.fig.suptitle(self.formatting['title'])
@@ -431,7 +431,7 @@ class plot_wrapper():
 				
 			## Full dataframe
 			self.df = self.df[list_all]
-			self.df.dropna(inplace = True)
+			self.df.dropna(axis = 0, how='all', inplace = True)
 			
 			if self.library == 'matplotlib':
 				

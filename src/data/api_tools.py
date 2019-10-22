@@ -107,6 +107,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             rollup_unit = item[0]
 
     rollup = rollup_value + rollup_unit
+    print (f'Using rollup: {rollup}')
 
     # Get device
     deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
@@ -189,6 +190,7 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             if start_date is not None: request += 'from={}'.format(start_date)
             request += '&rollup={}'.format(rollup)
             request += '&sensor_id={}'.format(sensor_id)
+            request += '&function=avg'
             
             if end_date is not None: request += '&to={}'.format(end_date)
             # Make request
@@ -216,14 +218,12 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                         df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
                         # Check for weird things in the data
                         df = df.apply(pd.to_numeric,errors='coerce')
-                        # Resample
-                        df = df.resample(frequency).mean()
+                        # # Resample
+                        df = df.resample(frequency, limit = 1).mean()
                         # Remove na
-                        if clean_na:
-                            if clean_na_method == 'fill':
-                                df = df.fillna(method='bfill').fillna(method='ffill')
-                            elif clean_na_method == 'drop':
-                                df = df.dropna()
+                        # if clean_na:
+                        #     if clean_na_method == 'fill':
+                        #         df = df.fillna(method='bfill', limit=2).fillna(method='ffill', limit=2)
 
                     # Add it to dataframe for each sensor
                     else:
@@ -241,10 +241,10 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                             dfT = dfT.apply(pd.to_numeric,errors='coerce')
                             # Resample
                             dfT = dfT.resample(frequency).mean()
-                            # Remove na
-                            if clean_na:
-                                if clean_na_method == 'fill':
-                                    dfT = dfT.fillna(method='bfill').fillna(method='ffill')
+                            # # Remove na
+                            # if clean_na:
+                            #     if clean_na_method == 'fill':
+                            #         dfT = dfT.fillna(method='bfill', limit=2).fillna(method='ffill', limit=2)
 
                             df = df.combine_first(dfT)
             except:
@@ -255,8 +255,11 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         
         if clean_na:
             if clean_na_method == 'drop':
-                df = df.dropna()
-        
+                print ('Cleaning na with drop')
+                df.dropna(axis = 0, how='all', inplace=True)
+            elif clean_na_method == 'fill':
+                df = df.fillna(method='bfill', limit=2).fillna(method='ffill', limit=2)
+                print ('Cleaning na with fill')
         return df, hasAlpha
 
     else:

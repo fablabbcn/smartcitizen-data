@@ -484,15 +484,17 @@ class recording:
 			# Check for weird things in the data
 			df = df.apply(pd.to_numeric,errors='coerce')   
 			
-			# Resample
-			df = df.resample(target_raster).mean()
+			# # Resample
+			df = df.resample(target_raster, limit = 1).mean()
 			
 			# Remove na
 			if clean_na:
 				if clean_na_method == 'fill':
-					df = df.fillna(method='bfill').fillna(method='ffill')
+					df = df.fillna(method='ffill')
 				elif clean_na_method == 'drop':
-					df = df.dropna()
+					df.dropna(axis = 0, how='all', inplace=True)
+					self.std_out('Dropping NaN')
+
 			
 			# Create dictionary and add it to the _readings key
 			if len(targetNames) == len(testNames) and len(targetNames) > 0:
@@ -616,14 +618,14 @@ class recording:
 				dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
 
 				# Resample
-				dataframeModel = dataframeModel.resample(model_object.data['options']['target_raster']).mean()
+				dataframeModel = dataframeModel.resample(model_object.data['options']['target_raster'], limit = 1).mean()
 				
 				# Remove na
 				if model_object.data['options']['clean_na']:
 					if model_object.data['options']['clean_na_method'] == 'fill':
-						dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
+						dataframeModel = dataframeModel.fillna(method='ffill')
 					elif model_object.data['options']['clean_na_method'] == 'drop':
-						dataframeModel = dataframeModel.dropna()
+						dataframeModel.dropna(axis = 0, how='all', inplace = True)
 				
 				if model_object.data['options']['min_date'] != None:
 					dataframeModel = dataframeModel[dataframeModel.index > model_object.data['options']['min_date']]
