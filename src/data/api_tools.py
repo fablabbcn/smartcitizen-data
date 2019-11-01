@@ -10,6 +10,7 @@ from os.path import join
 
 from src.data.variables import *
 import traceback
+from termcolor import colored 
 
 # TODO: Get this automatically
 station_kit_ids = (19, 21)
@@ -74,11 +75,12 @@ def getPlatformSensorID():
         
         return sensorsDict
     else:
-        print (type(sensors.status_code))
-        return 'API reported {}'.format(sensors.status_code)   
+        print(colored('API reported {}'.format(sensors.status_code), 'red')) 
+        return None
     return sensors
 
 def getDateLastReading(_device):
+    print (f'Requesting last reading from API for device {_device}')
     # Get device
     try:
         deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
@@ -89,8 +91,8 @@ def getDateLastReading(_device):
     except:
         return None
 
-def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method):
-
+def getDeviceData(_device, verbose, frequency, start_date, end_date, location, currentSensorNames, clean_na, clean_na_method):
+    print (f'Requesting data from API for device {_device}')
     # Convert frequency from pandas to API's
     for index, letter in enumerate(frequency):
         try:
@@ -129,7 +131,10 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
         if end_date is None and toDate is not None:
             end_date = datetime.strptime(toDate, '%Y-%m-%dT%H:%M:%SZ')
         elif end_date is not None:
-            end_date = datetime.strftime(end_date, '%Y-%m-%dT%H:%M:%SZ')
+            try:
+                end_date = datetime.strftime(end_date, '%Y-%m-%dT%H:%M:%SZ')
+            except:
+                pass
         print ('Max Date', end_date)
         
         # Get available sensors
@@ -158,13 +163,14 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                 except:
                     pass
 
-        # Get location
-        latitude = deviceRJSON['data']['location']['latitude']
-        longitude = deviceRJSON['data']['location']['longitude']
-        
-        # Localize it
-        tz_where = tzwhere.tzwhere()
-        location = tz_where.tzNameAt(latitude, longitude)
+        if location is None:
+            # Get location
+            latitude = deviceRJSON['data']['location']['latitude']
+            longitude = deviceRJSON['data']['location']['longitude']
+            
+            # Localize it
+            tz_where = tzwhere.tzwhere()
+            location = tz_where.tzNameAt(latitude, longitude)
         
         # Print stuff if requested
         if verbose:
@@ -211,7 +217,6 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
                         df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
                         # df.index = pd.to_datetime(df.index).tz_convert(location)
                         df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
-
                         df.sort_index(inplace=True)
                         df = df[~df.index.duplicated(keep='first')]
                         # Drop unnecessary columns
@@ -250,23 +255,28 @@ def getDeviceData(_device, verbose, frequency, start_date, end_date, currentSens
             except:
                 traceback.print_exc()
                 pass
-        
-        df = df.reindex(df.index.rename('Time'))
-        
-        if clean_na:
-            if clean_na_method == 'drop':
-                print ('Cleaning na with drop')
-                df.dropna(axis = 0, how='all', inplace=True)
-            elif clean_na_method == 'fill':
-                df = df.fillna(method='bfill', limit=2).fillna(method='ffill', limit=2)
-                print ('Cleaning na with fill')
-        return df, hasAlpha
+        try:
+            df = df.reindex(df.index.rename('Time'))
+            
+            if clean_na:
+                if clean_na_method == 'drop':
+                    print ('Cleaning na with drop')
+                    df.dropna(axis = 0, how='all', inplace=True)
+                elif clean_na_method == 'fill':
+                    df = df.fillna(method='bfill').fillna(method='ffill')
+                    print ('Cleaning na with fill')
+            return df, hasAlpha
+        except:
+            print ('Problem closing up the API dataframe')
+            traceback.print_exc()
+            return None, None
 
     else:
-    
-        return None
+        print(colored('API reported {}'.format(deviceR.status_code), 'red')) 
+        return None, None
 
 def getDeviceLocation(_device):
+    print (f'Requesting location from API for device {_device}')
     # Get device
     try:
         deviceR = requests.get(API_BASE_URL + '{}/'.format(_device))
@@ -285,11 +295,13 @@ def getDeviceLocation(_device):
 
             return location
         else:
+            print(colored('API reported {}'.format(deviceR.status_code), 'red')) 
             return None
     except:
+        traceback.print_exc()
         return None
 
-def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, clean_na = True, clean_na_method = 'fill'):
+def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames, dataDirectory, location = None, clean_na = True, clean_na_method = 'fill'):
     readingsAPI = dict()
     readingsAPI['devices'] = dict()
     
@@ -298,9 +310,9 @@ def getReadingsAPI(devices, frequency, start_date, end_date, currentSensorNames,
 
     for device in devices:
         print ('Loading device {} from API'.format(device))
-        data, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, currentSensorNames, clean_na, clean_na_method)
+        if location is None: getDeviceLocation(device)
+        data, hasAlpha = getDeviceData(device, True, frequency, start_date, end_date, location, currentSensorNames, clean_na, clean_na_method)
 
-        location = getDeviceLocation(device)
         readingsAPI['devices'][device] = dict()
         
         if (type(data) == int) and (not (data == 200 or data == 201)) and (location is not None):

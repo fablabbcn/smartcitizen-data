@@ -12,7 +12,6 @@
 							}
 			},
 			"data": {"datasets": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
-									"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
 									"2019-10_EXT_UOS_URBAN_BACKGROUND_API_FIX": ["5528", "10124"],
 									"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]},
 					"options": {"target_raster": "1Min",

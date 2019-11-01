@@ -16,6 +16,7 @@ from src.data.api_tools import *
 from src.models.formulas import *	
 
 import traceback
+from termcolor import colored 
 
 class recording:
 
@@ -37,8 +38,12 @@ class recording:
 		self.availableTests = getTests(self.dataDirectory)
 		return self.availableTests
 
-	def std_out(self, msg):
-		if self.verbose: print(msg)	
+	def std_out(self, msg, type_message = None):
+		if self.verbose: 
+			if type_message is None: print(msg)	
+			elif type_message == 'SUCCESS': print(colored(msg, 'green'))
+			elif type_message == 'WARNING': print(colored(msg, 'yellow')) 
+			elif type_message == 'ERROR': print(colored(msg, 'red')) 
 	
 	def previewTest(self, testPath):
 		# Find Yaml
@@ -80,12 +85,13 @@ class recording:
 				try:
 					with open(join(testPath, 'cached', 'cached_info.json')) as handle:
 						cached_info = json.loads(handle.read())
-						self.std_out('Loaded cached info file...')
+						self.std_out('Loaded cached info file', 'SUCCESS')
 				except:
 					cached_info = dict()
 
 			# Open all kits
 			for kit in test['test']['devices']['kits'].keys():
+				self.std_out('---------')
 				self.std_out('Device ID {}'.format(kit))
 				
 				# Assume that if we don't specify the source, it's a csv (old)
@@ -100,10 +106,10 @@ class recording:
 					metadata = test['test']['devices']['kits'][kit]['metadata']
 				except:
 					metadata = ''
-					self.std_out('No metadata found - skipping')
+					self.std_out('No metadata found - skipping', 'WARNING')
 					pass
 				else:
-					self.std_out('Found metadata')
+					self.std_out('Found metadata', 'SUCCESS')
 					
 				# List for names conversion
 				targetSensorNames = list()
@@ -148,7 +154,7 @@ class recording:
 						self.std_out('ALPHASENSE')
 						self.std_out(alphasense)
 						
-					self.std_out('Kit {} has been loaded'.format(kit))
+					self.std_out('Kit {} has been loaded'.format(kit), 'SUCCESS')
 				
 				# API request
 				else:
@@ -168,51 +174,62 @@ class recording:
 					else:
 						max_date = None
 
+					
 					# Flag to combine cached data and API data if there is newer
 					combine_cache_API = False
-					
+					location = None
+					location_api = None
+
 					# Case when we are asked to check if there is something cached
 					if load_cached_API:
 						try:
 							# Load cached data here
 							fileName= join(testPath, 'cached', kit  + '.csv')
 
-							location = cached_info[kit]['location']
+							location_cached = cached_info[kit]['location']
+							if location_cached is None: self.std_out(f'Cached information for {kit} has no location')
 							alphasense = cached_info[kit]['alphasense']
 							
 							# Create dict for kit
 							kitDict = dict()
-							kitDict['location'] = location
+							kitDict['location'] = location_cached
 							kitDict['alphasense'] = alphasense
-							kitDict['data'] = readDataframeCsv(fileName, location, target_raster, clean_na, clean_na_method)
-							
+
+							if location_cached is None: 
+								self.std_out(f'Requesting API location', 'WARNING')
+								location_api = getDeviceLocation(device_id)
+								location = location_api
+							else:
+								location = location_cached
+
+							kitDict['data'] = readDataframeCsv(fileName, location_cached, target_raster, clean_na, clean_na_method)
 							_readings[test_id]['devices'][kit] = kitDict
 
 						except:
-							self.std_out('No valid cached data, requesting to API')
-							# traceback.print_exc()
+							self.std_out('No valid cached data, requesting to API', 'WARNING')
+							traceback.print_exc()
 							load_API = True
 
 						else:
-							self.std_out('Loaded cached files from: \n{}'.format(fileName))
+							self.std_out('Loaded cached files from: \n{}'.format(fileName), 'SUCCESS')
 
 							# Get last reading from cached
 							last_reading_cached = _readings[test_id]['devices'][kit]['data'].index[-1]
-							
-							# if last_reading_cached is not None:
-							# 	last_reading_cached = datetime.strptime(last_reading_cached, '%Y-%m-%dT%H:%M:%SZ')
 							if last_reading_cached.tzinfo is None: last_reading_cached = pd.to_datetime(last_reading_cached).tz_localize('UTC').tz_convert(location)
+							self.std_out('Last day in cached data {}'.format(last_reading_cached))
 
 							# Get last reading from API
 							last_reading_api = getDateLastReading(device_id)
-							self.std_out('Last day in cached data {}'.format(last_reading_cached))
 
 							if last_reading_api is not None:
+								# Localise date
 								last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
-								if last_reading_api.tzinfo is None: last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
-							
-								self.std_out('Last reading in API {}'.format(last_reading_api))
 
+								if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
+
+								print (f'last_reading_api.tzinfo: {last_reading_api.tzinfo} and last_reading_api.tzname(): {last_reading_api.tzname()}')
+								self.std_out('Last reading in API: {}'.format(last_reading_api))								
+							
 								# Localize min test date for comparison
 								if min_date is not None:
 									if min_date.tzinfo is None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
@@ -222,11 +239,9 @@ class recording:
 								
 								# Check which dates to load
 								if max_date is not None:
-
 									self.std_out('Max date in test {}'.format(max_date))
-									
 									# Check what where we need to load data from, if any
-									if last_reading_cached < max_date and last_reading_api > last_reading_cached + timedelta(days=1):
+									if last_reading_cached < max_date and last_reading_api > last_reading_cached + timedelta(hours=1):
 										load_API = True
 										combine_cache_API = True
 										min_date = last_reading_cached
@@ -234,10 +249,10 @@ class recording:
 										self.std_out('Loading new data from API')
 									else:
 										load_API = False
-										self.std_out('No need to load new data from API')
+										self.std_out('No need to load new data from API', 'SUCCESS')
 								else:
 									# If no test data specified, check the last reading in the API
-									if last_reading_api > last_reading_cached + timedelta(days=1):
+									if last_reading_api > last_reading_cached + timedelta(hours=1):
 										load_API = True
 										combine_cache_API = True
 										min_date = last_reading_cached
@@ -245,21 +260,21 @@ class recording:
 										self.std_out('Loading new data from API')
 									else:
 										load_API = False
-										self.std_out('No need to load new data from API')
+										self.std_out('No need to load new data from API...', 'SUCCESS')
 							else:
-								self.std_out('API does not contain valid data for last date, skipping')
+								self.std_out('API does not contain valid data for last date, skipping', 'WARNING')
 								load_API = False
 					
 					else:
 						cached_info = dict()
+						self.std_out('Clearing up cached info. Requesting again from API')
 						load_API = True
 
 					# Either we couldn't succeed getting cached data or we were forced to get the API data
 					if load_API:
+						
 						self.std_out('Checking device in API')
-
-						location = getDeviceLocation(device_id)
-						last_reading_api = getDateLastReading(device_id)
+						if location is None: location = getDeviceLocation(device_id)
 
 						# Localize min test date for comparison
 						if min_date is not None:
@@ -267,23 +282,23 @@ class recording:
 								if location is not None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
 						# Localize max test date for comparison
 						if max_date is not None:
+							print (f'max_date.tzinfo: {max_date.tzinfo} and max_date.tzname(): {max_date.tzname()}')
 							if max_date.tzinfo is None: 
 								if location is not None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
+						
+						# Get last reading from API
+						last_reading_api = getDateLastReading(device_id)
+						last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
+						if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
 
 						if last_reading_api is not None:
-
-							# Localise date
-							last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
-							if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
-
-							self.std_out('Last reading API: {}'.format(last_reading_api))
 							
 							# Handle max and min dates
 							if max_date is not None:
 								self.std_out('Last reading requested: {}'.format(max_date))
 								if max_date > last_reading_api: 
 									max_requesting_date = last_reading_api
-									self.std_out('Requested data is not available, max date recorded is prior to the latest data in the API')
+									self.std_out('Requested data is not available, max date recorded is prior to the latest data in the API', 'WARNING')
 								else:
 									max_requesting_date  = max_date
 									self.std_out('Requesting up to max test date {}'.format(max_date))
@@ -294,58 +309,64 @@ class recording:
 								self.std_out('First reading requested: {}'.format(min_date))
 								if min_date < last_reading_api:
 									self.std_out('Requesting up to max available date in the API {}'.format(last_reading_api))
-									data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
+									data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method)
 								else:
-									self.std_out('Discarding device. Min date requested is after last reading available')
+									self.std_out('Discarding device. Min date requested is after last reading available', 'ERROR')
 									data = None
 							else:
 								self.std_out('Requesting all available data')
-								data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, clean_na, clean_na_method)
+								data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method)
 
 						else:
-							self.std_out('No valid data found in the API, skipping (no last date)')
+							self.std_out('No valid data found in the API, skipping (no last date)', 'ERROR')
 							data = None
 
 						if data is not None:
-							location = data['devices'][device_id]['location']
-							alphasense_data = None
-							if 'alphasense' in data['devices'][kit].keys(): alphasense_data = data['devices'][kit]['alphasense']
+							if data['devices'][device_id]['data'] is not None:
+								location = data['devices'][device_id]['location']
+								alphasense_data = None
+								if 'alphasense' in data['devices'][device_id].keys(): alphasense_data = data['devices'][device_id]['alphasense']
 
-							# Check if the kit name is the same as the platform name
-							if kit not in data['devices'].keys():
-								self.std_out('Device name in platform is not the same as test name, using test name')
-								# List of sensors available
-								list_keys = list(data['devices'])
-								self.std_out ('Channel list {}'.format(list_keys))
-								_readings[test_id]['devices'][kit] = data['devices'][list_keys[0]]
-								device_load_succesful = True
-							else:
-								self.std_out('Device name in platform is the same as test name')
-								# Combine data if there is new data
-								if combine_cache_API: _readings[test_id]['devices'][kit]['data'] = _readings[test_id]['devices'][kit]['data'].combine_first(data['devices'][kit]['data'])
-								# Or just save it in readings
-								else: _readings[test_id]['devices'][kit] = data['devices'][kit]
-								
-								try:
-									self.std_out('New updated max date in test {}'.format(_readings[test_id]['devices'][kit]['data'].index[-1]))
+								# Check if the kit name is the same as the platform name
+								if kit not in data['devices'].keys():
+									self.std_out('Device name in platform is not the same as test name, using test name', 'WARNING')
+									# List of sensors available
+									list_keys = list(data['devices'])
+									self.std_out ('Channel list {}'.format(list_keys))
+									_readings[test_id]['devices'][kit] = data['devices'][ldevice_id]
 									device_load_succesful = True
-								except:
-									traceback.print_exc()
-									self.std_out('Device index is not valid. Skipping')
-									device_load_succesful = False
-									pass
+								else:
+									self.std_out('Device name in platform is the same as test name')
+									# Combine data if there is new data
+									if combine_cache_API: _readings[test_id]['devices'][kit]['data'] = _readings[test_id]['devices'][kit]['data'].combine_first(data['devices'][kit]['data'])
+									# Or just save it in readings
+									else: _readings[test_id]['devices'][kit] = data['devices'][kit]
+									
+									try:
+										self.std_out('New updated max date in test {}'.format(_readings[test_id]['devices'][kit]['data'].index[-1]))
+										device_load_succesful = True
+									except:
+										traceback.print_exc()
+										self.std_out('Device index is not valid. Skipping', 'ERROR')
+										device_load_succesful = False
+										pass
+							else:
+								self.std_out('Data received is None', 'ERROR')
+								device_load_succesful = False
 						else: 
+							self.std_out('Data received is None', 'ERROR')
 							device_load_succesful = False
-
+					else: device_load_succesful = False
 
 					# Cache the files if requested
-					if cache_API and load_API and device_load_succesful:
+					if cache_API and device_load_succesful:
 						self.std_out('Caching files for {}'.format(kit))
 						
 						# New data is cached for later use
 						cached_info[kit] = dict()
 						cached_info[kit]['location'] = location
 						cached_info[kit]['alphasense'] = alphasense_data
+						cached_info[kit]['clean_na'] = clean_na_method
 						
 						# New data to process is cache-wide info
 						cached_info['new_data_to_process'] = True
@@ -373,7 +394,7 @@ class recording:
 						self.std_out('Found processed data. Loading...')
 						kitDict_processed['data'] = readDataframeCsv(filePath_processed, location, target_raster, clean_na, clean_na_method, targetSensorNames, testSensorNames)
 						_readings[test_id]['devices'][kit + '_PROCESSED'] = kitDict_processed
-						self.std_out('Loaded processed data from:\n {}'.format(filePath_processed))
+						self.std_out('Loaded processed data from:\n {}'.format(filePath_processed), 'SUCCESS')
 				else:
 					self.std_out('Not loading processed data')
 
@@ -433,7 +454,7 @@ class recording:
 							# Get convertion factor
 							if unit == targetUnit:
 								convertionFactor = 1
-								self.std_out('No unit convertion needed for {}'.format(pollutant))
+								self.std_out('No unit convertion needed for {}'.format(pollutant), 'SUCCESS')
 							else:
 								for convertionItem in convertionLUT:
 									if convertionItem[0] == unit and convertionItem[1] == targetUnit:
@@ -444,14 +465,14 @@ class recording:
 							
 							df.loc[:,pollutant + '_' + ref_append] = df.loc[:,channel]*convertionFactor
 						except:
-							self.std_out(f'Cannot convert units for {pollutant}')
+							self.std_out(f'Cannot convert units for {pollutant}', 'ERROR')
 							pass
 						
 						
 					referenceDict['data'] = df
 					_readings[test_id]['devices'][reference] = referenceDict
 					_readings[test_id]['devices'][reference]['is_reference'] = True
-					self.std_out('{} reference has been loaded'.format(reference))
+					self.std_out('{} reference has been loaded'.format(reference), 'SUCCESS')
 				
 			return _readings
 			
@@ -512,10 +533,11 @@ class recording:
 
 		# Set flag
 		self.readings[test_name]['ready_to_model'] = False
+		self.std_out('Test loaded successfully', 'SUCCESS')
 
 	def load_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
 		# Load data from the API
-		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, clean_na, clean_na_method)
+		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, None, clean_na, clean_na_method)
 		
 		# Case for non merged API to CSV
 		if reading_name not in self.readings.keys():
@@ -772,9 +794,9 @@ class recording:
 		# If file does not exist 
 		if not os.path.exists(savePath + '/' + name + '.csv') or forced_overwrite:
 			df.to_csv(savePath + '/' + name + '.csv', sep=",")
-			self.std_out('File saved to: \n' + savePath + '/' + name +  '.csv')
+			self.std_out('File saved to: \n' + savePath + '/' + name +  '.csv', 'SUCCESS')
 		else:
-			self.std_out("File Already exists - delete it first, I was not asked to overwrite anything!")
+			self.std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'WARNING')
 
 	def export_data(self, reading_name, device_export, export_path = '', to_processed_folder = False, all_channels = False, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):
 
