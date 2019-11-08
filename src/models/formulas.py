@@ -162,7 +162,7 @@ def derivative(y, x):
         dx [-1] = np.inf
     else:
         dx = np.diff(x)
-    
+
     dy[0:-1] = np.diff(y)/dx[0:-1]
     dy[-1] = (y[-1] - y[-2])/dx[-1]
     result = dy

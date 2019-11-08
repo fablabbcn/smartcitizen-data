@@ -213,12 +213,13 @@ def prep_prediction_ML(dataframeModel, list_features, n_lags, scalerX, verbose =
 
 	return test, index, n_obs
 
-def plot_model_ML(model, dataFrameTrain, dataFrameTest, feature_list, model_type, model_name):
+def plot_model_ML(model, dataFrameTrain = None, dataFrameTest = None, feature_list = None, model_type = None, model_name = None):
 	# Plot
 	fig = plot.figure(figsize=(15,10))
 	
 	# Actual data
-	plot.plot(dataFrameTrain.index, dataFrameTrain['reference'],'r', linewidth = 1, label = 'Reference Train', alpha = 0.3)
+	if dataFrameTrain is not None:
+		plot.plot(dataFrameTrain.index, dataFrameTrain['reference'],'r', linewidth = 1, label = 'Reference Train', alpha = 0.3)
 	plot.plot(dataFrameTest.index, dataFrameTest['reference'], 'b', linewidth = 1, label = 'Reference Test', alpha = 0.3)
 	
 	# Fitted Values for Training
@@ -250,7 +251,7 @@ def plot_model_ML(model, dataFrameTrain, dataFrameTest, feature_list, model_type
 		# list of x locations for plotting
 		x_values = list(range(len(importances)))
 		
-		fig= plot.figure(figsize = (15,8))
+		fig= plot.figure(figsize = (10,6))
 		plot.subplot(1,2,1)
 		# Make a bar chart
 		plot.bar(x_values, importances, orientation = 'vertical', color = 'r', edgecolor = 'k', linewidth = 1.2)
@@ -298,6 +299,7 @@ class model_wrapper:
 
 		if 'hyperparameters' in model_dict.keys():
 			self.hyperparameters = model_dict['hyperparameters']
+			print (self.hyperparameters)
 		else:
 			raise SystemError ('No hyperparameters key in model input')
 
@@ -310,7 +312,7 @@ class model_wrapper:
 		self.model = None
 		self.dataFrameTrain = None
 		self.dataFrameTest = None
-		self.metrics = None
+		self.metrics = dict()
 		self.plots = model_dict['options']['show_plots']
 		self.parameters = dict()
 
@@ -322,15 +324,14 @@ class model_wrapper:
 		self.std_out ('Calculating Metrics...')
 		self.metrics = dict()
 		self.metrics['train'] = metrics(self.dataFrameTrain['reference'], self.dataFrameTrain['prediction'])
-		self.metrics['test'] = metrics(self.dataFrameTest['reference'], self.dataFrameTest['prediction'])
+		self.metrics['validation'] = metrics(self.dataFrameTest['reference'], self.dataFrameTest['prediction'])
 		
 		# Print them out
 		self.std_out ('Metrics Summary:')
-		self.std_out ("{:<23} {:<7} {:<5}".format('Metric','Train','Test'))
+		self.std_out ("{:<23} {:<7} {:<5}".format('Metric','Train','Validation'))
 		for metric in self.metrics['train'].keys():
-			self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['train'][metric]) +"\t"+ "{:0.3f}".format(self.metrics['test'][metric]))
-		
-		return self.metrics
+			self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['train'][metric]) +"\t"+ "{:0.3f}".format(self.metrics['validation'][metric]))
+		self.std_out(f"oob_score: {self.model.oob_score_}")
 
 	def training(self, model_data):
 
@@ -351,19 +352,24 @@ class model_wrapper:
 		if self.type == "RF" or self.type == 'SVR':
 				
 			# Training and Testing Sets
-			train_X, test_X, train_y, test_y = train_test_split(features, labels, random_state = 42, 
-													test_size = 1-self.hyperparameters['ratio_train'], shuffle = self.hyperparameters['shuffle_split'])
+			train_X, test_X, train_y, test_y = train_test_split(features, labels, 
+													test_size = 1-self.hyperparameters['ratio_train'], 
+													shuffle = self.hyperparameters['shuffle_split'])
 		
 			n_train_periods = train_X.shape[0]
 			
 			# Create model
 			if self.type == 'RF':
-				self.model = RandomForestRegressor(n_estimators= self.hyperparameters['n_estimators'], random_state = 42)
+				self.model = RandomForestRegressor(n_estimators= self.hyperparameters['n_estimators'], 
+													min_samples_leaf = self.hyperparameters['min_samples_leaf'], 
+													oob_score = True, max_features = self.hyperparameters['max_features'])
 			elif self.type == 'SVR':
 				self.model = SVR(kernel='rbf')
 			
 			self.std_out ('Training Model {}...'.format(self.name))
 			# Fit model
+			# print (np.isnan(np.sum(train_X)))
+			# print (np.isnan(np.sum(train_y)))
 			self.model.fit(train_X, train_y)
 			
 			## Get model prediction for training dataset
@@ -468,10 +474,10 @@ class model_wrapper:
 
 		self.parameters['n_train_periods'] = n_train_periods
 
-		if self.options['extract_metrics']: self.metrics = self.extract_metrics()
+		if self.options['extract_metrics']: self.extract_metrics()
 		else: self.metrics = None
 
-	def predict_channels(self, data_input, prediction_name):
+	def predict_channels(self, data_input, prediction_name, reference = None):
 		
 		# Get specifics
 		if self.type == 'LSTM':
@@ -492,17 +498,18 @@ class model_wrapper:
 
 		self.std_out('Preparing devices from prediction')
 		dataframeModel = data_input.loc[:, list_features]
-		# dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
+		dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 		
-		# # Resample
-		# dataframeModel = dataframeModel.resample(self.options['target_raster']).mean()
+		# Resample
+		dataframeModel = dataframeModel.resample(self.data['options']['target_raster'], limit = 1).mean()
 		
-		# # Remove na
-		# if self.options['clean_na']:
-		# 	if self.options['clean_na_method'] == 'fill':
-		# 		dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
-		# 	elif self.options['clean_na_method'] == 'drop':
-		# 		dataframeModel = dataframeModel.dropna()
+		# Remove na
+		if self.data['options']['clean_na']:
+
+			if self.data['options']['clean_na_method'] == 'fill':
+				dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
+			elif self.data['options']['clean_na_method'] == 'drop':
+				dataframeModel.dropna(axis = 0, how = 'any', inplace = True)
 
 		indexModel = dataframeModel.index
 
@@ -539,12 +546,32 @@ class model_wrapper:
 			data_input[prediction_name] = prediction
 		
 		self.std_out('Channel {} prediction finished'.format(prediction_name))
+		
+		if reference is not None:	
+			
+			min_date_combination = max(reference.index[0], data_input.index[0])		
+			max_date_combination = min(reference.index[-1], data_input.index[-1])
+
+			dataframeModel = dataframeModel.combine_first(pd.DataFrame(reference.values, columns=['reference']).set_index(reference.index))
+
+			dataframeModel = dataframeModel[dataframeModel.index>min_date_combination]
+			dataframeModel = dataframeModel[dataframeModel.index<max_date_combination]
+
+			if self.options['extract_metrics']: 
+				self.metrics['test'] = metrics(dataframeModel['reference'], dataframeModel['prediction']) 
+				# Print them out
+				self.std_out ('Metrics Summary:')
+				self.std_out ("{:<23} {:<7}".format('Metric','Test'))
+				for metric in self.metrics['test'].keys():
+					self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['test'][metric]))
 
 		if self.plots:
 			# Plot
 			fig = plot.figure(figsize=(15,10))
 			# Fitted values
-			plot.plot(data_input.index, data_input[prediction_name], 'b', label = 'Predicted value')
+			plot.plot(dataframeModel.index, dataframeModel['prediction'], 'b', label = 'Predicted value')
+			if reference is not None:
+				plot.plot(dataframeModel.index, dataframeModel['reference'], 'b', alpha = 0.3, label = 'Reference')
 			plot.grid(True)
 			plot.legend(loc='best')
 			plot.title('Model prediction for {}'.format(prediction_name))

@@ -1,5 +1,5 @@
 {
-	"RF_MODEL_W_DELTAS": 
+	"RF_MODEL_UCD": 
 		{
 			"pre-processing": {
 				"alphasense": {"baseline_method": "deltas",
@@ -11,94 +11,45 @@
 								"overlapHours": 0
 							}
 			},
-
 			"model": {
-					"model_name": "RF_ALPHASENSE_DELTA",
+					"model_name": "RF_ALPHASENSE_UCD_TEMP",
 					"model_type": "RF",
 					"model_target": "ALPHASENSE",
-					"data": {"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5262"]},
-							"test": {"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
-									"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5565"]
-									},
-							"reference_device": "CITY_COUNCIL",
+					"data": {"train": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": {"devices": ["5262"],
+																				"reference_device":"CITY_COUNCIL"}},
+							"test": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": {"devices": ["5565"],
+																			  "reference_device":"CITY_COUNCIL"},
+									 "2019-06_INT_TEST_STATION_21_CSIC": {"devices": ["STATION_9441"],
+									 										"reference_device": "CSIC"}},
 							"features": {"REF": "NO2_REF",
-										"A":  "GB_2W",
+										"A":  "NO2_PRE",
+										"E": "GB_2W",
 										"B": "GB_2A",
-										"C": "HUM"
+										"C": "EXT_TEMP",
+										"D": "EXT_HUM"
 										},
-							"options": {"export_data": "All",
+							"options": {"avoid_processed": true,
+										"export_data": null,
 										"rename_export_data": false,
-										"target_raster": "1Min",
+										"target_raster": "15Min",
 										"clean_na": true,
-										"clean_na_method": "fill",
+										"clean_na_method": "drop",
 										"min_date": null,
 										"max_date": null,
 										"use_cache": true}
 							},
-					"hyperparameters": {"ratio_train": 0.75,
-										"n_estimators": 100,
-										"shuffle_split": true
+					"hyperparameters": {"ratio_train": 0.2,
+										"n_estimators": 200,
+										"shuffle_split": true,
+										"min_samples_leaf": 2,
+										"max_features": null
 										},
 					"options": {"session_active_model": false,
 								"export_model": false,
 								"export_model_file": false,
 								"extract_metrics": true,
 								"save_plots": false,
-								"show_plots": false}
-					},
-
-			"plot": {
-					"1": {
-							"plot_type": "timeseries",
-							"plotting_library": "matplotlib",
-							"data": {"test": "2019-03_EXT_UCD_URBAN_BACKGROUND_API",
-									"traces": {"1": {"device": "5262",
-													"channel" : "NOISE_A",
-													"subplot": 1}}},
-							"options": {"separate_device_plots": false,
-										"show_plot": false,
-										"target_raster": "10Min",
-										"max_date": null,
-										"min_date": null,
-										"export_path": "/Users/macoscar/Desktop",
-										"file_name": "plot_noise"},
-							"formatting": {"xlabel": "Date (-)",
-									   "ylabel": {"1": "Noise level"},
-									   "yrange": {"1": [0, 90]},
-									   "title": "Noise Concern",
-									   "sharex":true,
-									   "grid": true,
-									   "height": 10,
-									   "width": 12}
-						}
-			}
-		},
-
-	"PROCESS_ISCAPE_W_DELTAS": 
-		{
-			"pre-processing": {
-				"alphasense": {"baseline_method": "deltas",
-								"parameters": [30, 45, 5],
-								"methods": {"CO": ["classic", "na"],
-											"NO2": ["baseline", "single_aux"],
-											"O3": ["baseline", "single_aux"]
-											},
-								"overlapHours": 0
-							}
-			},
-
-			"data": {"datasets": {"2019-03_EXT_UCD_URBAN_BACKGROUND_API": ["5261", "5262", "5565"],
-									"2019-06_EXT_HASSELT_SCHOOL": ["9530", "9694"],
-									"2019-03_EXT_UOS_URBAN_BACKGROUND_API": ["5527", "5528"],
-									"2019-06_EXT_UOS_HEDGES_API_SECOND_BATCH": ["8739", "9397"]},
-					"options": {"target_raster": "1Min",
-								"clean_na": true,
-								"use_cache": true,
-								"clean_na_method": "fill",
-								"min_date": null,
-								"max_date": null,
-								"export_data": "All",
-								"rename_export_data": false}
+								"show_plots": true}
 					}
 		}
 }

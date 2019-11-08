@@ -10,7 +10,7 @@ from matplotlib import style
 from matplotlib import gridspec
 plt.ioff()
 
-style.use('ggplot')
+style.use('seaborn')
 
 import seaborn as sns
 import math
@@ -138,6 +138,7 @@ class plot_wrapper():
 		self.verbose = verbose
 		self.subplots_list = None
 		self.figure = None
+		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
 		
 	def std_out(self, msg):
 		if self.verbose: print(msg)
@@ -248,6 +249,12 @@ class plot_wrapper():
 		
 		if self.type == 'timeseries':
 			if self.library == 'matplotlib': 
+				if self.formatting['width'] > 30: 
+					self.std_out('Reducing width to 12')
+					self.formatting['width'] = 12
+				if self.formatting['height'] > 30: 
+					self.std_out('Reducing height to 10')
+					self.formatting['height'] = 10
 				figure, axes = plt.subplots(n_subplots, 1, sharex = self.formatting['sharex'],
 												  figsize=(self.formatting['width'], self.formatting['height']))
 	
@@ -256,14 +263,16 @@ class plot_wrapper():
 						axes.plot(self.df.index, self.df[trace], label = trace)
 						axes.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 						axes.set_ylabel(self.formatting['ylabel'][1])
-						axes.set_ylim(self.formatting['yrange'][1])
+						if 'yrange' in self.formatting.keys():
+							axes.set_ylim(self.formatting['yrange'][1])
 				else:
 					for index_subplot in range(n_subplots):
 						for trace in self.subplots_list[index_subplot]:
 							axes[index_subplot].plot(self.df.index, self.df[trace], label = trace)
 							axes[index_subplot].legend(loc='center left', bbox_to_anchor=(1, 0.5))
 							axes[index_subplot].set_ylabel(self.formatting['ylabel'][index_subplot+1])
-							axes[index_subplot].set_ylim(self.formatting['yrange'][index_subplot+1])
+							if 'yrange' in self.formatting.keys():
+								axes[index_subplot].set_ylim(self.formatting['yrange'][index_subplot+1])
 
 				
 				figure.suptitle(self.formatting['title'], fontsize=14)
@@ -276,7 +285,12 @@ class plot_wrapper():
 					if self.options['show_plot']: plt.show()
 			
 			elif self.library == 'plotly':
-				
+				if self.formatting['width'] < 100: 
+					self.std_out('Setting width to 800')
+					self.formatting['width'] = 800
+				if self.formatting['height'] <100: 
+					self.std_out('Reducing height to 600')
+					self.formatting['height'] = 600				
 				figure = make_subplots(rows=n_subplots, cols=1, 
 									   shared_xaxes = self.formatting['sharex'])
 				# Add traces
@@ -289,7 +303,8 @@ class plot_wrapper():
 											index_subplot + 1, 1)
 					# Name the axis
 					figure['layout']['yaxis' + str(index_subplot+1)]['title']['text'] = self.formatting['ylabel'][index_subplot+1]
-					figure['layout']['yaxis' + str(index_subplot+1)]['range'] = self.formatting['yrange'][index_subplot+1]
+					if 'yrange' in self.formatting.keys():
+						figure['layout']['yaxis' + str(index_subplot+1)]['range'] = self.formatting['yrange'][index_subplot+1]
 
 				# Add axis labels
 				figure['layout']['xaxis' + str(n_subplots)]['title']['text'] = self.formatting['xlabel']

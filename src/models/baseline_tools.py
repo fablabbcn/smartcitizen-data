@@ -76,7 +76,8 @@ def ExtractBaseline(_data, _delta):
 	# print ('Calculating delta {}'.format(_delta))
 	result = _data.copy()
 
-	for delta_time in range(0,int((result.index[-1]-result.index[0]).seconds/60), _delta):
+	for delta_time in range(0, int((result.index[-1]-result.index[0]).seconds/60), _delta):
+		if delta_time >= len(result): delta_time = len(result)-1
 
 		minIndex = max(result.index[delta_time], _data.index[0])
 		maxIndex = min(minIndex + pd.DateOffset(minutes = int(_delta)), _data.index[-1])
@@ -484,7 +485,6 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 		slot = _sensorIDs[sensor][5]
 		hyperparameters = _sensorIDs[sensor][6]
 	   
-		
 		# Get Sensor data
 		Sensitivity_1 = alpha_calData.loc[sensorID,'Sensitivity 1']
 		Sensitivity_2 = alpha_calData.loc[sensorID,'Sensitivity 2']
@@ -641,9 +641,9 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 
 						pollutant_ref = (pollutant + '_' + ref_append)
 
-						if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-							CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
-							CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+						# if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+						# 	CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
+						# 	CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
 
 					else:
 						if _verbose:
@@ -729,9 +729,9 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 					if dataframeTrimRef.index.max() < dataframeTrim.index.max():
 						dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]                    
 					pollutant_ref = pollutant + '_' + ref_append
-					if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-						CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
-						CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+					# if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
+						# CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
+						# CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
 
 				else:
 					if _verbose:

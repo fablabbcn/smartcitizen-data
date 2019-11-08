@@ -8,6 +8,8 @@ from src.visualization.visualization import plot_wrapper
 import numpy as np
 import traceback
 
+from src.data.signal_tools import metrics
+
 class batch_analysis:
     append_alphasense = 'PRE'
 
@@ -63,15 +65,17 @@ class batch_analysis:
                 try:
                     # Assume we need to re-process:
                     self.re_processing_needed = True
-
-                    # # Check if we need to perform alphasense pollutant calculation
-                    # if 'alphasense' in task['pre-processing']:
                             
                     # Find out if in the processed test, we have something that matches our variables
                     if data['options']['use_cache']:
+                        try:
+                            with open(join(self.available_tests[test], 'cached', 'cached_info.json')) as handle:
+                                cached_info = json.loads(handle.read())
+                        except:
+                            cached_info = None
+                            pass
+
                         self.std_out('Checking if we can use previously processed test')
-                        with open(join(self.available_tests[test], 'cached', 'cached_info.json')) as handle:
-                            cached_info = json.loads(handle.read())
 
                         try:
                             # Open info file
@@ -105,7 +109,8 @@ class batch_analysis:
                     # If we need to re-process data, do it nicely
                     if self.re_processing_needed:
                         self.std_out('Pre processing cannot be loaded from cached, calculating')
-                        if cached_info['new_data_to_process']: self.std_out('Reason, new data to process')
+                        if cached_info is not None:
+                            if cached_info['new_data_to_process']: self.std_out('Reason, new data to process')
 
                         if 'alphasense' in task['pre-processing']:
 
@@ -152,8 +157,9 @@ class batch_analysis:
 
                         # Store the data in the info file and export csvs for next time
                         if data['options']['export_data'] is not None:
-                            # Set the flag of pre-processed test to False
-                            cached_info['new_data_to_process'] = False
+                            if cached_info is not None:
+                                # Set the flag of pre-processed test to False
+                                cached_info['new_data_to_process'] = False
                             
                             # Store what we used as parameters for the pre-processing
                             self.std_out('Saving info file for processed test')
@@ -179,21 +185,20 @@ class batch_analysis:
                         
                         # Do it for both, train and test, if they exist
                         for dataset in ['train', 'test']:
-                            
                             # Check for datasets that are not reference
                             if dataset in task['model']['data'].keys():
                                 if test in task['model']['data'][dataset].keys():
                                     for device in task['model']['data'][dataset][test]:
                                         if device + '_PROCESSED' in self.records.readings[test]['devices'].keys():
-                                            print ('PROCESSED columns')
-                                            print (self.records.readings[test]['devices'][device + '_PROCESSED']['data'].columns)
-                                            print ('TARGET columns')
-                                            print (self.records.readings[test]['devices'][device]['data'].columns)
+                                            # print ('PROCESSED columns')
+                                            # print (self.records.readings[test]['devices'][device + '_PROCESSED']['data'].columns)
+                                            # print ('TARGET columns')
+                                            # print (self.records.readings[test]['devices'][device]['data'].columns)
                                             self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))                           
                                             self.records.readings[test]['devices'][device]['data'] = self.records.readings[test]['devices'][device]['data'].combine_first(self.records.readings[test]['devices'][device + '_PROCESSED']['data'])
                                             self.records.readings[test]['devices'].pop(device + '_PROCESSED')
-                                            print ('Final columns')
-                                            print (self.records.readings[test]['devices'][device]['data'].columns)
+                                            # print ('Final columns')
+                                            # print (self.records.readings[test]['devices'][device]['data'].columns)
 
                                         else:
                                             self.std_out("No available PROCESSED data to combine with")
@@ -256,7 +261,7 @@ class batch_analysis:
                     # Check for datasets that are not reference
                     if dataset in task['model']['data'].keys():
                         for test in task['model']['data'][dataset].keys():
-                            for device in task['model']['data'][dataset][test]:
+                            for device in task['model']['data'][dataset][test]['devices']:
                                 # Get columns of the test
                                 all_columns = list(self.records.readings[test]['devices'][device]['data'].columns)
 
@@ -296,6 +301,7 @@ class batch_analysis:
         
         # Process task by task
         for task in self.tasks.keys():
+            self.std_out('-------------------------------')
             self.std_out('Evaluating task {}'.format(task))
 
             if 'model' in self.tasks[task].keys():
@@ -351,6 +357,7 @@ class batch_analysis:
                 try:
                     # Prepare dataframe for training
                     train_dataset = list(current_model.data['train'].keys())[0]
+                    self.std_out (f'Train dataset: {train_dataset}')
 
                     if not self.records.prepare_dataframe_model(current_model):
                         self.std_out('Failed training dataset dataframe preparation for model')
@@ -358,12 +365,12 @@ class batch_analysis:
                     
                     # Train Model based on training dataset
                     current_model.training(self.records.readings[train_dataset]['models'][model_name])
-
                     # Evaluate Model in train data
-                    device = current_model.data['train'][train_dataset]
+                    device = current_model.data['train'][train_dataset]['devices']
                     # Dirty horrible workaround
                     if type(device) == list: device = device[0]
                     prediction_name = device + '_' + model_name
+
                     self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, train_dataset))
                     # Get prediction for train
                     prediction = current_model.predict_channels(self.records.readings[train_dataset]['devices'][device]['data'], prediction_name)
@@ -372,15 +379,21 @@ class batch_analysis:
 
                     # Evaluate Model in test data
                     for test_dataset in current_model.data['test'].keys():
-                        for device in current_model.data['test'][test_dataset]:
+                        for device in current_model.data['test'][test_dataset]['devices']:
                             prediction_name = device + '_' + model_name
                             self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, test_dataset))
-                            # Get prediction for test
-                            prediction = current_model.predict_channels(self.records.readings[test_dataset]['devices'][device]['data'], prediction_name)
+
+                            # Get prediction for test                            
+                            if current_model.data['test'][test_dataset]['reference_device'] in self.records.readings[test_dataset]['devices'].keys():
+                                reference = self.records.readings[test_dataset]['devices'][current_model.data['test'][test_dataset]['reference_device']]['data'][current_model.data['features']['REF']]
+                            else:
+                                reference = None
+                            
+                            prediction = current_model.predict_channels(self.records.readings[test_dataset]['devices'][device]['data'], prediction_name, reference)
+
                             # Combine it in readings
                             self.records.readings[test_dataset]['devices'][device]['data'].combine_first(prediction)
 
-            
                     # Export model data if requested
                     if data_dict['options']["export_data"] is not None:
                         dataFrameExport = current_model.dataFrameTrain.copy()
@@ -417,6 +430,10 @@ class batch_analysis:
                     elif data_dict['options']["export_data"] == 'All':
                         all_channels = True
                         include_raw = True
+                        include_processed = False
+                    else:
+                        all_channels = False
+                        include_raw = False
                         include_processed = False
                         
                     if self.re_processing_needed:
@@ -468,7 +485,6 @@ class batch_analysis:
                             for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
                                 if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] == 'all':
                                     list_devices_plot = list()
-                                    print (self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys())
                                     for device in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
                                         channel = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"]
                                         if channel in self.records.readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:

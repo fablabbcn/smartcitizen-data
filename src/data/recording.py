@@ -17,10 +17,11 @@ from src.models.formulas import *
 
 import traceback
 from termcolor import colored 
+from tabulate import tabulate
 
 class recording:
 
-	def __init__(self, verbose = True):
+	def __init__(self, verbose = True, reload_names = True):
 		
 		self.readings = dict()
 		self.rootDirectory = rootDirectory
@@ -29,8 +30,8 @@ class recording:
 		self.modelDirectory = join(self.rootDirectory, 'models')
 		self.availableTests = getTests(self.dataDirectory)
 		self.verbose = verbose
-		sensorNames_21 = getSensorNames(SENSOR_NAMES_URL_21, join(self.dataDirectory, 'interim'), 'sensornames_21')
-		sensorNames_20 = getSensorNames(SENSOR_NAMES_URL_20, join(self.dataDirectory, 'interim'), 'sensornames_20')
+		sensorNames_21 = getSensorNames(SENSOR_NAMES_URL_21, join(self.dataDirectory, 'interim'), 'sensornames_21', reload_names)
+		sensorNames_20 = getSensorNames(SENSOR_NAMES_URL_20, join(self.dataDirectory, 'interim'), 'sensornames_20', reload_names)
 		self.currentSensorNames = {**sensorNames_21, **sensorNames_20}
 		self.name_combined_data = NAME_COMBINED_DATA
 
@@ -38,8 +39,8 @@ class recording:
 		self.availableTests = getTests(self.dataDirectory)
 		return self.availableTests
 
-	def std_out(self, msg, type_message = None):
-		if self.verbose: 
+	def std_out(self, msg, type_message = None, force = False):
+		if self.verbose or force: 
 			if type_message is None: print(msg)	
 			elif type_message == 'SUCCESS': print(colored(msg, 'green'))
 			elif type_message == 'WARNING': print(colored(msg, 'yellow')) 
@@ -56,7 +57,7 @@ class recording:
 		self.std_out('Test Preview')
 
 		self.std_out('Loading test {}'.format(test_id))
-		self.std_out(test['test']['comment'])
+		# self.std_out(test['test']['comment'])
 	
 	def load_recording_database(self, test_name, testPath, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
 		
@@ -77,7 +78,7 @@ class recording:
 			
 			self.std_out('Test Load')
 
-			self.std_out('Loading test {}'.format(test_id))
+			self.std_out('Loading test {}'.format(test_id), force = True)
 			self.std_out(test['test']['comment'])
 
 			if load_cached_API:
@@ -165,12 +166,18 @@ class recording:
 
 					# Get test dates
 					if test['test']['devices']['kits'][kit]['min_date'] is not None: 
-						min_date = datetime.strptime(test['test']['devices']['kits'][kit]['min_date'], '%Y-%m-%d')
+						try:
+							min_date = datetime.strptime(test['test']['devices']['kits'][kit]['min_date'], '%Y-%m-%d %H:%M:%S')
+						except:
+							min_date = datetime.strptime(test['test']['devices']['kits'][kit]['min_date'], '%Y-%m-%d')
 					else: 
 						min_date = None
 					
 					if test['test']['devices']['kits'][kit]['max_date'] is not None: 
-						max_date=datetime.strptime(test['test']['devices']['kits'][kit]['max_date'], '%Y-%m-%d')
+						try:
+							max_date=datetime.strptime(test['test']['devices']['kits'][kit]['max_date'], '%Y-%m-%d %H:%M:%S')
+						except:
+							max_date=datetime.strptime(test['test']['devices']['kits'][kit]['max_date'], '%Y-%m-%d')
 					else:
 						max_date = None
 
@@ -197,7 +204,7 @@ class recording:
 
 							if location_cached is None: 
 								self.std_out(f'Requesting API location', 'WARNING')
-								location_api = getDeviceLocation(device_id)
+								location_api = getDeviceLocation(device_id, self.verbose)
 								location = location_api
 							else:
 								location = location_cached
@@ -219,7 +226,7 @@ class recording:
 							self.std_out('Last day in cached data {}'.format(last_reading_cached))
 
 							# Get last reading from API
-							last_reading_api = getDateLastReading(device_id)
+							last_reading_api = getDateLastReading(device_id, self.verbose)
 
 							if last_reading_api is not None:
 								# Localise date
@@ -227,7 +234,7 @@ class recording:
 
 								if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
 
-								print (f'last_reading_api.tzinfo: {last_reading_api.tzinfo} and last_reading_api.tzname(): {last_reading_api.tzname()}')
+								self.std_out (f'last_reading_api.tzinfo: {last_reading_api.tzinfo} and last_reading_api.tzname(): {last_reading_api.tzname()}')
 								self.std_out('Last reading in API: {}'.format(last_reading_api))								
 							
 								# Localize min test date for comparison
@@ -262,7 +269,7 @@ class recording:
 										load_API = False
 										self.std_out('No need to load new data from API...', 'SUCCESS')
 							else:
-								self.std_out('API does not contain valid data for last date, skipping', 'WARNING')
+								self.std_out('Request to API did not return valid date, skipping', 'WARNING')
 								load_API = False
 					
 					else:
@@ -274,7 +281,7 @@ class recording:
 					if load_API:
 						
 						self.std_out('Checking device in API')
-						if location is None: location = getDeviceLocation(device_id)
+						if location is None: location = getDeviceLocation(device_id, self.verbose)
 
 						# Localize min test date for comparison
 						if min_date is not None:
@@ -282,17 +289,17 @@ class recording:
 								if location is not None: min_date = pd.to_datetime(min_date).tz_localize('UTC').tz_convert(location)
 						# Localize max test date for comparison
 						if max_date is not None:
-							print (f'max_date.tzinfo: {max_date.tzinfo} and max_date.tzname(): {max_date.tzname()}')
+							self.std_out(f'max_date.tzinfo: {max_date.tzinfo} and max_date.tzname(): {max_date.tzname()}')
 							if max_date.tzinfo is None: 
 								if location is not None: max_date = pd.to_datetime(max_date).tz_localize('UTC').tz_convert(location)
 						
 						# Get last reading from API
-						last_reading_api = getDateLastReading(device_id)
-						last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
-						if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
+						last_reading_api = getDateLastReading(device_id, self.verbose)
+
 
 						if last_reading_api is not None:
-							
+							last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
+							if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
 							# Handle max and min dates
 							if max_date is not None:
 								self.std_out('Last reading requested: {}'.format(max_date))
@@ -309,13 +316,13 @@ class recording:
 								self.std_out('First reading requested: {}'.format(min_date))
 								if min_date < last_reading_api:
 									self.std_out('Requesting up to max available date in the API {}'.format(last_reading_api))
-									data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method)
+									data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method, self.verbose)
 								else:
 									self.std_out('Discarding device. Min date requested is after last reading available', 'ERROR')
 									data = None
 							else:
 								self.std_out('Requesting all available data')
-								data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method)
+								data = getReadingsAPI(list_devices_api, target_raster, min_date, max_requesting_date, currentSensorNames, dataDirectory, location, clean_na, clean_na_method, self.verbose)
 
 						else:
 							self.std_out('No valid data found in the API, skipping (no last date)', 'ERROR')
@@ -533,11 +540,11 @@ class recording:
 
 		# Set flag
 		self.readings[test_name]['ready_to_model'] = False
-		self.std_out('Test loaded successfully', 'SUCCESS')
+		self.std_out('Test loaded successfully', 'SUCCESS', force = True)
 
 	def load_recording_API(self, reading_name, source_id, min_date, max_date, target_raster = '1Min', clean_na = True, clean_na_method = 'fill'):
 		# Load data from the API
-		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, None, clean_na, clean_na_method)
+		data = getReadingsAPI(source_id, target_raster, min_date, max_date, self.currentSensorNames, self.dataDirectory, None, clean_na, clean_na_method, self.verbose)
 		
 		# Case for non merged API to CSV
 		if reading_name not in self.readings.keys():
@@ -560,6 +567,36 @@ class recording:
 	def clear_recordings(self):
 		self.readings.clear()
 		self.std_out('Clearing recordings')
+
+	def describe(self, reading_name, devices = None, verbose = True, tablefmt = 'simple'):
+		if reading_name in self.readings.keys():
+			summary_dict = dict()
+			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)','Number of records after drop (minutes)', 'Ratio (%)']
+
+			if devices is None: listDevices = self.readings[reading_name]['devices'].keys()
+			else: listDevices = devices
+				
+			for device in listDevices:
+				summary_dict[device] = list()
+				
+				# print (f'Test: {testName}, device: {device}')
+				df = self.readings[reading_name]['devices'][device]['data'].copy()
+				if len(df.index) > 0:
+					summary_dict[device].append(df.index[0])
+					summary_dict[device].append(df.index[-1])
+					summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/60)
+					summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/(3600*24))
+					df = df.resample('1Min').mean()
+					df.dropna(axis = 0, how='any', inplace=True)
+					summary_dict[device].append(len(df.index))
+					summary_dict[device].append(min(100,summary_dict[device][-1]/summary_dict[device][2]*100))
+				else:
+					summary_dict[device] = [None, None]
+			self.std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = verbose)
+
+			return summary_dict
+		else:
+			self.std_out(f'Reading {reading_name} not loaded')
 
 	def combine_readings(self, reading_name):
 		
@@ -613,8 +650,8 @@ class recording:
 
 		# Retrieve input
 		reading_name = list(model_object.data['train'].keys())[0]
-		device = model_object.data['train'][reading_name]
-		reference = model_object.data['reference_device']
+		device = model_object.data['train'][reading_name]['devices']
+		reference = model_object.data['train'][reading_name]['reference_device']
 
 		self.std_out('Preparing dataframe model for test {}'.format(reading_name))
 		if self.combine_readings(reading_name):
@@ -628,7 +665,6 @@ class recording:
 
 					# Dirty horrible workaround
 					if type(device) == list: device = device[0]
-					
 					if item == 'REF': 
 						feature_name = features[item] + '_' + reference
 						reference_name = feature_name
@@ -641,20 +677,21 @@ class recording:
 
 				# Resample
 				dataframeModel = dataframeModel.resample(model_object.data['options']['target_raster'], limit = 1).mean()
-				
 				# Remove na
 				if model_object.data['options']['clean_na']:
+					
 					if model_object.data['options']['clean_na_method'] == 'fill':
 						dataframeModel = dataframeModel.fillna(method='ffill')
+					
 					elif model_object.data['options']['clean_na_method'] == 'drop':
-						dataframeModel.dropna(axis = 0, how='all', inplace = True)
-				
-				if model_object.data['options']['min_date'] != None:
+						dataframeModel.dropna(axis = 0, how='any', inplace = True)
+
+				if model_object.data['options']['min_date'] is not None:
 					dataframeModel = dataframeModel[dataframeModel.index > model_object.data['options']['min_date']]
-				if model_object.data['options']['max_date'] != None:
+				if model_object.data['options']['max_date'] is not None:
 					dataframeModel = dataframeModel[dataframeModel.index < model_object.data['options']['max_date']]
 
-				if model_object.name != None:
+				if model_object.name is not None:
 					# Don't create the model structure, since we are predicting
 					if 'models' not in self.readings[reading_name].keys():
 						self.std_out('Creating models session in recordings')
@@ -740,6 +777,7 @@ class recording:
 				# Calculate correction
 				self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'] = dict()
 				self.readings[reading_name]['ready_to_model'] = False
+
 				self.readings[reading_name]['devices'][kit]['data'], self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'][append_name] = calculatePollutantsAlpha(
 						_dataframe = self.readings[reading_name]['devices'][kit]['data'], 
 						_sensorIDs = sensorIDs,
