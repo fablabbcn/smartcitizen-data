@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from os.path import dirname, join, realpath
 import csv
-
+import ftfy
 import argparse
 
 def concatenate(output, index_name, keep, ignore, directory):
@@ -15,16 +15,49 @@ def concatenate(output, index_name, keep, ignore, directory):
 	print ('Files to concat:')
 
 	header_tokenized = dict()
+	marked_for_revision = False
 	for item in os.listdir(raw_src_path):
 
 		if '.csv' in item or '.CSV' in item:
 			if item != output and ignore != item:
 				print (item)
-
 				src_path = join(raw_src_path, item)
-				with open(src_path, 'r') as csv_file:
-					header = csv_file.readlines()[0:4]
 
+				try:
+				
+					with open(src_path, 'r', newline = '\n') as csv_file:
+						header = csv_file.readlines()[0:4]
+				except:
+					marked_for_revision = True
+					pass
+				else:
+					marked_for_revision = False
+
+				if marked_for_revision:
+					filenew = True
+					fixed_file_list = list()
+					with open(src_path, 'rb') as file:
+						while filenew:
+							filenew = file.readline() 
+							try: 
+								filenew.decode(encoding='UTF-8',errors='strict')
+							except:
+								pass
+							else:
+								fixed_file_list.append(filenew.decode(encoding='UTF-8', errors='strict'))
+							# print (filenew)	
+
+					# print ('---')
+
+					print (f'Fixing file:{item}')
+					fixed_src_path = join(raw_src_path, item[:-4] + '_FIXED.CSV')
+
+					with open(fixed_src_path, 'w') as fixed_file:
+						wr = csv.writer(fixed_file, delimiter = '\t')
+						for row in fixed_file_list:
+							wr.writerow([row.strip('\r\n')])
+
+				# print ('DONE')
 				if keep:
 					short_tokenized = header[0].strip('\r\n').split(',')
 					unit_tokenized = header[1].strip('\r\n').split(',')
@@ -39,8 +72,10 @@ def concatenate(output, index_name, keep, ignore, directory):
 							header_tokenized[short_tokenized[index]]['unit'] = unit_tokenized[index]
 							header_tokenized[short_tokenized[index]]['long'] = long_tokenized[index]
 							header_tokenized[short_tokenized[index]]['id'] = id_tokenized[index]
+				
+				if marked_for_revision: temp = pd.read_csv(fixed_src_path, verbose=False, skiprows=range(1,4)).set_index("TIME")
+				else: temp = pd.read_csv(src_path, verbose=False, skiprows=range(1,4)).set_index("TIME")
 
-				temp = pd.read_csv(src_path, verbose=False, skiprows=range(1,4)).set_index("TIME")
 				temp.index.rename(index_name, inplace=True)
 				concat = concat.combine_first(temp)
 	
