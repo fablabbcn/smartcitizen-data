@@ -21,7 +21,7 @@ from tabulate import tabulate
 
 class recording:
 
-	def __init__(self, verbose = True, reload_names = True):
+	def __init__(self, verbose = True, reload_names = False):
 		
 		self.readings = dict()
 		self.rootDirectory = rootDirectory
@@ -57,7 +57,7 @@ class recording:
 		self.std_out('Test Preview')
 
 		self.std_out('Loading test {}'.format(test_id))
-		# self.std_out(test['test']['comment'])
+		self.std_out(test['test']['comment'])
 	
 	def load_recording_database(self, test_name, testPath, target_raster = '1Min', clean_na = True, clean_na_method = 'fill', load_processed = False, load_cached_API = True, cache_API = True):
 		
@@ -79,7 +79,7 @@ class recording:
 			self.std_out('Test Load')
 
 			self.std_out('Loading test {}'.format(test_id), force = True)
-			self.std_out(test['test']['comment'])
+			# self.std_out(test['test']['comment'])
 
 			if load_cached_API:
 				# Retrieve cached information, if any
@@ -146,14 +146,13 @@ class recording:
 					
 					## Check if it's a STATION and retrieve alphadelta codes
 					if test['test']['devices']['kits'][kit]['type'] == 'STATION':
-						alphasense = dict()
-						alphasense['CO'] = test['test']['devices']['kits'][kit]['alphasense']['CO']
-						alphasense['NO2'] = test['test']['devices']['kits'][kit]['alphasense']['NO2']
-						alphasense['O3'] = test['test']['devices']['kits'][kit]['alphasense']['O3']
-						alphasense['slots'] = test['test']['devices']['kits'][kit]['alphasense']['slots']
+						alphasense = test['test']['devices']['kits'][kit]['alphasense']
+						# alphasense['CO'] = test['test']['devices']['kits'][kit]['alphasense']['CO']
+						# alphasense['NO2'] = test['test']['devices']['kits'][kit]['alphasense']['NO2']
+						# alphasense['O3'] = test['test']['devices']['kits'][kit]['alphasense']['O3']
+						# alphasense['slots'] = test['test']['devices']['kits'][kit]['alphasense']['slots']
 						_readings[test_id]['devices'][kit]['alphasense'] = alphasense
-						self.std_out('ALPHASENSE')
-						self.std_out(alphasense)
+						self.std_out(f'Alphasense data found: {alphasense}')
 						
 					self.std_out('Kit {} has been loaded'.format(kit), 'SUCCESS')
 				
@@ -295,8 +294,6 @@ class recording:
 						
 						# Get last reading from API
 						last_reading_api = getDateLastReading(device_id, self.verbose)
-
-
 						if last_reading_api is not None:
 							last_reading_api = datetime.strptime(last_reading_api, '%Y-%m-%dT%H:%M:%SZ')
 							if last_reading_api.tzinfo is None:	last_reading_api = pd.to_datetime(last_reading_api).tz_localize('UTC').tz_convert(location)
@@ -564,11 +561,18 @@ class recording:
 			self.readings.pop(reading_name)
 		self.std_out('Deleting {}'.format(reading_name))
 
+	# Temporary
+	def preprocess_test(self, reading_name, window = 10):
+		for device in self.readings[reading_name]['devices'].keys():
+			self.std_out(f'Preprocessing {device}', force = True)
+			self.readings[reading_name]['devices'][device]['data_preprocess'] = self.readings[reading_name]['devices'][device]['data'].rolling(window = window).mean()
+		self.std_out('Preprocessing done')
+
 	def clear_recordings(self):
 		self.readings.clear()
 		self.std_out('Clearing recordings')
 
-	def describe(self, reading_name, devices = None, verbose = True, tablefmt = 'simple'):
+	def describe_test(self, reading_name, devices = None, verbose = True, tablefmt = 'simple'):
 		if reading_name in self.readings.keys():
 			summary_dict = dict()
 			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)','Number of records after drop (minutes)', 'Ratio (%)']
@@ -648,75 +652,115 @@ class recording:
 
 	def prepare_dataframe_model(self, model_object):
 
-		# Retrieve input
-		reading_name = list(model_object.data['train'].keys())[0]
-		device = model_object.data['train'][reading_name]['devices']
-		reference = model_object.data['train'][reading_name]['reference_device']
+		reading_names = list(model_object.data['train'].keys())
 
-		self.std_out('Preparing dataframe model for test {}'.format(reading_name))
-		if self.combine_readings(reading_name):
+		# Create structure for multiple training
+		if len(reading_names) > 1: 
+			multiple_training = True
+			combined_name = model_object.name + '_CDEV'
+			self.readings[combined_name] = dict()
+			self.readings[combined_name]['models'] = dict()
+			self.readings[combined_name]['models'][model_object.name] = dict()
+		else:
+			multiple_training = False
 
-			## Send only the needed features
-			list_features = list()
-			features = model_object.data['features']
-			try:
-				# Create the list of features needed
-				for item in features.keys():
+		for reading_name in reading_names:
 
-					# Dirty horrible workaround
-					if type(device) == list: device = device[0]
-					if item == 'REF': 
-						feature_name = features[item] + '_' + reference
-						reference_name = feature_name
-					else: feature_name = features[item] + '_' + device
-					list_features.append(feature_name)
-				
-				# Get features from data only and pre-process non-numeric data
-				dataframeModel = self.readings[reading_name]['devices'][self.name_combined_data]['data'].loc[:,list_features]
-				dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
+			device = model_object.data['train'][reading_name]['devices']
+			reference = model_object.data['train'][reading_name]['reference_device']
 
-				# Resample
-				dataframeModel = dataframeModel.resample(model_object.data['options']['target_raster'], limit = 1).mean()
-				# Remove na
-				if model_object.data['options']['clean_na']:
+			self.std_out('Preparing dataframe model for test {}'.format(reading_name))
+		
+			if self.combine_readings(reading_name):
+
+				## Send only the needed features
+				list_features = list()
+				list_features_multiple = list()
+				features = model_object.data['features']
+				try:
+					# Create the list of features needed
+					for item in features.keys():
+
+						# Dirty horrible workaround
+						if type(device) == list: device = device[0]
+
+						if item == 'REF': 
+							feature_name = features[item] + '_' + reference
+							feature_name_multiple = features[item]
+							reference_name = feature_name
+							reference_name_multiple = feature_name_multiple
+						else: 
+							feature_name = features[item] + '_' + device
+							feature_name_multiple = features[item]
+						list_features.append(feature_name)
+						list_features_multiple.append(feature_name_multiple)
 					
-					if model_object.data['options']['clean_na_method'] == 'fill':
-						dataframeModel = dataframeModel.fillna(method='ffill')
+					# Get features from data only and pre-process non-numeric data
+					dataframeModel = self.readings[reading_name]['devices'][self.name_combined_data]['data'].loc[:,list_features]
+					# Remove device names if multiple training
+					if multiple_training:
+						for i in range(len(list_features)):
+							dataframeModel.rename(columns={list_features[i]: list_features_multiple[i]}, inplace=True)
 					
-					elif model_object.data['options']['clean_na_method'] == 'drop':
-						dataframeModel.dropna(axis = 0, how='any', inplace = True)
+					dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
 
-				if model_object.data['options']['min_date'] is not None:
-					dataframeModel = dataframeModel[dataframeModel.index > model_object.data['options']['min_date']]
-				if model_object.data['options']['max_date'] is not None:
-					dataframeModel = dataframeModel[dataframeModel.index < model_object.data['options']['max_date']]
+					# Resample
+					dataframeModel = dataframeModel.resample(model_object.options['target_raster'], limit = 1).mean()
+					# Remove na
+					if model_object.options['clean_na']:
+						
+						if model_object.options['clean_na_method'] == 'fill':
+							dataframeModel = dataframeModel.fillna(method='ffill')
+						
+						elif model_object.options['clean_na_method'] == 'drop':
+							dataframeModel.dropna(axis = 0, how='any', inplace = True)
 
-				if model_object.name is not None:
-					# Don't create the model structure, since we are predicting
-					if 'models' not in self.readings[reading_name].keys():
-						self.std_out('Creating models session in recordings')
-						self.readings[reading_name]['models']=dict()
+					if model_object.options['min_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index > model_object.options['min_date']]
+					if model_object.options['max_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index < model_object.options['max_date']]
 
-					# Create model_name entry
-					self.readings[reading_name]['models'][model_object.name]=dict()
+					if model_object.name is not None:
+						# Don't create the model structure, since we are predicting
+						if 'models' not in self.readings[reading_name].keys():
+							self.std_out('Creating models session in recordings')
+							self.readings[reading_name]['models']=dict()
 
-					self.readings[reading_name]['models'][model_object.name]['data'] = dataframeModel
-					self.readings[reading_name]['models'][model_object.name]['features'] = features
-					self.readings[reading_name]['models'][model_object.name]['reference'] = reference_name
-					# Set flag
-					self.readings[reading_name]['ready_to_model'] = True
-				
-			except:
-				self.std_out('Dataframe model failed')
-				traceback.print_exc()
-				return False
-			else: 
-				self.std_out('Dataframe model generated successfully')
-				return True
+						# Create model_name entry
+						self.readings[reading_name]['models'][model_object.name]=dict()
+
+						self.readings[reading_name]['models'][model_object.name]['data'] = dataframeModel
+						self.readings[reading_name]['models'][model_object.name]['features'] = features
+						self.readings[reading_name]['models'][model_object.name]['reference'] = reference_name
+						# Set flag
+						self.readings[reading_name]['ready_to_model'] = True
+					
+				except:
+					self.std_out(f'Dataframe model failed for {reading_name}')
+					traceback.print_exc()
+					return None
+				else: 
+					self.std_out(f'Dataframe model generated successfully for {reading_name}')
+					
+		if multiple_training:
+			self.std_out('Multiple training datasets requested. Combining')
+			# Combine everything
+			frames = list()
+
+			for reading_name in reading_names:
+				frames.append(self.readings[reading_name]['models'][model_object.name]['data'])
+
+			self.readings[combined_name]['models'][model_object.name]['data'] = pd.concat(frames)
+			self.readings[combined_name]['models'][model_object.name]['features'] = features
+			self.readings[combined_name]['models'][model_object.name]['reference'] = reference_name_multiple
+
+			return combined_name
+		else:
+			return reading_name
 
 	def archive_model(self, reading_name, model_object, dataframe = None):
 		try:
-			# Model savin in previous entry
+			# Model saving in previous entry
 			self.readings[reading_name]['models'][model_object.name]['model_object'] = model_object
 			
 			# Dataframe
@@ -731,27 +775,12 @@ class recording:
 		else:
 			self.std_out('Model archived correctly')
 
-	def calculateAlphaSense(self, reading_name, append_name, variables, options):
-
-		# variables =  hyperparameters, methods, overlapHours
-		hyperparameters = variables[0]
-		methods = variables[1]
-		overlapHours = variables[2]
-		baseline_method = variables[3]
-
-		# methods[0][0] # CO classic
-		# methods[0][1] # CO n/a
-
-		# methods[1][0] # NO2 baseline
-		# methods[1][1] # NO2 single_aux
-
-		# methods[2][0] # OX baseline
-		# methods[2][1] # OX single_aux
+	def calculateAlphaSense(self, reading_name, variables, options, use_preprocessed = False):
 
 		# Check if we have a reference first in the dataset
 		for kit in self.readings[reading_name]['devices']:
 			if 'is_reference' in self.readings[reading_name]['devices'][kit]:
-				self.std_out('Reference found')
+				self.std_out(f'Reference found: {kit}')
 				refAvail = True
 				dataframeRef = self.readings[reading_name]['devices'][kit]['data']
 				break
@@ -761,39 +790,42 @@ class recording:
 
 		# For each kit in the requested reading, calculate the pollutants
 		for kit in self.readings[reading_name]['devices']:
+
 			if 'alphasense' in self.readings[reading_name]['devices'][kit]:
-				self.std_out('---------------------')
-				self.std_out('Calculating test {} for kit {}. Appending {}'.format(reading_name, kit, append_name))
+				self.std_out('Calculating test {} for kit {}'.format(reading_name, kit), force = True)
 				
-				sensorID_CO = self.readings[reading_name]['devices'][kit]['alphasense']['CO']
-				sensorID_NO2 = self.readings[reading_name]['devices'][kit]['alphasense']['NO2']
-				sensorID_OX = self.readings[reading_name]['devices'][kit]['alphasense']['O3']
+				 # Get sensor information
 				sensorSlots = self.readings[reading_name]['devices'][kit]['alphasense']['slots']
 
-				sensorIDs = (['CO', sensorID_CO, methods['CO'][0], baseline_method, methods['CO'][1], sensorSlots.index('CO')+1, hyperparameters], 
-							['NO2', sensorID_NO2, methods['NO2'][0], baseline_method, methods['NO2'][1], sensorSlots.index('NO2')+1, hyperparameters], 
-							['O3', sensorID_OX, methods['O3'][0], baseline_method, methods['O3'][1], sensorSlots.index('O3')+1, hyperparameters])
+				sensorIDs = dict()
+				for pollutant in variables.keys():
+					sensorSerialNumber = self.readings[reading_name]['devices'][kit]['alphasense'][pollutant]
+					sensorIDs[pollutant] = [sensorSerialNumber, sensorSlots.index(pollutant)+1]
 					
 				# Calculate correction
 				self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'] = dict()
 				self.readings[reading_name]['ready_to_model'] = False
 
-				self.readings[reading_name]['devices'][kit]['data'], self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'][append_name] = calculatePollutantsAlpha(
-						_dataframe = self.readings[reading_name]['devices'][kit]['data'], 
+				if use_preprocessed: _data = 'data_preprocess'
+				else: _data = 'data'
+
+				self.readings[reading_name]['devices'][kit][_data], correlationMetrics = calculatePollutantsAlpha(
+						_dataframe = self.readings[reading_name]['devices'][kit][_data], 
 						_sensorIDs = sensorIDs,
+						_variables = variables,
 						_refAvail = refAvail, 
-						_dataframeRef = dataframeRef, 
-						_overlapHours = overlapHours, 
+						_dataframeRef = dataframeRef,  
 						_type_regress = 'best', 
 						_filterExpSmoothing = filterExpSmoothing, 
-						_trydecomp = options['checkBoxDecomp'],
 						_plotsInter = options['checkBoxPlotsIn'], 
 						_plotResult = options['checkBoxPlotsResult'],
 						_verbose = options['checkBoxVerb'], 
 						_printStats = options['checkBoxStats'],
 						_calibrationDataPath = os.path.join(self.dataDirectory, 'interim/CalibrationData/'),
-						_currentSensorNames = self.currentSensorNames,
-						_append_name = append_name)
+						_currentSensorNames = self.currentSensorNames)
+				self.readings[reading_name]['devices'][kit]['alphasense']['model_stats'].update(correlationMetrics)
+
+		self.std_out('Calculation of test {} finished'.format(reading_name), force = True)
 
 	def addChannelFormula(self, reading_name, device_name, new_channel_name, terms, formula):
 

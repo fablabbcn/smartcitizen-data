@@ -2,7 +2,6 @@ import matplotlib
 import matplotlib.pyplot as plt                  # plots
 import seaborn as sns                            # more plots
 sns.set(color_codes=True)
-matplotlib.style.use('seaborn-whitegrid')
 
 import pandas as pd
 import numpy as np
@@ -31,9 +30,6 @@ backgroundConc_CO = 0 # ppm
 backgroundConc_NO2 = 8 # ppb
 backgroundConc_OX = 40 # ppb
 
-# Overlap in hours for each day (index = [day(i)-overlapHours, day(i+1)+overlapHours])
-# overlapHours = 0
-
 # Filter Smoothing 
 filterExpSmoothing = 0.2
 
@@ -41,9 +37,6 @@ filterExpSmoothing = 0.2
 alphaUnitsFactorsLUT = (['CO', 1, 0],
 						['NO2', 1000, 0],
 						['O3', 1000, 1000])
-
-micsUnitsFactorsLUT = (['CO', 1],
-						['NO2', 1000])
 
 # Alphasense ID table (Slot, Working, Auxiliary)
 as_ids_table = ([1,'64','65'], 
@@ -57,7 +50,7 @@ th_ids_table = (['EXT_DALLAS','96',''],
 				 ['GASESBOARD_TEMPERATURE','79', '80'])
 
 def getCalData(_sensorType, _calibrationDataPath):
-	print ("Loading sensor calibration data from", _calibrationDataPath)
+	# print ("Loading sensor calibration data from", _calibrationDataPath)
 
 	calData = pd.read_json('file://' + _calibrationDataPath + _sensorType + '.json', orient='columns', lines = True)
 	calData.index = calData['Serial No']
@@ -73,17 +66,23 @@ def ExtractBaseline(_data, _delta):
 			result: vector containing baselined values
 	''' 
 	
-	# print ('Calculating delta {}'.format(_delta))
 	result = _data.copy()
+	result = result.resample('1Min').mean()
 
-	for delta_time in range(0, int((result.index[-1]-result.index[0]).seconds/60), _delta):
+	total_minutes = int((result.index[-1]-result.index[0]).seconds/60)
+	
+	# print (f'total minutes: {total_minutes}')
+	
+	for delta_time in range(0, total_minutes, _delta):
+
 		if delta_time >= len(result): delta_time = len(result)-1
 
 		minIndex = max(result.index[delta_time], _data.index[0])
 		maxIndex = min(minIndex + pd.DateOffset(minutes = int(_delta)), _data.index[-1])
 		chunk = _data.loc[minIndex:maxIndex]
 		# print (minIndex, maxIndex)
-		result[minIndex:maxIndex] = max(0, min(chunk.values))
+		if len(chunk.values) == 0: result[minIndex:maxIndex] = 0
+		else: result[minIndex:maxIndex] = max(0, min(chunk.values))
 		# print (chunk, result[minIndex], minIndex, maxIndex)
 
 	return result
@@ -146,15 +145,13 @@ def createBaselines(_dataBaseline, baselineType, hyperparameters, _type_regress 
 	name = resultData.iloc[:,0].name
 	pearsons =[]
 	
-	if _plots:
-		figX, axX = plt.subplots(figsize=(20,8))
+	if _plots: figX, axX = plt.subplots(figsize=(20,8))
 
 	if baselineType == 'deltas':
 		_numberDeltas = hyperparameters
 		
 		for delta in _numberDeltas:
 			resultData[(name +'_' +str(delta))] = ExtractBaseline(resultData.iloc[:,0], delta)
-
 			if _plots: axX.plot(resultData.iloc[:,0].index, resultData[(name +'_' +str(delta))], label = resultData[(name +'_' +str(delta))].name)
 
 			_, _, r_value, _, _ = linregress(np.transpose(resultData[(name +'_' +str(delta))]), np.transpose(resultData.iloc[:,1].values))
@@ -185,7 +182,6 @@ def createBaselines(_dataBaseline, baselineType, hyperparameters, _type_regress 
 		axX.grid(True)
 	
 		plt.show()
-
 	## Find Max in the pearsons - correlation can be negative, so use absolute of the pearson
 	valMax, indexMax = findMax(np.abs(pearsons))
 
@@ -231,11 +227,11 @@ def createBaselines(_dataBaseline, baselineType, hyperparameters, _type_regress 
 				print ('Using exponential regression')
 			baseline = exponential_func(np.transpose(resultData.iloc[:,1].values), np.exp(intercept_exp), slope_exp, 0)
 		else:
-			print ('All is nan')
+			print ('Exponential and linear regression are nan')
 	
 	# Put baseline in the dataframe
 	resultData['Zero'] = 0
-	# Avoid baselines lower than the working electrode and lower than zero
+	# Avoid baselines higher than the working electrode and lower than zero
 	resultData[(name + '_' + 'baseline_raw' +  _type_regress)] = baseline
 	resultData[(name + '_' + 'baseline_min' + _type_regress)] = resultData[[(name + '_' + 'baseline_raw' +  _type_regress), resultData.iloc[:,0].name]].min(axis=1)
 	resultData[(name + '_' + 'baseline_' + _type_regress)] = resultData[[(name + '_' + 'baseline_min' + _type_regress), 'Zero']].max(axis = 1)
@@ -328,7 +324,7 @@ def decompose(_data, _plots = False):
 			
 	return dataDecomp, slope, intercept
 
-def calculateBaselineDay(_dataFrame, _listNames, baselineType, hyperparameters, _type_regress, _trydecomp = False, _plots = False, _verbose = True):
+def calculateBaselineDay(_dataFrame, _listNames, baselineType, hyperparameters, _type_regress, _plots = False, _verbose = True):
 	'''
 		Function to calculate day-based baseline corrections
 		Input:
@@ -337,7 +333,6 @@ def calculateBaselineDay(_dataFrame, _listNames, baselineType, hyperparameters, 
 			_baselined: channel to calculate the baseline of
 			_baseliner: channel to use as input for the baselined (baselined = f(baseliner)) 
 			_type_regress: type of regression to perform (linear, exponential, best)
-			// NOT USED - _trydecomp: try trend decomposition (not needed . remove it)
 			_plot: plot analytics or not
 			_verbose: print analytics or not
 		Output:
@@ -351,40 +346,40 @@ def calculateBaselineDay(_dataFrame, _listNames, baselineType, hyperparameters, 
 
 	data_baseline, indexMax = createBaselines(dataframeCalc, baselineType, hyperparameters, _type_regress, _plots, _verbose)
 
-	## Un-pack list names
-	alphaW, alphaA, temp, hum = _listNames
-	# print (alphaW, alphaA, temp, hum)
+	## COMMENTED FOR SIMPLICITY - NOT USED
+	# ## Un-pack list names
+	# alphaW, alphaA, temp, hum = _listNames
 
-	## Correlation between Baseline and original auxiliary
-	slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc.iloc[:,1].values))
+	# ## Correlation between Baseline and original auxiliary
+	# slopeAuxBase, interceptAuxBase, rAuxBase, pAuxBase, std_errAuxBase = linregress(np.transpose(data_baseline.values), np.transpose(dataframeCalc.iloc[:,1].values))
 
-	# Add metadata for further research
-	deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc.iloc[:,1].values)
-	ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc.iloc[:,1].values)
+	# # Add metadata for further research
+	# deltaAuxBase_avg = np.mean(data_baseline.values-dataframeCalc.iloc[:,1].values)
+	# ratioAuxBase_avg = np.mean(data_baseline.values/dataframeCalc.iloc[:,1].values)
    
-	# Pre filter based on the metadata itself
-	if slopeAuxBase > 0 and rAuxBase > 0.3:
-		valid = True
-	else:
-		valid = False
+	# # Pre filter based on the metadata itself
+	# if slopeAuxBase > 0 and rAuxBase > 0.3:
+	# 	valid = True
+	# else:
+	# 	valid = False
    
-	CorrParams = {}
+	# corrMetrics = {}
 
-	CorrParams['slopeAuxBase'] = slopeAuxBase
-	CorrParams['rAuxBase'] = rAuxBase
-	CorrParams['deltaAuxBase_avg'] = deltaAuxBase_avg
-	CorrParams['ratioAuxBase_avg'] = ratioAuxBase_avg
-	CorrParams['indexMax'] = indexMax
-	CorrParams['0_valid'] = valid
+	# corrMetrics['slopeAuxBase'] = slopeAuxBase
+	# corrMetrics['rAuxBase'] = rAuxBase
+	# corrMetrics['deltaAuxBase_avg'] = deltaAuxBase_avg
+	# corrMetrics['ratioAuxBase_avg'] = ratioAuxBase_avg
+	# corrMetrics['indexMax'] = indexMax
+	# corrMetrics['0_valid'] = valid
 
-	if _verbose == True:
+	# if _verbose == True:
 		
-		print ('-------------------')
-		print ('Auxiliary Electrode')
-		print ('-------------------')
-		print ('Correlation coefficient of Baseline and Original auxiliary: {}'.format(rAuxBase))
+	# 	print ('-------------------')
+	# 	print ('Auxiliary Electrode')
+	# 	print ('-------------------')
+	# 	print ('Correlation coefficient of Baseline and Original auxiliary: {}'.format(rAuxBase))
 		
-		print ('Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg))
+	# 	print ('Average Delta: {} \t Average Ratio: {}'.format(deltaAuxBase_avg, deltaAuxBase_avg))
 
 	if _plots == True:
 		with plt.style.context('seaborn-white'):
@@ -400,21 +395,9 @@ def calculateBaselineDay(_dataFrame, _listNames, baselineType, hyperparameters, 
 			ax3.set_title("Baseline Not Compensated")
 			ax3.set(xlabel='Time', ylabel='Ouput-mV')
 			ax3.grid(True)
-			 
-			# fig3, ax7 = plt.subplots(figsize=(20,8))
-			
-			# ax7.plot(_dataFrame[temp], _dataFrame[alphaW], label='W - Raw', marker='o',  linestyle=None, linewidth = 0)
-			# ax7.plot(_dataFrame[temp], _dataFrame[alphaA], label ='A - Raw', marker='v', linewidth=0)
-			
-			# ax7.legend(loc="best")
-			# ax7.axis('tight')
-			# ax7.set_title("Output vs. Temperature")
-			# ax7.set(xlabel='Temperature', ylabel='Ouput-mV')
-			# ax7.grid(True)
-
 			plt.show()
 
-	return data_baseline, CorrParams
+	return data_baseline #, corrMetrics
 
 def findDates(_dataframe):
 	'''
@@ -425,66 +408,49 @@ def findDates(_dataframe):
 			rounded up min day, floor max day and number of days between the min and max dates
 	'''
 	range_days = (_dataframe.index.max()-_dataframe.index.min()).days
-	# min_date_df = _dataframe.index.min().ceil('D')
-	# max_date_df = _dataframe.index.max().floor('D')
 	min_date_df = _dataframe.index.min().floor('D')
 	max_date_df = _dataframe.index.max().ceil('D')
 	
 	return min_date_df, max_date_df, range_days
 
-def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _overlapHours = 0, _type_regress = 'best', _filterExpSmoothing = 0.2, _trydecomp = False, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = '', _append_name = ''):
-	'''
-		Function to calculate alphasense pollutants with baseline technique
-		Input:
-			_dataframe: pandas dataframe from
-			_sensorIDs: list of tuples containing: 
-				'[(_pollutant, 
-				_sensorID, 
-				calibration_method: 
-					'classic',
-					'classic_no_zero',
-					'baseline', 
-				baseline_type: 'baseline using auxiliary, temperature or humidity'
-					'single_aux'
-					'single_temp'
-					'single_hum'
-				sensor_slot), 
-				...]'
-			_refAvail: True or False if there is a reference available
-			_dataframeRef: reference dataframe if available
-			_overlapHours: number of hours to overlap over the day -> -_overlapHours+day:day+1+_overlapHours
-			_type_regress = type of regression for baseline (best, exponential or linear)
-			_filterExpSmoothing = alpha parameter for exponential filter smoothing
-			_trydecomp = try to decompose with temperature trend or not
-			_plotsInter = warning - many plots (True, False) plot intermediate analysis, 
-			_plotResult = (True, False) plot final result, 
-			_verbose = warning - many things (True, False), 
-			_printStats = (True, False) print final statistics) 
+def calculatePollutantsAlpha(_dataframe, _sensorIDs, _variables, _refAvail, _dataframeRef, _type_regress = 'best', _filterExpSmoothing = 0.2, _plotsInter = False, _plotResult = True, _verbose = False, _printStats = False, _calibrationDataPath = '', _currentSensorNames = ''):
 
-		Output:
-			_dataframe with pollutants added
-			_metadata with statistics analysis
-	'''
-	
 	dataframeResult = _dataframe.copy()
-	numberSensors = len(_sensorIDs)
-	CorrParamsDict = dict()
+	correlationMetrics = dict()
 
 	alpha_calData = getCalData('alphasense', _calibrationDataPath)
 	
-	for sensor in range(numberSensors):
+	for pollutant in _sensorIDs.keys():
 		
 		# Get Sensor 
-		pollutant = _sensorIDs[sensor][0]
-		sensorID = _sensorIDs[sensor][1]
-		method = _sensorIDs[sensor][2]
+		sensorID = _sensorIDs[pollutant][0]
+		slot = _sensorIDs[pollutant][1]
+
+		method = _variables[pollutant][0]
 		if method == 'baseline':
-			baselineType = _sensorIDs[sensor][3]
-			baselineSignal = _sensorIDs[sensor][4]
-		_append = _append_name
-		slot = _sensorIDs[sensor][5]
-		hyperparameters = _sensorIDs[sensor][6]
-	   
+			baselineSignal = _variables[pollutant][1]
+			baselineType = _variables[pollutant][2]
+			hyperparameters = _variables[pollutant][3]
+			overlapHours = _variables[pollutant][4]
+			append = _variables[pollutant][5]
+			try:
+				clean_negatives = _variables[pollutant][6]
+			except:
+				clean_negatives = False
+				pass
+
+		else:
+			append = _variables[pollutant][2]
+			try:
+				clean_negatives = _variables[pollutant][3]
+			except:
+				clean_negatives = False
+				pass
+
+		# Give name to pollutant column
+		pollutant_column = (pollutant + '_' + append)
+		print (f'Final pollutant name: {pollutant_column}')
+		
 		# Get Sensor data
 		Sensitivity_1 = alpha_calData.loc[sensorID,'Sensitivity 1']
 		Sensitivity_2 = alpha_calData.loc[sensorID,'Sensitivity 2']
@@ -496,7 +462,7 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 			print ('Sensor ID ({}) and pollutant type ({}) not matching'.format(Target_1, pollutant))
 			return
 
-		## Retrieve alphasense ids from table (for the slot we are calcualting)
+		## Retrieve alphasense ids from table (for the slot we are calculating)
 		for item in as_ids_table:
 			if slot == item[0]:
 				id_alphaW = item[1]
@@ -528,10 +494,10 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 
 		if pollutant == 'O3':
 			# Check if NO2 is already present in the dataset
-			if ('NO2'+ '_' + _append) in dataframeResult.columns:
-				pollutant_column_2 = ('NO2' + '_' + _append)
+			if ('NO2'+ '_' + append) in dataframeResult.columns:
+				pollutant_column_2 = ('NO2' + '_' + append)
 			else:
-				print ('Change tuple order to [(CO,sensorID_CO, ...), (NO2, sensorID_NO2, ...), (O3, sensorID_O3, ...)]')
+				print ('Change list order to [(CO,sensorID_CO, ...), (NO2, sensorID_NO2, ...), (O3, sensorID_O3, ...)]')
 				return
 		
 		# Get units for the pollutant in questions
@@ -543,243 +509,190 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 
 		## Find min, max and range of days
 		min_date_df, max_date_df, range_days = findDates(dataframeResult)
-		print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
-		print ('Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days))
-		
-		# Give name to pollutant column
-		pollutant_column = (pollutant + '_' + _append) 
+		if _verbose:
+			print ('Calculation of ' + '\033[1m{:10s}\033[0m'.format(pollutant))
+			print ('Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days))
+
+		if range_days == 0: print ('No data between these days'); continue
 		
 		if method == 'baseline':
 			# Select baselined - baseliner depending on the baseline type
-			if baselineSignal == 'single_temp':
-				baseliner = temp
-			elif baselineSignal == 'single_hum':
-				baseliner = hum
-			elif baselineSignal == 'single_aux':
-				baseliner = alphaA
+			if baselineSignal == 'single_temp': baseliner = temp
+			elif baselineSignal == 'single_hum': baseliner = hum
+			elif baselineSignal == 'single_aux': baseliner = alphaA
+			
 			baselined = alphaW
-			print ('Baseline method {}'. format(baselineType))
-			print ('Using {} as baselined channel'.format(baselined))
-			print ('Using {} as baseliner channel'.format(baseliner))
+			if _verbose:
+				print ('Baseline method {}'. format(baselineType))
+				print ('Using {} as baselined channel'.format(baselined))
+				print ('Using {} as baseliner channel'.format(baseliner))
 			
 			# Iterate over days
 			for day in range(range_days):
 			
 				# Calculate overlap dates for that day
-				min_date_ovl = max(_dataframe.index.min(), (min_date_df + pd.DateOffset(days=day) - pd.DateOffset(hours = _overlapHours)))
-				max_date_ovl = min(_dataframe.index.max(), (min_date_ovl + pd.DateOffset(days=1) + pd.DateOffset(hours = _overlapHours + relativedelta.relativedelta(min_date_df + pd.DateOffset(days=day),min_date_ovl).hours)))
+				min_date_ovl = max(_dataframe.index.min(), (min_date_df + pd.DateOffset(days=day) - pd.DateOffset(hours = overlapHours)))
+				max_date_ovl = min(_dataframe.index.max(), (min_date_ovl + pd.DateOffset(days=1) + pd.DateOffset(hours = overlapHours + relativedelta.relativedelta(min_date_df + pd.DateOffset(days=day),min_date_ovl).hours)))
 				
 				# Calculate non overlap dates for that day
 				min_date_novl = max(min_date_df, (min_date_df + pd.DateOffset(days=day)))
 				max_date_novl = min(max_date_df, (min_date_novl + pd.DateOffset(days=1)))
 			
-				if _verbose:
-					print ('---------------------')
-					print ('Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl))
-					print ('---------------------')
-				
+				if _verbose: print ('Calculating day {}, with range: {} \t to {}'.format(day, min_date_ovl, max_date_ovl))
+
 				## Trim dataframe to overlap dates
 				dataframeTrim = dataframeResult[dataframeResult.index > min_date_ovl]
 				dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_ovl]
 
 				# Make 
-				dataframeCheck = dataframeTrim.loc[:,(baselined, baseliner)].dropna()
+				dataframeBaseline = dataframeTrim.loc[:,(baselined, baseliner)].dropna(how = 'any', axis = 0)
 
 				# Init stuff
-				if day == 0:
-					# Init dict for CorrParams
-					CorrParams = list()
-				 
-				if dataframeCheck.empty:
-					CorrParamsTrim = dict()
-					CorrParamsTrim['0_valid'] = False
-					CorrParams.append(CorrParamsTrim)
-
-					if _verbose:
-						print ('No data between these dates' )
-
+				if day == 0: corrMetrics = list() # Init corrMetrics
+				
+				corrMetricsTrim = dict()	
+				if dataframeBaseline.empty:
+					
+					corrMetricsTrim['0_valid'] = False
+					if _verbose: print ('No data between these dates' )
+				
 				else:
-					CorrParamsTrim = dict()
 
 					# CALCULATE THE BASELINE PER DAY
-					dataframeTrim[alphaW + '_BASELINE_' + _append], CorrParamsTrim = calculateBaselineDay(dataframeCheck, _listNames, baselineType, hyperparameters, _type_regress, _trydecomp, _plotsInter, _verbose)
-					
-					CorrParamsTrim['ratioAuxBase_avg']
-					# TRIM IT BACK TO NO-OVERLAP
+					# dataframeTrim[alphaW + '_BASELINE_' + _append], corrMetricsTrim = calculateBaselineDay(dataframeBaseline, _listNames, baselineType, hyperparameters, _type_regress, _plotsInter, _verbose)
+					dataframeTrim[alphaW + '_BASELINE_' + append] = calculateBaselineDay(dataframeBaseline, _listNames, baselineType, hyperparameters, _type_regress, _plotsInter, _verbose)
 
+					# TRIM IT TO NO-OVERLAP
 					dataframeTrim = dataframeTrim[dataframeTrim.index > min_date_novl]
 					dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl]
-					dataframeTrim ['Zero'] = 0
 
 					# CALCULATE ACTUAL POLLUTANT CONCENTRATION
-					if pollutant == 'CO': 
-						# Not recommended for CO
-						dataframeTrim[pollutant_column + '_pre'] = backgroundConc_CO + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append])/abs(Sensitivity_1)
+					if pollutant == 'CO': # Not recommended for CO
+						dataframeTrim[pollutant_column + '_PRE'] = backgroundConc_CO + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + append])/abs(Sensitivity_1)
 					elif pollutant == 'NO2':
-						dataframeTrim[pollutant_column + '_pre'] = backgroundConc_NO2 + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append])/abs(Sensitivity_1)
+						dataframeTrim[pollutant_column + '_PRE'] = backgroundConc_NO2 + factor_unit_1*factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + append])/abs(Sensitivity_1)
 					elif pollutant == 'O3':
-						dataframeTrim[pollutant_column + '_pre'] = backgroundConc_OX + factor_unit_1*(factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + _append]) - (dataframeTrim[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
-					
-					dataframeTrim[pollutant_column] = dataframeTrim[[pollutant_column + '_pre', 'Zero']].max(axis = 1)
-					dataframeTrim.drop(pollutant_column + '_pre', axis=1, inplace=True)
-					dataframeTrim.drop('Zero', axis=1, inplace=True)
-
-					# ADD IT TO THE DATAFRAME
-					# dataframeTrim[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeTrim[pollutant_column].fillna(0), filterExpSmoothing)
+						dataframeTrim[pollutant_column + '_PRE'] = backgroundConc_OX + factor_unit_1*(factorPCB*(dataframeTrim[alphaW] - dataframeTrim[alphaW + '_BASELINE_' + append]) - (dataframeTrim[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1)
 					dataframeResult = dataframeResult.combine_first(dataframeTrim)
-
+				
+					# Extract metrics from reference
 					if _refAvail:
-						## Trim ref dataframe to no-overlap dates
-						dataframeTrimRef = _dataframeRef[_dataframeRef.index >= dataframeTrim.index.min()].fillna(0)
-						dataframeTrimRef = dataframeTrimRef[dataframeTrimRef.index <= dataframeTrim.index.max()].fillna(0)
-						
-						# Adapt dataframeTrim to be able to perform correlation
-						if dataframeTrimRef.index.min() > dataframeTrim.index.min():
-							dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
-						if dataframeTrimRef.index.max() < dataframeTrim.index.max():
-							dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]
-
 						pollutant_ref = (pollutant + '_' + ref_append)
 
-						# if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-						# 	CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
-						# 	CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column].fillna(0), dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+						## Trim ref dataframe to no-overlap dates
+						prediction = dataframeTrim[pollutant_column + '_PRE']
+						reference = _dataframeRef[pollutant_ref][_dataframeRef.index >= dataframeTrim.index.min()]
 
+						dataframeRefTrim = pd.concat([prediction, reference], axis = 1)	
+						dataframeRefTrim.dropna(axis = 0, inplace = True, how = 'any')
+
+						if pollutant_ref in dataframeRefTrim.columns:
+							corrMetricsTrim['r2_ref'] = r2_score(dataframeRefTrim[pollutant_column+ '_PRE'], dataframeRefTrim[pollutant_ref]) if not dataframeRefTrim.empty else np.nan
+							corrMetricsTrim['rmse'] = sqrt(mean_squared_error(dataframeRefTrim[pollutant_column+ '_PRE'], dataframeRefTrim[pollutant_ref])) if not dataframeRefTrim.empty else np.nan
+							corrMetricsTrim['bias'] = (dataframeRefTrim[pollutant_column+ '_PRE'] - dataframeRefTrim[pollutant_ref]).mean() if not dataframeRefTrim.empty else np.nan
+							corrMetricsTrim['reference_avg'] = dataframeRefTrim[pollutant_ref].mean() if not dataframeRefTrim.empty else np.nan
 					else:
 						if _verbose:
 							print ('No Ref available')
 					
 					## Get some metrics 
-					CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['pollutant_std'] = dataframeTrim[pollutant_column].std() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['pollutant_min'] = dataframeTrim[pollutant_column].min() if not dataframeTrim.empty else np.nan
-					CorrParamsTrim['pollutant_max'] = dataframeTrim[pollutant_column].max() if not dataframeTrim.empty else np.nan
-					CorrParams.append(CorrParamsTrim)
+					corrMetricsTrim['temp_avg'] = dataframeTrim[temp].mean() if not dataframeTrim.empty else np.nan
+					corrMetricsTrim['hum_avg'] = dataframeTrim[hum].mean() if not dataframeTrim.empty else np.nan
+					corrMetricsTrim['prediction_avg'] = dataframeTrim[pollutant_column+ '_PRE'].mean() if not dataframeTrim.empty else np.nan
+					# corrMetricsTrim['pollutant_std'] = dataframeTrim[pollutant_column].std() if not dataframeTrim.empty else np.nan
+					# corrMetricsTrim['pollutant_min'] = dataframeTrim[pollutant_column].min() if not dataframeTrim.empty else np.nan
+					# corrMetricsTrim['pollutant_max'] = dataframeTrim[pollutant_column].max() if not dataframeTrim.empty else np.nan
+				
+				corrMetrics.append(corrMetricsTrim)
 			
-			CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=day)).strftime('%Y-%m-%d') for day in range(range_days)])
+			correlationMetrics_df = pd.DataFrame(corrMetrics, index = [(min_date_df+ pd.DateOffset(days=day)).strftime('%Y-%m-%d') for day in range(range_days)])
 
-			## Find average ratio for hole dataset
-			deltaAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'deltaAuxBase_avg'].mean(skipna = True)
-			deltaAuxBas_std = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'deltaAuxBase_avg'].std(skipna = True)
-			ratioAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'ratioAuxBase_avg'].mean(skipna = True)
-			ratioAuxBas_std = CorrParamsDF.loc[CorrParamsDF['0_valid'].fillna(False), 'ratioAuxBase_avg'].std(skipna = True)
-					
-			# SHOW SOME METADATA FOR THE BASELINES FOUND
-			if _printStats:
-						
-				print ('------------------------')
-				print (' Meta Data')
-				print ('------------------------')
-				display(CorrParamsDF)
-						
-				print ('------------------------')
-				print ('Average Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_avg, ratioAuxBas_avg))
-				print ('Std Dev of Delta between baseline and auxiliary electrode: {}, and ratio: {}'.format(deltaAuxBas_std, ratioAuxBas_std))
-				print ('------------------------')
+			# Eliminate negative values and unnecessary columns
+			dataframeResult[pollutant_column] = dataframeResult[pollutant_column + '_PRE'][dataframeResult[pollutant_column + '_PRE'] > 0].dropna()
+			dataframeResult.drop(pollutant_column + '_PRE', axis=1, inplace=True)
+			dataframeResult[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
 					
 		elif method == 'classic' or method == 'classic_no_zero':
+
 			if method == 'classic':
 				factor_zero_current = 1
 			elif method == 'classic_no_zero':
 				factor_zero_current = nWA
-			## CorrParams
-			CorrParamsTrim = list()
+			## corrMetrics
+			corrMetricsTrim = list()
 			dataframeResult ['Zero'] = 0
 			
 			if pollutant == 'CO': 
-				dataframeResult[pollutant_column + '_pre'] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_CO
+				dataframeResult[pollutant_column + '_PRE'] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_CO
 			elif pollutant == 'NO2':
-				dataframeResult[pollutant_column + '_pre'] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_NO2
+				dataframeResult[pollutant_column + '_PRE'] = factor_unit_1*factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA])/abs(Sensitivity_1)+backgroundConc_NO2
 			elif pollutant == 'O3':
-				dataframeResult[pollutant_column + '_pre'] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
+				dataframeResult[pollutant_column + '_PRE'] = factor_unit_1*(factorPCB*(dataframeResult[alphaW] - nWA/factor_zero_current*dataframeResult[alphaA]) - (dataframeResult[pollutant_column_2])/factor_unit_2*abs(Sensitivity_2))/abs(Sensitivity_1) + backgroundConc_OX
 			
-			dataframeResult[pollutant_column] = dataframeResult[[pollutant_column + '_pre', 'Zero']].max(axis = 1)
-			dataframeResult.drop(pollutant_column + '_pre', axis=1, inplace=True)
-			dataframeResult.drop('Zero', axis=1, inplace=True)
+			# Eliminate negative values and unnecessary columns
+			if clean_negatives == True:
+				dataframeResult[pollutant_column] = dataframeResult[pollutant_column + '_PRE'][dataframeResult[pollutant_column + '_PRE'] > 0].dropna()
+			else:
+				dataframeResult[pollutant_column] = dataframeResult[pollutant_column + '_PRE']
+			
+			dataframeResult.drop(pollutant_column + '_PRE', axis=1, inplace=True)
 			dataframeResult[pollutant_column + '_FILTER'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
 
 			## Calculate stats day by day to avoid stationarity
 			min_date_df, max_date_df, range_days = findDates(dataframeResult)
-			# print 'Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days)
-			
+			print ('Data Range from {} to {} with {} days'.format(min_date_df, max_date_df, range_days))
+
 			for day in range(range_days):
-				## CorrParams
-				CorrParamsTrim = {}
-				
+				## corrMetrics
+				corrMetricsTrim = {}
+
 				# Calculate non overlap dates for that day
 				min_date_novl = max(min_date_df, (min_date_df + pd.DateOffset(days=day)))
 				max_date_novl = min(max_date_df, (min_date_novl + pd.DateOffset(days=1)))
 				
 				## Trim dataframe to no-overlap dates
-				dataframeTrim = dataframeResult[dataframeResult.index > min_date_novl].fillna(0)
-				dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl].fillna(0)
-				
-				if _refAvail:
-					## Trim ref dataframe to no-overlap dates
-					dataframeTrimRef = _dataframeRef[_dataframeRef.index >= dataframeTrim.index.min()].fillna(0)
-					dataframeTrimRef = dataframeTrimRef[dataframeTrimRef.index <= dataframeTrim.index.max()].fillna(0)
+				dataframeTrim = dataframeResult[dataframeResult.index > min_date_novl]
+				dataframeTrim = dataframeTrim[dataframeTrim.index <= max_date_novl]
 					
-					# Adapt dataframeTrim to be able to perform correlation
-					if dataframeTrimRef.index.min() > dataframeTrim.index.min():
-						dataframeTrim = dataframeTrim[dataframeTrim.index >= dataframeTrimRef.index.min()]
-					if dataframeTrimRef.index.max() < dataframeTrim.index.max():
-						dataframeTrim = dataframeTrim[dataframeTrim.index <= dataframeTrimRef.index.max()]                    
-					pollutant_ref = pollutant + '_' + ref_append
-					# if pollutant_ref in dataframeTrimRef.columns and not dataframeTrimRef.empty:
-						# CorrParamsTrim['r2_valueRef'] = r2_score(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref]) if not dataframeTrim.empty else np.nan
-						# CorrParamsTrim['rmse'] = sqrt(mean_squared_error(dataframeTrim[pollutant_column], dataframeTrimRef[pollutant_ref])) if not dataframeTrim.empty else np.nan
+				# Extract metrics from reference
+				if _refAvail:
+					pollutant_ref = (pollutant + '_' + ref_append)
 
+					## Trim ref dataframe to no-overlap dates
+					prediction = dataframeResult[pollutant_column]
+					reference = _dataframeRef[pollutant_ref][_dataframeRef.index >= dataframeTrim.index.min()]
+
+					dataframeRefTrim = pd.concat([prediction, reference], axis = 1)	
+					dataframeRefTrim.dropna(axis = 0, inplace = True, how = 'any')
+
+					if pollutant_ref in dataframeRefTrim.columns:
+						corrMetricsTrim['r2_ref'] = r2_score(dataframeRefTrim[pollutant_column], dataframeRefTrim[pollutant_ref]) if not dataframeRefTrim.empty else np.nan
+						corrMetricsTrim['rmse'] = sqrt(mean_squared_error(dataframeRefTrim[pollutant_column ], dataframeRefTrim[pollutant_ref])) if not dataframeRefTrim.empty else np.nan
+						corrMetricsTrim['bias'] = (dataframeRefTrim[pollutant_column ] - dataframeRefTrim[pollutant_ref]).mean() if not dataframeRefTrim.empty else np.nan
+						corrMetricsTrim['reference_avg'] = dataframeRefTrim[pollutant_ref].mean() if not dataframeRefTrim.empty else np.nan
 				else:
 					if _verbose:
-						print ('No ref Available')
-				
+						print ('No Ref available')
+					
 				## Get some metrics 
-				CorrParamsTrim['temp_avg'] = dataframeTrim[temp].mean(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['temp_stderr'] = dataframeTrim[temp].std(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['hum_avg'] = dataframeTrim[hum].mean(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['hum_stderr'] = dataframeTrim[hum].std(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column].mean(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['pollutant_avg'] = dataframeTrim[pollutant_column + '_FILTER'].mean(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['pollutant_std'] = dataframeTrim[pollutant_column + '_FILTER'].std(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['pollutant_min'] = dataframeTrim[pollutant_column + '_FILTER'].min(skipna = True) if not dataframeTrim.empty else np.nan
-				CorrParamsTrim['pollutant_max'] = dataframeTrim[pollutant_column + '_FILTER'].max(skipna = True) if not dataframeTrim.empty else np.nan
-
-
-				if day == 0:
-					CorrParams = list()
+				corrMetricsTrim['temp_avg'] = dataframeTrim[temp].mean() if not dataframeTrim.empty else np.nan
+				corrMetricsTrim['hum_avg'] = dataframeTrim[hum].mean() if not dataframeTrim.empty else np.nan
+				corrMetricsTrim['prediction_avg'] = dataframeTrim[pollutant_column].mean() if not dataframeTrim.empty else np.nan
+				# corrMetricsTrim['pollutant_std'] = dataframeTrim[pollutant_column].std() if not dataframeTrim.empty else np.nan
+				# corrMetricsTrim['pollutant_min'] = dataframeTrim[pollutant_column].min() if not dataframeTrim.empty else np.nan
+				# corrMetricsTrim['pollutant_max'] = dataframeTrim[pollutant_column].max() if not dataframeTrim.empty else np.nan
 				
-				CorrParams.append(CorrParamsTrim)
+				if day == 0: corrMetrics = list()
+				corrMetrics.append(corrMetricsTrim)
 			
-			CorrParamsDF = pd.DataFrame(CorrParams, index = [(min_date_df+ pd.DateOffset(days=days)).strftime('%Y-%m-%d') for days in range(range_days)])
+			correlationMetrics_df = pd.DataFrame(corrMetrics, index = [(min_date_df+ pd.DateOffset(days=day)).strftime('%Y-%m-%d') for day in range(range_days)])
 			
 			# SHOW SOME METADATA FOR THE BASELINES FOUND
 			if _printStats:
-			
-				print ('------------------------')
-				print (' Meta Data')
-				print ('------------------------')
-				display(CorrParamsDF)
-		
-		# FILTER IT
-		# dataframeResult[pollutant_column + '_filter'] = exponential_smoothing(dataframeResult[pollutant_column].fillna(0), filterExpSmoothing)
+				display(correlationMetrics_df)
 		
 		## RETRIEVE METADATA
-		CorrParamsDict[pollutant] = CorrParamsDF
-		
-		## TODO - Make the check for outliers and mark them out
-		# CorrParamsDF['valid'] = deltaAuxBas_avg-deltaAuxBas_std <= CorrParamsDF['deltaAuxBas_avg'] <= deltaAuxBas_avg-deltaAuxBas_std
-		# CorrParamsDF['valid'] = ratioAuxBas_avg-ratioAuxBas_std <= CorrParamsDF['ratioAuxBas_avg'] <= ratioAuxBas_avg-ratioAuxBas_std
-		# 
-		# print CorrParamsDF
-		# 
-		# deltaAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'deltaAuxBas_avg'].mean(skipna = True)
-		# deltaAuxBas_std = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'deltaAuxBas_avg'].std(skipna = True)
-		# ratioAuxBas_avg = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'ratioAuxBas_avg'].mean(skipna = True)
-		# ratioAuxBas_std = CorrParamsDF.loc[CorrParamsDF['valid'].fillna(False), 'ratioAuxBas_avg'].std(skipna = True)
+		correlationMetrics[pollutant_column] = correlationMetrics_df
 		
 		# PLOT THINGS IF REQUESTED
 		if _plotResult:
@@ -790,7 +703,7 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 			fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaA], 'type': 'scatter', 'line': dict(width = 2), 'name': dataframeResult[alphaA].name}, 1, 1)
 			fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaA] * nWA, 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': 'AuxCor Alphasense'}, 1, 1)
 			if method == 'baseline':
-				fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaW + '_BASELINE_' + _append], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
+				fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[alphaW + '_BASELINE_' + append], 'type': 'scatter', 'line': dict(width = 2), 'name': 'Baseline'}, 1, 1)
 			
 			fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column], 'type': 'scatter', 'line': dict(width = 1, dash = 'dot'), 'name': dataframeResult[pollutant_column].name}, 2, 1)
 			fig1.append_trace({'x': dataframeResult.index, 'y': dataframeResult[pollutant_column + '_FILTER'], 'type': 'scatter', 'name': (dataframeResult[pollutant_column + '_FILTER'].name)}, 2, 1)
@@ -817,4 +730,4 @@ def calculatePollutantsAlpha(_dataframe, _sensorIDs, _refAvail, _dataframeRef, _
 								   
 			ply.offline.iplot(fig1)
 
-	return dataframeResult, CorrParamsDict
+	return dataframeResult, correlationMetrics

@@ -20,39 +20,6 @@ def smooth(y, box_pts):
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
-def alphasense_manufacturer(WE, AE, SensorType, I0WE, I0AE, SENSITIVITY1, SENSITIVITY2, AUX, UNIT1, UNIT2):
-    
-    FACTORWE = 6.39
-    FACTORAE = 6.35
-    
-    # import matplotlib.pyplot as plt
-    # plt.plot(FACTORWE)
-    # plt.plot(FACTORAE)
-
-    if SensorType == 1 or 2:
-        # CO OR NO2
-        # CO: BOARD 5 AD_FORMULA(A, B, 1, -69.4, -18.6, 493.1, 0, C, "ppm", "")
-        # NO2: BOARD U AD_FORMULA(A, B, 1, 31.5, 17.7, -383.7, 0, C, "ppb", "")
-        # NO2: BOARD 5 AD_FORMULA(A, B, 1, 24.0, 14.2, -385.9, 0, C, "ppb", "")
-        result = (FACTORWE*WE - I0WE/I0AE*(FACTORAE*AE))/abs(SENSITIVITY1)
-        
-        if UNIT1 == "ppb":
-            result = result*1000
-    
-    if SensorType== 3:
-        # O3
-        # BOARD U AD_FORMULA(A, B, 3, 1, 23.65, 18.92, -421.58, -471.6497, C, "ppb", "ppb")
-        # BOARD 5 AD_FORMULA(A, B, 3, 1, 23.33, 19.86, -433.12, -506.96, C, "ppb", "ppb")
-    
-        if UNIT2 =="ppb":
-            result = (FACTORWE*WE - I0WE/I0AE*(FACTORAE*AE) - AUX*SENSITIVITY2/1000)/SENSITIVITY1
-        if UNIT2 =="ppm":
-            result = (FACTORWE*WE - I0WE/I0AE*(FACTORAE*AE) - AUX*SENSITIVITY2)/SENSITIVITY1
-        if UNIT1 == "ppb":
-            result = result*1000
-
-    return result
-
 def line_coefficients(X1,X2,Y1,Y2):
     a = float(Y2-Y1)/(X2-X1)
     b = Y1-a*X1

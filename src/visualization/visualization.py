@@ -10,8 +10,6 @@ from matplotlib import style
 from matplotlib import gridspec
 plt.ioff()
 
-style.use('seaborn')
-
 import seaborn as sns
 import math
 
@@ -29,9 +27,20 @@ import plotly.graph_objs as go
 from plotly.offline import iplot
 import plotly.io as pio
 pio.renderers.default = "jupyterlab"
+import traceback
 
-def targetDiagram(models, plot_train):
+from sklearn.metrics import mean_squared_error
+from math import sqrt
 
+markers = ["o" ,"v" ,"^" ,"<" ,">" ,"1" ,"2" ,"3" ,"4" ,"8" ,"s" ,"p" ,"P" ,"*" ,"h" ,"H" ,"+" ,"x" ,"X" ,"D" ,"d" ,"|", "_"]
+colors = ['black',    'silver',    'red',        'sienna',     'gold',
+		  'orange',   'salmon',    'chartreuse', 'green',      'mediumspringgreen', 'lightseagreen',
+		  'darkcyan', 'royalblue', 'blue',       'blueviolet', 'purple',            'fuchsia',
+		  'pink',     'tan',       'olivedrab',  'tomato',     'yellow',            'turquoise']
+
+def targetDiagram(models, plot_train, style_to_use = 'seaborn-paper'):
+	style.use(style_to_use)
+	
 	def minRtarget(targetR):
 		return sqrt(1+ np.power(targetR,2)-2*np.power(targetR,2))
 
@@ -45,26 +54,39 @@ def targetDiagram(models, plot_train):
 	targetR2 = sqrt(targetR22)
 	MR2 = minRtarget(targetR2)
 
-
-	fig  = plot.figure(figsize=(13,13))
+	fig  = plt.figure(figsize=(13,13))
+	i = -1
+	prev_group = 0
 	for model in models:
 		try:
 			metrics_model = models[model]
-		
-			if plot_train == True:
-				plt.scatter(metrics_model['train']['sign_sigma']*metrics_model['train']['RMSD_norm_unb'], metrics_model['train']['normalised_bias'], label = 'Train ' + model)
-			plt.scatter(metrics_model['test']['sign_sigma']*metrics_model['test']['RMSD_norm_unb'], metrics_model['test']['normalised_bias'], label = 'Test ' + model)
+
+			if prev_group != models[model]['group']: i = 0
+			else: i+=1
+			
+			if models[model]['group'] > len(colors)-1: 
+				color_group = colors[models[model]['group']-len(colors)]
+			else: 
+				color_group = colors[models[model]['group']]
+			marker_group = markers[i]
+			plt.scatter(metrics_model['sign_sigma']*metrics_model['RMSD_norm_unb'], metrics_model['normalised_bias'], 
+				label = model, color = color_group, marker = marker_group, s = 100, alpha = 0.7)
+			prev_group = models[model]['group']
 		except:
+			traceback.print_exc()
 			print ('Cannot plot model {}'.format(model))
+	## Display and others
+	plt.axhline(0, color='gray', linewidth = 0.8)
+	plt.axvline(0, color='gray', linewidth = 0.8)
 
 	## Add circles
 	ax = plt.gca()
-	circle1 =plt.Circle((0, 0), 1, linewidth = 0.8, color='k', fill =False)
-	circleMR0 =plt.Circle((0, 0), MR0, linewidth = 0.8, color='r', fill=False)
-	circleMR1 =plt.Circle((0, 0), MR1, linewidth = 0.8, color='y', fill=False)
-	circleMR2 =plt.Circle((0, 0), MR2, linewidth = 0.8, color='g', fill=False)
+	circle1 =plt.Circle((0, 0), 1, linewidth = 1.4, color='gray', fill =False)
+	circleMR0 =plt.Circle((0, 0), MR0, linewidth = 1.4, color='r', fill=False)
+	circleMR1 =plt.Circle((0, 0), MR1, linewidth = 1.4, color='y', fill=False)
+	circleMR2 =plt.Circle((0, 0), MR2, linewidth = 1.4, color='g', fill=False)
 	
-	circle3 =plt.Circle((0, 0), 0.01, color='k', fill=True)
+	circle3 =plt.Circle((0, 0), 0.01, color='g', fill=True)
 	
 	## Add annotations
 	ax.add_artist(circle1)
@@ -89,16 +111,16 @@ def targetDiagram(models, plot_train):
 				xytext=(-45, 10), textcoords='offset points', color = 'g')
 	ax.add_artist(circle3)
 	
-	## Display and others
-	plt.axhline(0, color='black', linewidth = 0.5)
-	plt.axvline(0, color='black', linewidth = 0.5)
-	plt.legend(loc='best')
+	plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 	plt.xlim([-1.1,1.1])
 	plt.ylim([-1.1,1.1])
 	plt.title('Target Diagram')
 	plt.ylabel('Normalised Bias (-)')
 	plt.xlabel("RMSD*'")
+	plt.grid(True)
 	plt.show()
+
+	return fig
 
 def scatterDiagram(fig, gs, n, dataframeTrain, dataframeTest):
 	ax = fig.add_subplot(gs[n])
@@ -145,6 +167,10 @@ class plot_wrapper():
 	
 	def prepare_data(self, records):
 		self.std_out('Preparing data for plot')
+		if "use_preprocessed" in self.options.keys():
+			if self.options["use_preprocessed"]: data_key = 'data_preprocessed'
+			else: data_key = 'data'
+			
 		# Check if there are different subplots
 		n_subplots = 1
 		for trace in self.data['traces']:
@@ -166,8 +192,7 @@ class plot_wrapper():
 		
 		# Put data in the df
 		test = self.data['test']
-		for trace in self.data['traces']:
-
+		for trace in self.data['traces'].keys():
 			device = self.data['traces'][trace]['device']
 			channel = self.data['traces'][trace]['channel']
 			
@@ -196,11 +221,18 @@ class plot_wrapper():
 					self.df = self.df.combine_first(df)
 		
 		# Trim data
-		if min_date != None: self.df = self.df[self.df.index > min_date]
-		if max_date != None: self.df = self.df[self.df.index < max_date]
+		if min_date is not None: self.df = self.df[self.df.index > min_date]
+		if max_date is not None: self.df = self.df[self.df.index < max_date]
 			
 		# Resample it
-		if self.options['target_raster'] != None: self.df.resample(self.options['target_raster']).mean()
+		if self.options['target_raster'] is not None: self.df.resample(self.options['target_raster']).mean()
+
+		if self.options['clean_na'] is not None:
+			if self.options['clean_na_method'] == 'fill':
+				self.df = self.df.fillna(method='ffill')
+			if self.options['clean_na_method'] == 'drop':				
+				self.df.dropna(axis = 0, how='any', inplace = True)
+
 
 	def clean_plot(self):
 		# Clean matplotlib cache
@@ -515,3 +547,61 @@ class plot_wrapper():
 				
 			elif self.library == 'plotly':
 				print ('Nothing to see here')
+
+		elif self.type == 'correlation_comparison':
+
+			fig = plt.figure( figsize=(self.formatting['width'], self.formatting['height']))
+
+			gs = gridspec.GridSpec(1, 3, figure=fig)
+			
+			ax1 = fig.add_subplot(gs[0, :-1])
+			ax2 = fig.add_subplot(gs[0, -1])
+			# identical to ax1 = plt.subplot(gs.new_subplotspec((0, 0), colspan=3))
+			print(self.df.columns)
+			for index_subplot in range(n_subplots):
+				if len(self.subplots_list[index_subplot]) > 2: 
+					self.std_out('Problem with correlation comparison plot')
+					return
+				else:
+					feature_trace = self.subplots_list[index_subplot][0]
+					ref_trace = self.subplots_list[index_subplot][1]
+				
+				# Calculate basic metrics	
+				pearsonCorr = list(self.df.corr('pearson')[list(self.df.columns)[0]])[-1]
+				rmse = sqrt(mean_squared_error(self.df[feature_trace].fillna(0), self.df[ref_trace].fillna(0)))
+		
+				self.std_out ('Pearson correlation coefficient: ' + str(pearsonCorr))
+				self.std_out ('Coefficient of determination R²: ' + str(pearsonCorr*pearsonCorr))
+				self.std_out ('RMSE: ' + str(rmse))
+				self.std_out ('')
+				
+				# Time Series plot
+				ax1.plot(self.df.index, self.df[feature_trace], color = 'g', label = feature_trace, linewidth = 1, alpha = 0.9)
+				ax1.plot(self.df.index, self.df[ref_trace], color = 'k', label = ref_trace, linewidth = 1, alpha = 0.7)
+				ax1.axis('tight')
+				ax1.set_title('Time Series Plot for {}'.format(self.formatting['title']), fontsize=14)
+				ax1.grid(True)
+				ax1.legend(loc="best")
+				ax1.set_xlabel(self.formatting['xlabel'])
+				ax1.set_ylabel(self.formatting['ylabel'][index_subplot+1])
+				if 'yrange' in self.formatting.keys():
+					ax1.set_ylim(self.formatting['yrange'][index_subplot+1])
+				
+				# Correlation plot
+				ax2.plot(self.df[ref_trace], self.df[feature_trace], 'go', label = feature_trace, linewidth = 1,  alpha = 0.3)
+				ax2.plot(self.df[ref_trace], self.df[ref_trace], 'k', label =  '1:1 Line', linewidth = 0.4, alpha = 0.8)
+				ax2.axis('tight')
+				ax2.set_title('Scatter Plot for {}'.format(self.formatting['title']), fontsize=14)
+				ax1.grid(True)
+				ax2.grid(True)
+				ax2.legend(loc="best")
+				ax2.set_xlabel(self.formatting['ylabel'][index_subplot+1])
+				ax2.set_ylabel(self.formatting['ylabel'][index_subplot+1])
+				
+				if 'yrange' in self.formatting.keys():
+					ax2.set_xlim(self.formatting['yrange'][index_subplot+1])
+					ax2.set_ylim(self.formatting['yrange'][index_subplot+1])
+								# Save it in global and show
+			self.figure = fig
+			if 'show_plot' in self.options:
+				if self.options['show_plot']: plt.show()

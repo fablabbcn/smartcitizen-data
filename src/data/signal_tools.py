@@ -8,6 +8,9 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plot
 from xgboost import XGBRegressor
+from sklearn.metrics import r2_score
+
+
 
 def metrics(reference, estimation):
     metrics_dict = dict()
@@ -41,7 +44,7 @@ def metrics(reference, estimation):
     SS_Total = sum((reference-np.mean(reference))**2)
     rsquared = max(0, 1 - (float(SS_Residual))/SS_Total)
     metrics_dict['rsquared'] = rsquared
-
+    metrics_dict['r2_score_sklearn'] = r2_score(estimation, reference) 
     # RMSD
     RMSD = sqrt((1./len(reference))*SS_Residual)
     RMSD_norm_unb = sqrt(1+np.power(sigma_norm,2)-2*sigma_norm*sqrt(rsquared))

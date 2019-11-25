@@ -2,17 +2,18 @@
 from keras.models import Sequential
 from keras.layers import Dense, Activation, LSTM, Dropout
 import matplotlib.pyplot as plot
+import seaborn as sns
 
 # Sklearn generals, SVR, RF
-from sklearn import preprocessing
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, median_absolute_error
-from sklearn.metrics import mean_absolute_error, mean_squared_error #, mean_squared_log_error 
+from sklearn.metrics import r2_score, median_absolute_error, mean_absolute_error, mean_squared_error
 import joblib
 
-from src.models.linear_regression_tools import prep_data_OLS, fit_model_OLS, predict_OLS
+# The machine
+from xgboost import XGBRegressor
+
 import pandas as pd
 import numpy as np
 from numpy import concatenate
@@ -26,6 +27,329 @@ import json
 from src.data.recording import recording
 import traceback
 
+import statsmodels.formula.api as smform
+import statsmodels.api as smapi
+import statsmodels.graphics as smgraph
+from statsmodels.stats.outliers_influence import summary_table
+from statsmodels.sandbox.regression.predstd import wls_prediction_std
+from statsmodels.tsa.stattools import adfuller
+
+# Others
+from src.models.formulas import exponential_smoothing
+
+def tfuller_plot(_x, name = '', lags=None, figsize=(12, 7), lags_diff = 1):
+	
+	if lags_diff > 0:
+		_x = _x - _x.shift(lags_diff)
+		
+	_x = _x.dropna()
+	# _x = _x[~np.isnan(_x)]
+	
+	ad_fuller_result = adfuller(_x.values)
+	adf = ad_fuller_result[0]
+	pvalue = ad_fuller_result[1]
+	usedlag = ad_fuller_result[2]
+	nobs = ad_fuller_result[3]
+	print ('{}:'.format(name))
+	print ('\tADF- Statistic: %.5f \tpvalue: %.5f \tUsed Lag: % d \tnobs: % d ' % (adf, pvalue, usedlag, nobs))
+
+	with plot.style.context('seaborn-white'):    
+		fig = plot.figure(figsize=figsize)
+		layout = (2, 2)
+		ts_ax = plot.subplot2grid(layout, (0, 0), colspan=2)
+		acf_ax = plot.subplot2grid(layout, (1, 0))
+		pacf_ax = plot.subplot2grid(layout, (1, 1))
+		
+		_x.plot(ax=ts_ax)
+		ts_ax.set_ylabel(name)
+		ts_ax.set_title('Analysis Plots\n Dickey-Fuller: p={0:.5f}'.format(pvalue))
+		smgraph.tsaplots.plot_acf(_x, lags=lags, ax=acf_ax)
+		smgraph.tsaplots.plot_pacf(_x, lags=lags, ax=pacf_ax)
+		plot.tight_layout()
+
+def prep_data_statsmodels(dataframeModel, ratio_train, fit_intercept = True):
+	'''
+		Prepare Dataframe for Ordinary Linear Regression with StatsModels.
+		Input:
+			dataframeModel: Dataframe containing the data to be treated
+			tuple_features: tuple containing features with [TERM, NAME, DEVICE]
+			ratio_train: n_points_train/n_points_test+train
+		Output:
+			It returns two dataframes (train, test) with the columns named 
+			as in TERM, with an additional constant value with name 'const', 
+			for the independent term of the linear regression
+	'''
+
+	# Train Dataframe
+	total_len = len(dataframeModel.index)
+	n_train_periods = int(np.round(total_len*ratio_train))
+
+	# If fit intercept, add it
+	if fit_intercept:
+		dataframeModel = smapi.add_constant(dataframeModel)        
+	
+	dataframeTrain = dataframeModel.iloc[:n_train_periods,:]
+
+	# Test Dataframe
+	if ratio_train < 1:
+		dataframeTest = dataframeModel.iloc[n_train_periods:,:]
+		
+		return dataframeTrain, dataframeTest, n_train_periods
+
+	return dataframeTrain, total_len
+
+def plot_OLS_coeffs(model):
+	"""
+		Plots sorted coefficient values of the model
+	"""
+	_data =  [x for x in model.params]
+	_columns = model.params.index
+	_coefs = pd.DataFrame(_data, _columns, dtype = 'float')
+	
+	_coefs.columns = ["coef"]
+	_coefs["abs"] = _coefs.coef.apply(np.abs)
+	_coefs = _coefs.sort_values(by="abs", ascending=False).drop(["abs"], axis=1)
+	
+	figure = plot.figure(figsize=(15, 7))
+	_coefs.coef.plot(kind='bar')
+	plot.grid(True, axis='y')
+	plot.hlines(y=0, xmin=0, xmax=len(_coefs), linestyles='dashed')
+	plot.title('Linear Regression Coefficients')
+
+def predict_statsmodels(model, data, type_model = 'OLS', plotResult = True, plotAnomalies = True, train_test = 'test'):    
+	
+	if 'REF' in data.columns:
+		reference = data['REF']
+		ref_avail = True
+		mask = data.columns.str.contains('REF')
+	else:
+		# Do nothing
+		ref_avail = False
+		mask = None
+		print ('No reference available')
+
+	## Predict Results
+	if train_test == 'train':
+		predictionTrain = model.predict(data.loc[:,~mask])
+		
+		if plotResult:
+			if type_model == 'OLS':
+				## Get confidence intervals
+				# For training
+				st, summary_train, ss2 = summary_table(model, alpha=0.05)
+			
+				train_mean_se  = summary_train[:, 3]
+				train_mean_ci_low, train_mean_ci_upp = summary_train[:, 4:6].T
+				train_ci_low, train_ci_upp = summary_train[:, 6:8].T
+			
+
+				# Plot the stuff
+				fig = plot.figure(figsize=(15,10))
+				# Actual data
+				if ref_avail:
+					plot.plot(data.index, reference, 'r', label = 'Reference Train', alpha = 0.3)
+			
+				# Fitted Values for Training
+				plot.plot(data.index, predictionTrain, 'r', label = 'Prediction Train')
+				plot.plot(data.index, train_ci_low, 'k--', lw=0.7, alpha = 0.5)
+				plot.plot(data.index, train_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+				plot.fill_between(data.index, train_ci_low, train_ci_upp, alpha = 0.05 )
+				plot.plot(data.index, train_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+				plot.plot(data.index, train_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+				plot.fill_between(data.index, train_mean_ci_low, train_mean_ci_upp, alpha = 0.05 )
+				plot.grid(True)
+
+		if ref_avail:
+			# Put train into pd dataframe
+			dataFrameTrain = pd.DataFrame(data = {'reference': reference, 'prediction': predictionTrain.values}, 
+							  index = data.index)
+			return dataFrameTrain
+		else:
+			return predictionTrain
+
+	elif train_test == 'test':
+
+		if ref_avail:
+			if type_model == 'OLS': predictionTest = model.get_prediction(data.loc[:,~mask])
+			elif type_model == 'RLM': predictionTest = model.predict(data.loc[:,~mask])
+		else:
+			if type_model == 'OLS': predictionTest = model.get_prediction(data)
+			elif type_model == 'RLM': predictionTest = model.predict(data)
+
+		
+		if type_model == 'OLS':
+			## Get confidence intervals
+			# For test
+			summary_test = predictionTest.summary_frame(alpha=0.05)
+			test_mean = summary_test.loc[:, 'mean'].values
+			test_mean_ci_low = summary_test.loc[:, 'mean_ci_lower'].values
+			test_mean_ci_upp = summary_test.loc[:, 'mean_ci_upper'].values
+			test_ci_low = summary_test.loc[:, 'obs_ci_lower'].values
+			test_ci_upp = summary_test.loc[:, 'obs_ci_upper'].values
+
+			if plotResult:
+				# Plot the stuff
+				fig = plot.figure(figsize=(15,10))
+				# Fitted Values for Test
+				if ref_avail: plot.plot(data.index, reference, 'b', label = 'Reference Test', alpha = 0.3)
+				plot.plot(data.index, test_mean, 'b', label = 'Prediction Test')
+				plot.plot(data.index, test_ci_low, 'k--', lw=0.7, alpha = 0.5)
+				plot.plot(data.index, test_ci_upp, 'k--', lw=0.7, alpha = 0.5)
+				plot.fill_between(data.index, test_ci_low, test_ci_upp, alpha = 0.05 )
+				plot.plot(data.index, test_mean_ci_low, 'r--', lw=0.7, alpha = 0.6)
+				plot.plot(data.index, test_mean_ci_upp, 'r--', lw=0.7, alpha = 0.6)
+				plot.fill_between(data.index, test_mean_ci_low, test_mean_ci_upp, alpha = 0.05 )
+			
+				plot.title('Linear Regression Results')
+				plot.grid(True)
+				plot.ylabel('Reference/Prediction (-)')
+				plot.xlabel('Date (-)')
+				plot.legend(loc='best')
+				plot.show()
+		else:
+			test_mean = predictionTest
+
+		if ref_avail:
+			# Put test into pd dataframe 
+			return pd.DataFrame(data = {'reference': reference, 'prediction': test_mean}, 
+							  index = data.index)
+		else:
+			print ('Returning only prediction')
+			return pd.DataFrame(data = {'prediction': test_mean}, 
+							  index = data.index)
+
+def model_R_plots(model, dataTrain, dataTest):
+	
+	## Calculations required for some of the plots:
+	# fitted values (need a constant term for intercept)
+	model_fitted_y = model.fittedvalues
+	# model residuals
+	model_residuals = model.resid
+	# normalized residuals
+	model_norm_residuals = model.get_influence().resid_studentized_internal
+	# absolute squared normalized residuals
+	model_norm_residuals_abs_sqrt = np.sqrt(np.abs(model_norm_residuals))
+	# absolute residuals
+	model_abs_resid = np.abs(model_residuals)
+	# leverage, from statsmodels internals
+	model_leverage = model.get_influence().hat_matrix_diag
+	# cook's distance, from statsmodels internals
+	model_cooks = model.get_influence().cooks_distance[0]
+
+	## Residual plot
+	height = 6
+	width = 8
+	
+	plot_lm_1 = plot.figure(1)
+	plot_lm_1.set_figheight(height)
+	plot_lm_1.set_figwidth(width)
+	plot_lm_1.axes[0] = sns.residplot(model_fitted_y, 'REF', data=dataTrain,
+									  lowess=True,
+									  scatter_kws={'alpha': 0.5},
+									  line_kws={'color': 'red', 'lw': 1, 'alpha': 0.8})
+	
+	plot_lm_1.axes[0].set_title('Residuals vs Fitted')
+	plot_lm_1.axes[0].set_xlabel('Fitted values')
+	plot_lm_1.axes[0].set_ylabel('Residuals')
+	
+	# annotations
+	# abs_resid = model_abs_resid.sort_values(ascending=False)
+	abs_resid = np.sort(model_abs_resid)[::-1]
+	abs_resid_top_3 = abs_resid[:3]
+	
+	# for r, i in enumerate(abs_resid_top_3):
+	# # for i in abs_resid_top_3.index:
+	# 	plot_lm_1.axes[0].annotate(i, 
+	# 							   xy=(model_fitted_y[i], 
+	# 								   model_residuals[i]));
+
+	QQ = smapi.ProbPlot(model_norm_residuals)
+	plot_lm_2 = QQ.qqplot(line='45', alpha=0.5, color='#4C72B0', lw=1)
+	
+	plot_lm_2.set_figheight(height)
+	plot_lm_2.set_figwidth(width)
+	
+	plot_lm_2.axes[0].set_title('Normal Q-Q')
+	plot_lm_2.axes[0].set_xlabel('Theoretical Quantiles')
+	plot_lm_2.axes[0].set_ylabel('Standardized Residuals');
+	
+	# annotations
+	abs_norm_resid = np.flip(np.argsort(np.abs(model_norm_residuals)), 0)
+	abs_norm_resid_top_3 = abs_norm_resid[:3]
+
+	for r, i in enumerate(abs_norm_resid_top_3):
+		plot_lm_2.axes[0].annotate(i, 
+								   xy=(np.flip(QQ.theoretical_quantiles, 0)[r],
+									   model_norm_residuals[i]));
+	
+	plot_lm_3 = plot.figure(3)
+	plot_lm_3.set_figheight(height)
+	plot_lm_3.set_figwidth(width)
+
+	plot.scatter(model_fitted_y, model_norm_residuals_abs_sqrt, alpha=0.5)
+	sns.regplot(model_fitted_y, model_norm_residuals_abs_sqrt, 
+				scatter=False, 
+				ci=False, 
+				lowess=True,
+				line_kws={'color': 'red', 'lw': 1, 'alpha': 0.8})
+	
+	plot_lm_3.axes[0].set_title('Scale-Location')
+	plot_lm_3.axes[0].set_xlabel('Fitted values')
+	plot_lm_3.axes[0].set_ylabel('$\sqrt{|Standardized Residuals|}$');
+	
+	# annotations
+	abs_sq_norm_resid = np.flip(np.argsort(model_norm_residuals_abs_sqrt), 0)
+	abs_sq_norm_resid_top_3 = abs_sq_norm_resid[:3]
+	
+	for i in abs_norm_resid_top_3:
+		plot_lm_3.axes[0].annotate(i, 
+								   xy=(model_fitted_y[i], 
+									   model_norm_residuals_abs_sqrt[i]));
+	plot_lm_4 = plot.figure(4)
+	# plot_lm_4.set_figheight(height)
+	# plot_lm_4.set_figwidth(width)
+
+	plot.scatter(model_leverage, model_norm_residuals, alpha=0.5)
+	sns.regplot(model_leverage, model_norm_residuals, 
+				scatter=False, 
+				ci=False, 
+				lowess=True,
+				line_kws={'color': 'red', 'lw': 1, 'alpha': 0.8})
+	
+	plot_lm_4.axes[0].set_xlim(0, 0.20)
+	plot_lm_4.axes[0].set_ylim(-3, 5)
+	plot_lm_4.axes[0].set_title('Residuals vs Leverage')
+	plot_lm_4.axes[0].set_xlabel('Leverage')
+	plot_lm_4.axes[0].set_ylabel('Standardized Residuals')
+	
+	# annotations
+	leverage_top_3 = np.flip(np.argsort(model_cooks), 0)[:3]
+	
+	for i in leverage_top_3:
+		plot_lm_4.axes[0].annotate(i, 
+								   xy=(model_leverage[i], 
+									   model_norm_residuals[i]))
+
+	# shenanigans for cook's distance contours
+	def graph(formula, x_range, label=None):
+		x = x_range
+		y = formula(x)
+		plot.plot(x, y, label=label, lw=1, ls='--', color='red')
+	
+	p = len(model.params) # number of model parameters
+
+	graph(lambda x: np.sqrt((0.5 * p * (1 - x)) / x), 
+		  np.linspace(0.001, 0.200, 50), 
+		  'Cook\'s distance') # 0.5 line
+	
+	graph(lambda x: np.sqrt((1 * p * (1 - x)) / x), 
+		  np.linspace(0.001, 0.200, 50)) # 1 line
+	
+	plot.legend(loc='upper right');
+
+	# Model residuals
+
+	tfuller_plot(pd.Series(model_residuals), name = 'Residuals', lags=60, lags_diff = 0)
 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
@@ -303,8 +627,8 @@ class model_wrapper:
 		else:
 			raise SystemError ('No hyperparameters key in model input')
 
-		if 'options' in model_dict.keys():
-			self.options = model_dict['options']
+		if 'model_options' in model_dict.keys():
+			self.options = model_dict['model_options']
 		else:
 			raise SystemError ('No options in model input')
 		self.data = model_dict['data']
@@ -313,25 +637,42 @@ class model_wrapper:
 		self.dataFrameTrain = None
 		self.dataFrameTest = None
 		self.metrics = dict()
-		self.plots = model_dict['options']['show_plots']
+		self.plots = model_dict['model_options']['show_plots']
 		self.parameters = dict()
 
 	def std_out(self, msg):
 		if self.verbose: print (msg)
 
-	def extract_metrics(self):             
+	def extract_metrics(self, train_or_test, test_name = None, test_data = None):
+
 		# Get model metrics            
-		self.std_out ('Calculating Metrics...')
-		self.metrics = dict()
-		self.metrics['train'] = metrics(self.dataFrameTrain['reference'], self.dataFrameTrain['prediction'])
-		self.metrics['validation'] = metrics(self.dataFrameTest['reference'], self.dataFrameTest['prediction'])
+		if train_or_test == 'train':
+			self.std_out ('Calculating metrics for training dataset')
+			self.metrics['train'] = metrics(self.dataFrameTrain['reference'], self.dataFrameTrain['prediction'])
+			self.metrics['validation'] = metrics(self.dataFrameTest['reference'], self.dataFrameTest['prediction'])
+			
+			# Print them out
+			self.std_out ('Metrics Summary:')
+			self.std_out ("{:<23} {:<7} {:<5}".format('Metric','Train','Validation'))
+			for metric in self.metrics['train'].keys():
+				self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['train'][metric]) +"\t"+ "{:0.3f}".format(self.metrics['validation'][metric]))
 		
-		# Print them out
-		self.std_out ('Metrics Summary:')
-		self.std_out ("{:<23} {:<7} {:<5}".format('Metric','Train','Validation'))
-		for metric in self.metrics['train'].keys():
-			self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['train'][metric]) +"\t"+ "{:0.3f}".format(self.metrics['validation'][metric]))
-		self.std_out(f"oob_score: {self.model.oob_score_}")
+		elif train_or_test == 'test':
+
+			self.std_out ('Calculating metrics for test dataset')
+			if 'test' not in self.metrics.keys(): self.metrics['test'] = dict()
+
+			if test_name is not None:
+				if test_data is not None: 
+					test_data.dropna(how = 'any', axis = 0, inplace = True)
+					
+					self.metrics['test'][test_name] = metrics(test_data['reference'], test_data['prediction'])
+				# Print them out
+				self.std_out ('Metrics Summary:')
+				self.std_out ("{:<23} {:<7}".format('Metric','Test'))
+				for metric in self.metrics['test'][test_name].keys():
+					self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['test'][test_name][metric]))
+		if hasattr(self.model, 'oob_score_'): self.std_out(f"oob_score: {self.model.oob_score_}")
 
 	def training(self, model_data):
 
@@ -349,15 +690,14 @@ class model_wrapper:
 		labels = np.array(labels)
 
 		# Train model on training test
-		if self.type == "RF" or self.type == 'SVR':
-				
+		if self.type == "RF":
 			# Training and Testing Sets
 			train_X, test_X, train_y, test_y = train_test_split(features, labels, 
 													test_size = 1-self.hyperparameters['ratio_train'], 
 													shuffle = self.hyperparameters['shuffle_split'])
 		
 			n_train_periods = train_X.shape[0]
-			
+			self.std_out ('Training Model {}...'.format(self.name))		
 			# Create model
 			if self.type == 'RF':
 				self.model = RandomForestRegressor(n_estimators= self.hyperparameters['n_estimators'], 
@@ -365,8 +705,9 @@ class model_wrapper:
 													oob_score = True, max_features = self.hyperparameters['max_features'])
 			elif self.type == 'SVR':
 				self.model = SVR(kernel='rbf')
-			
-			self.std_out ('Training Model {}...'.format(self.name))
+
+
+
 			# Fit model
 			# print (np.isnan(np.sum(train_X)))
 			# print (np.isnan(np.sum(train_y)))
@@ -386,98 +727,125 @@ class model_wrapper:
 
 			if self.plots:
 				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
-
-		elif self.type == "OLS":
-			# OLS can be done with a formula, and the model needs to be renamed accordingly
-			reference_device = self.data['reference_device']
-			train_dataset = list(self.data['train'].keys())[0]
-			device = self.data['train'][train_dataset]
+		
+		elif self.type == "XGB":
+			scaler = StandardScaler()
+			features_scaled = scaler.fit_transform(features)
 			
-			for item in self.data['features'].keys():
-				target_name = item
-				if item == 'REF':
-					current_name = '_'.join([self.data['features'][item], reference_device])
-				else:
-					current_name = '_'.join([self.data['features'][item], device])
+			train_X, test_X, train_y, test_y = train_test_split(features_scaled, labels, 
+													test_size = 1-self.hyperparameters['ratio_train'], 
+													shuffle = False)
+			# Fit XGB regressor
+			self.model = XGBRegressor(n_threads = -1, param = self.hyperparameters['param'])
 
-				dataframeModel.rename(columns={current_name: target_name}, inplace=True)
-			
-			dataTrain, dataTest, n_train_periods = prep_data_OLS(dataframeModel, self.hyperparameters['ratio_train'])
-			
-			## Model Fit
-			expression = None
-			if 'expression' in self.data.keys(): expression = self.data['expression']
-			
-			self.model = fit_model_OLS(expression, dataTrain, printSummary = False)
-
-			## Get model prediction
-			self.dataFrameTrain = predict_OLS(self.model, 
-											  dataTrain, 
-											  plotResult = self.plots, 
-											  plotAnomalies = False, 
-											  train_test = 'train')
-
-			self.dataFrameTest = predict_OLS(self.model, 
-											  dataTest, 
-											  plotResult = self.plots, 
-											  plotAnomalies = False, 
-											  train_test = 'test')
-
-			if self.plots:
-				plot_OLS_coeffs(self.model)
-				model_R_plots(self.model, dataTrain, dataTest)
-
-		elif self.type == "LSTM":
-			n_features = len(feature_list)
-			
-			# Data Split
-			train_X, train_y, test_X, test_y, scalerX, scalery = prep_dataframe_ML(dataframeModel, 
-																				   n_features, 
-																				   self.hyperparameters['n_lags'], 
-																				   self.hyperparameters['ratio_train'])
-			
-			index = dataframeModel.index
+			self.model.fit(train_X, train_y)
+			predictionTrain = self.model.predict(train_X)
+			predictionTest = self.model.predict(test_X)
 			n_train_periods = train_X.shape[0]
-			
-			# Model Fit
-			self.std_out ('Model training...')
 
-			# Check if we have specific layers
-			if 'layers' in self.hyperparameters.keys():
-				layers = self.hyperparameters['layers']
-			else:
-				layers = ''
+			# Save scaler
+			self.parameters['scaler'] = scaler
 
-			self.model = fit_model_ML('LSTM', train_X, train_y, 
-								   test_X, test_y, 
-								   epochs = self.hyperparameters['epochs'], batch_size = self.hyperparameters['batch_size'], 
-								   verbose = self.hyperparameters['verbose'], plotResult = self.plots, 
-								   loss = self.hyperparameters['loss'], optimizer = self.hyperparameters['optimizer'], layers = layers)
-			
-			inv_train_y = get_inverse_transform_ML(train_y, scalery)
-			inv_test_y = get_inverse_transform_ML(test_y, scalery)
-
-			predictionTrain = predict_ML(self.model, train_X, scalery)
-			predictionTest = predict_ML(self.model, test_X, scalery)
-
-			self.dataFrameTrain = pd.DataFrame(data = {'reference': inv_train_y, 'prediction': predictionTrain}, 
+			self.dataFrameTrain = pd.DataFrame(data = {'reference': labels[:n_train_periods], 'prediction': predictionTrain}, 
 												index = dataframeModel.index[:n_train_periods])
 
-			self.dataFrameTest= pd.DataFrame(data = {'reference': inv_test_y, 'prediction': predictionTest}, 
-												index = index[n_train_periods+self.hyperparameters['n_lags']:])
-						
-			self.parameters['scalerX'] = scalerX
-			self.parameters['scalery'] = scalery
+			self.dataFrameTest = pd.DataFrame(data = {'reference': labels[n_train_periods:], 'prediction': predictionTest}, 
+												index = dataframeModel.index[n_train_periods:])
 
 			if self.plots:
 				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
 
+		elif self.type == "OLS" or self.type == 'GLM' or self.type == 'RLM':
+			
+			# OLS can be done with a formula, and the model needs to be renamed accordingly
+			for item in self.data['features'].keys():
+				target_name = item
+				for column in dataframeModel.columns:
+					if self.data['features'][item] in column: 
+						current_name = column
+						dataframeModel.rename(columns={current_name: target_name}, inplace=True)
+						break
+			
+			dataTrain, dataTest, n_train_periods = prep_data_statsmodels(dataframeModel, self.hyperparameters['ratio_train'])
+
+			## Model Fit
+			if 'expression' in self.data.keys(): expression = self.data['expression']
+			else: expression = None
+			if 'print_summary' in self.options: print_summary = self.options['print_summary']
+			else: print_summary = False
+			
+			if self.type == "OLS":
+				# The constant is only added if the 
+				if expression is not None:
+					self.model = smform.ols(formula = expression, data = dataTrain).fit()
+				else:
+					mask = dataTrain.columns.str.contains('REF')
+
+					self.model = smapi.OLS(dataTrain.loc[:,mask].values, dataTrain.loc[:,~mask].values).fit()
+			elif self.type == "RLM":
+				mask = dataTrain.columns.str.contains('REF')
+				self.model = smapi.RLM(dataTrain.loc[:,mask].values, dataTrain.loc[:,~mask].values, M=smapi.robust.norms.HuberT()).fit()
+			if print_summary:
+				print(self.model.summary())
+
+			## Get model prediction
+			self.dataFrameTrain = predict_statsmodels(self.model, dataTrain, type_model = self.type, plotResult = self.plots, plotAnomalies = False, train_test = 'train')
+
+			self.dataFrameTest = predict_statsmodels(self.model, dataTest, type_model = self.type, plotResult = self.plots, plotAnomalies = False, train_test = 'test')
+
+			if self.plots and self.type == "OLS":
+				# plot_OLS_coeffs(self.model)
+				model_R_plots(self.model, dataTrain, dataTest)
+
+		# Not supported for now
+		# elif self.type == "LSTM":
+		# 	n_features = len(feature_list)
+			
+		# 	# Data Split
+		# 	train_X, train_y, test_X, test_y, scalerX, scalery = prep_dataframe_ML(dataframeModel, n_features, self.hyperparameters['n_lags'], self.hyperparameters['ratio_train'])
+			
+		# 	index = dataframeModel.index
+		# 	n_train_periods = train_X.shape[0]
+			
+		# 	# Model Fit
+		# 	self.std_out ('Model training...')
+
+		# 	# Check if we have specific layers
+		# 	if 'layers' in self.hyperparameters.keys():
+		# 		layers = self.hyperparameters['layers']
+		# 	else:
+		# 		layers = ''
+
+		# 	self.model = fit_model_ML('LSTM', train_X, train_y, 
+		# 						   test_X, test_y, 
+		# 						   epochs = self.hyperparameters['epochs'], batch_size = self.hyperparameters['batch_size'], 
+		# 						   verbose = self.hyperparameters['verbose'], plotResult = self.plots, 
+		# 						   loss = self.hyperparameters['loss'], optimizer = self.hyperparameters['optimizer'], layers = layers)
+			
+		# 	inv_train_y = get_inverse_transform_ML(train_y, scalery)
+		# 	inv_test_y = get_inverse_transform_ML(test_y, scalery)
+
+		# 	predictionTrain = predict_ML(self.model, train_X, scalery)
+		# 	predictionTest = predict_ML(self.model, test_X, scalery)
+
+		# 	self.dataFrameTrain = pd.DataFrame(data = {'reference': inv_train_y, 'prediction': predictionTrain}, 
+		# 										index = dataframeModel.index[:n_train_periods])
+
+		# 	self.dataFrameTest= pd.DataFrame(data = {'reference': inv_test_y, 'prediction': predictionTest}, 
+		# 										index = index[n_train_periods+self.hyperparameters['n_lags']:])
+						
+		# 	self.parameters['scalerX'] = scalerX
+		# 	self.parameters['scalery'] = scalery
+
+		# 	if self.plots:
+		# 		plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
+
 		self.parameters['n_train_periods'] = n_train_periods
 
-		if self.options['extract_metrics']: self.extract_metrics()
+		if self.options['extract_metrics']: self.extract_metrics('train')
 		else: self.metrics = None
 
-	def predict_channels(self, data_input, prediction_name, reference = None):
+	def predict_channels(self, data_input, prediction_name, reference = None, reading_name = None):
 		
 		# Get specifics
 		if self.type == 'LSTM':
@@ -487,6 +855,9 @@ class model_wrapper:
 			self.std_out('Loading parameters for ')
 		elif self.type == 'RF' or self.type == 'SVR' or self.type == 'OLS':
 			self.std_out('No specifics for {} type'.format(self.type))
+		elif self.type == 'XGB':
+			scaler = self.parameters['scaler']
+
 
 		list_features = list()
 		for item in self.data['features']:
@@ -501,14 +872,14 @@ class model_wrapper:
 		dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 		
 		# Resample
-		dataframeModel = dataframeModel.resample(self.data['options']['target_raster'], limit = 1).mean()
+		dataframeModel = dataframeModel.resample(self.options['target_raster'], limit = 1).mean()
 		
 		# Remove na
-		if self.data['options']['clean_na']:
+		if self.options['clean_na']:
 
-			if self.data['options']['clean_na_method'] == 'fill':
+			if self.options['clean_na_method'] == 'fill':
 				dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
-			elif self.data['options']['clean_na_method'] == 'drop':
+			elif self.options['clean_na_method'] == 'drop':
 				dataframeModel.dropna(axis = 0, how = 'any', inplace = True)
 
 		indexModel = dataframeModel.index
@@ -523,26 +894,37 @@ class model_wrapper:
 			dataframeModel = dataframeModel.combine_first(dataframe)
 			data_input[prediction_name] = dataframeModel['prediction']
 
-		elif self.type == 'LSTM':
-			# To fix
-			test_X, index_pred, n_obs = prep_prediction_ML(dataframeModel, list_features, n_lags, scalerX_predict, verbose = self.verbose)
-			prediction = predict_ML(self.model, test_X, scalery_predict)
-
-			dataframe = pd.DataFrame(prediction, columns = [prediction_name]).set_index(index_pred)
-			data_input[prediction_name] = dataframe.loc[:,prediction_name]
+		elif self.type == 'XGB':
+			features_array_scaled = scaler.transform(features_array)
+			dataframe = pd.DataFrame(self.model.predict(features_array_scaled), columns = ['prediction']).set_index(indexModel)
+			dataframeModel = dataframeModel.combine_first(dataframe)
+			data_input[prediction_name] = dataframeModel['prediction']
 		
-		elif self.type == 'OLS':
+		# Not supported for now
+		# elif self.type == 'LSTM':
+		# 	# To fix
+		# 	test_X, index_pred, n_obs = prep_prediction_ML(dataframeModel, list_features, n_lags, scalerX_predict, verbose = self.verbose)
+		# 	prediction = predict_ML(self.model, test_X, scalery_predict)
 
-			if 'formula' in self.options.keys(): 
+		# 	dataframe = pd.DataFrame(prediction, columns = [prediction_name]).set_index(index_pred)
+		# 	data_input[prediction_name] = dataframe.loc[:,prediction_name]
+		
+		elif self.type == 'OLS' or self.type == 'RLM':
+
+			if 'expression' in self.data.keys():
 
 				# Rename to formula
 				for item in features.keys():
 					dataframeModel.rename(columns={features[item]: item}, inplace=True)
 
 			## Predict the model results
-			datapredict, _ = prep_data_OLS(dataframeModel, features, 1)
-			prediction = predict_OLS(model, datapredict, False, False, 'test')
-
+			datapredict, _ = prep_data_statsmodels(dataframeModel, 1)
+			prediction = predict_statsmodels(self.model, datapredict, type_model = self.type, plotResult = self.plots, plotAnomalies = False, train_test = 'test')
+			
+			dataframe = pd.DataFrame(prediction, columns = ['prediction']).set_index(indexModel)
+			dataframeModel = dataframeModel.combine_first(dataframe)
+			print(datapredict.columns)
+			
 			data_input[prediction_name] = prediction
 		
 		self.std_out('Channel {} prediction finished'.format(prediction_name))
@@ -556,14 +938,9 @@ class model_wrapper:
 
 			dataframeModel = dataframeModel[dataframeModel.index>min_date_combination]
 			dataframeModel = dataframeModel[dataframeModel.index<max_date_combination]
+			dataframeModel.dropna(axis = 0, how = 'any', inplace = True)
 
-			if self.options['extract_metrics']: 
-				self.metrics['test'] = metrics(dataframeModel['reference'], dataframeModel['prediction']) 
-				# Print them out
-				self.std_out ('Metrics Summary:')
-				self.std_out ("{:<23} {:<7}".format('Metric','Test'))
-				for metric in self.metrics['test'].keys():
-					self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['test'][metric]))
+			if self.options['extract_metrics']: self.extract_metrics('test', reading_name, dataframeModel) 
 
 		if self.plots:
 			# Plot
