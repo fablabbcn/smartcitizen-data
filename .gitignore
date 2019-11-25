@@ -13,6 +13,9 @@ scr.egg-info/*
 scr.egg-info
 TODO.md
 
+# Data types
+*.xls*
+
 # Notebook
 notebooks/temp-plot.html
 notebooks/cheatsheet.ipynb
