@@ -1,7 +1,7 @@
 # Remove
 data/export/*
 data/raw/*
-data/processed/*
+data/processed/
 data/interim/deliveries/*
 models/*
 models/ALPHASENSE/*
