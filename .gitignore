@@ -3,10 +3,12 @@ data/export/*
 data/raw/*
 data/processed/
 data/interim/deliveries/*
+data/interim/tests/*
 models/*
 models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
+notebooks/working_*.ipynb
 reports/*.html
 reports/*.pdf
 scr.egg-info/*
