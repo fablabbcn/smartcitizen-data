@@ -20,28 +20,6 @@ def smooth(y, box_pts):
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
-def line_coefficients(X1,X2,Y1,Y2):
-    a = float(Y2-Y1)/(X2-X1)
-    b = Y1-a*X1
-    return a,b
-
-def line(x,a,b):
-    y = [i*a+b for i in x]
-    return y
-
-def mics(Sensor1Type, Sensor1, Sensor2Type, Sensor2, Sensor3Type, Sensor3, Intercept, B, C, D, E, F, G):
-    SensorType = [Sensor1Type, Sensor2Type, Sensor3Type]
-    Sensor = [Sensor1, Sensor2, Sensor3]
-    Sens = Sensor
-    for i in range(3):
-        if SensorType[i] == "Inverse":
-            Sens[i] = 1/Sensor[i]
-    
-    result =  Intercept + B*Sens[0] +C*Sens[0]*Sens[0] + D*Sens[1] + E*Sens[1]*Sens[1] + F*Sens[2] + G*Sens[2]*Sens[2]
-
-    # MICS_Formula("Inverse", A, "Direct", B, "Direct", C, -1.615e-01 , 210.08064516, -10236.73257, 0, 0, 0, 0)
-    return result
-
 def absolute_humidity(temperature, rel_humidity, pressure):
     '''
         Calculate Absolute humidity based on vapour equilibrium:

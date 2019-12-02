@@ -1,16 +1,10 @@
 import itertools
-from os.path import basename, normpath, join, exists
-from os import getcwd, walk, mkdir
-import json
-from src.data.recording import recording
-from src.models.model_tools import model_wrapper
+from src.data.data import data
+from src.models.model import model_wrapper
+from src.data.model_tools import metrics
 from src.visualization.visualization import plot_wrapper
-import numpy as np
-import traceback
 
-from src.data.signal_tools import metrics
-
-class batch_analysis:
+class batch_analysis (saf):
     append_alphasense = 'PRE'
     append_derivative = 'DERIV'
 
@@ -42,7 +36,7 @@ class batch_analysis:
                 else: load_processed = True
                 
                 # Load each of the tests
-                self.results[task]['records'].load_recording_database(test, self.results[task]['records'].available_tests()[test], 
+                self.results[task]['data'].load_recording_database(test, self.results[task]['data'].available_tests()[test], 
                                                     target_raster = options['target_raster'],
                                                     clean_na = options['clean_na'],
                                                     clean_na_method = options['clean_na_method'],
@@ -69,7 +63,7 @@ class batch_analysis:
                     # Find out if in the processed test, we have something that matches our variables
                     if data['data_options']['use_cache']:
                         try:
-                            with open(join(self.results[task]['records'].available_tests()[test], 'cached', 'cached_info.json')) as handle:
+                            with open(join(self.results[task]['data'].available_tests()[test], 'cached', 'cached_info.json')) as handle:
                                 cached_info = json.loads(handle.read())
                         except:
                             cached_info = None
@@ -81,7 +75,7 @@ class batch_analysis:
                         if not data['data_options']['avoid_processed']:
                             try:
                                 # Open info file
-                                with open(join(self.results[task]['records'].available_tests()[test], 'processed', 'processed_info.json')) as handle:
+                                with open(join(self.results[task]['data'].available_tests()[test], 'processed', 'processed_info.json')) as handle:
                                     processed_info = json.loads(handle.read())
 
                                 # Check if there is pre-processing done in info
@@ -107,7 +101,7 @@ class batch_analysis:
                                 processed_info = dict()
                                 processed_info['pre-processing'] = dict()
                                 # traceback.print_exc()
-                                if not exists(join(self.results[task]['records'].available_tests()[test], 'processed', 'processed_info.json')):
+                                if not exists(join(self.results[task]['data'].available_tests()[test], 'processed', 'processed_info.json')):
                                     self.std_out('Processed Info json file does not exist') 
                                 pass
                         else:
@@ -157,7 +151,7 @@ class batch_analysis:
                             options_alphasense['checkBoxStats'] = False
                             
                             # Calculate Alphasense
-                            self.results[task]['records'].calculateAlphaSense(test, variables, options_alphasense)
+                            self.results[task]['data'].calculateAlphaSense(test, variables, options_alphasense)
                             
                             # Store what we used as parameters for the pre-processing
                             processed_info['pre-processing']['alphasense'] = self.tasks[task]['pre-processing']['alphasense']
@@ -177,10 +171,10 @@ class batch_analysis:
                             self.std_out('Calculating derivative')
                             for channel in self.tasks[task]['pre-processing']['derivate']['channels'].keys():
                                 window = self.tasks[task]['pre-processing']['derivate']['channels'][channel]
-                                for device in self.results[task]['records'].readings[test]['devices']:
-                                    if channel in self.results[task]['records'].readings[test]['devices'][device]['data'].columns:
-                                        index = self.results[task]['records'].readings[test]['devices'][device]['data'].index
-                                        self.results[task]['records'].readings[test]['devices'][device]['data'][channel + '_DERIV'] = self.results[task]['records'].readings[test]['devices'][device]['data'].loc[:,channel].diff().rolling(window = window).mean()/ index.to_series().diff().dt.total_seconds()                                
+                                for device in self.results[task]['data'].tests[test]['devices']:
+                                    if channel in self.results[task]['data'].tests[test]['devices'][device]['data'].columns:
+                                        index = self.results[task]['data'].tests[test]['devices'][device]['data'].index
+                                        self.results[task]['data'].tests[test]['devices'][device]['data'][channel + '_DERIV'] = self.results[task]['data'].tests[test]['devices'][device]['data'].loc[:,channel].diff().rolling(window = window).mean()/ index.to_series().diff().dt.total_seconds()                                
 
                         # Store the data in the info file and export csvs for next time
                         if data['data_options']['export_data'] is not None:
@@ -191,17 +185,17 @@ class batch_analysis:
                             # Store what we used as parameters for the pre-processing
                             self.std_out('Saving info file for processed test')
 
-                            if not exists(join(self.results[task]['records'].available_tests()[test], 'processed')):
+                            if not exists(join(self.results[task]['data'].available_tests()[test], 'processed')):
                                 self.std_out('Making dir for processed files')
-                                mkdir(join(self.results[task]['records'].available_tests()[test], 'processed'))
+                                mkdir(join(self.results[task]['data'].available_tests()[test], 'processed'))
 
                             # Dump processed info file
-                            with open(join(self.results[task]['records'].available_tests()[test], 'processed', 'processed_info.json'), 'w') as file:
+                            with open(join(self.results[task]['data'].available_tests()[test], 'processed', 'processed_info.json'), 'w') as file:
                                 json.dump(processed_info, file)
 
                             # Dump cached info file
                             if cached_info is not None:
-                                with open(join(self.results[task]['records'].available_tests()[test], 'cached', 'cached_info.json'), 'w') as file:
+                                with open(join(self.results[task]['data'].available_tests()[test], 'cached', 'cached_info.json'), 'w') as file:
                                     json.dump(cached_info, file)
 
                             self.std_out('Saving cached and processed info done')
@@ -217,36 +211,36 @@ class batch_analysis:
                             if dataset in self.tasks[task]['model']['data'].keys():
                                 if test in self.tasks[task]['model']['data'][dataset].keys():
                                     for device in self.tasks[task]['model']['data'][dataset][test]:
-                                        if device + '_PROCESSED' in self.results[task]['records'].readings[test]['devices'].keys():
+                                        if device + '_PROCESSED' in self.results[task]['data'].tests[test]['devices'].keys():
                                             # print ('PROCESSED columns')
-                                            # print (self.results[task]['records'].readings[test]['devices'][device + '_PROCESSED']['data'].columns)
+                                            # print (self.results[task]['data'].tests[test]['devices'][device + '_PROCESSED']['data'].columns)
                                             # print ('TARGET columns')
-                                            # print (self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
+                                            # print (self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
                                             self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))                           
-                                            self.results[task]['records'].readings[test]['devices'][device]['data'] = self.results[task]['records'].readings[test]['devices'][device]['data'].combine_first(self.results[task]['records'].readings[test]['devices'][device + '_PROCESSED']['data'])
-                                            self.results[task]['records'].readings[test]['devices'].pop(device + '_PROCESSED')
+                                            self.results[task]['data'].tests[test]['devices'][device]['data'] = self.results[task]['data'].tests[test]['devices'][device]['data'].combine_first(self.results[task]['data'].tests[test]['devices'][device + '_PROCESSED']['data'])
+                                            self.results[task]['data'].tests[test]['devices'].pop(device + '_PROCESSED')
                                             # print ('Final columns')
-                                            # print (self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
+                                            # print (self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
 
                                         else:
                                             self.std_out("No available PROCESSED data to combine with")
                     else:
 
                         for device in data["datasets"][test]:
-                            if device + '_PROCESSED' in self.results[task]['records'].readings[test]['devices'].keys():
+                            if device + '_PROCESSED' in self.results[task]['data'].tests[test]['devices'].keys():
                                 self.std_out("Combining processed data in test {}. Merging {} with {}".format(test, device, device + '_PROCESSED'))
                                 # print ('PROCESSED columns')
-                                # print (self.results[task]['records'].readings[test]['devices'][device + '_PROCESSED']['data'].columns)
+                                # print (self.results[task]['data'].tests[test]['devices'][device + '_PROCESSED']['data'].columns)
                                 # print ('TARGET columns')
-                                # print (self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
-                                cols_to_use = self.results[task]['records'].readings[test]['devices'][device + '_PROCESSED']['data'].columns.difference(self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
+                                # print (self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
+                                cols_to_use = self.results[task]['data'].tests[test]['devices'][device + '_PROCESSED']['data'].columns.difference(self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
                                 # self.std_out('cols_to_use')
                                 # self.std_out(cols_to_use)
-                                # self.results[task]['records'].readings[test]['devices'][device]['data'].join(self.results[task]['records'].readings[test]['devices'][device  + '_PROCESSED']['data'][cols_to_use], left_index=True, right_index=True, how='outer')
-                                self.results[task]['records'].readings[test]['devices'][device]['data'] = self.results[task]['records'].readings[test]['devices'][device]['data'].combine_first(self.results[task]['records'].readings[test]['devices'][device + '_PROCESSED']['data'])
-                                self.results[task]['records'].readings[test]['devices'].pop(device + '_PROCESSED')
+                                # self.results[task]['data'].tests[test]['devices'][device]['data'].join(self.results[task]['data'].tests[test]['devices'][device  + '_PROCESSED']['data'][cols_to_use], left_index=True, right_index=True, how='outer')
+                                self.results[task]['data'].tests[test]['devices'][device]['data'] = self.results[task]['data'].tests[test]['devices'][device]['data'].combine_first(self.results[task]['data'].tests[test]['devices'][device + '_PROCESSED']['data'])
+                                self.results[task]['data'].tests[test]['devices'].pop(device + '_PROCESSED')
                                 # print ('FINAL columns')
-                                # print (self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
+                                # print (self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
                             else:
                                 self.std_out("No available PROCESSED data to combine with")
 
@@ -262,7 +256,7 @@ class batch_analysis:
     def sanity_checks(self, task, tests, task_has_model):
 
         # Sanity check for test presence
-        if not all([self.results[task]['records'].available_tests().__contains__(i) for i in tests]):
+        if not all([self.results[task]['data'].available_tests().__contains__(i) for i in tests]):
             self.std_out ('Not all tests are available, review data input')
             return False
         
@@ -290,7 +284,7 @@ class batch_analysis:
                         for test in self.tasks[task]['model']['data'][dataset].keys():
                             for device in self.tasks[task]['model']['data'][dataset][test]['devices']:
                                 # Get columns of the test
-                                all_columns = list(self.results[task]['records'].readings[test]['devices'][device]['data'].columns)
+                                all_columns = list(self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
 
                                 # Add the pre-processing ones and if we can pre-process
                                 if 'pre-processing' in self.tasks[task].keys(): 
@@ -316,11 +310,11 @@ class batch_analysis:
                             # In case of training dataset, check that the reference exists
                             if dataset == 'train':
                                 found_ref = False
-                                for device in self.results[task]['records'].readings[test]['devices'].keys():
-                                    if 'is_reference' in self.results[task]['records'].readings[test]['devices'][device].keys():
+                                for device in self.results[task]['data'].tests[test]['devices'].keys():
+                                    if 'is_reference' in self.results[task]['data'].tests[test]['devices'][device].keys():
                                         reference_dataframe = device
 
-                                        if not (reference_name in self.results[task]['records'].readings[test]['devices'][device]['data'].columns) and not found_ref: 
+                                        if not (reference_name in self.results[task]['data'].tests[test]['devices'][device]['data'].columns) and not found_ref: 
                                             found_ref = False
                                             self.std_out('Reference presence check not passed')
                                         else:
@@ -338,7 +332,7 @@ class batch_analysis:
             self.std_out('-------------------------------')
             self.std_out('Evaluating task {}'.format(task))
             self.results[task] = dict()
-            self.results[task]['records'] = recording(verbose = self.verbose)
+            self.results[task]['data'] = recording(verbose = self.verbose)
 
             if 'model' in self.tasks[task].keys():
                 model_name = self.tasks[task]['model']['model_name'] 
@@ -393,7 +387,7 @@ class batch_analysis:
             if task_has_model:
                 try:
                     # Prepare dataframe for training
-                    train_dataset = self.results[task]['records'].prepare_dataframe_model(current_model)
+                    train_dataset = self.results[task]['data'].prepare_dataframe_model(current_model)
                     self.std_out (f'Train dataset: {train_dataset}')
                     
                     if train_dataset is None:
@@ -401,7 +395,7 @@ class batch_analysis:
                         return
                     
                     # Train Model based on training dataset
-                    current_model.training(self.results[task]['records'].readings[train_dataset]['models'][model_name])
+                    current_model.training(self.results[task]['data'].tests[train_dataset]['models'][model_name])
                     
                     # # Evaluate Model in train data
                     # device = current_model.data['train'][train_dataset]['devices']
@@ -411,9 +405,9 @@ class batch_analysis:
 
                     # self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, train_dataset))
                     # # Get prediction for train
-                    # prediction = current_model.predict_channels(self.results[task]['records'].readings[train_dataset]['devices'][device]['data'], prediction_name)
-                    # # Combine it in readings
-                    # self.results[task]['records'].readings[train_dataset]['devices'][device]['data'].combine_first(prediction)
+                    # prediction = current_model.predict_channels(self.results[task]['data'].tests[train_dataset]['devices'][device]['data'], prediction_name)
+                    # # Combine it in tests
+                    # self.results[task]['data'].tests[train_dataset]['devices'][device]['data'].combine_first(prediction)
 
                     # Evaluate Model in test data
                     for test_dataset in current_model.data['test'].keys():
@@ -423,15 +417,15 @@ class batch_analysis:
                             self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, test_dataset))
 
                             # Get prediction for test                            
-                            if current_model.data['test'][test_dataset]['reference_device'] in self.results[task]['records'].readings[test_dataset]['devices'].keys():
-                                reference = self.results[task]['records'].readings[test_dataset]['devices'][current_model.data['test'][test_dataset]['reference_device']]['data'][current_model.data['features']['REF']]
+                            if current_model.data['test'][test_dataset]['reference_device'] in self.results[task]['data'].tests[test_dataset]['devices'].keys():
+                                reference = self.results[task]['data'].tests[test_dataset]['devices'][current_model.data['test'][test_dataset]['reference_device']]['data'][current_model.data['features']['REF']]
                             else:
                                 reference = None
                             
-                            prediction = current_model.predict_channels(self.results[task]['records'].readings[test_dataset]['devices'][device]['data'], prediction_name, reference, test_dataset)
+                            prediction = current_model.predict_channels(self.results[task]['data'].tests[test_dataset]['devices'][device]['data'], prediction_name, reference, test_dataset)
 
-                            # Combine it in readings
-                            self.results[task]['records'].readings[test_dataset]['devices'][device]['data'].combine_first(prediction)
+                            # Combine it in tests
+                            self.results[task]['data'].tests[test_dataset]['devices'][device]['data'].combine_first(prediction)
 
                     # Export model data if requested
                     if data_dict['data_options']["export_data"] is not None:
@@ -442,12 +436,12 @@ class batch_analysis:
                     
                     # Save model in session
                     if current_model.options['session_active_model']:
-                        self.std_out (f'Saving model in session records for reading name: {train_dataset}')
-                        self.results[task]['records'].archive_model(train_dataset, current_model, dataFrameExport)
+                        self.std_out (f'Saving model in session'data for reading name: {train_dataset}')
+                        self.results[task]['data'].archive_model(train_dataset, current_model, dataFrameExport)
 
                     # Export model if requested
                     if current_model.options['export_model']:
-                        current_model.export(self.results[task]['records'].modelDirectory)
+                        current_model.export(self.results[task]['data'].modelDirectory)
                 except:
                     traceback.print_exc()
                     pass
@@ -489,7 +483,7 @@ class batch_analysis:
                                 for test in self.tasks[task]['model']['data'][dataset].keys():
                                     for device in self.tasks[task]['model']['data'][dataset][test]:
                                         self.std_out('Exporting data of device {} in test {} to processed folder'.format(device, test))
-                                        self.results[task]['records'].export_data(test, device, all_channels = all_channels, 
+                                        self.results[task]['data'].export_data(test, device, all_channels = all_channels, 
                                                             include_raw = include_raw, include_processed = include_processed, 
                                                             rename = data_dict['data_options']['rename_export_data'], 
                                                             to_processed_folder = True, 
@@ -502,7 +496,7 @@ class batch_analysis:
                             # Iterate and export them
                             for device in list_devices:
                                 self.std_out('Exporting data of device {} in test {} to processed folder'.format(device, test))
-                                self.results[task]['records'].export_data(test, device, all_channels = all_channels, 
+                                self.results[task]['data'].export_data(test, device, all_channels = all_channels, 
                                     include_raw = include_raw, include_processed = include_processed, 
                                     rename = data_dict['data_options']['rename_export_data'],
                                     to_processed_folder = True, 
@@ -524,12 +518,12 @@ class batch_analysis:
                             for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
                                 if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] == 'all':
                                     list_devices_plot = list()
-                                    for device in self.results[task]['records'].readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
+                                    for device in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
                                         channel = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"]
-                                        if channel in self.results[task]['records'].readings[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
+                                        if channel in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
                                             list_devices_plot.append(device)
                                         else:
-                                            self.std_out('Trace ({}) not in readings in device {}'.format(channel, device))
+                                            self.std_out('Trace ({}) not in tests in device {}'.format(channel, device))
                                 else:
                                     list_devices_plot = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"]      
                             # Make a plot for each device
@@ -540,7 +534,7 @@ class batch_analysis:
 
                                 # plot it
                                 plot_object = plot_wrapper(self.tasks[task]["plot"][plot_description], True)
-                                plot_object.plot(self.results[task]['records'])
+                                plot_object.plot(self.results[task]['data'])
                                 
                                 # Export if we have how to
                                 if self.tasks[task]["plot"][plot_description]['options']['export_path'] is not None and self.tasks[task]["plot"][plot_description]['options']['file_name'] is not None:
@@ -550,7 +544,7 @@ class batch_analysis:
                         # Or only one
                         else:    
                             plot_object = plot_wrapper(self.tasks[task]["plot"][plot_description], True)
-                            plot_object.plot(self.results[task]['records'])
+                            plot_object.plot(self.results[task]['data'])
                             if self.tasks[task]["plot"][plot_description]['options']['export_path'] is not None and self.tasks[task]["plot"][plot_description]['options']['file_name'] is not None:
                                 self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] = device
                                 plot_object.export_plot()

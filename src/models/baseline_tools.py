@@ -1,53 +1,25 @@
 import matplotlib
-import matplotlib.pyplot as plt                  # plots
-import seaborn as sns                            # more plots
+import matplotlib.pyplot as plt
+import seaborn as sns
 sns.set(color_codes=True)
 
 import pandas as pd
 import numpy as np
 
-import datetime
-from scipy.stats.stats import linregress   
-from dateutil import relativedelta
+from scipy import sparse
+from scipy.sparse.linalg import spsolve
+from scipy.stats.stats import linregress
 from scipy.optimize import curve_fit
 
-from src.data.test_tools import *
+import datetime
+from dateutil import relativedelta
 from src.models.formulas import exponential_smoothing
 
 from sklearn.metrics import r2_score
 from sklearn.metrics import mean_squared_error
 from math import sqrt, isnan
 
-import statsmodels.api as smapi
-
-ref_append = 'REF'
-
-# AlphaDelta PCB factor
-factorPCB = 6.36
-
-# Background Concentration (model assumption) - (from Modelling atmospheric composition in urban street canyons - Vivien Bright, William Bloss and Xiaoming Cai)
-backgroundConc_CO = 0 # ppm
-backgroundConc_NO2 = 8 # ppb
-backgroundConc_OX = 40 # ppb
-
-# Filter Smoothing 
-filterExpSmoothing = 0.2
-
-# Units Look Up Table - ['Pollutant', unit factor from ppm to target 1, unit factor from ppm to target 2]
-alphaUnitsFactorsLUT = (['CO', 1, 0],
-						['NO2', 1000, 0],
-						['O3', 1000, 1000])
-
-# Alphasense ID table (Slot, Working, Auxiliary)
-as_ids_table = ([1,'64','65'], 
-			 [2,'61','62'], 
-			 [3,'67','68'])
-
-# External temperature table (this table is by priority)
-th_ids_table = (['EXT_DALLAS','96',''], 
-				 ['EXT_SHT31','79', '80'], 
-				 ['SENSOR_TEMPERATURE','55','56'],
-				 ['GASESBOARD_TEMPERATURE','79', '80'])
+from src.data.constants import *
 
 def getCalData(_sensorType, _calibrationDataPath):
 	# print ("Loading sensor calibration data from", _calibrationDataPath)
@@ -86,10 +58,6 @@ def ExtractBaseline(_data, _delta):
 		# print (chunk, result[minIndex], minIndex, maxIndex)
 
 	return result
-
-import numpy as np
-from scipy import sparse
-from scipy.sparse.linalg import spsolve
 
 def ExtractBaseline_ALS(_data, _lam = 1e5, _p = 0.01, _niter=10):
 	L = len(_data)

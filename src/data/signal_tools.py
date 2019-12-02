@@ -1,5 +1,3 @@
-import numpy as np
-from math import sqrt
 import pandas as pd
 from dateutil import relativedelta
 import pandas as pd
@@ -8,50 +6,9 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plot
 from xgboost import XGBRegressor
-from sklearn.metrics import r2_score
 
-
-
-def metrics(reference, estimation):
-    metrics_dict = dict()
-    
-    # Average
-    avg_ref = np.mean(reference)
-    avg_est = np.mean(estimation)
-    metrics_dict['avg_ref'] = avg_ref
-    metrics_dict['avg_est'] = avg_est
-
-    # Standard deviation
-    sigma_ref = np.std(reference)
-    sigma_est = np.std(estimation)
-    metrics_dict['sig_ref'] = sigma_ref
-    metrics_dict['sig_est'] = sigma_est
-    
-    # Bias
-    bias = avg_est-avg_ref
-    normalised_bias = float((avg_est-avg_ref)/sigma_ref)
-    metrics_dict['bias'] = bias
-    metrics_dict['normalised_bias'] = normalised_bias
-    
-    # Normalized std deviation
-    sigma_norm = sigma_est/sigma_ref
-    sign_sigma = (sigma_est-sigma_ref)/(abs(sigma_est-sigma_ref))
-    metrics_dict['sigma_norm'] = sigma_norm
-    metrics_dict['sign_sigma'] = sign_sigma
-
-    # R2
-    SS_Residual = sum((estimation-reference)**2)
-    SS_Total = sum((reference-np.mean(reference))**2)
-    rsquared = max(0, 1 - (float(SS_Residual))/SS_Total)
-    metrics_dict['rsquared'] = rsquared
-    metrics_dict['r2_score_sklearn'] = r2_score(estimation, reference) 
-    # RMSD
-    RMSD = sqrt((1./len(reference))*SS_Residual)
-    RMSD_norm_unb = sqrt(1+np.power(sigma_norm,2)-2*sigma_norm*sqrt(rsquared))
-    metrics_dict['RMSD'] = RMSD
-    metrics_dict['RMSD_norm_unb'] = RMSD_norm_unb
-    
-    return metrics_dict
+import numpy as np
+from math import sqrt
 
 def detect_peak(signal):
     result = np.zeros(signal.shape)
@@ -220,9 +177,6 @@ def plot_oneshots(readings, channels, device_one_shot):
 
         ply.offline.iplot(fig1)
 
-def minRtarget(targetR):
-    return sqrt(1+ np.power(targetR,2)-2*np.power(targetR,2))
-
 def find_closest(A, target):
     #A must be sorted
     idx = A.searchsorted(target)
@@ -277,6 +231,7 @@ def plotModelResults(X, y, index, prediction, name, lower, upper, plot_intervals
     plot.grid(True);
     plot.show()
 
+## TODO
 def prepareDataFrame(_data, _frequencyResample, _irrelevantColumns, _numberPasses = 1, _plotModelAnom = True, _scaleAnom = 1.9, _narrowDownFactor = 1, _methodAnom = 'before-after-avg', _windowSize = 2, _append_clean = '_CLEAN'):
     '''
         Function for Dataframe preparation: resampling and anomalies cleaning
