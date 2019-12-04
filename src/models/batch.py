@@ -37,7 +37,7 @@ class batch_analysis (saf):
                 
                 # Load each of the tests
                 self.results[task]['data'].load_recording_database(test, self.results[task]['data'].available_tests()[test], 
-                                                    target_raster = options['target_raster'],
+                                                    frequency = options['frequency'],
                                                     clean_na = options['clean_na'],
                                                     clean_na_method = options['clean_na_method'],
                                                     load_cached_API = options['use_cache'], 

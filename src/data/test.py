@@ -1,11 +1,8 @@
 from shutil import copyfile
 import io, pytz, time
-
 from dateutil import parser
 import csv
-
 from src.data.device import device_wrapper
-
 from src.saf import *
 
 
@@ -23,6 +20,7 @@ class test_wrapper:
 		self.name = test_name
 		self.path = join(self.data.rootDirectory, 'data', 'processed', self.name[:4], self.name[5:7], self.name)
 		self.devices = dict()
+		self.models = dict()
 		self.descriptor_file = dict()
 		self.cached_info = dict()
 		self.ready_to_model = False
@@ -36,12 +34,10 @@ class test_wrapper:
 			raise SystemError('Test already exists with this name. Since you want to create a new test, I will stop here so that I avoid to overwrite')
 		
 		self.data.std_out('Creating new test')
-		self.descriptor_file['test'] = dict()
-
 		self.add_details(details)
 		for device in devices: self.add_device(device)
 
-		self.descriptor_file['test']['id'] = self.name
+		self.descriptor_file['id'] = self.name
 
 		self.process_files()		
 
@@ -76,11 +72,10 @@ class test_wrapper:
 				- report
 				- comment
 		'''
-		if 'test' not in self.descriptor_file.keys(): self.descriptor_file['test'] = dict()
 		try:
 			for detail in details.keys():
 				
-				self.descriptor_file['test'][detail] = details[detail]
+				self.descriptor_file[detail] = details[detail]
 		except:
 			self.data.std_out ('Add details NOK', 'ERROR')
 			traceback.print_exc()
@@ -90,42 +85,32 @@ class test_wrapper:
 
 	def add_device(self, device):
 
-		if 'devices' not in self.descriptor_file['test'].keys(): self.descriptor_file['test']['devices'] = dict()
+		if 'devices' not in self.descriptor_file.keys(): self.descriptor_file['devices'] = dict()
 
 		try:
-			if device.type == 'KIT' or device.type == 'STATION':
-				if 'kits' not in self.descriptor_file['test']['devices'].keys(): self.descriptor_file['test']['devices']['kits'] = dict()
-				self.descriptor_file['test']['devices']['kits'][device.name] = dict()
-				self.descriptor_file['test']['devices']['kits'][device.name]['name'] = device.name
-				self.descriptor_file['test']['devices']['kits'][device.name]['type'] = device.type
-				self.descriptor_file['test']['devices']['kits'][device.name]['SCK'] = device.version
-				self.descriptor_file['test']['devices']['kits'][device.name]['PM'] = device.pm_sensor
-				self.descriptor_file['test']['devices']['kits'][device.name]['location'] = device.location
-				self.descriptor_file['test']['devices']['kits'][device.name]['frequency'] = device.frequency
+			self.descriptor_file['devices'][device.name] = dict()
+			self.descriptor_file['devices'][device.name]['name'] = device.name
+			self.descriptor_file['devices'][device.name]['type'] = device.type
+			self.descriptor_file['devices'][device.name]['version'] = device.version
+			self.descriptor_file['devices'][device.name]['pm_sensor'] = device.pm_sensor
+			self.descriptor_file['devices'][device.name]['location'] = device.location
+			self.descriptor_file['devices'][device.name]['frequency'] = device.frequency
+			self.descriptor_file['devices'][device.name]['source'] = device.source
 
-				if device.type == 'STATION': self.descriptor_file['test']['devices']['kits'][device.name]['alphasense'] = device.alphasense
+			if device.type == 'STATION': self.descriptor_file['devices'][device.name]['alphasense'] = device.alphasense
 
-				self.descriptor_file['test']['devices']['kits'][device.name]['source'] = device.source
-				if 'csv' in device.source:
-					self.descriptor_file['test']['devices']['kits'][device.name]['name'] = device.name
-					self.descriptor_file['test']['devices']['kits'][device.name]['fileNameRaw'] = device.raw_data_file
-					self.descriptor_file['test']['devices']['kits'][device.name]['fileNameInfo'] = device.info_file
-					self.descriptor_file['test']['devices']['kits'][device.name]['fileNameProc'] = self.name + '_' + device.type + '_' + device.name + '.csv'
-				elif 'api' in device.source:
-					self.descriptor_file['test']['devices']['kits'][device.name]['device_id'] = device.name
-			elif device.type == 'ANALYSER':
-				if 'reference' not in self.descriptor_file['test']['devices']: self.descriptor_file['test']['devices']['reference'] = dict()
+			if 'csv' in device.source:
+				self.descriptor_file['devices'][device.name]['fileNameRaw'] = device.raw_data_file
+				self.descriptor_file['devices'][device.name]['fileNameInfo'] = device.info_file
+				self.descriptor_file['devices'][device.name]['fileNameProc'] = self.name + '_' + device.type + '_' + device.name + '.csv'
+			elif 'api' in device.source:
+				self.descriptor_file['devices'][device.name]['device_id'] = device.name
+			
+			if device.type == 'ANALYSER':
 				
-				self.descriptor_file['test']['devices']['reference'][device.name] = dict()
-				self.descriptor_file['test']['devices']['reference'][device.name]['name'] = device.name
-				self.descriptor_file['test']['devices']['reference'][device.name]['fileNameRaw'] = device.raw_data_file
-				self.descriptor_file['test']['devices']['reference'][device.name]['fileNameProc'] = self.name + '_' + device.name + '_REF.csv'
-				self.descriptor_file['test']['devices']['reference'][device.name]['index'] = device.index
-				self.descriptor_file['test']['devices']['reference'][device.name]['channels'] = device.channels
-				self.descriptor_file['test']['devices']['reference'][device.name]['location'] = device.location
-				self.descriptor_file['test']['devices']['reference'][device.name]['source'] = device.source
-				self.descriptor_file['test']['devices']['reference'][device.name]['type'] = device.type
-				self.descriptor_file['test']['devices']['reference'][device.name]['equipment'] = device.equipment
+				self.descriptor_file['devices'][device.name]['index'] = device.index
+				self.descriptor_file['devices'][device.name]['channels'] = device.channels
+				self.descriptor_file['devices'][device.name]['equipment'] = device.equipment
 		except:
 			self.data.std_out (f'Error adding device files for {device.name}', 'ERROR')
 			traceback.print_exc()
@@ -138,14 +123,10 @@ class test_wrapper:
 		
 		def get_raw_files():
 				list_raw_files = []
-				if 'kits' in self.descriptor_file['test']['devices'].keys():
-					for kit in self.descriptor_file['test']['devices']['kits'].keys():
-						if 'csv' in self.descriptor_file['test']['devices']['kits'][kit]['source']:
-							list_raw_files.append(self.descriptor_file['test']['devices']['kits'][kit]['fileNameRaw'])
-						
-				if 'reference' in self.descriptor_file['test']['devices'].keys():
-					for reference in self.descriptor_file['test']['devices']['reference'].keys():
-						list_raw_files.append(self.descriptor_file['test']['devices']['reference'][reference]['fileNameRaw'])
+				for device in self.descriptor_file['devices'].keys():
+					print (self.descriptor_file['devices'][device])
+					if 'csv' in self.descriptor_file['devices'][device]['source']:
+						list_raw_files.append(self.descriptor_file['devices'][device]['fileNameRaw'])
 				
 				return list_raw_files    
 		
@@ -179,119 +160,99 @@ class test_wrapper:
 		
 		list_raw_files = get_raw_files()
 		# Copy raw files and process data
-		if copy_raw_files(raw_src_path, raw_dst_path, list_raw_files):
-			# Process references
-			if 'reference' in self.descriptor_file['test']['devices']:
-				for reference in self.descriptor_file['test']['devices']['reference']:
-					self.data.std_out ('Processing reference: {}'.format(reference))
-					src_path = join(raw_src_path, self.descriptor_file['test']['devices']['reference'][reference]['fileNameRaw'])
-					dst_path = join(self.path, self.name + '_' + str(reference) + '_REF.csv')
-					
-					# Time Name
-					timeName = self.descriptor_file['test']['devices']['reference'][reference]['index']['name']
-					
-					# Load Dataframe
-					df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(timeName)
-					df.index = pd.to_datetime(df.index)
-					df.sort_index(inplace=True)
-					
-					df = df.groupby(pd.Grouper(freq = self.descriptor_file['test']['devices']['reference'][reference]['index']['frequency'])).aggregate(np.mean)
-					
-					# Remove Duplicates and drop unnamed columns
-					df = df[~df.index.duplicated(keep='first')]
-					df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-					
-					# Export to csv in destination path
-					df.to_csv(dst_path, sep=",")
-
-			
-			# Process kits
-			if 'kits' in self.descriptor_file['test']['devices']:
-				for kit in self.descriptor_file['test']['devices']['kits']:
-					if 'csv' in self.descriptor_file['test']['devices']['kits'][kit]['source']:
-						self.data.std_out ('Processing csv from device {}'.format(kit))
-						src_path = join(raw_src_path, self.descriptor_file['test']['devices']['kits'][kit]['fileNameRaw'])
-						dst_path = join(self.path, self.name + '_' + self.descriptor_file['test']['devices']['kits'][kit]['type'] + '_' + str(kit) + '.csv')
+		if copy_raw_files(raw_src_path, raw_dst_path, list_raw_files):	
+			# Process devices
+			for key in self.descriptor_file['devices'].keys():
+				device_descriptor = self.descriptor_file['devices'][key]
+				if 'csv' in device_descriptor['source']:
+					self.data.std_out ('Processing csv from device {}'.format(device_descriptor['name']))
+					src_path = join(raw_src_path, device_descriptor['fileNameRaw'])
+					dst_path = join(self.path, self.name + '_' + device_descriptor['type'] + '_' + str(device_descriptor['name']) + '.csv')
 						
-						# Read file csv
-						if self.descriptor_file['test']['devices']['kits'][kit]['source'] == 'csv_new':
+					# Read file csv
+					if device_descriptor['type'] == 'ANALYSER':
+						index_name = device_descriptor['index']['name']
+						df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(timeName)
+					else:
+						if device_descriptor['source'] == 'csv_new':
 							skiprows_pd = range(1, 4)
 							index_name = 'TIME'
 							df = pd.read_csv(src_path, verbose=False, skiprows=skiprows_pd, encoding = 'utf-8', sep=',')
 
-						elif self.descriptor_file['test']['devices']['kits'][kit]['source'] == 'csv_old':
+						elif device_descriptor['source'] == 'csv_old':
 							index_name = 'Time'
 							df = pd.read_csv(src_path, verbose=False, encoding = 'utf-8')
 							
-						elif self.descriptor_file['test']['devices']['kits'][kit]['source'] == 'csv_ms':
+						elif device_descriptor['source'] == 'csv_ms':
 							index_name = 'Time'
 							df = pd.read_csv(src_path, verbose=False, encoding = 'utf-8', parse_dates=[[0,1]], date_parser=date_parser)
 						
 						# Find name in case of extra weird characters
 						for column in df.columns:
 							if index_name in column: index_found = column
-								
+							
 						df.set_index(index_found, inplace = True)
-						# df.index = pd.to_datetime(df.index).tz_convert(self.descriptor_file['test']['devices']['kits'][kit]['location'])
-						df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.descriptor_file['test']['devices']['kits'][kit]['location'])
+					
+					df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(device_descriptor['location'])
+					df.sort_index(inplace=True)
 
-						df.sort_index(inplace=True)
-								
-						# Remove Duplicates and drop unnamed columns
-						df = df[~df.index.duplicated(keep='first')]
-						df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+					if device_descriptor['type'] == 'ANALYSER': df = df.groupby(pd.Grouper(freq = device_descriptor['index']['frequency'])).aggregate(np.mean)
 							
-						df.to_csv(dst_path, sep=",")
+					# Remove Duplicates and drop unnamed columns
+					df = df[~df.index.duplicated(keep='first')]
+					df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
 						
-						## Import units and ids
-						if self.descriptor_file['test']['devices']['kits'][kit]['source'] == 'csv_new':
-							self.data.std_out('Processing units')
-							dict_header = dict()
-							try:
-								with open(src_path, 'rt') as csvfile:
-									readercsv = csv.reader(csvfile, delimiter = ',')
-									line = 0
-								
-									header = next(readercsv)[1:]
-									unit = next(readercsv)[1:]
-									ids = next(readercsv)[1:]
-								
-									for key in header:
-										dict_header[key] = dict()
-										dict_header[key]['unit'] = unit[header.index(key)]
-										dict_header[key]['id'] = ids[header.index(key)]
-									
-									self.descriptor_file['test']['devices']['kits'][kit]['metadata'] = dict_header
-							except:
-								with open(src_path, 'rb') as csvfile:
-									readercsv = csv.reader(csvfile, delimiter = ',')
-									line = 0
-								
-									header = next(readercsv)[1:]
-									unit = next(readercsv)[1:]
-									ids = next(readercsv)[1:]
-								
-									for key in header:
-										dict_header[key] = dict()
-										dict_header[key]['unit'] = unit[header.index(key)]
-										dict_header[key]['id'] = ids[header.index(key)]
-									
-									self.descriptor_file['test']['devices']['kits'][kit]['metadata'] = dict_header
+					df.to_csv(dst_path, sep=",")
+					
+					## Import units and ids
+					if device_descriptor['source'] == 'csv_new':
+						self.data.std_out('Processing units')
+						dict_header = dict()
+						try:
+							with open(src_path, 'rt') as csvfile:
+								readercsv = csv.reader(csvfile, delimiter = ',')
+								line = 0
 							
-						## Load txt info
-						if self.descriptor_file['test']['devices']['kits'][kit]['fileNameInfo'] != '':
-							self.data.std_out('Loading txt info')
-							src_path_info = join(raw_src_path, self.descriptor_file['test']['devices']['kits'][kit]['fileNameInfo'])
-							dict_info = dict()
-							with open(src_path_info, 'rb') as infofile:
-								for line in infofile:
-									line = line.strip('\r\n')
-									splitter = line.find(':')
-									dict_info[line[:splitter]]= line[splitter+2:] # Accounting for the space
-							   
-							self.descriptor_file['test']['devices']['kits'][kit]['info'] = dict_info
-						else:
-							self.data.std_out('No txt info available', 'WARNING')
+								header = next(readercsv)[1:]
+								unit = next(readercsv)[1:]
+								ids = next(readercsv)[1:]
+							
+								for key in header:
+									dict_header[key] = dict()
+									dict_header[key]['unit'] = unit[header.index(key)]
+									dict_header[key]['id'] = ids[header.index(key)]
+								
+								self.descriptor_file['devices'][device_descriptor['name']]['metadata'] = dict_header
+						except:
+							with open(src_path, 'rb') as csvfile:
+								readercsv = csv.reader(csvfile, delimiter = ',')
+								line = 0
+							
+								header = next(readercsv)[1:]
+								unit = next(readercsv)[1:]
+								ids = next(readercsv)[1:]
+							
+								for key in header:
+									dict_header[key] = dict()
+									dict_header[key]['unit'] = unit[header.index(key)]
+									dict_header[key]['id'] = ids[header.index(key)]
+								
+								self.descriptor_file['devices'][device_descriptor['name']]['metadata'] = dict_header
+						
+					## Load txt info
+					if device_descriptor['fileNameInfo'] != '':
+						self.data.std_out('Loading txt info')
+						src_path_info = join(raw_src_path, device_descriptor['fileNameInfo'])
+						dict_info = dict()
+						with open(src_path_info, 'rb') as infofile:
+							for line in infofile:
+								line = line.strip('\r\n')
+								splitter = line.find(':')
+								dict_info[line[:splitter]]= line[splitter+2:] # Accounting for the space
+						   
+						self.descriptor_file['devices'][device_descriptor['name']]['info'] = dict_info
+					else:
+						self.data.std_out('No txt info available', 'WARNING')
 
 			self.data.std_out('Processing files OK', 'SUCCESS')
 		self.data.std_out(f'Test {self.name} path: {self.path}')
@@ -299,8 +260,11 @@ class test_wrapper:
 	def set_options(self, options):
 		if 'load_cached_API' in options.keys(): self.options['load_cached_API'] = options['load_cached_API']
 		if 'store_cached_API' in options.keys(): self.options['store_cached_API'] = options['store_cached_API']
+		if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
+		if 'clean_na_method' in options.keys(): self.options['clean_na_method'] = options['clean_na_method']
+		if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
 
-	def load (self, test_options):
+	def load (self, options):
 
 		def process_device_date(date, location):
 
@@ -319,18 +283,17 @@ class test_wrapper:
 			self.descriptor_file = yaml.load(stream, Loader=yaml.BaseLoader)
 
 		# Add devices
-		for key in self.descriptor_file['test']['devices']['kits'].keys():
-			self.devices[key] = device_wrapper(self.descriptor_file['test']['devices']['kits'][key], self.data)
-
-		if 'reference' in self.descriptor_file['test']['devices'].keys():
-			for key in self.descriptor_file['test']['devices']['reference'].keys():
-				self.devices[key] = device_wrapper(self.descriptor_file['test']['devices']['reference'][key], self.data)
+		for key in self.descriptor_file['devices'].keys():
+			self.devices[key] = device_wrapper(self.descriptor_file['devices'][key], self.data)
 
 		# Set options
-		self.set_options(test_options)
-		
+		self.ready_to_model = False
+		self.set_options(options)
+
+		self.data.std_out(f'Using options: {options}')
+
 		# Check if we need the cached info file for the API
-		if self.options['load']['load_cached_API']:
+		if self.options['load_cached_API']:
 			try:
 				with open (join(self.path, 'cached', 'cached_info.json')) as handle:
 					self.cached_info = json.loads(handle.read())			
@@ -350,7 +313,6 @@ class test_wrapper:
 
 			min_date_device = process_device_date(device.min_date, device.location)
 			max_date_device = process_device_date(device.max_date, device.location)
-			device_options = self.options['load']['devices']
 
 			# Name convertion
 			target_names = list()
@@ -376,7 +338,7 @@ class test_wrapper:
 				# Get last reading from API
 				last_reading_api = process_device_date(device.api_device.get_date_last_reading(), device.location)
 
-				if self.options['load']['load_cached_API']:
+				if self.options['load_cached_API']:
 
 					try:
 						device_cached_file = join(self.path, 'cached', device.name  + '.csv')
@@ -389,7 +351,7 @@ class test_wrapper:
 						else:
 							device.location = location_cached
 
-						device.load(options = None, path = join(self.path, 'cached'))
+						device.load(options = self.options, path = join(self.path, 'cached'))
 
 					except:
 
@@ -469,14 +431,14 @@ class test_wrapper:
 						self.data.std_out('Discarding device. No max date available', 'WARNING')
 						continue
 
-					device_options['min_date'] = min_date_to_load
-					device_options['max_date'] = max_date_to_load
+					self.options['min_date'] = min_date_to_load
+					self.options['max_date'] = max_date_to_load
 
-					device.load(options = device_options)
+					device.load(options = self.options)
 
 			# Rename columns
 			elif 'csv' in device.source:
-				device.load(device_options, path = self.path)
+				device.load(self.options, path = self.path)
 				
 				if len(target_names) == len(test_names) and len(target_names) > 0:
 					for i in range(len(target_names)):
@@ -484,7 +446,7 @@ class test_wrapper:
 							device.readings.rename(columns={test_names[i]: target_names[i]}, inplace=True)
 							self.data.std_out('Renaming column {} to {}'.format(test_names[i], target_names[i]))
 
-			if self.options['load']['store_cached_API'] and device.loaded_OK and device.source == 'api' and load_API:
+			if self.options['store_cached_API'] and device.loaded_OK and device.source == 'api' and load_API:
 				self.data.std_out(f'Caching files for {device.name}')
 
 				if device.name not in self.cached_info.keys(): self.cached_info[device.name] = dict()

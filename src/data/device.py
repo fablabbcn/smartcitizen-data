@@ -1,39 +1,41 @@
 from src.data.api import api_device
 from src.saf import *
 
-
 class device_wrapper:
 
 	def __init__(self, device_descriptor, data = None):
+		
 		if data is None: 
 			from src.data.data import data_wrapper
 			self.data = data_wrapper()
 		else: self.data = data
 		
-		# Type = KIT, STATION or ANALYSER
+		# Type = KIT, STATION or REFERENCE
 		self.type = device_descriptor['type']
-		
-		# Frequency in pandas format
-		try:
-			self.frequency = device_descriptor['frequency']
-		except:
-			self.frequency = device_descriptor['index']['frequency']
-		
 		# Source (csv_new, csv_old, csv_ms or api)
 		self.source = device_descriptor['source']
-
-		if 'metadata' in device_descriptor.keys(): self.metadata = device_descriptor['metadata']
-		else: self.metadata = None
 		# Location
 		if 'location' in device_descriptor.keys(): self.location = device_descriptor['location']
 		else: self.location = None
-
+		# Dates
+		if 'min_date' in device_descriptor.keys(): self.min_date = device_descriptor['min_date']
+		else: self.min_date = None
+		if 'max_date' in device_descriptor.keys(): self.max_date = device_descriptor['max_date']
+		else: self.max_date = None
+		# Metadata
+		if 'metadata' in device_descriptor.keys(): self.metadata = device_descriptor['metadata']
+		else: self.metadata = None
+		# Frequency in pandas format
+		if 'index' in device_descriptor.keys(): self.frequency = device_descriptor['index']['frequency']
+		else: 
+			try: self.frequency = device_descriptor['frequency']
+			except: self.frequency = None
+		
 		# Add properties depending on source
 		if 'csv' in self.source:
 			self.name = device_descriptor['name']
 			self.raw_data_file = device_descriptor['fileNameRaw']
 			if 'fileNameInfo' in device_descriptor.keys(): self.info_file = device_descriptor['fileNameInfo']
-			
 			try:
 				self.processed_file = device_descriptor['fileNameProc']
 			except:
@@ -44,60 +46,49 @@ class device_wrapper:
 		elif 'serial' in self.source:
 			self.std_out('Not supported yet')
 
-		# Dates
-		if 'min_date' in device_descriptor.keys(): self.min_date = device_descriptor['min_date']
-		else: self.min_date = None
-		if 'max_date' in device_descriptor.keys(): self.max_date = device_descriptor['max_date']
-		else: self.max_date = None
-
 		# Kit or Station properties
 		if self.type == 'KIT' or self.type == 'STATION':
-			self.version = device_descriptor['SCK']
-			self.pm_sensor = device_descriptor['PM']
+			self.version = device_descriptor['version']
+			self.pm_sensor = device_descriptor['pm_sensor']
 			self.index = {'name': ''}
 			if self.type == 'STATION':
-
 				if 'alphasense' in device_descriptor.keys(): self.alphasense = device_descriptor['alphasense']
 				elif 'device_history' in device_descriptor.keys(): self.alphasense = self.data.devices_database[device_descriptor['device_history']]['gas_pro_board']
 				else: self.alphasense = None; self.data.std_out(f'No alphasense specified in files for {self.name}', 'WARNING')
 		# Other devices properties
-		elif self.type == 'ANALYSER':
+		elif self.type == 'REFERENCE':
 			self.equipment = device_descriptor['equipment']
 			self.channels = device_descriptor['channels']
 			self.index = device_descriptor['index']
 
 		self.readings = pd.DataFrame()
 		self.loaded_OK = False
-		self.options = self.data.config['data']['load']['devices']
+		self.options = self.data.config['data']
 
 	def set_options(self, options):
 		if 'min_date' in options.keys(): self.options['min_date'] = options['min_date'] 
 		else: None
 		if 'max_date' in options.keys(): self.options['max_date'] = options['max_date']
 		else: None
-		if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
-		if 'clean_na_method' in options.keys(): self.options['clean_na_method'] = options['clean_na_method']
-		if 'target_raster' in options.keys(): self.options['target_raster'] = options['target_raster']
 
 	def load(self, options, path = None):
 		if options is not None: self.set_options(options)
-
 		try:
 			if 'csv' in self.source:
-				self.readings = self.readings.combine_first(self.data.read_CSV_file(join(path, self.processed_file), self.location, self.options['target_raster'], 
+				self.readings = self.readings.combine_first(self.data.read_CSV_file(join(path, self.processed_file), self.location, self.options['frequency'], 
 															self.options['clean_na'], self.options['clean_na_method'], self.index['name']))
 
 			elif 'api' in self.source:
 				if path is None:
-					self.readings = self.readings.combine_first(self.api_device.get_device_data(self.options['min_date'], self.options['max_date'], self.options['target_raster'], 
+					self.readings = self.readings.combine_first(self.api_device.get_device_data(self.options['min_date'], self.options['max_date'], self.options['frequency'], 
 															self.options['clean_na'], self.options['clean_na_method'], self.data.current_names))
 				else:
 					# Normally cached
-					self.readings = self.readings.combine_first(self.data.read_CSV_file(join(path, self.name + '.csv'), self.location, self.options['target_raster'], 
+					self.readings = self.readings.combine_first(self.data.read_CSV_file(join(path, self.name + '.csv'), self.location, self.options['frequency'], 
 															self.options['clean_na'], self.options['clean_na_method']))
 
 			# Convert units
-			if self.type == 'ANALYSER':
+			if self.type == 'REFERENCE':
 				self.convert_units(append_to_name = 'REF')
 		
 		except:

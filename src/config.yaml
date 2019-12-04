@@ -6,19 +6,18 @@ urls:
   SENSOR_NAMES_URL_20: 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
   ZENODO_BASE_URL: 'https://sandbox.zenodo.org'
 
-names:
+data:
   # INTERNAL NAME USED FOR MODELLING PURPOSES
   NAME_COMBINED_DATA: 'COMBINED_DEVICES'
   # NAME TO APPEND TO REFERENCE DATA (GROUND TRUTH)
   REF_APPEND: 'REF'
   RELOAD_NAMES: false
-
-data:
   CACHED_DATA_MARGIN_HOURS: 1
-  load:
-    load_cached_API: true
-    store_cached_API: true
-    devices:
-      clean_na: true
-      clean_na_method: 'drop'
-      target_raster: '1Min'
+  load_cached_API: true
+  store_cached_API: true
+  clean_na: true
+  clean_na_method: 'drop'
+  frequency: '1Min'
+
+models:
+  NAME_MULTIPLE_TRAINING_DATA: 'CDEV'

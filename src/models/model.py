@@ -2,7 +2,7 @@ from src.models.formulas import *
 from src.saf import *
 from src.models.model_tools import *
 
-class model_wrapper (saf):
+class model_wrapper ():
 
 	def __init__(self, model_dict, verbose):
 		saf.__init__(self, verbose)
@@ -265,7 +265,7 @@ class model_wrapper (saf):
 		dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 		
 		# Resample
-		dataframeModel = dataframeModel.resample(self.options['target_raster'], limit = 1).mean()
+		dataframeModel = dataframeModel.resample(self.options['frequency'], limit = 1).mean()
 		
 		# Remove na
 		if self.options['clean_na']:

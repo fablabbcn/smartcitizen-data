@@ -94,7 +94,7 @@ class plot_wrapper():
 		if max_date is not None: self.df = self.df[self.df.index < max_date]
 			
 		# Resample it
-		if self.options['target_raster'] is not None: self.df.resample(self.options['target_raster']).mean()
+		if self.options['frequency'] is not None: self.df.resample(self.options['frequency']).mean()
 
 		if self.options['clean_na'] is not None:
 			if self.options['clean_na_method'] == 'fill':

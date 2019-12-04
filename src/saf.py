@@ -44,8 +44,8 @@ class saf:
 			raise SystemError('Problem loading calibration file')
 
 		# Load sensor names from sensors.h
-		sensor_names_21 = self.get_sensor_names(self.config['urls']['SENSOR_NAMES_URL_21'], join(self.interimDirectory), 'sensornames_21', self.config['names']['RELOAD_NAMES'])
-		sensor_names_20 = self.get_sensor_names(self.config['urls']['SENSOR_NAMES_URL_20'], join(self.interimDirectory), 'sensornames_20', self.config['names']['RELOAD_NAMES'])
+		sensor_names_21 = self.get_sensor_names(self.config['urls']['SENSOR_NAMES_URL_21'], join(self.interimDirectory), 'sensornames_21', self.config['data']['RELOAD_NAMES'])
+		sensor_names_20 = self.get_sensor_names(self.config['urls']['SENSOR_NAMES_URL_20'], join(self.interimDirectory), 'sensornames_20', self.config['data']['RELOAD_NAMES'])
 		self.current_names = {**sensor_names_21, **sensor_names_20}
 	
 	def std_out(self, msg, type_message = None, force = False):
@@ -133,7 +133,7 @@ class saf:
 		else:
 			self.std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'WARNING')
 
-	def read_CSV_file(self, file_path, location, target_raster, clean_na, clean_na_method, refIndex = ''):
+	def read_CSV_file(self, file_path, location, frequency, clean_na, clean_na_method, refIndex = ''):
 		# Read pandas dataframe
 		df = pd.read_csv(file_path, verbose=False, skiprows=[1])
 
@@ -162,7 +162,7 @@ class saf:
 		df = df.apply(pd.to_numeric,errors='coerce')   
 		
 		# # Resample
-		df = df.resample(target_raster, limit = 1).mean()
+		df = df.resample(frequency, limit = 1).mean()
 
 		# Remove na
 		if clean_na:

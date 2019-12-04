@@ -86,23 +86,23 @@ class api_device:
         
         return self.location
 
-    def get_device_data(self, start_date, end_date, target_raster, clean_na, clean_na_method, currentSensorNames):
+    def get_device_data(self, start_date, end_date, frequency, clean_na, clean_na_method, currentSensorNames):
         
         self.std_out(f'Requesting data from API for device {self.device_id}')
         
-        # Convert target_raster from pandas to API's
-        for index, letter in enumerate(target_raster):
+        # Convert frequency from pandas to API's
+        for index, letter in enumerate(frequency):
             try:
                 aux = int(letter)
             except:
                 index_first = index
                 letter_first = letter
-                rollup_value = target_raster[:index_first]
-                target_raster_unit = target_raster[index_first:]
+                rollup_value = frequency[:index_first]
+                frequency_unit = frequency[index_first:]
                 break
 
         for item in frequency_convert_LUT:
-            if item[1] == target_raster_unit:
+            if item[1] == frequency_unit:
                 rollup_unit = item[0]
 
         rollup = rollup_value + rollup_unit
@@ -227,7 +227,7 @@ class api_device:
                                 # Check for weird things in the data
                                 df = df.apply(pd.to_numeric,errors='coerce')
                                 # # Resample
-                                df = df.resample(target_raster, limit = 1).mean()
+                                df = df.resample(frequency, limit = 1).mean()
 
                             # Add it to dataframe for each sensor
                             else:
@@ -244,7 +244,7 @@ class api_device:
                                     # Check for weird things in the data
                                     dfT = dfT.apply(pd.to_numeric,errors='coerce')
                                     # Resample
-                                    dfT = dfT.resample(target_raster).mean()
+                                    dfT = dfT.resample(frequency).mean()
 
                                     df = df.combine_first(dfT)
                     except:
