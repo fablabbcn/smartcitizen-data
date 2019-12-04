@@ -1,4 +1,3 @@
-from src.saf import *
 from src.visualization.visualization_tools import *
 
 class plot_wrapper():
@@ -18,7 +17,6 @@ class plot_wrapper():
 	'''
 	
 	def __init__(self, plot_description, verbose):
-		saf.__init__(self, verbose)
 		self.library = plot_description['plotting_library']
 		if self.library not in ['matplotlib', 'plotly']: raise SystemError ('Not supported library')
 		self.type = plot_description['plot_type']
@@ -31,10 +29,14 @@ class plot_wrapper():
 		self.figure = None
 		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
 		
-	def std_out(self, msg):
-		if self.verbose: print(msg)
+	def std_out(self, msg, type_message = None, force = False):
+		if self.verbose or force: 
+			if type_message is None: print(msg)	
+			elif type_message == 'SUCCESS': print(colored(msg, 'green'))
+			elif type_message == 'WARNING': print(colored(msg, 'yellow')) 
+			elif type_message == 'ERROR': print(colored(msg, 'red'))
 	
-	def prepare_data(self, records):
+	def prepare_data(self, data):
 		self.std_out('Preparing data for plot')
 		if "use_preprocessed" in self.options.keys():
 			if self.options["use_preprocessed"]: data_key = 'data_preprocessed'
@@ -69,22 +71,22 @@ class plot_wrapper():
 				# Put channel in subplots_list
 				self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device)
 				# Dataframe
-				df = pd.DataFrame(records.tests[test]['devices'][device]['data'][channel].values, 
+				df = pd.DataFrame(data.tests[test].devices[device].readings[channel].values, 
 								  columns = [channel + '_' + device],
-								  index = records.tests[test]['devices'][device]['data'].index)
+								  index = data.tests[test].devices[device].readings.index)
 				
 				# Combine it in the df
 				self.df = self.df.combine_first(df)
 			
 			else:
-				for device_records in records.tests[test]['devices'].keys():
-					if channel in records.tests[test]['devices'][device_records]['data'].columns:
+				for device_records in data.tests[test].devices.keys():
+					if channel in data.tests[test].devices[device_records].readings.columns:
 						# Put channel in subplots_list
 						self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device_records)
 						# Dataframe
-						df = pd.DataFrame(records.tests[test]['devices'][device_records]['data'][channel].values, 
+						df = pd.DataFrame(data.tests[test].devices[device_records].readings[channel].values, 
 										  columns = [channel + '_' + device_records],
-										  index = records.tests[test]['devices'][device_records]['data'].index)
+										  index = data.tests[test].devices[device_records].readings.index)
 
 					# Combine it in the df
 					self.df = self.df.combine_first(df)
@@ -118,7 +120,7 @@ class plot_wrapper():
 		except:
 			self.std_out('No export requested')
 
-	def plot(self, records):
+	def plot(self, data):
 
 		# Correlation function for plot anotation
 		def corrfunc(x, y, **kws):
@@ -142,7 +144,7 @@ class plot_wrapper():
 				self.formatting["yrange"][int(axis)] = self.formatting["yrange"].pop(axis)
 		
 		# Prepare data for plot
-		if records is not None: self.prepare_data(records)
+		if data is not None: self.prepare_data(data)
 		n_subplots = len(self.subplots_list)
 
 		# Generate plot depending on type and library

@@ -172,7 +172,7 @@ class test_wrapper:
 					# Read file csv
 					if device_descriptor['type'] == 'ANALYSER':
 						index_name = device_descriptor['index']['name']
-						df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(timeName)
+						df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(index_name)
 					else:
 						if device_descriptor['source'] == 'csv_new':
 							skiprows_pd = range(1, 4)
