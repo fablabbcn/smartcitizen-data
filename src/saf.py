@@ -2,10 +2,10 @@ import traceback
 
 import os
 from os import pardir, getcwd, makedirs, mkdir, walk
-from os.path import join, abspath, normpath, basename, exists, dirname
+from os.path import join, abspath, normpath, basename, exists, dirname, getsize
 from termcolor import colored
 from datetime import datetime, timedelta
-
+from tabulate import tabulate
 import re
 import yaml, json
 
@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 
 import joblib
+from src.secrets import *
 
 class saf:
 
@@ -38,7 +39,7 @@ class saf:
 		# Load calibration file
 		try:
 			with open(join(self.interimDirectory, 'sensorData.yaml'), 'r') as yml:
-				self.devices_database = yaml.load(yml, Loader=yaml.BaseLoader)
+				self.devices_database = yaml.load(yml)
 				self.std_out(f'Loading devices data file from: {self.interimDirectory}')
 		except:
 			raise SystemError('Problem loading calibration file')

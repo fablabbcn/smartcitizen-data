@@ -67,9 +67,11 @@ class device_wrapper:
 
 	def set_options(self, options):
 		if 'min_date' in options.keys(): self.options['min_date'] = options['min_date'] 
-		else: None
+		else: self.options['min_date'] = None
 		if 'max_date' in options.keys(): self.options['max_date'] = options['max_date']
-		else: None
+		else: self.options['max_date'] = None
+		if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
+		if 'clean_na_method' in options.keys(): self.options['clean_na_method'] = options['clean_na_method']
 
 	def load(self, options, path = None):
 		if options is not None: self.set_options(options)
@@ -88,8 +90,7 @@ class device_wrapper:
 															self.options['clean_na'], self.options['clean_na_method']))
 
 			# Convert units
-			if self.type == 'REFERENCE':
-				self.convert_units(append_to_name = 'REF')
+			if self.type == 'REFERENCE': self.convert_units(append_to_name = 'REF')
 		
 		except:
 			traceback.print_exc()

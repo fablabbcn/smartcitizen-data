@@ -4,7 +4,9 @@
 urls:
   SENSOR_NAMES_URL_21: 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
   SENSOR_NAMES_URL_20: 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
-  ZENODO_BASE_URL: 'https://sandbox.zenodo.org'
+  ZENODO_SANDBOX_BASE_URL: 'http://sandbox.zenodo.org'
+  ZENODO_REAL_BASE_URL: 'https://zenodo.org'
+  ZENODO_COMMUNITY_ID: 'iscape'
 
 data:
   # INTERNAL NAME USED FOR MODELLING PURPOSES
@@ -13,6 +15,7 @@ data:
   REF_APPEND: 'REF'
   RELOAD_NAMES: false
   CACHED_DATA_MARGIN_HOURS: 1
+  # FROM HERE THEY HAVE TO BE lower caps
   load_cached_API: true
   store_cached_API: true
   clean_na: true
@@ -20,4 +23,9 @@ data:
   frequency: '1Min'
 
 models:
+  # THIS WILL BE APPENDED TO YOUR MODEL IF YOU USE MULTIPLE TRAINING DATASETS
   NAME_MULTIPLE_TRAINING_DATA: 'CDEV'
+
+# NOTES:
+# Create a document called secrets.py and put your zenodo Personal access token there, following this:
+# zenodo_token='your_token_here'

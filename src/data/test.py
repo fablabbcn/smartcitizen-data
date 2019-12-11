@@ -49,7 +49,7 @@ class test_wrapper:
 
 	def update(self, details, devices):
 		with open(join(self.path, 'test_description.yaml'), 'r') as yml:
-			self.descriptor_file = yaml.load(yml, Loader=yaml.BaseLoader)
+			self.descriptor_file = yaml.load(yml)
 
 		self.add_details(details)
 		for device in devices: self.add_device(device)
@@ -280,7 +280,7 @@ class test_wrapper:
 		descriptor_file_path = join(self.path, 'test_description.yaml')
 
 		with open(descriptor_file_path, 'r') as stream:
-			self.descriptor_file = yaml.load(stream, Loader=yaml.BaseLoader)
+			self.descriptor_file = yaml.load(stream)
 
 		# Add devices
 		for key in self.descriptor_file['devices'].keys():

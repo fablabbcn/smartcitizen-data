@@ -17,7 +17,7 @@ class data_wrapper (saf):
 		else:
 			self.std_out('Test initialisation done', 'SUCCESS')
 
-	def get_tests(self, directory):
+	def get_tests(self, directory, deep_description = False):
 		# Get available tests in the data folder structure
 		tests = dict()
 		mydir = join(directory, 'processed')
@@ -26,14 +26,55 @@ class data_wrapper (saf):
 				if _file.endswith(".yaml"):
 					filePath = join(root, _file)
 					stream = open(filePath)
-					yamlFile = yaml.load(stream, Loader = yaml.BaseLoader)
-					tests[yamlFile['id']] = root
+					yamlFile = yaml.load(stream)
 					
+					if deep_description == True:
+						tests[yamlFile['id']] = dict()
+						tests[yamlFile['id']]['path'] = root
+						for key in yamlFile.keys():
+							if key == 'devices': continue
+							tests[yamlFile['id']][key] = yamlFile[key]
+					else:
+						tests[yamlFile['id']] = root
+
 		return tests
 
 	def available_tests(self):
 		self.availableTests = self.get_tests(self.dataDirectory)
 		return self.availableTests
+
+	def summary_of_tests(self):
+		return self.get_tests(self.dataDirectory, deep_description = True)
+
+	def describe_test(self, test_name, devices = None, verbose = True, tablefmt = 'simple'):
+		if test_name in self.tests.keys():
+			summary_dict = dict()
+			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)','Number of records after drop (minutes)', 'Ratio (%)']
+
+			if devices is None: listDevices = self.tests[test_name].devices.keys()
+			else: listDevices = devices
+				
+			for device in listDevices:
+				summary_dict[device] = list()
+				
+				# print (f'Test: {testName}, device: {device}')
+				df = self.tests[test_name].devices[device].readings.copy()
+				if len(df.index) > 0:
+					summary_dict[device].append(df.index[0])
+					summary_dict[device].append(df.index[-1])
+					summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/60)
+					summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/(3600*24))
+					df = df.resample('1Min').mean()
+					df.dropna(axis = 0, how='any', inplace=True)
+					summary_dict[device].append(len(df.index))
+					summary_dict[device].append(min(100,summary_dict[device][-1]/summary_dict[device][2]*100))
+				else:
+					summary_dict[device] = [None, None]
+			self.std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = True)
+
+			return summary_dict
+		else:
+			self.std_out(f'Reading {test_name} not loaded')
 	
 	def preview_test(self, testPath):
 		# Find Yaml
@@ -60,14 +101,14 @@ class data_wrapper (saf):
 		from src.data.device import device_wrapper
 
 		# Load data from the API
-		self.tests[test_name] = test_wrapper(test_name, self)
+		if test_name not in self.tests.keys(): self.tests[test_name] = test_wrapper(test_name, self)
+		else: self.std_out(f'Test {test_name} already in tests, combining')
 
 		self.tests[test_name].add_details(dict())
 		for device_id in source_ids:
 			self.tests[test_name].devices[device_id] = device_wrapper({'device_id': device_id,
 													  'frequency': options['frequency'],
-                                           			  'type': None,
-                                           			  'source': 'api'}, self)
+													  'type': None, 'source': 'api'}, self)
 
 			self.tests[test_name].devices[device_id].load(options = options)
 		
@@ -91,36 +132,6 @@ class data_wrapper (saf):
 	def clear_tests(self):
 		self.tests.clear()
 		self.std_out('Clearing tests')
-
-	# def describe_test(self, test_name, devices = None, verbose = True, tablefmt = 'simple'):
-	# 	if test_name in self.tests.keys():
-	# 		summary_dict = dict()
-	# 		summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)','Number of records after drop (minutes)', 'Ratio (%)']
-
-	# 		if devices is None: listDevices = self.tests[test_name]['devices'].keys()
-	# 		else: listDevices = devices
-				
-	# 		for device in listDevices:
-	# 			summary_dict[device] = list()
-				
-	# 			# print (f'Test: {testName}, device: {device}')
-	# 			df = self.tests[test_name]['devices'][device]['data'].copy()
-	# 			if len(df.index) > 0:
-	# 				summary_dict[device].append(df.index[0])
-	# 				summary_dict[device].append(df.index[-1])
-	# 				summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/60)
-	# 				summary_dict[device].append((df.index[-1]-df.index[0]).total_seconds()/(3600*24))
-	# 				df = df.resample('1Min').mean()
-	# 				df.dropna(axis = 0, how='any', inplace=True)
-	# 				summary_dict[device].append(len(df.index))
-	# 				summary_dict[device].append(min(100,summary_dict[device][-1]/summary_dict[device][2]*100))
-	# 			else:
-	# 				summary_dict[device] = [None, None]
-	# 		self.std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = verbose)
-
-	# 		return summary_dict
-	# 	else:
-	# 		self.std_out(f'Reading {test_name} not loaded')
 
 	def combine_devices(self, test_name):
 		from src.data.device import device_wrapper
@@ -150,9 +161,9 @@ class data_wrapper (saf):
 					dataframe_result = dataframe_result.combine_first(self.tests[test_name].devices[device].readings)
 
 			self.tests[test_name].devices[self.name_combined_data] = device_wrapper({'name': self.name_combined_data,
-													  								'frequency': '1Min',
-								                                           			 'type': '',
-								                                           			 'source': ''}, self)
+																					'frequency': '1Min',
+																					 'type': '',
+																					 'source': ''}, self)
 
 			self.tests[test_name].devices[self.name_combined_data].readings = dataframe_result
 		except:
@@ -416,3 +427,169 @@ class data_wrapper (saf):
 			exportDir = join(self.dataDirectory, 'processed', year, month, test_name, 'processed')
 			self.std_out('Saving files to: \n{}'.format(exportDir))
 			self.export_CSV_file(exportDir, device,  df, forced_overwrite = forced_overwrite)
+
+	def upload_to_zenodo(self, upload_descriptor_name, sandbox = True, dry_run = True):
+		'''
+		This section uses the code inspired by this repo https://github.com/darvasd/upload-to-zenodo
+		'''
+
+		def fill_template(individual_descriptor, descriptor_file_name, upload_type = 'dataset'):
+			# Open base template with all keys
+
+			if upload_type == 'dataset': template_file_name = 'template_zenodo_dataset'
+			elif upload_type == 'publication': template_file_name = 'template_zenodo_publication'
+
+			with open (join(self.rootDirectory, f'src/data/{template_file_name}.json'), 'r') as template_file:
+				template = json.load(template_file)
+
+			filled_template = template
+
+			# Fill it up for each key
+			for key in individual_descriptor.keys():
+
+				value = individual_descriptor[key]
+
+				if key in filled_template['metadata'].keys():
+					filled_template['metadata'][key] = value
+
+			with open (join( self.dataDirectory, 'uploads', descriptor_file_name), 'w') as descriptor_json:
+				json.dump(filled_template, descriptor_json, ensure_ascii=True)
+				self.std_out(f'Created descriptor file for {descriptor_file_name}', 'SUCCESS')
+			
+			return json.dumps(filled_template)
+
+		def get_submission_id(metadata, base_url):
+			url = f"{base_url}/api/deposit/depositions"
+
+			headers = {"Content-Type": "application/json"}
+			response = requests.post(url, params={'access_token': zenodo_token}, data=metadata, headers=headers)
+			if response.status_code > 210:
+				self.std_out("Error happened during submission, status code: " + str(response.status_code), 'ERROR')
+				self.std_out(response.json(), "ERROR")
+				return None
+
+			# Get the submission ID
+			submission_id = json.loads(response.text)["id"]
+
+			return submission_id
+
+		def upload_file(url, upload_metadata, files):
+			response = requests.post(url, params={'access_token': zenodo_token}, data = upload_metadata, files=files)
+			return response.status_code		
+
+		
+		self.std_out(f'Uploading {upload_descriptor_name} to zenodo')
+
+		if dry_run: self.std_out(f'Dry run. Verify output before setting dry_run to False', 'WARNING')
+		# Sandbox or not
+		if sandbox: 
+			self.std_out(f'Using sandbox. Verify output before setting sandbox to False', 'WARNING')
+			base_url = self.config['urls']['ZENODO_SANDBOX_BASE_URL']
+		else: base_url = self.config['urls']['ZENODO_REAL_BASE_URL']
+		
+		if '.yaml' not in upload_descriptor_name: upload_descriptor_name = upload_descriptor_name + '.yaml'
+		
+		with open (join(self.dataDirectory, 'uploads', upload_descriptor_name), 'r') as descriptor_file:
+			descriptor = yaml.load(descriptor_file)
+
+		self.available_tests()
+
+		for key in descriptor:
+
+			# Set options for processed and raw uploads
+			stage_list = ['base']
+			if 'options' in descriptor[key].keys(): options = descriptor[key]['options']
+			if options['include_processed_data']: stage_list.append('processed')
+			self.std_out(f'Options {options}')
+
+			# Fill template
+			if 'upload_type' in descriptor[key].keys(): upload_type = descriptor[key]['upload_type']
+			else: raise SystemError('Upload type not set')
+
+			metadata = fill_template(descriptor[key], key, upload_type = upload_type)
+			
+			# Get submission ID
+			if not dry_run: submission_id = get_submission_id(metadata, base_url)
+			else: submission_id = 0
+
+			if submission_id is not None:
+				# Dataset upload
+				if upload_type == 'dataset':
+					# Get the tests to upload
+					tests = descriptor[key]['tests']
+					
+					# Upload the files
+					url = f"{base_url}/api/deposit/depositions/{submission_id}/files"
+					
+					for test in tests:
+						# Get test path
+						self.std_out(f'Uploading data from test {test}')
+						test_path = self.availableTests[test]
+
+						# Upload the test descriptor
+						with open (join(test_path, 'test_description.yaml'), 'r') as test_descriptor: 
+							yaml_test_descriptor = yaml.load(test_descriptor)
+						
+						upload_metadata = {'name': f'test_description_{test}.yaml'}
+						files = {'file': open(join(test_path, 'test_description.yaml'), 'rb')}
+						file_size = getsize(join(test_path, 'test_description.yaml'))/(1024*1024.0)
+						if file_size > 50: self.std_out(f'File size for {test} is over 50Mb ({file_size})', 'WARNING')
+						if not dry_run: status_code = upload_file(url, upload_metadata, files)
+						else: status_code = 200
+						
+						if status_code > 210: 
+							self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+							return
+						else:
+							self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
+						
+						# Load the api devices to have them up to date in the cache
+						if any(yaml_test_descriptor['devices'][device]['source'] == 'api' for device in yaml_test_descriptor['devices'].keys()): self.load_test(test, options = {'store_cached_API': True})
+						
+						for device in yaml_test_descriptor['devices'].keys():
+							self.std_out(f'Uploading data from device {device}')
+							
+							for file_stage in stage_list:
+								file_path = ''
+								try:
+
+									# Find evice files
+									if file_stage == 'processed' and yaml_test_descriptor['devices'][device]['type'] != 'REFERENCE': 
+										file_name = f'{device}.csv'
+										file_path = join(test_path, 'processed', file_name)
+										upload_metadata = {'name': f'{device}_PROCESSED.csv'}
+									elif file_stage == 'base':
+										if 'csv' in yaml_test_descriptor['devices'][device]['source']:
+											file_name = yaml_test_descriptor['devices'][device]['fileNameProc']
+											file_path = join(test_path, file_name)
+										elif yaml_test_descriptor['devices'][device]['source'] == 'api':
+											file_name = f'{device}.csv'
+											file_path = join(test_path, 'cached', file_name)
+										upload_metadata = {'name': file_name}
+
+									if file_path != '':
+
+										files = {'file': open(file_path, 'rb')}
+										file_size = getsize(file_path)/(1024*1024.0*1024)
+										if file_size > 50: self.std_out(f'File size for {file_name} over 50Gb ({file_size})', 'WARNING')
+										if not dry_run: status_code = upload_file(url, upload_metadata, files)
+										else: status_code = 200
+										
+										if status_code > 210: 
+											self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+											return
+
+										self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
+								except:
+									if not exists(file_path): self.std_out(f'File {file_name} does not exist (type = {file_stage}). Skipping', 'ERROR')
+									# traceback.print_exc()
+									pass
+								# The submission needs an additional "Publish" step. This can also be done from a script, but to be on the safe side, it is not included. (The attached file cannot be changed after publication.)
+				self.std_out(f'Submission completed - (DOI: 10.5281/zenodo.{submission_id})', 'SUCCESS')
+				self.std_out(f'------------------------------------------------------------', 'SUCCESS')
+
+
+
+
+
+
