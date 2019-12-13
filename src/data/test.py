@@ -35,7 +35,8 @@ class test_wrapper:
 		
 		self.data.std_out('Creating new test')
 		self.add_details(details)
-		for device in devices: self.add_device(device)
+		if devices is not None: 
+			for device in devices: self.add_device(device)
 
 		self.descriptor_file['id'] = self.name
 
@@ -89,24 +90,28 @@ class test_wrapper:
 
 		try:
 			self.descriptor_file['devices'][device.name] = dict()
+			# General stuff
+
 			self.descriptor_file['devices'][device.name]['name'] = device.name
 			self.descriptor_file['devices'][device.name]['type'] = device.type
-			self.descriptor_file['devices'][device.name]['version'] = device.version
-			self.descriptor_file['devices'][device.name]['pm_sensor'] = device.pm_sensor
 			self.descriptor_file['devices'][device.name]['location'] = device.location
 			self.descriptor_file['devices'][device.name]['frequency'] = device.frequency
 			self.descriptor_file['devices'][device.name]['source'] = device.source
 
+			if device.type == 'KIT' or device.type == 'STATION':
+				self.descriptor_file['devices'][device.name]['version'] = device.version
+				self.descriptor_file['devices'][device.name]['pm_sensor'] = device.pm_sensor
+				self.descriptor_file['devices'][device.name]['fileNameInfo'] = device.info_file
+			
 			if device.type == 'STATION': self.descriptor_file['devices'][device.name]['alphasense'] = device.alphasense
 
 			if 'csv' in device.source:
 				self.descriptor_file['devices'][device.name]['fileNameRaw'] = device.raw_data_file
-				self.descriptor_file['devices'][device.name]['fileNameInfo'] = device.info_file
 				self.descriptor_file['devices'][device.name]['fileNameProc'] = self.name + '_' + device.type + '_' + device.name + '.csv'
 			elif 'api' in device.source:
 				self.descriptor_file['devices'][device.name]['device_id'] = device.name
 			
-			if device.type == 'ANALYSER':
+			if device.type == 'OTHER':
 				
 				self.descriptor_file['devices'][device.name]['index'] = device.index
 				self.descriptor_file['devices'][device.name]['channels'] = device.channels
@@ -124,7 +129,6 @@ class test_wrapper:
 		def get_raw_files():
 				list_raw_files = []
 				for device in self.descriptor_file['devices'].keys():
-					print (self.descriptor_file['devices'][device])
 					if 'csv' in self.descriptor_file['devices'][device]['source']:
 						list_raw_files.append(self.descriptor_file['devices'][device]['fileNameRaw'])
 				
@@ -170,7 +174,7 @@ class test_wrapper:
 					dst_path = join(self.path, self.name + '_' + device_descriptor['type'] + '_' + str(device_descriptor['name']) + '.csv')
 						
 					# Read file csv
-					if device_descriptor['type'] == 'ANALYSER':
+					if device_descriptor['type'] == 'OTHER':
 						index_name = device_descriptor['index']['name']
 						df = pd.read_csv(src_path, verbose=False, skiprows=[1]).set_index(index_name)
 					else:
@@ -196,7 +200,7 @@ class test_wrapper:
 					df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(device_descriptor['location'])
 					df.sort_index(inplace=True)
 
-					if device_descriptor['type'] == 'ANALYSER': df = df.groupby(pd.Grouper(freq = device_descriptor['index']['frequency'])).aggregate(np.mean)
+					if device_descriptor['type'] == 'OTHER': df = df.groupby(pd.Grouper(freq = device_descriptor['index']['frequency'])).aggregate(np.mean)
 							
 					# Remove Duplicates and drop unnamed columns
 					df = df[~df.index.duplicated(keep='first')]
@@ -240,19 +244,20 @@ class test_wrapper:
 								self.descriptor_file['devices'][device_descriptor['name']]['metadata'] = dict_header
 						
 					## Load txt info
-					if device_descriptor['fileNameInfo'] != '':
-						self.data.std_out('Loading txt info')
-						src_path_info = join(raw_src_path, device_descriptor['fileNameInfo'])
-						dict_info = dict()
-						with open(src_path_info, 'rb') as infofile:
-							for line in infofile:
-								line = line.strip('\r\n')
-								splitter = line.find(':')
-								dict_info[line[:splitter]]= line[splitter+2:] # Accounting for the space
-						   
-						self.descriptor_file['devices'][device_descriptor['name']]['info'] = dict_info
-					else:
-						self.data.std_out('No txt info available', 'WARNING')
+					if 'fileNameInfo' in device_descriptor.keys():
+						if device_descriptor['fileNameInfo'] != '':
+							self.data.std_out('Loading txt info')
+							src_path_info = join(raw_src_path, device_descriptor['fileNameInfo'])
+							dict_info = dict()
+							with open(src_path_info, 'rb') as infofile:
+								for line in infofile:
+									line = line.strip('\r\n')
+									splitter = line.find(':')
+									dict_info[line[:splitter]]= line[splitter+2:] # Accounting for the space
+							   
+							self.descriptor_file['devices'][device_descriptor['name']]['info'] = dict_info
+						else:
+							self.data.std_out('No txt info available', 'WARNING')
 
 			self.data.std_out('Processing files OK', 'SUCCESS')
 		self.data.std_out(f'Test {self.name} path: {self.path}')
