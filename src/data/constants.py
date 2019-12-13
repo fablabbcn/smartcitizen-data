@@ -29,17 +29,44 @@ th_ids_table = (['EXT_DALLAS','96',''],
 				 ['SENSOR_TEMPERATURE','55','56'],
 				 ['GASESBOARD_TEMPERATURE','79', '80'])
 
-pollutant_LUT = (['CO', 28, 'ppm'],
+# This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
+# i.e. pollutant data in various units (ppm or ug/m3) from different analysers
+# The table should be used as follows:
+# (['int_channel', 'molecular_weight', 'target_unit'], ...)
+# - int_channel is the internal channel that will lately be used in the analysis. This has to be defined in the target_channel_names when creating the test (see below)
+# - molecular_weight is only for chemical components. It can be left to 1 for other types of signals
+# - target_unit is the unit you want this channel to be and that will be converted in case of it being found in the channels list of your source
+
+channel_LUT = (['CO', 28, 'ppm'],
 				['NO', 30, 'ppb'],
 				['NO2', 46, 'ppb'],
 				['O3', 48, 'ppb'])
 
+# Target channel name definition
+# This dict has to be specified when you create a test.
+# 'channels': {'source_channel_names' : ('air_temperature_celsius', 'battery_percent', 'calibrated_soil_moisture_percent', 'fertilizer_level', 'light', 'soil_moisture_percent', 'water_tank_level_percent'), 
+#              'units' : ('degC', '%', '%', '-', 'lux', '%', '%'),
+#              'target_channel_names' : ('TEMP', 'BATT', 'Cal Soil Moisture', 'Fertilizer', 'Soil Moisture', 'Water Level')
+# source_channel_names: is the actual name you can find in your csv file
+# units: the units of this channel. These will be converted using the LUT below
+# target_channel_names: how you want to name your channels after the convertion. A suffix ('_CONV') will be added to them in case they are matching the source csv names
+
+# Can be targetted to convert the units with the channel_LUT below
+# This table is used to convert units
+# ['from_unit', 'to_unit', 'multiplicative_factor']
+# - 'from_unit'/'to_unit' = 'multiplicative_factor'
+# It accepts reverse operations - you don't need to put them twice but in reverse
 convertion_LUT = (['ppm', 'ppb', 1000],
 					['mg/m3', 'ug/m3', 1000],
+					['mgm3', 'ugm3', 1000],
 					['mg/m3', 'ppm', 24.45],
+					['mgm3', 'ppm', 24.45],
 					['ug/m3', 'ppb', 24.45],
+					['ugm3', 'ppb', 24.45],
 					['mg/m3', 'ppb', 1000*24.45],
-					['ug/m3', 'ppm', 1./1000*24.45])
+					['mgm3', 'ppb', 1000*24.45],
+					['ug/m3', 'ppm', 1./1000*24.45],
+					['ugm3', 'ppm', 1./1000*24.45])
 
 ### --------------------------------------
 ### -------------SENSORS DATA-------------

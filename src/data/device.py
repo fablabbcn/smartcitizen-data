@@ -10,7 +10,7 @@ class device_wrapper:
 			self.data = data_wrapper()
 		else: self.data = data
 		
-		# Type = KIT, STATION or REFERENCE
+		# Type = KIT, STATION or OTHER
 		self.type = device_descriptor['type']
 		# Source (csv_new, csv_old, csv_ms or api)
 		self.source = device_descriptor['source']
@@ -44,7 +44,7 @@ class device_wrapper:
 			self.name = device_descriptor['device_id']
 			self.api_device = api_device(self.name, self.data.verbose)
 		elif 'serial' in self.source:
-			self.std_out('Not supported yet')
+			self.data.std_out('Not supported yet')
 
 		# Kit or Station properties
 		if self.type == 'KIT' or self.type == 'STATION':
@@ -56,7 +56,7 @@ class device_wrapper:
 				elif 'device_history' in device_descriptor.keys(): self.alphasense = self.data.devices_database[device_descriptor['device_history']]['gas_pro_board']
 				else: self.alphasense = None; self.data.std_out(f'No alphasense specified in files for {self.name}', 'WARNING')
 		# Other devices properties
-		elif self.type == 'REFERENCE':
+		elif self.type == 'OTHER':
 			self.equipment = device_descriptor['equipment']
 			self.channels = device_descriptor['channels']
 			self.index = device_descriptor['index']
@@ -90,7 +90,7 @@ class device_wrapper:
 															self.options['clean_na'], self.options['clean_na_method']))
 
 			# Convert units
-			if self.type == 'REFERENCE': self.convert_units(append_to_name = 'REF')
+			if self.type == 'OTHER': self.convert_units(append_to_name = 'CONV')
 		
 		except:
 			traceback.print_exc()
@@ -99,23 +99,24 @@ class device_wrapper:
 			if self.readings is not None: self.loaded_OK = True
 
 	def convert_units(self, append_to_name = ''):
+		self.data.std_out('Checking if units need to be converted')
 
-		for channel_nmbr in range(len(self.channels['names'])):
-			pollutant = self.channels['pollutants'][channel_nmbr]
-			channel = self.channels['names'][channel_nmbr]
+		for channel_nmbr in range(len(self.channels['target_channel_names'])):
+			target_channel_name = self.channels['target_channel_names'][channel_nmbr]
+			source_channel_name = self.channels['source_channel_names'][channel_nmbr]
 			unit = self.channels['units'][channel_nmbr]
 			target_unit = None
 
-			for pollutant_convert in pollutant_LUT: 
-				if pollutant_convert[0] == pollutant: 
-					molecular_weight = pollutant_convert[1]; 
-					target_unit = pollutant_convert[2]
+			for channel_convert in channel_LUT: 
+				if channel_convert[0] == target_channel_name: 
+					molecular_weight = channel_convert[1]
+					target_unit = channel_convert[2]
 
 			# Get convertion factor
 			if target_unit is not None:
 				if unit == target_unit:
 					convertion_factor = 1
-					self.data.std_out('No unit convertion needed for {}'.format(pollutant), 'SUCCESS')
+					self.data.std_out('No unit convertion needed for {}'.format(target_channel_name), 'SUCCESS')
 				else:
 					for item_to_convert in convertion_LUT:
 						if item_to_convert[0] == unit and item_to_convert[1] == target_unit:
@@ -123,8 +124,10 @@ class device_wrapper:
 						elif item_to_convert[1] == unit and item_to_convert[0] == target_unit:
 							convertion_factor = 1.0/(item_to_convert[2]/molecular_weight)
 				
-					self.data.std_out('Converting {} from {} to {}'.format(pollutant, unit, target_unit))
-				self.readings.loc[:, pollutant + '_' + append_to_name] = self.readings.loc[:, channel]*convertion_factor
+					self.data.std_out('Converting {} from {} to {}'.format(target_channel_name, unit, target_unit))
+				self.readings.loc[:, target_channel_name + '_' + append_to_name] = self.readings.loc[:, source_channel_name]*convertion_factor
+			else:
+				self.data.std_out('No unit convertion needed for {}. Actual channel name is not in look-up tables'.format(target_channel_name), 'WARNING')
 
 	def capture(self):
 		self.data.std_out('Not yet')

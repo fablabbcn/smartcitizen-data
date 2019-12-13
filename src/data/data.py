@@ -3,6 +3,7 @@ from src.data.api import *
 from src.models.formulas import *	
 from src.saf import *
 from src.data.test import test_wrapper
+from src.data.report import include_footer
 
 class data_wrapper (saf):
 
@@ -15,7 +16,7 @@ class data_wrapper (saf):
 		except:
 			traceback.print_exc()
 		else:
-			self.std_out('Test initialisation done', 'SUCCESS')
+			self.std_out('Data initialisation done', 'SUCCESS')
 
 	def get_tests(self, directory, deep_description = False):
 		# Get available tests in the data folder structure
@@ -97,14 +98,14 @@ class data_wrapper (saf):
 		self.tests[test_name] = test
 		self.std_out('Test loaded successfully', 'SUCCESS', force = True)
 
-	def load_devices_API(self, test_name, source_ids, options):
+	def load_devices_API(self, test_name, source_ids, options, details = dict()):
 		from src.data.device import device_wrapper
 
 		# Load data from the API
 		if test_name not in self.tests.keys(): self.tests[test_name] = test_wrapper(test_name, self)
 		else: self.std_out(f'Test {test_name} already in tests, combining')
 
-		self.tests[test_name].add_details(dict())
+		self.tests[test_name].add_details(details)
 		for device_id in source_ids:
 			self.tests[test_name].devices[device_id] = device_wrapper({'device_id': device_id,
 													  'frequency': options['frequency'],
@@ -138,9 +139,9 @@ class data_wrapper (saf):
 		
 		try: 
 			self.std_out(f'Combining devices for {test_name}')
-			if self.name_combined_data in self.tests[test_name].devices.keys(): self.tests[test_name].devices.pop(self.name_combined_data, None)
+			if self.name_combined_data in self.tests[test_name].devices.keys(): 
+				self.tests[test_name].devices.pop(self.name_combined_data, None)
 			ignore_keys = []
-			
 			if 'models' in vars(self.tests[test_name]).keys():
 				ignore_keys = self.tests[test_name].models.keys()
 
@@ -154,12 +155,10 @@ class data_wrapper (saf):
 					append = self.tests[test_name].devices[device].name
 					new_names = list()
 					for name in self.tests[test_name].devices[device].readings.columns:
-						# print name
 						new_names.append(name + '_' + append)
-					
-					self.tests[test_name].devices[device].readings.columns = new_names
-					dataframe_result = dataframe_result.combine_first(self.tests[test_name].devices[device].readings)
-
+					dataframe = self.tests[test_name].devices[device].readings.copy()
+					dataframe.columns = new_names
+					dataframe_result = dataframe_result.combine_first(dataframe)
 			self.tests[test_name].devices[self.name_combined_data] = device_wrapper({'name': self.name_combined_data,
 																					'frequency': '1Min',
 																					 'type': '',
@@ -182,7 +181,7 @@ class data_wrapper (saf):
 		if len(test_names) > 1: 
 			multiple_training = True
 			combined_name = model_object.name + '_' + self.config['models']['NAME_MULTIPLE_TRAINING_DATA']
-			self.tests[combined_name] = dict()
+			self.tests[combined_name] = test_wrapper(combined_name, self)
 			self.tests[combined_name].models[model_object.name] = dict()
 		else:
 			multiple_training = False
@@ -194,7 +193,7 @@ class data_wrapper (saf):
 
 			self.std_out('Preparing dataframe model for test {}'.format(test_name))
 		
-			if self.combine_tests(test_name):
+			if self.combine_devices(test_name):
 
 				## Send only the needed features
 				list_features = list()
@@ -224,24 +223,24 @@ class data_wrapper (saf):
 					if multiple_training:
 						for i in range(len(list_features)):
 							dataframeModel.rename(columns={list_features[i]: list_features_multiple[i]}, inplace=True)
-					
+
 					dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
 
 					# Resample
-					dataframeModel = dataframeModel.resample(model_object.options['frequency'], limit = 1).mean()
+					dataframeModel = dataframeModel.resample(model_object.data['data_options']['frequency'], limit = 1).mean()
 					# Remove na
-					if model_object.options['clean_na']:
-						
-						if model_object.options['clean_na_method'] == 'fill':
+					if model_object.data['data_options']['clean_na']:
+						self.std_out(f'Cleaning na with {model_object.data['data_options']['clean_na_method']}')
+						if model_object.data['data_options']['clean_na_method'] == 'fill':
 							dataframeModel = dataframeModel.fillna(method='ffill')
 						
-						elif model_object.options['clean_na_method'] == 'drop':
+						elif model_object.data['data_options']['clean_na_method'] == 'drop':
 							dataframeModel.dropna(axis = 0, how='any', inplace = True)
 
-					if model_object.options['min_date'] is not None:
-						dataframeModel = dataframeModel[dataframeModel.index > model_object.options['min_date']]
-					if model_object.options['max_date'] is not None:
-						dataframeModel = dataframeModel[dataframeModel.index < model_object.options['max_date']]
+					if model_object.data['data_options']['min_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index > model_object.data['data_options']['min_date']]
+					if model_object.data['data_options']['max_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index < model_object.data['data_options']['max_date']]
 
 					if model_object.name is not None:
 						# Create model_name entry
@@ -499,6 +498,7 @@ class data_wrapper (saf):
 			# Set options for processed and raw uploads
 			stage_list = ['base']
 			if 'options' in descriptor[key].keys(): options = descriptor[key]['options']
+			else: options = {'include_processed_data': True, 'include_footer_doi': True}
 			if options['include_processed_data']: stage_list.append('processed')
 			self.std_out(f'Options {options}')
 
@@ -518,7 +518,7 @@ class data_wrapper (saf):
 					# Get the tests to upload
 					tests = descriptor[key]['tests']
 					
-					# Upload the files
+					# Get url where to post the files
 					url = f"{base_url}/api/deposit/depositions/{submission_id}/files"
 					
 					for test in tests:
@@ -532,8 +532,8 @@ class data_wrapper (saf):
 						
 						upload_metadata = {'name': f'test_description_{test}.yaml'}
 						files = {'file': open(join(test_path, 'test_description.yaml'), 'rb')}
-						file_size = getsize(join(test_path, 'test_description.yaml'))/(1024*1024.0)
-						if file_size > 50: self.std_out(f'File size for {test} is over 50Mb ({file_size})', 'WARNING')
+						file_size = getsize(join(test_path, 'test_description.yaml'))/(1024*1024.0*1024)
+						if file_size > 50: self.std_out(f'File size for {test} is over 50Gb ({file_size})', 'WARNING')
 						if not dry_run: status_code = upload_file(url, upload_metadata, files)
 						else: status_code = 200
 						
@@ -554,7 +554,7 @@ class data_wrapper (saf):
 								try:
 
 									# Find evice files
-									if file_stage == 'processed' and yaml_test_descriptor['devices'][device]['type'] != 'REFERENCE': 
+									if file_stage == 'processed' and yaml_test_descriptor['devices'][device]['type'] != 'OTHER': 
 										file_name = f'{device}.csv'
 										file_path = join(test_path, 'processed', file_name)
 										upload_metadata = {'name': f'{device}_PROCESSED.csv'}
@@ -585,6 +585,31 @@ class data_wrapper (saf):
 									# traceback.print_exc()
 									pass
 								# The submission needs an additional "Publish" step. This can also be done from a script, but to be on the safe side, it is not included. (The attached file cannot be changed after publication.)
+					
+					# Check if we have a report in the keys
+					if 'report' in descriptor[key].keys():
+						for file_name in descriptor[key]['report']:
+							file_path = join(self.dataDirectory, 'uploads', file_name)
+							if options['include_footer_doi'] and file_name.endswith('.pdf'):
+								output_file_path = file_path[:file_path.index('.pdf')] + '_doi.pdf'
+								include_footer(file_path, output_file_path, link = f'https://doi.org/10.5281/zenodo.{submission_id}')
+								file_path = output_file_path
+							
+							upload_metadata = {'name': file_name}
+							files = {'file': open(file_path, 'rb')}
+							file_size = getsize(file_path)/(1024*1024.0*1024)
+							if file_size > 50: self.std_out(f'File size for {file_name} is over 50Gb({file_size})', 'WARNING')
+							if not dry_run: status_code = upload_file(url, upload_metadata, files)
+							else: status_code = 200
+
+							if status_code > 210: 
+								self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+								return
+
+							self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")
+
+				if upload_type == 'publication':
+					self.std_out('Not implemented')
 				self.std_out(f'Submission completed - (DOI: 10.5281/zenodo.{submission_id})', 'SUCCESS')
 				self.std_out(f'------------------------------------------------------------', 'SUCCESS')
 

@@ -2,12 +2,18 @@ from src.models.formulas import *
 from src.saf import *
 from src.models.model_tools import *
 
-class model_wrapper ():
+class model_wrapper (saf):
 
-	def __init__(self, model_dict, verbose):
-		saf.__init__(self, verbose)
+	def __init__(self, model_dict, verbose = True):
+
+		try:
+			saf.__init__(self, verbose)
+		except:
+			traceback.print_exc()
+		else:
+			self.std_out('Model initialisation done', 'SUCCESS')
+
 		self.name = model_dict['model_name']
-		self.verbose = verbose
 		self.std_out ('Beginning Model {}'.format(self.name))
 
 		self.type = model_dict['model_type']
@@ -32,9 +38,6 @@ class model_wrapper ():
 		self.metrics = dict()
 		self.plots = model_dict['model_options']['show_plots']
 		self.parameters = dict()
-
-	def std_out(self, msg):
-		if self.verbose: print (msg)
 
 	def extract_metrics(self, train_or_test, test_name = None, test_data = None):
 
@@ -98,8 +101,6 @@ class model_wrapper ():
 													oob_score = True, max_features = self.hyperparameters['max_features'])
 			elif self.type == 'SVR':
 				self.model = SVR(kernel='rbf')
-
-
 
 			# Fit model
 			# print (np.isnan(np.sum(train_X)))
@@ -265,14 +266,14 @@ class model_wrapper ():
 		dataframeModel = dataframeModel.apply(pd.to_numeric,errors='coerce')   
 		
 		# Resample
-		dataframeModel = dataframeModel.resample(self.options['frequency'], limit = 1).mean()
+		dataframeModel = dataframeModel.resample(self.data['data_options']['frequency'], limit = 1).mean()
 		
 		# Remove na
-		if self.options['clean_na']:
+		if self.data['data_options']['clean_na']:
 
-			if self.options['clean_na_method'] == 'fill':
+			if self.data['data_options']['clean_na_method'] == 'fill':
 				dataframeModel = dataframeModel.fillna(method='bfill').fillna(method='ffill')
-			elif self.options['clean_na_method'] == 'drop':
+			elif self.data['data_options']['clean_na_method'] == 'drop':
 				dataframeModel.dropna(axis = 0, how = 'any', inplace = True)
 
 		indexModel = dataframeModel.index

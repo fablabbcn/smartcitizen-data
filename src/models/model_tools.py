@@ -22,6 +22,8 @@ import seaborn as sns
 
 # Extras
 from math import sqrt
+import numpy as np
+
 
 def metrics(reference, estimation):
     metrics_dict = dict()
