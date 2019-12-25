@@ -15,6 +15,7 @@ import numpy as np
 
 import joblib
 from src.secrets import *
+from src.models.formulas import *
 
 class saf:
 

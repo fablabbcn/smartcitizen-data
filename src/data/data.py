@@ -11,6 +11,7 @@ class data_wrapper (saf):
 		try:
 			saf.__init__(self, verbose)
 			self.tests = dict()
+			self.models = dict()
 			self.name_combined_data = self.config['data']['NAME_COMBINED_DATA']	
 
 		except:
@@ -136,6 +137,10 @@ class data_wrapper (saf):
 
 	def combine_devices(self, test_name):
 		from src.data.device import device_wrapper
+
+		if test_name not in self.tests.keys(): 
+			self.std_out(f'{test_name} is not loaded')
+			return False
 		
 		try: 
 			self.std_out(f'Combining devices for {test_name}')
@@ -173,23 +178,22 @@ class data_wrapper (saf):
 			self.std_out('Data combined successfully', 'SUCCESS')
 			return True
 
-	def prepare_dataframe_model(self, model_object):
+	def prepare_dataframe_model(self, model):
 
-		test_names = list(model_object.data['train'].keys())
+		test_names = list(model.data['train'].keys())
 
 		# Create structure for multiple training
 		if len(test_names) > 1: 
 			multiple_training = True
-			combined_name = model_object.name + '_' + self.config['models']['NAME_MULTIPLE_TRAINING_DATA']
-			self.tests[combined_name] = test_wrapper(combined_name, self)
-			self.tests[combined_name].models[model_object.name] = dict()
+			combined_name = model.name + '_' + self.config['models']['NAME_MULTIPLE_TRAINING_DATA']
+			frames = list()
 		else:
 			multiple_training = False
 
 		for test_name in test_names:
 
-			device = model_object.data['train'][test_name]['devices']
-			reference = model_object.data['train'][test_name]['reference_device']
+			device = model.data['train'][test_name]['devices']
+			reference = model.data['train'][test_name]['reference_device']
 
 			self.std_out('Preparing dataframe model for test {}'.format(test_name))
 		
@@ -198,7 +202,7 @@ class data_wrapper (saf):
 				## Send only the needed features
 				list_features = list()
 				list_features_multiple = list()
-				features = model_object.data['features']
+				features = model.data['features']
 				try:
 					# Create the list of features needed
 					for item in features.keys():
@@ -219,6 +223,7 @@ class data_wrapper (saf):
 					
 					# Get features from data only and pre-process non-numeric data
 					dataframeModel = self.tests[test_name].devices[self.name_combined_data].readings.loc[:,list_features]
+					
 					# Remove device names if multiple training
 					if multiple_training:
 						for i in range(len(list_features)):
@@ -227,61 +232,54 @@ class data_wrapper (saf):
 					dataframeModel = dataframeModel.apply(pd.to_numeric, errors='coerce')   
 
 					# Resample
-					dataframeModel = dataframeModel.resample(model_object.data['data_options']['frequency'], limit = 1).mean()
+					dataframeModel = dataframeModel.resample(model.data['data_options']['frequency'], limit = 1).mean()
+					
 					# Remove na
-					if model_object.data['data_options']['clean_na']:
-						self.std_out(f'Cleaning na with {model_object.data['data_options']['clean_na_method']}')
-						if model_object.data['data_options']['clean_na_method'] == 'fill':
+					if model.data['data_options']['clean_na']:
+						self.std_out('Cleaning na with {}'.format(model.data['data_options']['clean_na_method']))
+						if model.data['data_options']['clean_na_method'] == 'fill':
 							dataframeModel = dataframeModel.fillna(method='ffill')
 						
-						elif model_object.data['data_options']['clean_na_method'] == 'drop':
+						elif model.data['data_options']['clean_na_method'] == 'drop':
 							dataframeModel.dropna(axis = 0, how='any', inplace = True)
 
-					if model_object.data['data_options']['min_date'] is not None:
-						dataframeModel = dataframeModel[dataframeModel.index > model_object.data['data_options']['min_date']]
-					if model_object.data['data_options']['max_date'] is not None:
-						dataframeModel = dataframeModel[dataframeModel.index < model_object.data['data_options']['max_date']]
+					if model.data['data_options']['min_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index > model.data['data_options']['min_date']]
+					if model.data['data_options']['max_date'] is not None:
+						dataframeModel = dataframeModel[dataframeModel.index < model.data['data_options']['max_date']]
 
-					if model_object.name is not None:
-						# Create model_name entry
-						self.tests[test_name].models[model_object.name]=dict()
-
-						self.tests[test_name].models[model_object.name]['data'] = dataframeModel
-						self.tests[test_name].models[model_object.name]['features'] = features
-						self.tests[test_name].models[model_object.name]['reference'] = reference_name
-						# Set flag
-						self.tests[test_name].ready_to_model = True
+					if multiple_training:
+						frames.append(dataframeModel)
 					
 				except:
 					self.std_out(f'Dataframe model failed for {test_name}')
 					traceback.print_exc()
 					return None
 				else: 
+					# Set flag
+					self.tests[test_name].ready_to_model = True
 					self.std_out(f'Dataframe model generated successfully for {test_name}')
 					
 		if multiple_training:
 			self.std_out('Multiple training datasets requested. Combining')
 			# Combine everything
-			frames = list()
-
-			for test_name in test_names:
-				frames.append(self.tests[test_name].models[model_object.name]['data'])
-
-			self.tests[combined_name].models[model_object.name]['data'] = pd.concat(frames)
-			self.tests[combined_name].models[model_object.name]['features'] = features
-			self.tests[combined_name].models[model_object.name]['reference'] = reference_name_multiple
+			model.dataframe = pd.concat(frames)
+			model.features = features		
+			model.reference = reference_name_multiple
 
 			return combined_name
 		else:
+			model.dataframe = dataframeModel
+			model.features = features
+			model.reference = reference_name
+			
 			return test_name
 
-	def archive_model(self, test_name, model_object, dataframe = None):
+	def archive_model(self, model):
 		try:
 			# Model saving in previous entry
-			self.tests[test_name].models[model_object.name]['model_object'] = model_object
-			
-			# Dataframe
-			if dataframe is not None: self.tests[test_name].models[model_object.name]['data'] = dataframe
+			# if model.name not in self.models.keys(): self.models[model.name] = dict()
+			self.models[model.name] = model
 			
 		except:
 			self.std_out('Problem occured while archiving model', 'ERROR')

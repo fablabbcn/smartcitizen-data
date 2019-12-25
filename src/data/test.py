@@ -20,7 +20,6 @@ class test_wrapper:
 		self.name = test_name
 		self.path = join(self.data.rootDirectory, 'data', 'processed', self.name[:4], self.name[5:7], self.name)
 		self.devices = dict()
-		self.models = dict()
 		self.descriptor_file = dict()
 		self.cached_info = dict()
 		self.ready_to_model = False
@@ -101,7 +100,7 @@ class test_wrapper:
 			if device.type == 'KIT' or device.type == 'STATION':
 				self.descriptor_file['devices'][device.name]['version'] = device.version
 				self.descriptor_file['devices'][device.name]['pm_sensor'] = device.pm_sensor
-				self.descriptor_file['devices'][device.name]['fileNameInfo'] = device.info_file
+				if 'csv' in device.source:self.descriptor_file['devices'][device.name]['fileNameInfo'] = device.info_file
 			
 			if device.type == 'STATION': self.descriptor_file['devices'][device.name]['alphasense'] = device.alphasense
 

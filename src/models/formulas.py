@@ -2,10 +2,17 @@ import numpy as np
 import math
 import pandas as pd
 
-def exponential_smoothing(series, alpha):
+def clean_na(series, how = 'drop'):
+    if how == 'drop':
+        series.dropna(inplace=True)
+    elif how == 'fill':
+        series = series.fillna(method ='ffill')
+    return series
+
+def exponential_smoothing(series, alpha = 0.5):
     '''
         Input:
-            series - dataset with timestamps
+            series - pandas series with timestamps
             alpha - float [0.0, 1.0], smoothing parameter
         Output: 
             smoothed series
@@ -16,9 +23,39 @@ def exponential_smoothing(series, alpha):
     return result
 
 def smooth(y, box_pts):
-    box = np.ones(box_pts)/box_pts
-    y_smooth = np.convolve(y, box, mode='same')
-    return y_smooth
+    half_window = (box_pts -1) // 2
+    try:
+        box = np.ones(box_pts)/box_pts
+        firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
+        lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
+        y = np.concatenate((firstvals, list(map(float, y)), lastvals))
+        y_smooth = np.convolve(y, box, mode='valid')
+        return y_smooth
+    except:
+        pass
+    return np.ones(len(y))
+
+def derivative(y, x):
+    dx = np.zeros(x.shape, np.float)
+    dy = np.zeros(y.shape, np.float)
+    
+    if isinstance(x, pd.DatetimeIndex):
+        print ('x is of type DatetimeIndex')
+        
+        for i in range(len(x)-1):
+            dx[i] =  (x[i+1]-x[i]).seconds
+            
+        dx [-1] = np.inf
+    else:
+        dx = np.diff(x)
+
+    dy[0:-1] = np.diff(y)/dx[0:-1]
+    dy[-1] = (y[-1] - y[-2])/dx[-1]
+    result = dy
+    return result
+
+def time_derivative(series, window = 1):
+    return series.diff(periods = -window)/series.index.to_series().diff(periods = -window).dt.total_seconds()
 
 def absolute_humidity(temperature, rel_humidity, pressure):
     '''
@@ -94,28 +131,6 @@ def lowerequal(y, val):
         elif (math.isnan(y[i])): result[i] = result[i-1] 
     return result
             
-def derivative(y, x):
-    dx = np.zeros(x.shape, np.float)
-    dy = np.zeros(y.shape, np.float)
-    
-    if isinstance(x, pd.DatetimeIndex):
-        print ('x is of type DatetimeIndex')
-        
-        for i in range(len(x)-1):
-            dx[i] =  (x[i+1]-x[i]).seconds
-            
-        dx [-1] = np.inf
-    else:
-        dx = np.diff(x)
-
-    dy[0:-1] = np.diff(y)/dx[0:-1]
-    dy[-1] = (y[-1] - y[-2])/dx[-1]
-    result = dy
-    return result
-
-def time_derivative(series, window = 1):
-    return series.diff(periods = -window)*60/series.index.to_series().diff(periods = -window).dt.total_seconds()
-
 def exponential_func(x, a, b, c):
      return a * np.exp(b * x) + c
 

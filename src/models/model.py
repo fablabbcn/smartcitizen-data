@@ -33,11 +33,14 @@ class model_wrapper (saf):
 		self.data = model_dict['data']
 
 		self.model = None
+		self.dataframe = None
 		self.dataFrameTrain = None
 		self.dataFrameTest = None
 		self.metrics = dict()
 		self.plots = model_dict['model_options']['show_plots']
 		self.parameters = dict()
+		self.features = None
+		self.reference = None
 
 	def extract_metrics(self, train_or_test, test_name = None, test_data = None):
 
@@ -70,14 +73,10 @@ class model_wrapper (saf):
 					self.std_out ("{:<20}".format(metric) +"\t" +"{:0.3f}".format(self.metrics['test'][test_name][metric]))
 		if hasattr(self.model, 'oob_score_'): self.std_out(f"oob_score: {self.model.oob_score_}")
 
-	def training(self, model_data):
+	def train(self):
 
-		# Get dataframe from input and reference name
-		dataframeModel = model_data['data']
-		reference_name = model_data['reference']
-			
-		labels = dataframeModel[reference_name]
-		features = dataframeModel.drop(reference_name, axis = 1)
+		labels = self.dataframe[self.reference]
+		features = self.dataframe.drop(self.reference, axis = 1)
 			
 		# List of features for later use
 		feature_list = list(features.columns)
@@ -111,13 +110,13 @@ class model_wrapper (saf):
 			predictionTrain = predict_ML(self.model, features[:n_train_periods])
 			
 			self.dataFrameTrain = pd.DataFrame(data = {'reference': labels[:n_train_periods], 'prediction': predictionTrain}, 
-												index = dataframeModel.index[:n_train_periods])
+												index = self.dataframe.index[:n_train_periods])
 
 			## Get model prediction for training dataset			
 			predictionTest = predict_ML(self.model, features[n_train_periods:])
 
 			self.dataFrameTest = pd.DataFrame(data = {'reference': labels[n_train_periods:], 'prediction': predictionTest}, 
-												index = dataframeModel.index[n_train_periods:])
+												index = self.dataframe.index[n_train_periods:])
 
 			if self.plots:
 				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
@@ -141,10 +140,10 @@ class model_wrapper (saf):
 			self.parameters['scaler'] = scaler
 
 			self.dataFrameTrain = pd.DataFrame(data = {'reference': labels[:n_train_periods], 'prediction': predictionTrain}, 
-												index = dataframeModel.index[:n_train_periods])
+												index = self.dataframe.index[:n_train_periods])
 
 			self.dataFrameTest = pd.DataFrame(data = {'reference': labels[n_train_periods:], 'prediction': predictionTest}, 
-												index = dataframeModel.index[n_train_periods:])
+												index = self.dataframe.index[n_train_periods:])
 
 			if self.plots:
 				plot_model_ML(self.model, self.dataFrameTrain, self.dataFrameTest, feature_list, self.type, self.name)
@@ -154,13 +153,13 @@ class model_wrapper (saf):
 			# OLS can be done with a formula, and the model needs to be renamed accordingly
 			for item in self.data['features'].keys():
 				target_name = item
-				for column in dataframeModel.columns:
+				for column in self.dataframe.columns:
 					if self.data['features'][item] in column: 
 						current_name = column
-						dataframeModel.rename(columns={current_name: target_name}, inplace=True)
+						self.dataframe.rename(columns={current_name: target_name}, inplace=True)
 						break
 			
-			dataTrain, dataTest, n_train_periods = prep_data_statsmodels(dataframeModel, self.hyperparameters['ratio_train'])
+			dataTrain, dataTest, n_train_periods = prep_data_statsmodels(self.dataframe, self.hyperparameters['ratio_train'])
 
 			## Model Fit
 			if 'expression' in self.data.keys(): expression = self.data['expression']
@@ -196,9 +195,9 @@ class model_wrapper (saf):
 		# 	n_features = len(feature_list)
 			
 		# 	# Data Split
-		# 	train_X, train_y, test_X, test_y, scalerX, scalery = prep_dataframe_ML(dataframeModel, n_features, self.hyperparameters['n_lags'], self.hyperparameters['ratio_train'])
+		# 	train_X, train_y, test_X, test_y, scalerX, scalery = prep_dataframe_ML(self.dataframe, n_features, self.hyperparameters['n_lags'], self.hyperparameters['ratio_train'])
 			
-		# 	index = dataframeModel.index
+		# 	index = self.dataframe.index
 		# 	n_train_periods = train_X.shape[0]
 			
 		# 	# Model Fit
@@ -223,7 +222,7 @@ class model_wrapper (saf):
 		# 	predictionTest = predict_ML(self.model, test_X, scalery)
 
 		# 	self.dataFrameTrain = pd.DataFrame(data = {'reference': inv_train_y, 'prediction': predictionTrain}, 
-		# 										index = dataframeModel.index[:n_train_periods])
+		# 										index = self.dataframe.index[:n_train_periods])
 
 		# 	self.dataFrameTest= pd.DataFrame(data = {'reference': inv_test_y, 'prediction': predictionTest}, 
 		# 										index = index[n_train_periods+self.hyperparameters['n_lags']:])
@@ -239,7 +238,7 @@ class model_wrapper (saf):
 		if self.options['extract_metrics']: self.extract_metrics('train')
 		else: self.metrics = None
 
-	def predict_channels(self, data_input, prediction_name, reference = None, reading_name = None):
+	def predict(self, data_input, prediction_name, reference = None, reading_name = None):
 		
 		# Get specifics
 		if self.type == 'LSTM':
@@ -251,7 +250,6 @@ class model_wrapper (saf):
 			self.std_out('No specifics for {} type'.format(self.type))
 		elif self.type == 'XGB':
 			scaler = self.parameters['scaler']
-
 
 		list_features = list()
 		for item in self.data['features']:
