@@ -1,0 +1,3 @@
+[submodule "src/stream/uf2"]
+	path = src/stream/uf2
+	url = https://github.com/microsoft/uf2
