@@ -603,3 +603,38 @@
     PMS5003_1: 2018052503817
     PMS5003_2: 2018052503804
 
+'10727':
+  hardware_id: ''
+  sck_id: ''
+  id: 'SCS21015'
+  type: 'station'
+  mac: '8AC0'
+  internal_ref: 'CHECK_INDOOR_EIXAMPLE_1'
+  date_from: '2020-01-22'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162700911
+    NO2: 202702041
+    O3: 204702949
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: null
+    PMS5003_2: null
+
+'10726':
+  hardware_id: ''
+  sck_id: ''
+  id: 'SCS21016'
+  type: 'station'
+  mac: '9994'
+  internal_ref: 'CHECK_INDOOR_EIXAMPLE_2'
+  date_from: '2020-01-22'
+  date_to: '-'
+  gas_pro_board: 
+    CO: 162700906
+    NO2: 202702038
+    O3: 204702950
+    slots: !!python/tuple [CO, NO2, O3]
+  pm_board:
+    PMS5003_1: null
+    PMS5003_2: null

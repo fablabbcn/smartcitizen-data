@@ -2,6 +2,8 @@
 data/export/*
 data/raw/*
 data/processed/
+data/reports/*.html
+data/reports/*.pdf
 data/interim/deliveries/*
 data/interim/tests/*
 models/*
