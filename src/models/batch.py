@@ -1,29 +1,36 @@
-import itertools
-from src.data.data import data
+from src.data.data import data_wrapper
 from src.models.model import model_wrapper
-from src.data.model_tools import metrics
+from src.models.model_tools import metrics
 from src.visualization.visualization import plot_wrapper
 
-class batch_analysis (saf):
+import traceback, json, itertools
+from termcolor import colored
+
+class batch_analysis ():
     append_alphasense = 'PRE'
     append_derivative = 'DERIV'
 
-    def __init__(self, tasksFile, verbose = False):
+    def __init__(self, tasks_file, verbose = False):
         try:
             self.verbose = verbose
-            self.tasks = json.load(open(tasksFile, 'r'))
+            self.tasks = json.load(open(tasks_file, 'r'))
             
             self.re_processing_needed = False
             self.results = dict()
         except:
+            traceback.print_exc()
             raise SystemError('Could not initialise object')
         
         else:
-            self.std_out('Object initialised successfully')
-
-    def std_out(self, msg):
-        if self.verbose: print(msg)
-
+            self.std_out('Object initialised successfully', 'SUCCESS')
+    
+    def std_out(self, msg, type_message = None, force = False):
+        if self.verbose or force: 
+            if type_message is None: print(msg) 
+            elif type_message == 'SUCCESS': print(colored(msg, 'green'))
+            elif type_message == 'WARNING': print(colored(msg, 'yellow')) 
+            elif type_message == 'ERROR': print(colored(msg, 'red'))
+    
     def load_data(self, task, tests, options):
 
         try:
@@ -36,20 +43,20 @@ class batch_analysis (saf):
                 else: load_processed = True
                 
                 # Load each of the tests
-                self.results[task]['data'].load_recording_database(test, self.results[task]['data'].available_tests()[test], 
-                                                    frequency = options['frequency'],
-                                                    clean_na = options['clean_na'],
-                                                    clean_na_method = options['clean_na_method'],
-                                                    load_cached_API = options['use_cache'], 
-                                                    cache_API = options['use_cache'],
-                                                    load_processed = load_processed)
+                self.results[task]['data'].load_test(test, options)
+                # Options:
+                # 'load_cached_API'
+                # 'store_cached_API'
+                # 'clean_na'
+                # 'clean_na_method'
+                # 'frequency'
         
         except:
-            self.std_out('Problem loading data')
+            self.std_out('Problem loading data', 'ERROR')
             traceback.print_exc()
             return False
         else:
-            self.std_out('Data load OK')
+            self.std_out('Data load OK', 'SUCCESS')
             return True
 
     def pre_process_data(self, task, tests, data, task_has_model):
@@ -257,12 +264,12 @@ class batch_analysis (saf):
 
         # Sanity check for test presence
         if not all([self.results[task]['data'].available_tests().__contains__(i) for i in tests]):
-            self.std_out ('Not all tests are available, review data input')
+            self.std_out ('Not all tests are available, review data input', 'ERROR')
             return False
         
         else:
             # Cosmetic output
-            self.std_out('Test presence check passed')
+            self.std_out('Test presence check passed', 'SUCCESS')
             
             # Check here if all the tuple_features are in each of the tests (accounting for the pre_processing)
             if task_has_model:
@@ -284,7 +291,7 @@ class batch_analysis (saf):
                         for test in self.tasks[task]['model']['data'][dataset].keys():
                             for device in self.tasks[task]['model']['data'][dataset][test]['devices']:
                                 # Get columns of the test
-                                all_columns = list(self.results[task]['data'].tests[test]['devices'][device]['data'].columns)
+                                all_columns = list(self.results[task]['data'].tests[test].devices[device].readings.columns)
 
                                 # Add the pre-processing ones and if we can pre-process
                                 if 'pre-processing' in self.tasks[task].keys(): 
@@ -310,11 +317,11 @@ class batch_analysis (saf):
                             # In case of training dataset, check that the reference exists
                             if dataset == 'train':
                                 found_ref = False
-                                for device in self.results[task]['data'].tests[test]['devices'].keys():
-                                    if 'is_reference' in self.results[task]['data'].tests[test]['devices'][device].keys():
+                                for device in self.results[task]['data'].tests[test].devices.keys():
+                                    if self.results[task]['data'].tests[test].devices[device].type == 'OTHER':
                                         reference_dataframe = device
 
-                                        if not (reference_name in self.results[task]['data'].tests[test]['devices'][device]['data'].columns) and not found_ref: 
+                                        if not (reference_name in self.results[task]['data'].tests[test].devices[device].readings.columns) and not found_ref: 
                                             found_ref = False
                                             self.std_out('Reference presence check not passed')
                                         else:
@@ -332,7 +339,7 @@ class batch_analysis (saf):
             self.std_out('-------------------------------')
             self.std_out('Evaluating task {}'.format(task))
             self.results[task] = dict()
-            self.results[task]['data'] = recording(verbose = self.verbose)
+            self.results[task]['data'] = data_wrapper(verbose = self.verbose)
 
             if 'model' in self.tasks[task].keys():
                 model_name = self.tasks[task]['model']['model_name'] 
@@ -345,7 +352,7 @@ class batch_analysis (saf):
                 task_has_model = True
 
                 # Ignore extra data in json if present in the task
-                if 'data' in self.tasks[task].keys(): self.std_out('Ignoring additional data in task')
+                if 'data' in self.tasks[task].keys(): self.std_out('Ignoring additional data in task', 'WARNING')
 
                 # Model dataset names and options
                 tests = list(set(itertools.chain(self.tasks[task]['model']['data']['train'], self.tasks[task]['model']['data']['test'])))
@@ -364,7 +371,7 @@ class batch_analysis (saf):
 
             # Load data
             if not self.load_data(task, tests, data_dict['data_options']):
-                self.std_out('Failed loading data')
+                self.std_out('Failed loading data', 'SUCCESS')
                 return
 
             # Cosmetic output
@@ -391,7 +398,7 @@ class batch_analysis (saf):
                     self.std_out (f'Train dataset: {train_dataset}')
                     
                     if train_dataset is None:
-                        self.std_out('Failed training dataset dataframe preparation for model')
+                        self.std_out('Failed training dataset dataframe preparation for model', 'ERROR')
                         return
                     
                     # Train Model based on training dataset
@@ -436,7 +443,7 @@ class batch_analysis (saf):
                     
                     # Save model in session
                     if current_model.options['session_active_model']:
-                        self.std_out (f'Saving model in session'data for reading name: {train_dataset}')
+                        self.std_out (f'Saving model in session:{train_dataset}')
                         self.results[task]['data'].archive_model(train_dataset, current_model, dataFrameExport)
 
                     # Export model if requested

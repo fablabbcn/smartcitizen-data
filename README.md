@@ -8,7 +8,7 @@ Welcome to the [SmartCitizen-iScape Sensor Analysis Framework](https://docs.isca
 ![](https://i.imgur.com/CvUuWpL.gif)
 
 You can find more information in the:
-- [Official iScape Documentation](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework).
+- [Official iScape Documentation](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework)
 - [Smart Citizen Documentation](ttps://docs.smartcitizen.me/Sensor%20Analysis%20Framework)
 
 ## Funding
@@ -93,3 +93,9 @@ This will open a web browser instance (by default [localhost:8888/lab]()) which 
 ## Features
 
 A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework.
+
+## Contribute
+
+PR welcome! Do not hesitate to work with 
+
+Also, if you are using git with the notebook, you can use [nbdime](https://nbdime.readthedocs.io/en/latest/#) for an easier handling.

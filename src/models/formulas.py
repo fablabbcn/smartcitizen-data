@@ -22,18 +22,24 @@ def exponential_smoothing(series, alpha = 0.5):
         result.append(alpha * series[n] + (1 - alpha) * result[n-1])
     return result
 
-def smooth(y, box_pts):
+def box_convolution(series, box_pts):
+    '''
+        Implements 1-d square-box filtering on an input signal, using padding on both sides of the signal
+        series: pandas series
+        box_pts: must be an odd number
+    '''
+    
     half_window = (box_pts -1) // 2
     try:
         box = np.ones(box_pts)/box_pts
-        firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
-        lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
-        y = np.concatenate((firstvals, list(map(float, y)), lastvals))
-        y_smooth = np.convolve(y, box, mode='valid')
-        return y_smooth
+        firstvals = series[0] - np.abs( series[1:half_window+1][::-1] - series[0] )
+        lastvals = series[-1] + np.abs(series[-half_window-1:-1][::-1] - series[-1])
+        series = np.concatenate((firstvals, list(map(float, series)), lastvals))
+        series_smooth = np.convolve(series, box, mode='valid')
+        return series_smooth
     except:
         pass
-    return np.ones(len(y))
+    return np.ones(len(series))
 
 def derivative(y, x):
     dx = np.zeros(x.shape, np.float)
@@ -55,7 +61,14 @@ def derivative(y, x):
     return result
 
 def time_derivative(series, window = 1):
-    return series.diff(periods = -window)/series.index.to_series().diff(periods = -window).dt.total_seconds()
+
+    return series.diff(periods = window)/(2*series.index.to_series().diff(periods = window).dt.total_seconds())
+
+def time_diff(series, window = 1):
+    return series.index.to_series().diff(periods = window).dt.total_seconds()
+
+def gradient(series, raster):
+    return np.gradient(series, raster*2)
 
 def absolute_humidity(temperature, rel_humidity, pressure):
     '''
@@ -75,60 +88,60 @@ def absolute_humidity(temperature, rel_humidity, pressure):
 
     return abs_humidity
 
-def maxer(y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<=val and not y[i] == np.nan): result[i] = val
-        elif (y[i]>val and not y[i] == np.nan): result[i] = y[i]
-        elif (math.isnan(y[i])): result[i] = np.nan
+def maxer(series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<=val and not series[i] == np.nan): result[i] = val
+        elif (series[i]>val and not series[i] == np.nan): result[i] = series[i]
+        elif (math.isnan(series[i])): result[i] = np.nan
     return result
 
-def maxer_hist(y, val, hist):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<=val and not y[i] == np.nan): result[i] = hist
-        elif (y[i]>val and not y[i] == np.nan): result[i] = y[i]
-        elif (math.isnan(y[i])): result[i] = np.nan
+def maxer_hist(series, val, hist):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<=val and not series[i] == np.nan): result[i] = hist
+        elif (series[i]>val and not series[i] == np.nan): result[i] = series[i]
+        elif (math.isnan(series[i])): result[i] = np.nan
     return result
 
-def miner(y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<=val and not y[i] == np.nan): result[i] = y[i]
-        elif (y[i]>val and not y[i] == np.nan): result[i] = val
-        elif (math.isnan(y[i])): result[i] = np.nan
+def miner(series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<=val and not series[i] == np.nan): result[i] = series[i]
+        elif (series[i]>val and not series[i] == np.nan): result[i] = val
+        elif (math.isnan(series[i])): result[i] = np.nan
     return result
 
-def greater(y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<=val and not y[i] == np.nan): result[i] = False
-        elif (y[i]>val and not y[i] == np.nan): result [i] = True
-        elif (math.isnan(y[i])): result[i] = result[i-1]   
+def greater(series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<=val and not series[i] == np.nan): result[i] = False
+        elif (series[i]>val and not series[i] == np.nan): result [i] = True
+        elif (math.isnan(series[i])): result[i] = result[i-1]   
     return result
 
-def greaterequal(y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<val and not y[i] == np.nan): result[i] = False
-        elif (y[i]>=val and not y[i] == np.nan): result [i] = True
-        elif (math.isnan(y[i])): result[i] = result[i-1]
+def greaterequal(series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<val and not series[i] == np.nan): result[i] = False
+        elif (series[i]>=val and not series[i] == np.nan): result [i] = True
+        elif (math.isnan(series[i])): result[i] = result[i-1]
     return result
 
-def lower (y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<val and not y[i] == np.nan): result[i] = True
-        elif (y[i]>=val and not y[i] == np.nan): result [i] = False
-        elif (math.isnan(y[i])): result[i] = result[i-1]   
+def lower (series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<val and not series[i] == np.nan): result[i] = True
+        elif (series[i]>=val and not series[i] == np.nan): result [i] = False
+        elif (math.isnan(series[i])): result[i] = result[i-1]   
     return result
 
-def lowerequal(y, val):
-    result = np.zeros(len(y))
-    for i in range(len(y)):
-        if (y[i]<=val and not y[i] == np.nan): result[i] = True
-        elif (y[i]>val and not y[i] == np.nan): result [i] = False
-        elif (math.isnan(y[i])): result[i] = result[i-1] 
+def lowerequal(series, val):
+    result = np.zeros(len(series))
+    for i in range(len(series)):
+        if (series[i]<=val and not series[i] == np.nan): result[i] = True
+        elif (series[i]>val and not series[i] == np.nan): result [i] = False
+        elif (math.isnan(series[i])): result[i] = result[i-1] 
     return result
             
 def exponential_func(x, a, b, c):

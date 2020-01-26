@@ -303,7 +303,7 @@ class data_wrapper (saf):
 
 		# For each kit in the requested reading, calculate the pollutants
 		for device in self.tests[test_name].devices.keys():
-
+			print (device)
 			if 'alphasense' in vars(self.tests[test_name].devices[device]).keys():
 				self.std_out('Calculating test {} for kit {}'.format(test_name, device), force = True)
 				
@@ -334,7 +334,7 @@ class data_wrapper (saf):
 						_plotResult = options['checkBoxPlotsResult'],
 						_verbose = options['checkBoxVerb'], 
 						_printStats = options['checkBoxStats'],
-						_calibrationDataPath = join(self.dataDirectory, 'interim/CalibrationData/'),
+						_calibrationDataPath = join(self.interimDirectory, 'calibration/'),
 						_currentSensorNames = self.currentSensorNames)
 				self.tests[test_name].devices[device].alphasense['model_stats'].update(correlationMetrics)
 

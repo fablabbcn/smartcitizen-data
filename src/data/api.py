@@ -7,13 +7,15 @@ API_KITS_URL='https://api.smartcitizen.me/v0/kits/'
 
 class api_device:
 
-    def __init__ (self, device_id, verbose = True):
+    def __init__ (self, device_id, from_device = False, verbose = True):
         self.device_id = device_id
         self.kit_id = None
         self.last_reading_at = None
         self.location = None
         self.data = None
         self.verbose = verbose
+
+        if not from_device: self.saf = saf(verbose)
 
     def std_out(self, msg, type_message = None, force = False):
         if self.verbose or force: 
@@ -69,9 +71,13 @@ class api_device:
                 deviceR = requests.get(API_BASE_URL + '{}/'.format(self.device_id))
 
                 # If status code OK, retrieve data
-                if deviceR.status_code == 200 or deviceR.status_code == 201:
-                    
-                    latitude, longitude = deviceR.json()['location']['latitude'], deviceR.json()['location']['longitude']
+                if deviceR.status_code == 200 or deviceR.status_code == 201: 
+                    latidude = longitude = None
+                    longitude = None
+                    response_json = deviceR.json()
+                    if 'location' in response_json.keys(): latitude, longitude = deviceR.json()['location']['latitude'], deviceR.json()['location']['longitude']
+                    elif 'data' in response_json.keys(): 
+                        if 'location' in response_json['data'].keys(): latitude, longitude = deviceR.json()['data']['location']['latitude'], deviceR.json()['data']['location']['longitude']
                     
                     # Localize it
                     tz_where = tzwhere.tzwhere()
@@ -86,7 +92,9 @@ class api_device:
         
         return self.location
 
-    def get_device_data(self, start_date, end_date, frequency, clean_na, clean_na_method, currentSensorNames):
+    def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = False, clean_na_method = None, currentSensorNames = None):
+
+        if currentSensorNames is None: currentSensorNames = self.saf.current_names
         
         self.std_out(f'Requesting data from API for device {self.device_id}')
         
@@ -152,6 +160,8 @@ class api_device:
                     # Localize it
                     tz_where = tzwhere.tzwhere()
                     location = tz_where.tzNameAt(latitude, longitude)
+                else: 
+                    location = self.location
 
                 # Get min and max getDateLastReading
                 toDate = deviceRJSON['last_reading_at'] 

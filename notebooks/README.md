@@ -9,9 +9,12 @@ The main notebook for data analysis is main.ipynb, although other can be configu
 - Data load
 - Calculator
 - Data export
-- Alphasense baseline calibration
 - Exploratory data analysis (visualisation)
 - Model calibration, export and application
+
+### Examples
+
+Check the notebooks named examples*.ipynb to see how different tasks can be performed. A dummy test with some data is added for the local test example.
 
 ### Dispersion Analysis
 

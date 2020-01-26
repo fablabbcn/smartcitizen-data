@@ -42,7 +42,7 @@ class device_wrapper:
 				pass
 		elif 'api' in self.source:
 			self.name = device_descriptor['device_id']
-			self.api_device = api_device(self.name, self.data.verbose)
+			self.api_device = api_device(device_id = self.name, from_device = True, verbose = self.data.verbose)
 		elif 'serial' in self.source:
 			self.data.std_out('Not supported yet')
 
