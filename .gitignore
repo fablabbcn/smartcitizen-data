@@ -1,7 +1,7 @@
 # Remove
 data/export/*
-data/raw/*
-data/processed/
+data/raw/*.csv
+data/processed/20*/
 data/reports/*
 data/interim/development/*
 data/interim/deliveries/*
@@ -11,10 +11,13 @@ models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
 notebooks/working_*.ipynb
+notebooks/src_ipynb
 reports/*.html
 reports/*.pdf
 scr.egg-info/*
 scr.egg-info
+references
+
 TODO.md
 secrets.py
 
