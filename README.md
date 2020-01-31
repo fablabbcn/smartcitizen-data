@@ -5,11 +5,11 @@ iScape Sensor Analysis Framework
 
 Welcome to the [SmartCitizen-iScape Sensor Analysis Framework](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework/). This repository is built with the purpose of helping on the *analysis*, *calibration* and general *post-processing of sensors on field tests and it aims to be the primary tool for manipulating the sensors' data.
 
-![](https://i.imgur.com/CvUuWpL.gif)
+![](assets/images/saf_schema.png)
 
-You can find more information in the:
-- [Official iScape Documentation](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework)
-- [Smart Citizen Documentation](ttps://docs.smartcitizen.me/Sensor%20Analysis%20Framework)
+## Features
+
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework.
 
 ## Funding
 
@@ -17,7 +17,7 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 ## Compatibility
 
-`Python 3.7` compatible. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. The notebooks in the `notebooks` folder are meant as examples and interfaces to the `python` code in the `src` folder.
+Works with `Python 3.7`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. The notebooks in the `notebooks` folder are meant as examples and interfaces to the `python` code in the `src` folder.
 
 ## Installation
 
@@ -90,12 +90,6 @@ jupyter lab
 
 This will open a web browser instance (by default [localhost:8888/lab]()) which gives access to the tools in the framework. The `main.ipynb` is meant as an example, but any configuration is possible, even without the `jupyter lab` interface (of course).
 
-## Features
-
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework.
-
 ## Contribute
 
-PR welcome! Do not hesitate to work with 
-
-Also, if you are using git with the notebook, you can use [nbdime](https://nbdime.readthedocs.io/en/latest/#) for an easier handling.
+Issues and PR welcome!
