@@ -11,7 +11,10 @@ class api_device:
         self.device_id = device_id
         self.kit_id = None
         self.last_reading_at = None
+        self.added_at = None
         self.location = None
+        self.lat = None
+        self.long = None
         self.data = None
         self.verbose = verbose
 
@@ -91,6 +94,51 @@ class api_device:
                 pass
         
         return self.location
+
+    def get_device_lat_long(self):
+        self.std_out((f'Requesting lat-long from API for device {self.device_id}'))
+        # Get location
+        try:
+            deviceR = requests.get(API_BASE_URL + '{}/'.format(self.device_id))
+
+            # If status code OK, retrieve data
+            if deviceR.status_code == 200 or deviceR.status_code == 201: 
+                latidude = longitude = None
+                longitude = None
+                response_json = deviceR.json()
+                if 'location' in response_json.keys(): latitude, longitude = deviceR.json()['location']['latitude'], deviceR.json()['location']['longitude']
+                elif 'data' in response_json.keys(): 
+                    if 'location' in response_json['data'].keys(): latitude, longitude = deviceR.json()['data']['location']['latitude'], deviceR.json()['data']['location']['longitude']
+                
+                # Localize it
+                self.lat = latitude
+                self.long = longitude
+                self.std_out ('Device {} is located at {}-{}'.format(self.device_id, latitude, longitude))
+
+            else:
+                self.std_out('API reported {}'.format(deviceR.status_code), 'ERROR') 
+        except:
+            self.std_out('Failed request. Probably no connection', 'ERROR')  
+            
+        return (self.lat, self.long)
+    
+    def get_device_added_at(self):
+        if self.added_at is None:
+            self.std_out(f'Requesting added at from API for device {self.device_id}')
+            # Get last reading
+            try:
+                deviceR = requests.get(API_BASE_URL + '{}/'.format(self.device_id))
+                
+                if deviceR.status_code == 200 or deviceR.status_code == 201:
+                    self.added_at = deviceR.json()['added_at']
+                    self.std_out ('Device {} was added at {}'.format(self.device_id, self.added_at))
+                else:
+                    self.std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
+            except:
+                self.std_out('Failed request. Probably no connection', 'ERROR')  
+                pass
+
+        return self.added_at
 
     def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = False, clean_na_method = None, currentSensorNames = None):
 

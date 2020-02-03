@@ -1,11 +1,11 @@
-iScape Sensor Analysis Framework
+SmartCitizen-iScape Sensor Data Analysis
 =======
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-iscape-data/master?filepath=notebooks)
 
-Welcome to the [SmartCitizen-iScape Sensor Analysis Framework](https://docs.iscape.smartcitizen.me/Sensor%20Analysis%20Framework/). This repository is built with the purpose of helping on the *analysis*, *calibration* and general *post-processing of sensors on field tests and it aims to be the primary tool for manipulating the sensors' data.
+Welcome to the [SmartCitizen-iScape Sensor Analysis Framework](. This repository is build with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating the sensors' data.
 
 ![](assets/images/saf_schema.png)
 
