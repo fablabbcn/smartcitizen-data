@@ -42,7 +42,7 @@ class saf:
 		# Load calibration file
 		try:
 			with open(join(self.interimDirectory, 'sensorData.yaml'), 'r') as yml:
-				self.devices_database = yaml.load(yml)
+				self.devices_database = yaml.load(yml, Loader = yaml.FullLoader)
 				self.std_out(f'Loading devices data file from: {self.interimDirectory}')
 		except:
 			raise SystemError('Problem loading calibration file')

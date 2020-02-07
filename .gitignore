@@ -11,6 +11,7 @@ models/ALPHASENSE/*
 models/MICS/*
 models/PMS/*
 work
+working_tasks
 notebooks/working_*.ipynb
 notebooks/src_ipynb
 reports/*.html

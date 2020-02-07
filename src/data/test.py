@@ -284,7 +284,7 @@ class test_wrapper:
 		descriptor_file_path = join(self.path, 'test_description.yaml')
 
 		with open(descriptor_file_path, 'r') as stream:
-			self.descriptor_file = yaml.load(stream)
+			self.descriptor_file = yaml.load(stream, Loader = yaml.FullLoader)
 
 		# Add devices
 		for key in self.descriptor_file['devices'].keys():

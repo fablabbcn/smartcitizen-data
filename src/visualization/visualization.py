@@ -28,7 +28,7 @@ class plot_wrapper():
 		self.subplots_list = None
 		self.figure = None
 		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
-		
+
 	def std_out(self, msg, type_message = None, force = False):
 		if self.verbose or force: 
 			if type_message is None: print(msg)	

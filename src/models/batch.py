@@ -320,8 +320,7 @@ class batch_analysis ():
                                 for device in self.results[task]['data'].tests[test].devices.keys():
                                     if self.results[task]['data'].tests[test].devices[device].type == 'OTHER':
                                         reference_dataframe = device
-
-                                        if not (reference_name in self.results[task]['data'].tests[test].devices[device].readings.columns) and not found_ref: 
+                                        if not (self.tasks[task]['model']['data']['features']['REF'] in self.results[task]['data'].tests[test].devices[device].readings.columns) and not found_ref: 
                                             found_ref = False
                                             self.std_out('Reference presence check not passed')
                                         else:
@@ -380,15 +379,16 @@ class batch_analysis ():
             if not self.sanity_checks(task, tests, task_has_model):
                 self.std_out('Failed sanity checks')
                 return
-                               
-            # Pre-process data
-            if 'pre-processing' in self.tasks[task].keys():
-                # Cosmetic output
-                self.std_out('Pre-processing requested...')
+            
+            # TO-DO: Fix                               
+            # # Pre-process data
+            # if 'pre-processing' in self.tasks[task].keys():
+            #     # Cosmetic output
+            #     self.std_out('Pre-processing requested...')
 
-                if not self.pre_process_data(task, tests, data_dict, task_has_model): 
-                    self.std_out('Failed preprocessing')
-                    return
+            #     if not self.pre_process_data(task, tests, data_dict, task_has_model): 
+            #         self.std_out('Failed preprocessing')
+            #         return
             
             # Perform model stuff
             if task_has_model:
@@ -402,37 +402,26 @@ class batch_analysis ():
                         return
                     
                     # Train Model based on training dataset
-                    current_model.training(self.results[task]['data'].tests[train_dataset]['models'][model_name])
+                    current_model.train()
                     
-                    # # Evaluate Model in train data
-                    # device = current_model.data['train'][train_dataset]['devices']
-                    # # Dirty horrible workaround
-                    # if type(device) == list: device = device[0]
-                    # prediction_name = device + '_' + model_name
-
-                    # self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, train_dataset))
-                    # # Get prediction for train
-                    # prediction = current_model.predict_channels(self.results[task]['data'].tests[train_dataset]['devices'][device]['data'], prediction_name)
-                    # # Combine it in tests
-                    # self.results[task]['data'].tests[train_dataset]['devices'][device]['data'].combine_first(prediction)
-
                     # Evaluate Model in test data
                     for test_dataset in current_model.data['test'].keys():
+                        # Check if there is a reference
+                        if 'reference_device' in current_model.data['test'][test_dataset].keys():
+                            reference = self.results[task]['data'].tests[test_dataset].devices[current_model.data['test'][test_dataset]['reference_device']].readings[current_model.data['features']['REF']]
+                        else:
+                            reference = None
+                        
                         for device in current_model.data['test'][test_dataset]['devices']:
-                            prediction_name = device + '_' + model_name
+                            prediction_name = f'{device}_{model_name}'
                             self.std_out('-----------------------------------------')
                             self.std_out('Predicting {} for device {} in {}'.format(prediction_name, device, test_dataset))
 
-                            # Get prediction for test                            
-                            if current_model.data['test'][test_dataset]['reference_device'] in self.results[task]['data'].tests[test_dataset]['devices'].keys():
-                                reference = self.results[task]['data'].tests[test_dataset]['devices'][current_model.data['test'][test_dataset]['reference_device']]['data'][current_model.data['features']['REF']]
-                            else:
-                                reference = None
-                            
-                            prediction = current_model.predict_channels(self.results[task]['data'].tests[test_dataset]['devices'][device]['data'], prediction_name, reference, test_dataset)
+                            # Get prediction for test          
+                            prediction = current_model.predict(self.results[task]['data'].tests[test_dataset].devices[device].readings, prediction_name, reference)
 
                             # Combine it in tests
-                            self.results[task]['data'].tests[test_dataset]['devices'][device]['data'].combine_first(prediction)
+                            self.results[task]['data'].tests[test_dataset].devices[device].readings.combine_first(prediction)
 
                     # Export model data if requested
                     if data_dict['data_options']["export_data"] is not None:
@@ -444,7 +433,7 @@ class batch_analysis ():
                     # Save model in session
                     if current_model.options['session_active_model']:
                         self.std_out (f'Saving model in session:{train_dataset}')
-                        self.results[task]['data'].archive_model(train_dataset, current_model, dataFrameExport)
+                        self.results[task]['data'].archive_model(current_model)
 
                     # Export model if requested
                     if current_model.options['export_model']:
@@ -453,6 +442,7 @@ class batch_analysis ():
                     traceback.print_exc()
                     pass
             
+            # Export data
             if data_dict['data_options']["export_data"] is not None:
                 try: 
                     if data_dict['data_options']["export_data"] == 'Only Generic':
@@ -488,7 +478,7 @@ class batch_analysis ():
                             # Check for datasets that are not reference
                             if dataset in self.tasks[task]['model']['data'].keys():
                                 for test in self.tasks[task]['model']['data'][dataset].keys():
-                                    for device in self.tasks[task]['model']['data'][dataset][test]:
+                                    for device in self.tasks[task]['model']['data'][dataset][test]['devices']:
                                         self.std_out('Exporting data of device {} in test {} to processed folder'.format(device, test))
                                         self.results[task]['data'].export_data(test, device, all_channels = all_channels, 
                                                             include_raw = include_raw, include_processed = include_processed, 
@@ -525,9 +515,9 @@ class batch_analysis ():
                             for trace in self.tasks[task]["plot"][plot_description]['data']['traces']:
                                 if self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["device"] == 'all':
                                     list_devices_plot = list()
-                                    for device in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'].keys():
+                                    for device in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']].devices.keys():
                                         channel = self.tasks[task]['plot'][plot_description]['data']['traces'][trace]["channel"]
-                                        if channel in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']]['devices'][device]['data'].columns:
+                                        if channel in self.results[task]['data'].tests[self.tasks[task]["plot"][plot_description]['data']['test']].devices[device].readings.columns:
                                             list_devices_plot.append(device)
                                         else:
                                             self.std_out('Trace ({}) not in tests in device {}'.format(channel, device))

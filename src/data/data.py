@@ -28,7 +28,7 @@ class data_wrapper (saf):
 				if _file.endswith(".yaml"):
 					filePath = join(root, _file)
 					stream = open(filePath)
-					yamlFile = yaml.load(stream)
+					yamlFile = yaml.load(stream, Loader = yaml.FullLoader)
 					
 					if deep_description == True:
 						tests[yamlFile['id']] = dict()
@@ -303,7 +303,6 @@ class data_wrapper (saf):
 
 		# For each kit in the requested reading, calculate the pollutants
 		for device in self.tests[test_name].devices.keys():
-			print (device)
 			if 'alphasense' in vars(self.tests[test_name].devices[device]).keys():
 				self.std_out('Calculating test {} for kit {}'.format(test_name, device), force = True)
 				

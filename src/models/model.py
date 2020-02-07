@@ -315,7 +315,6 @@ class model_wrapper (saf):
 			
 			dataframe = pd.DataFrame(prediction, columns = ['prediction']).set_index(indexModel)
 			dataframeModel = dataframeModel.combine_first(dataframe)
-			print(datapredict.columns)
 			
 			data_input[prediction_name] = prediction
 		
