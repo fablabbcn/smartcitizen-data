@@ -23,7 +23,7 @@ import seaborn as sns
 # Extras
 from math import sqrt
 import numpy as np
-
+import pandas as pd
 
 def metrics(reference, estimation):
     metrics_dict = dict()

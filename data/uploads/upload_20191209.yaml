@@ -19,9 +19,9 @@ citizen_science_workshops_test.json:
   access_right: 'open'
   options: 
     include_processed_data: false
+    include_footer_doi: true
   communities: [{ "identifier": "iscape"}]
   grants: [{"id": "689954"}]
-  report: ['report.pdf']
 internal_sensor_tests.json: 
   title: 'iSCAPE Low Cost Sensor Development Data'
   description: '<p>This dataset contains all the tests used for the low-cost sensor development during the iSCAPE project. The dataset is divided in a series of tests, each of them described on a yaml file with the test name.<br> <strong>iSCAPE Dataset Reference Numbers:</strong><br><ul><li>DS_TS_054</li><li>DS_TS_062</li><li>DS_TS_063</li><li>DS_TS_065</li><li>DS_TS_067</li><li>DS_TS_068</li><li>DS_TS_069</li><li>DS_TS_070</li><li>DS_TS_071</li><li>DS_TS_072</li><li>DS_TS_073</li><li>DS_TS_074</li><li>DS_TS_075</li><li>DS_TS_076</li><li>DS_TS_077</li><li>DS_TS_078</li><li>DS_TS_079</li><li>DS_TS_080</li><li>DS_TS_081</li><li>DS_TS_084</li><li>DS_TS_088</li><li>DS_TS_089</li><li>DS_TS_090</li><li>DS_TS_092</li></ul></p>'
@@ -34,6 +34,7 @@ internal_sensor_tests.json:
   access_right: 'open'
   options: 
     include_processed_data: false
+    include_footer_doi: true
   communities: [{ "identifier": "iscape"}]
   grants: [{"id": "689954"}]
 external_deployment_test.json: 

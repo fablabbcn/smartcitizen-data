@@ -609,9 +609,3 @@ class data_wrapper (saf):
 					self.std_out('Not implemented')
 				self.std_out(f'Submission completed - (DOI: 10.5281/zenodo.{submission_id})', 'SUCCESS')
 				self.std_out(f'------------------------------------------------------------', 'SUCCESS')
-
-
-
-
-
-
