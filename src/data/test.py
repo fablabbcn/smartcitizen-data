@@ -327,7 +327,7 @@ class test_wrapper:
 				
 				# Use metadata to convert names
 				for item_test in device.metadata:
-					if device.metadata[item_test]['id'] == 0: continue
+					if device.metadata[item_test]['id'] == '0': continue
 
 					for item_target in self.data.current_names:
 						if self.data.current_names[item_target]['id'] == device.metadata[item_test]['id'] and item_test not in test_names:
@@ -444,6 +444,7 @@ class test_wrapper:
 			elif 'csv' in device.source:
 				device.load(self.options, path = self.path)
 				
+				# Rename columns
 				if len(target_names) == len(test_names) and len(target_names) > 0:
 					for i in range(len(target_names)):
 						if not (test_names[i] == '') and not (test_names[i] == target_names[i]) and test_names[i] in device.readings.columns:
