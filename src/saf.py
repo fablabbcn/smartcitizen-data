@@ -25,8 +25,12 @@ class saf:
 		self.dataDirectory = join(self.rootDirectory, 'data')
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
-		self.toolsDirectory = tools_path
-		self.inventoryDirectory = inventory_path
+		try:
+			self.toolsDirectory = tools_path
+			self.inventoryDirectory = inventory_path
+		except
+			self.std_out('Cannot use tools and inventory without path in secrets', 'WARNING')
+			pass
 		self.verbose = verbose
 
 		# Load configuration file
