@@ -54,5 +54,8 @@ dependencies:
   - xlsxwriter=1.1.*
   - yaml=0.1.*
   - pip:
+    - tabulate
+    - pdfrw
+    - reportlab
     - termcolor==1.1.0
     - tzwhere==3.*

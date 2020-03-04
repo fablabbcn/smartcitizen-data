@@ -25,14 +25,15 @@ class saf:
 		self.dataDirectory = join(self.rootDirectory, 'data')
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
+		self.verbose = verbose
+		
 		try:
 			self.toolsDirectory = tools_path
 			self.inventoryDirectory = inventory_path
-		except
+		except:
 			self.std_out('Cannot use tools and inventory without path in secrets', 'WARNING')
 			pass
-		self.verbose = verbose
-
+		
 		# Load configuration file
 		try:
 			config_path = join(self.rootDirectory, 'src', 'config.yaml')
@@ -115,16 +116,16 @@ class saf:
 				self.std_out ('Saved updated sensor names and dumped into', names_dict)
 
 			except:
-			    # Load sensors
-			    # traceback.print_exc()
-			    with open(names_dict) as handle:
-			        sensor_names = json.loads(handle.read())
-			    self.std_out ('No connection - Retrieving local version for sensors names')
+				# Load sensors
+				# traceback.print_exc()
+				with open(names_dict) as handle:
+					sensor_names = json.loads(handle.read())
+				self.std_out ('No connection - Retrieving local version for sensors names')
 
 		else:
 
-		    with open(names_dict) as handle:
-		        sensor_names = json.loads(handle.read())	
+			with open(names_dict) as handle:
+				sensor_names = json.loads(handle.read())	
 
 		return sensor_names
 
