@@ -72,6 +72,18 @@ chmod +x .dotfile
 ./.dotfile
 ```
 
+### Tokens and config
+
+A `secrets.py` is to be placed in the `src` folder with a `token` as below:
+
+```
+zenodo_token='token'
+```
+
+You can get more instructions [here](https://docs.smartcitizen.me/Guides/Upload%20data%20to%20zenodo/).
+
+You can configure some functionalities by modifying the `src/config.yaml`. The current file serves as a example, and the topics are self-explanatory.
+
 ### Windows
 
 [xgboost](https://pypi.org/project/xgboost/) is not currently supported in pip for windows users, and needs to be [directly installed from github](https://xgboost.readthedocs.io/en/latest/build.html). Remove the line in the `environment.yml` to avoid installation issues. 
