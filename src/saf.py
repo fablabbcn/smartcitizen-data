@@ -21,7 +21,7 @@ class saf:
 
 	def __init__(self, verbose = True):
 		
-		self.rootDirectory = os.path.abspath(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
+		self.rootDirectory = os.path.abspath(os.path.abspath(os.path.join(dirname(__file__), os.pardir)))
 		self.dataDirectory = join(self.rootDirectory, 'data')
 		self.interimDirectory = join(self.dataDirectory, 'interim')
 		self.modelDirectory = join(self.rootDirectory, 'models')
