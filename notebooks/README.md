@@ -1,32 +1,8 @@
-## Notebooks content
+## About this folder
 
-Each notebook in this folder uses scripts from ../src and other notebooks (with widgets) from the ./src_ipynb folder. These notebooks are here for convenience, and their use is not mandatory.
+You can use this folder to put your working notebooks. Some examples are also found in the /examples folder.
 
-### Main
-
-The main notebook for data analysis is main.ipynb, although other can be configured with the items from src_ipynb. This notebooks contains a generic workflow for data analysis including:
-
-- Data load
-- Calculator
-- Data export
-- Exploratory data analysis (visualisation)
-- Model calibration, export and application
-
-### Examples
-
-Check the notebooks named examples*.ipynb to see how different tasks can be performed. A dummy test with some data is added for the local test example.
-
-### Dispersion Analysis
-
-This notebook allows to load certain devices and perform basic dispersion analysis and faulty device detection. It loads the data from local tests or the API and calculates automatically the necessary outputs
-
-### Batch Analysis
-
-This notebook is an example of batch analysis, for the tasks contained in /tasks and used by the class `batch.py`. Check the guides in [the official documentation](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/guides/Analyse%20your%20data%20in%20batch/) for more information.
-
-### Test creation
-
-This notebook allows the creation of a test, as defined in [the official documentation](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/guides/Organise%20your%20data/)
+The `main.ipynb` notebook is currently not maintained. However it might have some examples for certain tasks. This notebook uses other code from `./src_ipynb` to generate widgets for analysis.
 
 ## Notebooks export
 
