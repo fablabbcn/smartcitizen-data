@@ -1,30 +1,19 @@
 # This is a configuration file for the Sensor Analysis Framework
 
-# Urls file
-urls:
-  SENSOR_NAMES_URL_21: 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
-  SENSOR_NAMES_URL_20: 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
-  ZENODO_SANDBOX_BASE_URL: 'http://sandbox.zenodo.org'
-  ZENODO_REAL_BASE_URL: 'https://zenodo.org'
-  ZENODO_COMMUNITY_ID: 'iscape'
-
 data:
-  # INTERNAL NAME USED FOR MODELLING PURPOSES
-  NAME_COMBINED_DATA: 'COMBINED_DEVICES'
-  # NAME TO APPEND TO REFERENCE DATA (GROUND TRUTH)
-  REF_APPEND: 'REF'
-  RELOAD_NAMES: false
-  CACHED_DATA_MARGIN_HOURS: 1
-  # FROM HERE THEY HAVE TO BE lower caps
+  combined_devices_name: 'COMBINED_DEVICES'
+  reload_firmware_names: true
+test:
+  # In hours, cached data margin for reload
+  cached_data_margin: 1  
   load_cached_API: true
   store_cached_API: true
   clean_na: true
   clean_na_method: 'drop'
   frequency: '1Min'
-
 models:
   # THIS WILL BE APPENDED TO YOUR MODEL IF YOU USE MULTIPLE TRAINING DATASETS
-  NAME_MULTIPLE_TRAINING_DATA: 'CDEV'
+  name_multiple_training_data: 'CDEV'
 
 # NOTES:
 # Create a document called secrets.py and put your zenodo Personal access token there, following this:

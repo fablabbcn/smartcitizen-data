@@ -1,29 +1,32 @@
-from src.models.baseline_tools import *
-from src.data.api import *	
-from src.models.formulas import *	
-from src.saf import *
+from src.saf import std_out
+from src.saf import paths, configuration
 from src.data.test import test_wrapper
-from src.data.report import include_footer
+from traceback import print_exc
+from os import walk
+from os.path import join, exists
+import yaml
 
-class data_wrapper (saf):
+class data_wrapper ():
 
 	def __init__(self, verbose = True):
 		try:
-			saf.__init__(self, verbose)
 			self.tests = dict()
 			self.models = dict()
-			self.name_combined_data = self.config['data']['NAME_COMBINED_DATA']	
-
 		except:
-			traceback.print_exc()
+			print_exc()
 		else:
-			self.std_out('Data initialisation done', 'SUCCESS')
+			std_out('Data initialisation done', 'SUCCESS')
 
+	
 	def get_tests(self, directory, deep_description = False):
+		'''
+			Gets the tests in the given directory, looking for test_description.yaml
+		'''
+
 		# Get available tests in the data folder structure
 		tests = dict()
 		mydir = join(directory, 'processed')
-		for root, dirs, files in os.walk(mydir):
+		for root, dirs, files in walk(mydir):
 			for _file in files:
 				if _file.endswith(".yaml"):
 					filePath = join(root, _file)
@@ -42,16 +45,17 @@ class data_wrapper (saf):
 		return tests
 
 	def available_tests(self):
-		self.availableTests = self.get_tests(self.dataDirectory)
+		self.availableTests = self.get_tests(paths['dataDirectory'])
 		return self.availableTests
 
-	def summary_of_tests(self):
-		return self.get_tests(self.dataDirectory, deep_description = True)
+	def tests_summary(self):
+		return self.get_tests(paths['dataDirectory'], deep_description = True)
 
 	def describe_test(self, test_name, devices = None, verbose = True, tablefmt = 'simple'):
+        # TO DO: make it cleaner
 		if test_name in self.tests.keys():
 			summary_dict = dict()
-			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)','Number of records after drop (minutes)', 'Ratio (%)']
+			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)', 'Number of records after drop (minutes)', 'Ratio (%)']
 
 			if devices is None: listDevices = self.tests[test_name].devices.keys()
 			else: listDevices = devices
@@ -72,45 +76,46 @@ class data_wrapper (saf):
 					summary_dict[device].append(min(100,summary_dict[device][-1]/summary_dict[device][2]*100))
 				else:
 					summary_dict[device] = [None, None]
-			self.std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = True)
+			std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = True)
 
 			return summary_dict
 		else:
-			self.std_out(f'Reading {test_name} not loaded')
+			std_out(f'Reading {test_name} not loaded')
 	
-	def preview_test(self, testPath):
+	def preview_test(self, path):
 		# Find Yaml
-		filePath = join(testPath, 'test_description.yaml')
+		filePath = join(path, 'test_description.yaml')
+
 		with open(filePath, 'r') as stream:
 			test = yaml.load(stream)
 		
 		test_id = test['id']
 		
-		self.std_out('Test Preview')
+		std_out('Test preview')
 
-		self.std_out('Loading test {}'.format(test_id))
-		self.std_out(test['comment'])
+		std_out('Loading test {}'.format(test_id))
+		std_out(test['comment'])
 	
 	def load_test(self, test_name, options = dict()):
 
-		test = test_wrapper(test_name, self)
+		test = test_wrapper(test_name)
 		test.load(options)
 		
 		self.tests[test_name] = test
-		self.std_out('Test loaded successfully', 'SUCCESS', force = True)
+		std_out('Test loaded successfully', 'SUCCESS', force = True)
 
-	def load_devices_API(self, test_name, source_ids, options, details = dict()):
-		from src.data.device import device_wrapper
+	# TODO - Fix
+	def load_devices_API(self, test_name, source_ids, options, details = {}):
 
 		# Load data from the API
-		if test_name not in self.tests.keys(): self.tests[test_name] = test_wrapper(test_name, self)
-		else: self.std_out(f'Test {test_name} already in tests, combining')
+		if test_name not in self.tests.keys(): self.tests[test_name] = test_wrapper(test_name)
+		else: std_out(f'Test {test_name} already in tests, combining')
 
 		self.tests[test_name].add_details(details)
 		for device_id in source_ids:
-			self.tests[test_name].devices[device_id] = device_wrapper({'device_id': device_id,
-													  'frequency': options['frequency'],
-													  'type': None, 'source': 'api'}, self)
+			self.tests[test_name].devices[device_id] = device_wrapper({'id': device_id,
+													  					'frequency': options['frequency'],
+													  					'type': None, 'source': 'api'}, self)
 
 			self.tests[test_name].devices[device_id].load(options = options)
 		
@@ -122,35 +127,35 @@ class data_wrapper (saf):
 	def unload_test(self, test_name):
 		if test_name in self.tests.keys():
 			self.tests.pop(test_name)
-		self.std_out('Unloading {}'.format(test_name))
+		std_out('Unloading {}'.format(test_name))
 
-	# # Temporary
+	# TODO - Add base on test description
 	# def preprocess_test(self, test_name, window = 10):
 	# 	for device in self.tests[test_name]['devices'].keys():
-	# 		self.std_out(f'Preprocessing {device}', force = True)
+	# 		std_out(f'Preprocessing {device}', force = True)
 	# 		self.tests[test_name]['devices'][device]['data_preprocess'] = self.tests[test_name]['devices'][device]['data'].rolling(window = window).mean()
-	# 	self.std_out('Preprocessing done')
+	# 	std_out('Preprocessing done')
 
 	def clear_tests(self):
 		self.tests.clear()
-		self.std_out('Clearing tests')
+		std_out('Clearing tests')
 
 	def combine_devices(self, test_name):
 		from src.data.device import device_wrapper
 
 		if test_name not in self.tests.keys(): 
-			self.std_out(f'{test_name} is not loaded')
+			std_out(f'{test_name} is not loaded')
 			return False
 		
 		try: 
-			self.std_out(f'Combining devices for {test_name}')
-			if self.name_combined_data in self.tests[test_name].devices.keys(): 
-				self.tests[test_name].devices.pop(self.name_combined_data, None)
+			std_out(f'Combining devices for {test_name}')
+			if configuration['data']['combined_devices_name'] in self.tests[test_name].devices.keys(): 
+				self.tests[test_name].devices.pop(configuration['data']['combined_devices_name'], None)
 			ignore_keys = []
 			if 'models' in vars(self.tests[test_name]).keys():
 				ignore_keys = self.tests[test_name].models.keys()
 
-			if ignore_keys != []: self.std_out('Ignoring keys {}'.format(ignore_keys))
+			if ignore_keys != []: std_out('Ignoring keys {}'.format(ignore_keys))
 
 			dataframe_result = pd.DataFrame()
 			## And then add it again
@@ -164,18 +169,18 @@ class data_wrapper (saf):
 					dataframe = self.tests[test_name].devices[device].readings.copy()
 					dataframe.columns = new_names
 					dataframe_result = dataframe_result.combine_first(dataframe)
-			self.tests[test_name].devices[self.name_combined_data] = device_wrapper({'name': self.name_combined_data,
+			self.tests[test_name].devices[configuration['data']['combined_devices_name']] = device_wrapper({'name': configuration['data']['combined_devices_name'],
 																					'frequency': '1Min',
 																					 'type': '',
 																					 'source': ''}, self)
 
-			self.tests[test_name].devices[self.name_combined_data].readings = dataframe_result
+			self.tests[test_name].devices[configuration['data']['combined_devices_name']].readings = dataframe_result
 		except:
-			self.std_out('Error ocurred while combining data. Review data', 'ERROR')
-			traceback.print_exc()
+			std_out('Error ocurred while combining data. Review data', 'ERROR')
+			print_exc()
 			return False
 		else:
-			self.std_out('Data combined successfully', 'SUCCESS')
+			std_out('Data combined successfully', 'SUCCESS')
 			return True
 
 	def prepare_dataframe_model(self, model):
@@ -185,7 +190,7 @@ class data_wrapper (saf):
 		# Create structure for multiple training
 		if len(test_names) > 1: 
 			multiple_training = True
-			combined_name = model.name + '_' + self.config['models']['NAME_MULTIPLE_TRAINING_DATA']
+			combined_name = model.name + '_' + configuration['models']['name_multiple_training_data']
 			frames = list()
 		else:
 			multiple_training = False
@@ -195,7 +200,7 @@ class data_wrapper (saf):
 			device = model.data['train'][test_name]['devices']
 			reference = model.data['train'][test_name]['reference_device']
 
-			self.std_out('Preparing dataframe model for test {}'.format(test_name))
+			std_out('Preparing dataframe model for test {}'.format(test_name))
 		
 			if self.combine_devices(test_name):
 
@@ -222,7 +227,7 @@ class data_wrapper (saf):
 						list_features_multiple.append(feature_name_multiple)
 					
 					# Get features from data only and pre-process non-numeric data
-					dataframeModel = self.tests[test_name].devices[self.name_combined_data].readings.loc[:,list_features]
+					dataframeModel = self.tests[test_name].devices[configuration['data']['combined_devices_name']].readings.loc[:,list_features]
 					
 					# Remove device names if multiple training
 					if multiple_training:
@@ -236,7 +241,7 @@ class data_wrapper (saf):
 					
 					# Remove na
 					if model.data['data_options']['clean_na']:
-						self.std_out('Cleaning na with {}'.format(model.data['data_options']['clean_na_method']))
+						std_out('Cleaning na with {}'.format(model.data['data_options']['clean_na_method']))
 						if model.data['data_options']['clean_na_method'] == 'fill':
 							dataframeModel = dataframeModel.fillna(method='ffill')
 						
@@ -252,16 +257,16 @@ class data_wrapper (saf):
 						frames.append(dataframeModel)
 					
 				except:
-					self.std_out(f'Dataframe model failed for {test_name}')
-					traceback.print_exc()
+					std_out(f'Dataframe model failed for {test_name}')
+					print_exc()
 					return None
 				else: 
 					# Set flag
 					self.tests[test_name].ready_to_model = True
-					self.std_out(f'Dataframe model generated successfully for {test_name}')
+					std_out(f'Dataframe model generated successfully for {test_name}')
 					
 		if multiple_training:
-			self.std_out('Multiple training datasets requested. Combining')
+			std_out('Multiple training datasets requested. Combining')
 			# Combine everything
 			model.dataframe = pd.concat(frames)
 			model.features = features		
@@ -275,6 +280,7 @@ class data_wrapper (saf):
 			
 			return test_name
 
+	# TODO - Remove from here?
 	def archive_model(self, model):
 		try:
 			# Model saving in previous entry
@@ -282,18 +288,19 @@ class data_wrapper (saf):
 			self.models[model.name] = model
 			
 		except:
-			self.std_out('Problem occured while archiving model', 'ERROR')
-			traceback.print_exc()
+			std_out('Problem occured while archiving model', 'ERROR')
+			print_exc()
 			pass
 		else:
-			self.std_out('Model archived correctly', 'SUCCESS')
+			std_out('Model archived correctly', 'SUCCESS')
 
+	# TODO - Remove from here
 	def calculate_alphasense(self, test_name, variables, options, use_preprocessed = False):
 
 		# Check if we have a reference first in the dataset
 		for device in self.tests[test_name].devices.keys():
 			if self.tests[test_name].devices[device].type == 'ANALYSER':
-				self.std_out(f'Reference found: {device}')
+				std_out(f'Reference found: {device}')
 				refAvail = True
 				dataframeRef = self.tests[test_name].devices[device].readings
 				break
@@ -304,7 +311,7 @@ class data_wrapper (saf):
 		# For each kit in the requested reading, calculate the pollutants
 		for device in self.tests[test_name].devices.keys():
 			if 'alphasense' in vars(self.tests[test_name].devices[device]).keys():
-				self.std_out('Calculating test {} for kit {}'.format(test_name, device), force = True)
+				std_out('Calculating test {} for kit {}'.format(test_name, device), force = True)
 				
 				 # Get sensor information
 				sensorSlots = self.tests[test_name].devices[device].alphasense['slots']
@@ -337,8 +344,9 @@ class data_wrapper (saf):
 						_currentSensorNames = self.currentSensorNames)
 				self.tests[test_name].devices[device].alphasense['model_stats'].update(correlationMetrics)
 
-		self.std_out('Calculation of test {} finished'.format(test_name), force = True)
+		std_out('Calculation of test {} finished'.format(test_name), force = True)
 
+	# TODO - Remove from here
 	def add_channel_from_formula(self, test_name, device_name, new_channel_name, terms, formula):
 
 		def function_formula(test_name, device_name, Aname, Bname, Cname, Dname, formula):
@@ -367,6 +375,7 @@ class data_wrapper (saf):
 		self.tests[test_name].devices[device_name].readings[new_channel_name] = function_formula(test_name, device_name,terms[0],terms[1], terms[2],terms[3], formula)    
 		self.tests[test_name].ready_to_model = False
 
+	# TODO - Change
 	def export_data(self, test_name, device, export_path = '', to_processed_folder = False, all_channels = True, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):
 
 		df = self.tests[test_name].devices[device].readings.copy()
@@ -412,7 +421,7 @@ class data_wrapper (saf):
 							else:
 								channels.append(column)
 							break
-			self.std_out('Exporting channels: \n {}'.format(channels))
+			std_out('Exporting channels: \n {}'.format(channels))
 			df = df.loc[:, channels]
 
 		if export_path != '': self.export_CSV_file(export_path, device, df, forced_overwrite = forced_overwrite)
@@ -420,8 +429,8 @@ class data_wrapper (saf):
 		if to_processed_folder:
 			year = test_name[0:4]
 			month = test_name[5:7]
-			exportDir = join(self.dataDirectory, 'processed', year, month, test_name, 'processed')
-			self.std_out('Saving files to: \n{}'.format(exportDir))
+			exportDir = join(paths['dataDirectory'], 'processed', year, month, test_name, 'processed')
+			std_out('Saving files to: \n{}'.format(exportDir))
 			self.export_CSV_file(exportDir, device,  df, forced_overwrite = forced_overwrite)
 
 	def upload_to_zenodo(self, upload_descriptor_name, sandbox = True, dry_run = True):
@@ -448,9 +457,9 @@ class data_wrapper (saf):
 				if key in filled_template['metadata'].keys():
 					filled_template['metadata'][key] = value
 
-			with open (join( self.dataDirectory, 'uploads', descriptor_file_name), 'w') as descriptor_json:
+			with open (join( paths['dataDirectory'], 'uploads', descriptor_file_name), 'w') as descriptor_json:
 				json.dump(filled_template, descriptor_json, ensure_ascii=True)
-				self.std_out(f'Created descriptor file for {descriptor_file_name}', 'SUCCESS')
+				std_out(f'Created descriptor file for {descriptor_file_name}', 'SUCCESS')
 			
 			return json.dumps(filled_template)
 
@@ -460,8 +469,8 @@ class data_wrapper (saf):
 			headers = {"Content-Type": "application/json"}
 			response = requests.post(url, params={'access_token': zenodo_token}, data=metadata, headers=headers)
 			if response.status_code > 210:
-				self.std_out("Error happened during submission, status code: " + str(response.status_code), 'ERROR')
-				self.std_out(response.json(), "ERROR")
+				std_out("Error happened during submission, status code: " + str(response.status_code), 'ERROR')
+				std_out(response.json(), "ERROR")
 				return None
 
 			# Get the submission ID
@@ -474,18 +483,18 @@ class data_wrapper (saf):
 			return response.status_code		
 
 		
-		self.std_out(f'Uploading {upload_descriptor_name} to zenodo')
+		std_out(f'Uploading {upload_descriptor_name} to zenodo')
 
-		if dry_run: self.std_out(f'Dry run. Verify output before setting dry_run to False', 'WARNING')
+		if dry_run: std_out(f'Dry run. Verify output before setting dry_run to False', 'WARNING')
 		# Sandbox or not
 		if sandbox: 
-			self.std_out(f'Using sandbox. Verify output before setting sandbox to False', 'WARNING')
+			std_out(f'Using sandbox. Verify output before setting sandbox to False', 'WARNING')
 			base_url = self.config['urls']['ZENODO_SANDBOX_BASE_URL']
 		else: base_url = self.config['urls']['ZENODO_REAL_BASE_URL']
 		
 		if '.yaml' not in upload_descriptor_name: upload_descriptor_name = upload_descriptor_name + '.yaml'
 		
-		with open (join(self.dataDirectory, 'uploads', upload_descriptor_name), 'r') as descriptor_file:
+		with open (join(paths['dataDirectory'], 'uploads', upload_descriptor_name), 'r') as descriptor_file:
 			descriptor = yaml.load(descriptor_file)
 
 		self.available_tests()
@@ -497,7 +506,7 @@ class data_wrapper (saf):
 			if 'options' in descriptor[key].keys(): options = descriptor[key]['options']
 			else: options = {'include_processed_data': True, 'include_footer_doi': True}
 			if options['include_processed_data']: stage_list.append('processed')
-			self.std_out(f'Options {options}')
+			std_out(f'Options {options}')
 
 			# Fill template
 			if 'upload_type' in descriptor[key].keys(): upload_type = descriptor[key]['upload_type']
@@ -520,7 +529,7 @@ class data_wrapper (saf):
 					
 					for test in tests:
 						# Get test path
-						self.std_out(f'Uploading data from test {test}')
+						std_out(f'Uploading data from test {test}')
 						test_path = self.availableTests[test]
 
 						# Upload the test descriptor
@@ -530,21 +539,21 @@ class data_wrapper (saf):
 						upload_metadata = {'name': f'test_description_{test}.yaml'}
 						files = {'file': open(join(test_path, 'test_description.yaml'), 'rb')}
 						file_size = getsize(join(test_path, 'test_description.yaml'))/(1024*1024.0*1024)
-						if file_size > 50: self.std_out(f'File size for {test} is over 50Gb ({file_size})', 'WARNING')
+						if file_size > 50: std_out(f'File size for {test} is over 50Gb ({file_size})', 'WARNING')
 						if not dry_run: status_code = upload_file(url, upload_metadata, files)
 						else: status_code = 200
 						
 						if status_code > 210: 
-							self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+							std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
 							return
 						else:
-							self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
+							std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
 						
 						# Load the api devices to have them up to date in the cache
 						if any(yaml_test_descriptor['devices'][device]['source'] == 'api' for device in yaml_test_descriptor['devices'].keys()): self.load_test(test, options = {'store_cached_API': True})
 						
 						for device in yaml_test_descriptor['devices'].keys():
-							self.std_out(f'Uploading data from device {device}')
+							std_out(f'Uploading data from device {device}')
 							
 							for file_stage in stage_list:
 								file_path = ''
@@ -568,25 +577,25 @@ class data_wrapper (saf):
 
 										files = {'file': open(file_path, 'rb')}
 										file_size = getsize(file_path)/(1024*1024.0*1024)
-										if file_size > 50: self.std_out(f'File size for {file_name} over 50Gb ({file_size})', 'WARNING')
+										if file_size > 50: std_out(f'File size for {file_name} over 50Gb ({file_size})', 'WARNING')
 										if not dry_run: status_code = upload_file(url, upload_metadata, files)
 										else: status_code = 200
 										
 										if status_code > 210: 
-											self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+											std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
 											return
 
-										self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
+										std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
 								except:
-									if not exists(file_path): self.std_out(f'File {file_name} does not exist (type = {file_stage}). Skipping', 'ERROR')
-									# traceback.print_exc()
+									if not exists(file_path): std_out(f'File {file_name} does not exist (type = {file_stage}). Skipping', 'ERROR')
+									# print_exc()
 									pass
 								# The submission needs an additional "Publish" step. This can also be done from a script, but to be on the safe side, it is not included. (The attached file cannot be changed after publication.)
 					
 					# Check if we have a report in the keys
 					if 'report' in descriptor[key].keys():
 						for file_name in descriptor[key]['report']:
-							file_path = join(self.dataDirectory, 'uploads', file_name)
+							file_path = join(paths['dataDirectory'], 'uploads', file_name)
 							if options['include_footer_doi'] and file_name.endswith('.pdf'):
 								output_file_path = file_path[:file_path.index('.pdf')] + '_doi.pdf'
 								include_footer(file_path, output_file_path, link = f'https://doi.org/10.5281/zenodo.{submission_id}')
@@ -595,17 +604,17 @@ class data_wrapper (saf):
 							upload_metadata = {'name': file_name}
 							files = {'file': open(file_path, 'rb')}
 							file_size = getsize(file_path)/(1024*1024.0*1024)
-							if file_size > 50: self.std_out(f'File size for {file_name} is over 50Gb({file_size})', 'WARNING')
+							if file_size > 50: std_out(f'File size for {file_name} is over 50Gb({file_size})', 'WARNING')
 							if not dry_run: status_code = upload_file(url, upload_metadata, files)
 							else: status_code = 200
 
 							if status_code > 210: 
-								self.std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
+								std_out ("Error happened during file upload, status code: " + str(status_code), 'ERROR')
 								return
 
-							self.std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")
+							std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")
 
 				if upload_type == 'publication':
-					self.std_out('Not implemented')
-				self.std_out(f'Submission completed - (DOI: 10.5281/zenodo.{submission_id})', 'SUCCESS')
-				self.std_out(f'------------------------------------------------------------', 'SUCCESS')
+					std_out('Not implemented')
+				std_out(f'Submission completed - (DOI: 10.5281/zenodo.{submission_id})', 'SUCCESS')
+				std_out(f'------------------------------------------------------------', 'SUCCESS')

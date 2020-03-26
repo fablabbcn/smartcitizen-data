@@ -1,0 +1,487 @@
+base:
+  clean_na: null
+  frequency: null
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  source: null
+  version: null
+muv_station:
+  clean_na: null
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  min_date: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    GB_2A:
+      name:
+        api: no2op2
+      units: mV
+    GB_2W:
+      name:
+        api: no2op1
+      units: mV
+    GB_3A:
+      name:
+        api: o3op2
+      units: mV
+    GB_3W:
+      name:
+        api: o3op1
+      units: mV
+    HUM:
+      name:
+        api: h
+      units: '%rh'
+    NOISE_A:
+      name:
+        api: dB
+      units: dBA
+    PM_10:
+      name:
+        api: p10
+      units: ug/m3
+    PM_25:
+      name:
+        api: p25
+      units: ug/m3
+    TEMP:
+      name:
+        api: t
+      units: degC
+  source: null
+  sources:
+    api:
+      handler: muv_api_device
+    csv:
+      header_skip:
+      - 1
+      - 4
+      index: time
+  version: null
+parrot_soil:
+  clean_na: null
+  documentation: null
+  frequency: null
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  source: null
+  version: null
+sck:
+  clean_na: null
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  min_date: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: &id001
+      id: '10'
+      units: '%'
+    HUM: &id002
+      id: '56'
+      units: '%rh'
+    LIGHT: &id003
+      id: '14'
+      units: lux
+    TEMP: &id004
+      id: '55'
+      units: degC
+  source: null
+  sources: &id005
+    api:
+      handler: sc_api_device
+    csv:
+      header_skip:
+      - 1
+      - 4
+      index: TIME
+  version: null
+sck_15:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  sensors:
+    BATT:
+      id: '10'
+      units: '%'
+    HUM:
+      id: '56'
+      units: '%rh'
+    LIGHT:
+      id: '14'
+      units: lux
+    TEMP:
+      id: '55'
+      units: degC
+  source: null
+  sources:
+    api:
+      handler: sc_api_device
+    csv:
+      header_skip: null
+      index: Time
+  version: null
+sck_20:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    PM_10_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_10
+      units: ug/m3
+    PM_1_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_1
+      units: ug/m3
+    PM_25_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_25
+      units: ug/m3
+  min_date: null
+  platform_id: 11
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    HUM: *id002
+    LIGHT: *id003
+    NOISE_A:
+      id: '53'
+      units: dBA
+    PM_1:
+      id: '89'
+      units: ug/m3
+    PM_10:
+      id: '88'
+      units: ug/m3
+    PM_25:
+      id: '87'
+      units: ug/m3
+    PRESS:
+      id: '58'
+      units: kPa
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck_20_station:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CO:
+      id: null
+      process:
+      - co_calc
+      - arg_1: GB_1W
+        arg_2: GB_1A
+        arg_3: id
+      units: ppm
+    EXT_PM_10_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_10
+        arg_2: EXT_PM_B_10
+      units: ug/m3
+    EXT_PM_1_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_1
+        arg_2: EXT_PM_B_1
+      units: ug/m3
+    EXT_PM_25_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_25
+        arg_2: EXT_PM_B_25
+      units: ug/m3
+    NO2:
+      id: null
+      process:
+      - baseline_dcalc
+      - arg_1: GB_2W
+        arg_2: GB_2A
+        arg_3: id
+      units: ppb
+    O3:
+      id: null
+      process:
+      - baseline_dcalc
+      - arg_1: GB_3W
+        arg_2: GB_3A
+        arg_3: id
+      units: ppb
+  min_date: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    EXT_PM_A_1:
+      id: '71'
+      units: ug/m3
+    EXT_PM_A_10:
+      id: '73'
+      units: ug/m3
+    EXT_PM_A_25:
+      id: '72'
+      units: ug/m3
+    EXT_PM_B_1:
+      id: '75'
+      units: ug/m3
+    EXT_PM_B_10:
+      id: '77'
+      units: ug/m3
+    EXT_PM_B_25:
+      id: '76'
+      units: ug/m3
+    EXT_TEMP:
+      id: '79'
+      units: degC
+    GB_1A:
+      id: '65'
+      units: mV
+    GB_1W:
+      id: '64'
+      units: mV
+    GB_2A:
+      id: '62'
+      units: mV
+    GB_2W:
+      id: '61'
+      units: mV
+    GB_3A:
+      id: '68'
+      units: mV
+    GB_3W:
+      id: '67'
+      units: mV
+    GB_HUM:
+      id: '80'
+      units: '%rh'
+    GB_TEMP:
+      id: '79'
+      units: degC
+    HUM: *id002
+    LIGHT: *id003
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck_21:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CCS811_ECO2_CLEAN:
+      process:
+      - ccs811_clean
+      - arg_1: CCS811_ECO2
+      units: ppm
+    CCS811_VOCS_CLEAN:
+      process:
+      - ccs811_clean
+      - arg_1: CCS811_VOCS
+      units: ppb
+    PM_10_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_10
+      units: ug/m3
+    PM_1_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_1
+      units: ug/m3
+    PM_25_CLEAN:
+      process:
+      - pm_clean
+      - arg_1: PM_25
+      units: ug/m3
+  min_date: null
+  platform_id: 28
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    CCS811_ECO2:
+      id: '112'
+      units: ppm
+    CCS811_VOCS:
+      id: '113'
+      units: ppm
+    HUM: *id002
+    LIGHT: *id003
+    NOISE_A:
+      id: '53'
+      units: dBA
+    PM_1:
+      id: '89'
+      units: ug/m3
+    PM_10:
+      id: '88'
+      units: ug/m3
+    PM_25:
+      id: '87'
+      units: ug/m3
+    PRESS:
+      id: '58'
+      units: kPa
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck_21_station:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CCS811_ECO2_CLEAN:
+      process:
+      - ccs811_clean
+      - arg: CCS811_ECO2
+      units: ppm
+    CCS811_VOCS_CLEAN:
+      process:
+      - ccs811_clean
+      - arg: CCS811_VOCS
+      units: ppb
+    CO:
+      id: null
+      process:
+      - co_calc
+      - arg_1: GB_1W
+        arg_2: GB_1A
+        arg_3: id
+      units: ppm
+    EXT_PM_10_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_10
+        arg_2: EXT_PM_B_10
+      units: ug/m3
+    EXT_PM_1_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_1
+        arg_2: EXT_PM_B_1
+      units: ug/m3
+    EXT_PM_25_CLEAN:
+      process:
+      - pm_merge
+      - arg_1: EXT_PM_A_25
+        arg_2: EXT_PM_B_25
+      units: ug/m3
+    NO2:
+      id: null
+      process:
+      - baseline_dcalc
+      - arg_1: GB_2W
+        arg_2: GB_2A
+        arg_3: id
+      units: ppb
+    O3:
+      id: null
+      process:
+      - baseline_dcalc
+      - arg_1: GB_3W
+        arg_2: GB_3A
+        arg_3: id
+      units: ppb
+  min_date: null
+  plaftorm_id: 29
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    CCS811_ECO2:
+      id: '112'
+      units: ppm
+    CCS811_VOCS:
+      id: '113'
+      units: ppm
+    EXT_PM_A_1:
+      id: '71'
+      units: ug/m3
+    EXT_PM_A_10:
+      id: '73'
+      units: ug/m3
+    EXT_PM_A_25:
+      id: '72'
+      units: ug/m3
+    EXT_PM_B_1:
+      id: '75'
+      units: ug/m3
+    EXT_PM_B_10:
+      id: '77'
+      units: ug/m3
+    EXT_PM_B_25:
+      id: '76'
+      units: ug/m3
+    EXT_TEMP:
+      id: '79'
+      units: degC
+    GB_1A:
+      id: '65'
+      units: mV
+    GB_1W:
+      id: '64'
+      units: mV
+    GB_2A:
+      id: '62'
+      units: mV
+    GB_2W:
+      id: '61'
+      units: mV
+    GB_3A:
+      id: '68'
+      units: mV
+    GB_3W:
+      id: '67'
+      units: mV
+    GB_HUM:
+      id: '80'
+      units: '%rh'
+    GB_TEMP:
+      id: '79'
+      units: degC
+    HUM: *id002
+    LIGHT: *id003
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
