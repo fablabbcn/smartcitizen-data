@@ -237,6 +237,7 @@ class sc_api_device:
                 dfsensor.index = pd.to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.location)
                 dfsensor.sort_index(inplace=True)
                 dfsensor = dfsensor[~dfsensor.index.duplicated(keep='first')]
+                
                 # Drop unnecessary columns
                 dfsensor.drop([i for i in dfsensor.columns if 'Unnamed' in i], axis=1, inplace=True)
                 # Check for weird things in the data
@@ -272,227 +273,6 @@ class sc_api_device:
         std_out(f'Device {self.device_id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-        #         # # Create result dataframe for first dataframe
-        #         # if df is None:
-        #         #     df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-        #         #     df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
-        #         #     df.sort_index(inplace=True)
-        #         #     df = df[~df.index.duplicated(keep='first')]
-        #         #     # Drop unnecessary columns
-        #         #     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-        #         #     # Check for weird things in the data
-        #         #     df = df.apply(pd.to_numeric, errors='coerce')
-        #         #     # # Resample
-        #         #     df = df.resample(frequency, limit = 1).mean()
-
-        #         # # Add it to dataframe for each sensor
-        #         # else:
-                    
-        #         #     if dataDF != []:
-                        
-        #         #         dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-        #         #         dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(self.location)
-        #         #         dfT.sort_index(inplace=True)
-        #         #         dfT = dfT[~dfT.index.duplicated(keep='first')]
-        #         #         # Drop unnecessary columns
-        #         #         dfT.drop([i for i in dfT.columns if 'Unnamed' in i], axis=1, inplace=True)
-        #         #         # Check for weird things in the data
-        #         #         dfT = dfT.apply(pd.to_numeric,errors='coerce')
-        #         #         # Resample
-        #         #         dfT = dfT.resample(frequency).mean()
-        #         #         df = df.combine_first(dfT)
-                   
-        #     # except:
-
-
-
-
-            
-        #     # deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.device_id))
-
-        #     # # If status code OK, retrieve data
-        #     # if deviceR.status_code == 200 or deviceR.status_code == 201:
-                
-        #     #     deviceRJSON = deviceR.json()
-                
-        #     #     # Get available sensors
-        #     #     sensors = deviceRJSON['data']['sensors']
-                
-        #     #     # Put the ids and the names in lists
-        #     #     downloaded_names = dict()
-        #     #     for sensor in sensors.keys(): 
-        #     #         downloaded_names[deviceRJSON['data']['sensors'][sensor]['id']] = downloaded_names[deviceRJSON['data']['sensors'][sensor]['name']]
-                
-        #         # sensor_ids = list()
-        #         sensor_real_ids = list()
-        #         # sensor_names = list()
-        #         sensor_real_names = list()
-        #         sensor_target_names = list()
-
-        #         # for i in range(len(sensors)):
-        #         #     sensor_ids.append(deviceRJSON['data']['sensors'][i]['id'])
-        #         #     sensor_names.append(deviceRJSON['data']['sensors'][i]['name'])
-
-        #         # Renaming list based on firmware's short name
-        #         for sensor_id in sensor_ids:
-        #             for name in CURRENT_NAMES:
-        #                 try:
-        #                     if int(name) == int(sensor_id):
-        #                         sensor_target_names.append(CURRENT_NAMES[name]['shortTitle'])
-        #                         sensor_real_names.append(sensor_names[sensor_ids.index(sensor_id)])
-        #                         sensor_real_ids.append(name)
-        #                         break
-        #                 except:
-        #                     pass
-
-        #         # if self.location is None:
-        #         #     # Get location
-        #         #     latitude = deviceRJSON['data']['location']['latitude']
-        #         #     longitude = deviceRJSON['data']['location']['longitude']
-                    
-        #         #     # Localize it
-        #         #     tz_where = tzwhere.tzwhere()
-        #         #     location = tz_where.tzNameAt(latitude, longitude)
-        #         # else: 
-        #         #     location = self.location
-
-        #         # Get min and max getDateLastReading
-        #         # toDate = deviceRJSON['last_reading_at'] 
-        #         # fromDate = deviceRJSON['added_at']
-
-        #         # # Check start date
-        #         # if start_date is None and fromDate is not None:
-        #         #     start_date = pd.to_datetime(fromDate, format = '%Y-%m-%dT%H:%M:%SZ')
-        #         # elif start_date is not None:
-        #         #     start_date = pd.to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ')
-        #         # if start_date.tzinfo is None: start_date = start_date.tz_localize('UTC').tz_convert(location)
-        #         # std_out (f'Min Date: {start_date}')
-                
-        #         # # Check end date
-        #         # if end_date is None and toDate is not None:
-        #         #     end_date = pd.to_datetime(toDate, format = '%Y-%m-%dT%H:%M:%SZ')
-        #         # elif end_date is not None:
-        #         #     end_date = pd.to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ')
-        #         # if end_date.tzinfo is None: end_date = end_date.tz_localize('UTC').tz_convert(location)
-        #         # std_out (f'Max Date: {end_date}')
-        #         # if start_date > end_date: std_out('Ignoring device dates. Probably SD card device', 'WARNING')
-                
-        #         # # Print stuff if requested
-        #         # std_out('Kit ID: {}'.format(deviceRJSON['kit']['id']))
-        #         # if start_date < end_date: std_out('Dates: from: {}, to: {}'.format(start_date, end_date))
-        #         # std_out('Device timezone: {}'.format(location))                
-        #         # std_out(f'Sensor IDs:\n{sensor_real_ids}')
-                
-        #         # Request sensor ID
-        #         df = None
-        #         for sensor_id in sensor_real_ids:
-        #             flag_error = False
-        #             indexDF = list()
-        #             dataDF = list()
-
-        #             # Request sensor per ID
-        #             request = self.API_BASE_URL + '{}/readings?'.format(self.device_id)
-                    
-        #             if start_date is not None:
-        #                 if start_date < end_date: request += 'from={}'.format(start_date)
-        #                 else: request += 'from={}'.format('2001-01-01')
-        #             else: request += 'from={}'.format('2001-01-01')
-        #             request += '&rollup={}'.format(rollup)
-        #             request += '&sensor_id={}'.format(sensor_id)
-        #             request += '&function=avg'
-        #             if end_date is not None:
-        #                 if end_date > start_date: request += '&to={}'.format(end_date)
-                    
-        #             # Make request
-        #             sensor_id_r = req.get(request)
-        #             try:
-        #                 sensor_id_rJSON = sensor_id_r.json()
-        #             except:
-        #                 print_exc()
-        #                 std_out('Problem with json data from API', 'ERROR')
-        #                 flag_error = True
-                    
-        #             if 'readings' not in sensor_id_rJSON.keys(): 
-        #                 std_out(f'No readings key in request for sensor: {sensor_id}', 'ERROR')
-        #                 flag_error = True
-                    
-        #             elif sensor_id_rJSON['readings'] == []: 
-        #                 std_out(f'No data in request for sensor: {sensor_id}', 'WARNING')
-        #                 flag_error = True
-
-        #             if flag_error: continue
-                    
-        #             try:
-
-        #                 # Put the data in lists
-        #                 for item in sensor_id_rJSON['readings']:
-        #                     indexDF.append(item[0])
-        #                     dataDF.append(item[1])
-
-        #                 # Create result dataframe for first dataframe
-        #                 if df is None:
-        #                     df = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-        #                     df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
-        #                     df.sort_index(inplace=True)
-        #                     df = df[~df.index.duplicated(keep='first')]
-        #                     # Drop unnecessary columns
-        #                     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-        #                     # Check for weird things in the data
-        #                     df = df.apply(pd.to_numeric, errors='coerce')
-        #                     # # Resample
-        #                     df = df.resample(frequency, limit = 1).mean()
-
-        #                 # Add it to dataframe for each sensor
-        #                 else:
-                            
-        #                     if dataDF != []:
-                                
-        #                         dfT = pd.DataFrame(dataDF, index= indexDF, columns = [sensor_target_names[sensor_real_ids.index(sensor_id)]])
-        #                         dfT.index = pd.to_datetime(dfT.index).tz_localize('UTC').tz_convert(location)
-        #                         dfT.sort_index(inplace=True)
-        #                         dfT = dfT[~dfT.index.duplicated(keep='first')]
-        #                         # Drop unnecessary columns
-        #                         dfT.drop([i for i in dfT.columns if 'Unnamed' in i], axis=1, inplace=True)
-        #                         # Check for weird things in the data
-        #                         dfT = dfT.apply(pd.to_numeric,errors='coerce')
-        #                         # Resample
-        #                         dfT = dfT.resample(frequency).mean()
-        #                         df = df.combine_first(dfT)
-                           
-        #             except:
-        #                 print_exc()
-        #                 std_out('Problem with sensor data from API', 'ERROR')
-        #                 flag_error = True
-        #                 pass
-
-        #             if flag_error: continue
-
-        #         try:
-        #             df = df.reindex(df.index.rename('Time'))
-                    
-        #             if clean_na is not None:
-        #                 if clean_na == 'drop':
-        #                     # std_out('Cleaning na with drop')
-        #                     df.dropna(axis = 0, how='all', inplace=True)
-        #                 elif clean_na == 'fill':
-        #                     df = df.fillna(method='bfill').fillna(method='ffill')
-        #                     # std_out('Cleaning na with fill')
-        #             self.data = df
-                    
-        #         except:
-        #             std_out('Problem closing up the API dataframe', 'ERROR')
-        #             print_exc()
-
-        #     else:
-        #         std_out('API reported {}'.format(deviceR.status_code), 'ERROR')
-        # except:
-        #     print_exc()
-        #     std_out('Failed sensor request request. Probably no connection', 'ERROR')
-        # else:
-        #     std_out(f'Device {self.device_id} loaded successfully from API', 'SUCCESS')
-
-        # return self.data
-
 class muv_api_device:
 
     API_BASE_URL='https://data.waag.org/api/muv/'
@@ -519,8 +299,6 @@ class muv_api_device:
             for i in range(len(targetNames)):
                 if not (testNames[i] == '') and not (testNames[i] == targetNames[i]) and testNames[i] in df.columns:
                     df.rename(columns={testNames[i]: targetNames[i]}, inplace=True)
-                    # print('Renaming column *{}* to *{}*'.format(testNames[i], targetNames[i])))
-            # df_full = pd.concat([df_full, df])
 
             df.drop('id', axis=1, inplace=True)
             df = df.set_index('Time')
@@ -540,11 +318,9 @@ class muv_api_device:
                     
                 if clean_na is not None:
                     if clean_na == 'drop':
-                        # std_out('Cleaning na with drop')
                         df.dropna(axis = 0, how='all', inplace=True)
                     elif clean_na == 'fill':
                         df = df.fillna(method='bfill').fillna(method='ffill')
-                        # std_out('Cleaning na with fill')
                 self.data = df
                     
             except:
