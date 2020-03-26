@@ -60,8 +60,6 @@ class sc_api_device:
             if self.get_device_json() is not None:
                 self.kit_id = self.devicejson['kit']['id']                
         
-        std_out ('Device {} is has this kit ID {}'.format(self.device_id, self.kit_id))
-
         return self.kit_id
 
     def get_device_last_reading(self):
