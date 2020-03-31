@@ -4,13 +4,14 @@ import pandas as pd
 from traceback import print_exc
 import requests as req
 from tzwhere import tzwhere
+from re import search
 
 class sc_api_device:
 
     API_BASE_URL='https://api.smartcitizen.me/v0/devices/'
 
-    def __init__ (self, device_id):
-        self.device_id = device_id
+    def __init__ (self, id):
+        self.id = id
         self.kit_id = None
         self.mac = None
         self.last_reading_at = None
@@ -24,15 +25,15 @@ class sc_api_device:
 
     def get_mac(self):
         if self.mac is None:
-            std_out(f'Requesting MAC from API for device {self.device_id}')
+            std_out(f'Requesting MAC from API for device {self.id}')
             # Get device
             try:
-                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.device_id))
+                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.id))
 
                 # If status code OK, retrieve data
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     if 'hardware_info' in deviceR.json().keys(): self.mac = deviceR.json()['hardware_info']['mac']
-                    std_out ('Device {} is has this MAC {}'.format(self.device_id, self.mac))
+                    std_out ('Device {} is has this MAC {}'.format(self.id, self.mac))
                 else:
                     std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
             except:
@@ -44,7 +45,7 @@ class sc_api_device:
     def get_device_json(self):
         if self.devicejson is None:
             try:
-                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.device_id))
+                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.devicejson = deviceR.json()
                 else: 
@@ -68,7 +69,7 @@ class sc_api_device:
             if self.get_device_json() is not None:
                 self.last_reading_at = self.devicejson['last_reading_at']                
         
-        std_out ('Device {} has last reading at {}'.format(self.device_id, self.last_reading_at))
+        std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
 
         return self.last_reading_at
 
@@ -84,7 +85,7 @@ class sc_api_device:
                 # Localize it
                 tz_where = tzwhere.tzwhere()
                 self.location = tz_where.tzNameAt(latitude, longitude)
-        std_out ('Device {} is located at {}'.format(self.device_id, self.location))               
+        std_out ('Device {} is located at {}'.format(self.id, self.location))               
         
         return self.location
 
@@ -100,7 +101,7 @@ class sc_api_device:
                 self.lat = latitude
                 self.long = longitude
         
-        std_out ('Device {} is located at {}-{}'.format(self.device_id, latitude, longitude))        
+        std_out ('Device {} is located at {}-{}'.format(self.id, latitude, longitude))        
         
         return (self.lat, self.long)
     
@@ -110,7 +111,7 @@ class sc_api_device:
             if self.get_device_json() is not None:
                 self.added_at = self.devicejson['added_at']                
         
-        std_out ('Device {} was added at {}'.format(self.device_id, self.added_at))
+        std_out ('Device {} was added at {}'.format(self.id, self.added_at))
 
         return self.added_at
 
@@ -125,7 +126,7 @@ class sc_api_device:
                 self.sensors = dict()
                 for sensor in sensors: 
                     for key in BLUEPRINTS:
-                        if 'sc' not in key[0:3]: continue
+                        if not search("sc[k|_]",key): continue
                         if 'sensors' in BLUEPRINTS[key]:
                             for sensor_name in BLUEPRINTS[key]['sensors'].keys(): 
                                 if BLUEPRINTS[key]['sensors'][sensor_name]['id'] == str(sensor['id']): 
@@ -154,11 +155,10 @@ class sc_api_device:
         rollup = rollup_value + rollup_unit
         return rollup
 
-    # TODO cleanup!
     def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
 
         std_out(f'Requesting data from SC API')
-        std_out(f'Device ID: {self.device_id}')
+        std_out(f'Device ID: {self.id}')
 
         rollup = self.convert_rollup(frequency)
         std_out(f'Using rollup: {rollup}')
@@ -194,11 +194,12 @@ class sc_api_device:
         std_out(f'Sensor IDs:\n{self.sensors.keys()}')
 
         df = pd.DataFrame()
+        
         # Get devices in the sensor first
         for sensor_id in self.sensors.keys(): 
 
             # Request sensor per ID
-            request = self.API_BASE_URL + '{}/readings?'.format(self.device_id)
+            request = self.API_BASE_URL + '{}/readings?'.format(self.id)
             
             request += 'from={}'.format('2001-01-01')
             if start_date is not None:
@@ -270,41 +271,56 @@ class sc_api_device:
                 std_out('Problem closing up the API dataframe', 'ERROR')
                 print_exc()
 
-        std_out(f'Device {self.device_id} loaded successfully from API', 'SUCCESS')
+        std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
 class muv_api_device:
 
     API_BASE_URL='https://data.waag.org/api/muv/'
 
-    def __init__ (self, device_id):
-        self.device_id = device_id
+    def __init__ (self, id):
+        self.id = id
         self.location = None
         self.data = None
+        self.sensors = None
 
     def get_device_location(self):
         self.location = 'Europe/Madrid'
         return self.location
 
+    def get_device_sensors(self):
+        if self.sensors is None:
+            self.sensors = dict()
+            for key in BLUEPRINTS:
+                if 'muv' not in key: continue
+                if 'sensors' in BLUEPRINTS[key]:
+                    for sensor_name in BLUEPRINTS[key]['sensors'].keys():
+                        # IDs are unique
+                        self.sensors[BLUEPRINTS[key]['sensors'][sensor_name]['id']] = sensor_name
+        return self.sensors
+
     def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
 
         std_out(f'Requesting data from MUV API')
-        std_out(f'Device ID: {self.device_id}')
+        std_out(f'Device ID: {self.id}')
+        self.get_device_location()
+        self.get_device_sensors()        
         
         # Get devices
         try:
-            url = self.API_BASE_URL + 'getSensorData?sensor_id={}/'.format(self.device_id)
+            url = self.API_BASE_URL + 'getSensorData?sensor_id={}/'.format(self.id)
             df = pd.read_json(url)
+        except:
+            print_exc()
+            std_out('Failed sensor request request. Probably no connection', 'ERROR')
+        else:
+            std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
 
-            for i in range(len(targetNames)):
-                if not (testNames[i] == '') and not (testNames[i] == targetNames[i]) and testNames[i] in df.columns:
-                    df.rename(columns={testNames[i]: targetNames[i]}, inplace=True)
-
-            df.drop('id', axis=1, inplace=True)
+        try:
+            # TODO check
+            df.rename(columns=self.sensors, inplace=True)
             df = df.set_index('Time')
-            
-            df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.get_device_location())
-
+            df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
             df = df[~df.index.duplicated(keep='first')]
             # Drop unnecessary columns
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
@@ -313,24 +329,17 @@ class muv_api_device:
             # # Resample
             df = df.resample(frequency, limit = 1).mean()
 
-            try:
-                df = df.reindex(df.index.rename('Time'))
-                    
-                if clean_na is not None:
-                    if clean_na == 'drop':
-                        df.dropna(axis = 0, how='all', inplace=True)
-                    elif clean_na == 'fill':
-                        df = df.fillna(method='bfill').fillna(method='ffill')
-                self.data = df
-                    
-            except:
-                std_out('Problem closing up the API dataframe', 'ERROR')
-                print_exc()
-
+            df = df.reindex(df.index.rename('Time'))
+                
+            if clean_na is not None:
+                if clean_na == 'drop':
+                    df.dropna(axis = 0, how='all', inplace=True)
+                elif clean_na == 'fill':
+                    df = df.fillna(method='bfill').fillna(method='ffill')
+            self.data = df
+                
         except:
+            std_out('Problem closing up the API dataframe', 'ERROR')
             print_exc()
-            std_out('Failed sensor request request. Probably no connection', 'ERROR')
-        else:
-            std_out(f'Device {self.device_id} loaded successfully from API', 'SUCCESS')
 
         return self.data

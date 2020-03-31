@@ -11,9 +11,9 @@ import json
 
 class test_wrapper:
 	
-	def __init__(self, test_name = ''):
+	def __init__(self, name):
 
-		self.name = test_name
+		self.name = name
 		self.path = join(paths['dataDirectory'], 'processed', self.name[:4], self.name[5:7], self.name)
 		self.details = dict()
 		self.devices = dict()
@@ -168,7 +168,7 @@ class test_wrapper:
 		if 'clean_na_method' in options.keys(): self.options['clean_na_method'] = options['clean_na_method']
 		if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
 	
-	def load (self, options):
+	def load(self, options):
 		
 		# Load descriptor
 		std_out(f'Loading test {self.name}', force = True)
@@ -193,33 +193,14 @@ class test_wrapper:
 			min_date_device = get_localised_date(device.min_date, device.location)
 			max_date_device = get_localised_date(device.max_date, device.location)
 
-			# TODO - Rename
-			# # Name convertion
-			# target_names = list()
-			# test_names = list()
-
-			# if device.metadata is not None:
-			# 	std_out('Found metadata', 'SUCCESS')
-				
-			# 	# Use metadata to convert names
-			# 	for item_test in device.metadata:
-			# 		if device.metadata[item_test]['id'] == '0': continue
-
-			# 		for item_target in self.data.current_names:
-			# 			if self.data.current_names[item_target]['id'] == device.metadata[item_test]['id'] and item_test not in test_names:
-			# 				target_names.append(self.data.current_names[item_target]['shortTitle'])
-			# 				test_names.append(item_test)  
-			# else:
-			# 	std_out('No metadata found - skipping', 'WARNING')
-
 			# If device comes from API, pre-check dates
 			if device.source == 'api':
 
 				if device.location is None: device.location = device.api_device.get_device_location()
 
 				# Get last reading from API
-				if 'get_date_last_reading' in dir(device.api_device): 
-					last_reading_api = get_localised_date(device.api_device.get_date_last_reading(), device.location)
+				if 'get_device_last_reading' in dir(device.api_device): 
+					last_reading_api = get_localised_date(device.api_device.get_device_last_reading(), device.location)
 
 					if self.options['load_cached_API']:
 
@@ -232,7 +213,7 @@ class test_wrapper:
 
 						else:
 							
-							std_out(f'Loaded cached files from', 'SUCCESS')
+							std_out(f'Loaded cached files', 'SUCCESS')
 							std_out(f'Checking if new data is to be loaded')
 
 							# Get last reading from cached
@@ -267,7 +248,7 @@ class test_wrapper:
 						max_date_to_load = max_date_device
 				else:
 					if self.options['load_cached_API']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
-
+					load_API = True
 				# Load data from API if necessary
 				if load_API:
 					std_out('Downloading device from API')
@@ -311,13 +292,6 @@ class test_wrapper:
 			elif device.source == 'csv':
 				device.load(options = self.options, path = self.path)
 				
-				# TODO rename columns
-				# if len(target_names) == len(test_names) and len(target_names) > 0:
-				# 	for i in range(len(target_names)):
-				# 		if not (test_names[i] == '') and not (test_names[i] == target_names[i]) and test_names[i] in device.readings.columns:
-				# 			device.readings.rename(columns={test_names[i]: target_names[i]}, inplace=True)
-				# 			std_out('Renaming column {} to {}'.format(test_names[i], target_names[i]))
-
 			if self.options['store_cached_API'] and device.loaded and device.source == 'api' and load_API:
 
 				std_out(f'Caching files for {device.id}')
@@ -332,3 +306,14 @@ class test_wrapper:
 			if device.loaded: std_out(f'Device {device.id} has been loaded', 'SUCCESS')
 
 		self.update_descriptor()
+
+	def process(self):
+		process_ok = True
+		for device in self.devices: 
+			process_ok &= self.devices[device].process()
+		
+		# Cosmetic output
+		if process_ok: std_out(f'Test {self.name} processed OK', 'SUCCESS')
+		else: std_out(f'Test {self.name} not processed', 'ERROR')
+		
+		return process_ok

@@ -104,33 +104,15 @@ class data_wrapper ():
 		self.tests[test_name] = test
 		std_out('Test loaded successfully', 'SUCCESS', force = True)
 
-	# TODO - Fix
-	def load_devices_API(self, test_name, source_ids, options, details = {}):
-
-		# Load data from the API
-		if test_name not in self.tests.keys(): self.tests[test_name] = test_wrapper(test_name)
-		else: std_out(f'Test {test_name} already in tests, combining')
-
-		self.tests[test_name].add_details(details)
-		for device_id in source_ids:
-			self.tests[test_name].devices[device_id] = device_wrapper({'id': device_id,
-													  					'frequency': options['frequency'],
-													  					'type': None, 'source': 'api'}, self)
-
-			self.tests[test_name].devices[device_id].load(options = options)
-		
-		# # Case for merged API to CSV
-		# else:
-		# 	for key in data['devices'].keys():
-		# 		self.tests[test_name]['devices'][key] = data['devices'][key] 
-
 	def unload_test(self, test_name):
 		if test_name in self.tests.keys():
 			self.tests.pop(test_name)
 		std_out('Unloading {}'.format(test_name))
 
-	# TODO - Add base on test description
-	# def preprocess_test(self, test_name, window = 10):
+	# Add base on test description
+	def process_test(self, test_name):
+		return self.tests[test_name].process()
+
 	# 	for device in self.tests[test_name]['devices'].keys():
 	# 		std_out(f'Preprocessing {device}', force = True)
 	# 		self.tests[test_name]['devices'][device]['data_preprocess'] = self.tests[test_name]['devices'][device]['data'].rolling(window = window).mean()
@@ -138,7 +120,7 @@ class data_wrapper ():
 
 	def clear_tests(self):
 		self.tests.clear()
-		std_out('Clearing tests')
+		std_out('Tests cleared', 'SUCCESS')
 
 	def combine_devices(self, test_name):
 		from src.data.device import device_wrapper
@@ -280,11 +262,9 @@ class data_wrapper ():
 			
 			return test_name
 
-	# TODO - Remove from here?
 	def archive_model(self, model):
 		try:
 			# Model saving in previous entry
-			# if model.name not in self.models.keys(): self.models[model.name] = dict()
 			self.models[model.name] = model
 			
 		except:
@@ -345,35 +325,6 @@ class data_wrapper ():
 				self.tests[test_name].devices[device].alphasense['model_stats'].update(correlationMetrics)
 
 		std_out('Calculation of test {} finished'.format(test_name), force = True)
-
-	# TODO - Remove from here
-	def add_channel_from_formula(self, test_name, device_name, new_channel_name, terms, formula):
-
-		def function_formula(test_name, device_name, Aname, Bname, Cname, Dname, formula):
-			# Create dataframe and merge everything
-			calcData = pd.DataFrame()
-			mergeData = pd.merge(pd.merge(pd.merge(self.tests[test_name].devices[device_name].readings.loc[:,(Aname,)],\
-												   self.tests[test_name].devices[device_name].readings.loc[:,(Bname,)],\
-												   left_index=True, right_index=True), \
-										  self.tests[test_name].devices[device_name].readings.loc[:,(Cname,)], \
-										  left_index=True, right_index=True),\
-								 self.tests[test_name].devices[device_name].loc[:,(Dname,)],\
-								 left_index=True, right_index=True)
-			# Assign names to columns
-			calcData[Aname] = mergeData.iloc[:,0] #A
-			calcData[Bname] = mergeData.iloc[:,1] #B
-			calcData[Cname] = mergeData.iloc[:,2] #C
-			calcData[Dname] = mergeData.iloc[:,3] #D
-			A = calcData[Aname]
-			B = calcData[Bname]
-			C = calcData[Cname]
-			D = calcData[Dname]
-			# Eval the formula
-			result = eval(formula)
-			return result
-
-		self.tests[test_name].devices[device_name].readings[new_channel_name] = function_formula(test_name, device_name,terms[0],terms[1], terms[2],terms[3], formula)    
-		self.tests[test_name].ready_to_model = False
 
 	# TODO - Change
 	def export_data(self, test_name, device, export_path = '', to_processed_folder = False, all_channels = True, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):

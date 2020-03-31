@@ -1,12 +1,55 @@
 import numpy as np
 import math
 import pandas as pd
+import sys
 
-def clean_na(series, how = 'drop'):
-    if how == 'drop':
-        series.dropna(inplace=True)
-    elif how == 'fill':
-        series = series.fillna(method ='ffill')
+from src.saf import std_out
+from dateutil import relativedelta
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plot
+from xgboost import XGBRegressor
+
+class lazy_callable(object):
+    '''
+        Adapted from Alex Martelli's answer on this post on stackoverflow:
+        https://stackoverflow.com/questions/3349157/python-passing-a-function-name-as-an-argument-in-a-function
+    '''
+    def __init__(self, name):
+        self.n = name
+        self.f = None
+    def __call__(self, *a, **k):
+        if self.f is None:
+            std_out(f"Loading {self.n.rsplit('.', 1)[1]} from {self.n.rsplit('.', 1)[0]}")
+            modn, funcn = self.n.rsplit('.', 1)
+            if modn not in sys.modules:
+                __import__(modn)
+            self.f = getattr(sys.modules[modn], funcn)
+        return self.f(*a, **k)
+
+### ---------------------------------------
+### --------------PROCESSES----------------
+### ---------------------------------------
+'''
+All functions below are meant to return an np.array object after receiving a pd.DataFrame.
+You can implement the process and then use a lazy_callable instance
+to invoke the function by passing the corresponding *args to it.
+'''
+
+def hello_world(string):
+    '''
+    Example of lazy callable function
+    '''
+    print (string)
+    return 82
+
+def sum(dataframe, *args):
+    '''
+    Example of lazy callable function returning the sum of two channels in a pandas dataframe
+    '''
+    df = dataframe.copy()
+    series = df[args[0]] + df[args[1]]
     return series
 
 def exponential_smoothing(series, alpha = 0.5):

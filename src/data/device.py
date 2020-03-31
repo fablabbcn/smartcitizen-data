@@ -1,9 +1,11 @@
 from src.saf import std_out, dict_fmerge, read_csv_file
-from src.saf import BLUEPRINTS
+from src.saf import BLUEPRINTS, CHANNEL_LUT, MOLECULAR_WEIGHTS, UNIT_CONVERTION_LUT
 from os.path import join
 
 import pandas as pd
 from traceback import print_exc
+from re import search
+from src.models.process import lazy_callable
 
 class device_wrapper:
 	def __init__(self, blueprint, descriptor):
@@ -45,6 +47,8 @@ class device_wrapper:
 			if self.source == 'csv':
 				self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.location, self.options['frequency'], 
 															self.options['clean_na'], self.sources[self.source]['index']))
+				if self.readings is not None:
+					self.convert_names()
 
 			elif 'api' in self.source:
 				if path is None:
@@ -56,56 +60,75 @@ class device_wrapper:
 					# Cached case
 					self.readings = self.readings.combine_first(read_csv_file(join(path, self.id + '.csv'), self.location, self.options['frequency'], 
 															self.options['clean_na'], self.sources['csv']['index']))
-
-			# # Convert units
-			# if self.type == 'OTHER': self.convert_units(append_to_name = 'CONV')
 		
 		except FileNotFoundError:
-			std_out('Cached file does not exist', 'ERROR')
+			std_out('File does not exist', 'ERROR')
 			self.loaded = False
 		except:
 			print_exc()
 			self.loaded = False
 		else:
-			if self.readings is not None: self.loaded = True
+			if self.readings is not None: 
+				self.loaded = True
+				self.convert_units()
+		finally:
+			return self.loaded
 
-		return self.loaded
-
-	# TODO
+	# TODO VERIFY
 	def convert_names(self):
-		print ('Not yet')
+		rename = dict()
+		for sensor in self.sensors: 
+			if 'id' in self.sensors[sensor] and sensor in self.readings.columns: rename[self.sensors[sensor]['id']] = sensor
+		self.readings.rename(columns=rename, inplace=True)
+
+	# TODO VERIFY
+	def convert_units(self):
+		std_out('Checking if units need to be converted')
+
+		for sensor in self.sensors.keys(): 
+
+			for channel in CHANNEL_LUT.keys():
+				if not (search(channel, sensor)): continue
+				# Molecular weight in case of pollutants
+				for pollutant in MOLECULAR_WEIGHTS.keys(): 
+					if search(channel, pollutant): 
+						molecular_weight = MOLECULAR_WEIGHTS[pollutant]
+						break
+					else: molecular_weight = 1
+				# Check if channel is in look-up table
+				if CHANNEL_LUT[channel] != self.sensors[sensor]['units']: 
+					std_out(f"Converting units for {sensor}. From {self.sensors[sensor]['units']} to {CHANNEL_LUT[channel]}")
+					for unit in UNIT_CONVERTION_LUT:
+						# Get units
+						if unit[0] == self.sensors[sensor]['units']: factor = unit[2]; break
+						elif unit[1] == self.sensors[sensor]['units']: factor = 1/unit[2]; break
+					# Convert channels
+					self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
+					self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor/molecular_weight
+				else: std_out(f"No units conversion needed for {sensor}")
+			else: std_out(f"{sensor} not in channels look-up table", "WARNING")
 	
-	# TODO
-	# def convert_units(self, append_to_name = ''):
-	# 	logging.info('Checking if units need to be converted')
+	def process(self):
+		add_ok = True
+		for metric in self.metrics:
+			std_out(f'Processing {metric}')
+			add_ok &= self.add_metric({metric: self.metrics[metric]})
+		return add_ok
 
-	# 	for channel_nmbr in range(len(self.channels['target_channel_names'])):
-	# 		target_channel_name = self.channels['target_channel_names'][channel_nmbr]
-	# 		source_channel_name = self.channels['source_channel_names'][channel_nmbr]
-	# 		unit = self.channels['units'][channel_nmbr]
-	# 		target_unit = None
-
-	# 		for channel_convert in channel_LUT: 
-	# 			if channel_convert[0] == target_channel_name: 
-	# 				molecular_weight = channel_convert[1]
-	# 				target_unit = channel_convert[2]
-
-	# 		# Get convertion factor
-	# 		if target_unit is not None:
-	# 			if unit == target_unit:
-	# 				convertion_factor = 1
-	# 				logging.info('No unit convertion needed for {}'.format(target_channel_name))
-	# 			else:
-	# 				for item_to_convert in convertion_LUT:
-	# 					if item_to_convert[0] == unit and item_to_convert[1] == target_unit:
-	# 						convertion_factor = item_to_convert[2]/molecular_weight
-	# 					elif item_to_convert[1] == unit and item_to_convert[0] == target_unit:
-	# 						convertion_factor = 1.0/(item_to_convert[2]/molecular_weight)
-				
-	# 				logging.info('Converting {} from {} to {}'.format(target_channel_name, unit, target_unit))
-	# 			self.readings.loc[:, target_channel_name + '_' + append_to_name] = self.readings.loc[:, source_channel_name]*convertion_factor
-	# 		else:
-	# 			logging.warning('No unit convertion needed for {}. Actual channel name is not in look-up tables'.format(target_channel_name))
+	def add_metric(self, metric = dict()):
+		metricn = next(iter(metric.keys()))
+		print (f"Function is: src.models.process.{metric[metricn]['process']}")
+		funct = lazy_callable(f"src.models.process.{metric[metricn]['process']}")
+		args, kwargs = list(), dict()
 		
+		if 'args' in metric[metricn]: args = metric[metricn]['args']
+		if 'kwargs' in metric[metricn]: kwargs = metric[metricn]['kwargs']
+
+		self.readings[metricn] = funct(self.readings, *args, **kwargs)
+		
+		if metricn in self.readings: return True
+		return False
+
+	# TODO
 	def capture(self):
 		logging.error('Not yet')

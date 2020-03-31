@@ -19,40 +19,31 @@ muv_station:
   raw_data_file: null
   sensors:
     GB_2A:
-      name:
-        api: no2op2
+      id: no2op2
       units: mV
     GB_2W:
-      name:
-        api: no2op1
+      id: no2op1
       units: mV
     GB_3A:
-      name:
-        api: o3op2
+      id: o3op2
       units: mV
     GB_3W:
-      name:
-        api: o3op1
+      id: o3op1
       units: mV
     HUM:
-      name:
-        api: h
+      id: h
       units: '%rh'
     NOISE_A:
-      name:
-        api: dB
+      id: dB
       units: dBA
     PM_10:
-      name:
-        api: p10
+      id: p10
       units: ug/m3
     PM_25:
-      name:
-        api: p25
+      id: p25
       units: ug/m3
     TEMP:
-      name:
-        api: t
+      id: t
       units: degC
   source: null
   sources:
@@ -146,19 +137,19 @@ sck_20:
   max_date: null
   metrics:
     PM_10_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_10
+      args:
+      - PM_10
+      process: pm_clean
       units: ug/m3
     PM_1_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_1
+      args:
+      - PM_1
+      process: pm_clean
       units: ug/m3
     PM_25_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_25
+      args:
+      - PM_25
+      process: pm_clean
       units: ug/m3
   min_date: null
   platform_id: 11
@@ -197,46 +188,46 @@ sck_20_station:
   max_date: null
   metrics:
     CO:
+      args:
+      - GB_1W
+      - GB_1A
+      - id
       id: null
-      process:
-      - co_calc
-      - arg_1: GB_1W
-        arg_2: GB_1A
-        arg_3: id
+      process: co_calc
       units: ppm
     EXT_PM_10_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_10
-        arg_2: EXT_PM_B_10
+      args:
+      - EXT_PM_A_10
+      - EXT_PM_B_10
+      process: pm_merge
       units: ug/m3
     EXT_PM_1_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_1
-        arg_2: EXT_PM_B_1
+      args:
+      - EXT_PM_A_1
+      - EXT_PM_B_1
+      process: pm_merge
       units: ug/m3
     EXT_PM_25_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_25
-        arg_2: EXT_PM_B_25
+      args:
+      - EXT_PM_A_25
+      - EXT_PM_B_25
+      process: pm_merge
       units: ug/m3
     NO2:
+      args:
+      - GB_2W
+      - GB_2A
+      - id
       id: null
-      process:
-      - baseline_dcalc
-      - arg_1: GB_2W
-        arg_2: GB_2A
-        arg_3: id
+      process: baseline_dcalc
       units: ppb
     O3:
+      args:
+      - GB_3W
+      - GB_3A
+      - id
       id: null
-      process:
-      - baseline_dcalc
-      - arg_1: GB_3W
-        arg_2: GB_3A
-        arg_3: id
+      process: baseline_dcalc
       units: ppb
   min_date: null
   processed_data_file: null
@@ -304,29 +295,29 @@ sck_21:
   max_date: null
   metrics:
     CCS811_ECO2_CLEAN:
-      process:
-      - ccs811_clean
-      - arg_1: CCS811_ECO2
+      args:
+      - CCS811_ECO2
+      process: ccs811_clean
       units: ppm
     CCS811_VOCS_CLEAN:
-      process:
-      - ccs811_clean
-      - arg_1: CCS811_VOCS
+      args:
+      - CCS811_VOCS
+      process: ccs811_clean
       units: ppb
     PM_10_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_10
+      args:
+      - PM_10
+      process: pm_clean
       units: ug/m3
     PM_1_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_1
+      args:
+      - PM_1
+      process: pm_clean
       units: ug/m3
     PM_25_CLEAN:
-      process:
-      - pm_clean
-      - arg_1: PM_25
+      args:
+      - PM_25
+      process: pm_clean
       units: ug/m3
   min_date: null
   platform_id: 28
@@ -371,56 +362,56 @@ sck_21_station:
   max_date: null
   metrics:
     CCS811_ECO2_CLEAN:
-      process:
-      - ccs811_clean
-      - arg: CCS811_ECO2
+      args:
+      - CCS811_ECO2
+      process: ccs811_clean
       units: ppm
     CCS811_VOCS_CLEAN:
-      process:
-      - ccs811_clean
-      - arg: CCS811_VOCS
+      args:
+      - CCS811_VOCS
+      process: ccs811_clean
       units: ppb
     CO:
+      args:
+      - GB_1W
+      - GB_1A
+      - id
       id: null
-      process:
-      - co_calc
-      - arg_1: GB_1W
-        arg_2: GB_1A
-        arg_3: id
+      process: co_calc
       units: ppm
     EXT_PM_10_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_10
-        arg_2: EXT_PM_B_10
+      args:
+      - EXT_PM_A_10
+      - EXT_PM_B_10
+      process: pm_merge
       units: ug/m3
     EXT_PM_1_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_1
-        arg_2: EXT_PM_B_1
+      args:
+      - EXT_PM_A_1
+      - EXT_PM_B_1
+      process: pm_merge
       units: ug/m3
     EXT_PM_25_CLEAN:
-      process:
-      - pm_merge
-      - arg_1: EXT_PM_A_25
-        arg_2: EXT_PM_B_25
+      args:
+      - EXT_PM_A_25
+      - EXT_PM_B_25
+      process: pm_merge
       units: ug/m3
     NO2:
+      args:
+      - GB_2W
+      - GB_2A
+      - id
       id: null
-      process:
-      - baseline_dcalc
-      - arg_1: GB_2W
-        arg_2: GB_2A
-        arg_3: id
+      process: baseline_dcalc
       units: ppb
     O3:
+      args:
+      - GB_3W
+      - GB_3A
+      - id
       id: null
-      process:
-      - baseline_dcalc
-      - arg_1: GB_3W
-        arg_2: GB_3A
-        arg_3: id
+      process: baseline_dcalc
       units: ppb
   min_date: null
   plaftorm_id: 29
