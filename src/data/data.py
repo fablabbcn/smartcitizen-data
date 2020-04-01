@@ -1,12 +1,13 @@
 from src.saf import std_out
 from src.saf import paths, configuration
-from src.data.test import test_wrapper
+from src.data.test import Test
 from traceback import print_exc
 from os import walk
 from os.path import join, exists
 import yaml
+from time import strftime, localtime
 
-class data_wrapper ():
+class Data(object):
 
 	def __init__(self, verbose = True):
 		try:
@@ -25,11 +26,11 @@ class data_wrapper ():
 
 		# Get available tests in the data folder structure
 		tests = dict()
-		mydir = join(directory, 'processed')
-		for root, dirs, files in walk(mydir):
-			for _file in files:
-				if _file.endswith(".yaml"):
-					filePath = join(root, _file)
+		tdir = join(directory, 'processed')
+		for root, dirs, files in walk(tdir):
+			for file in files:
+				if file.endswith(".yaml"):
+					filePath = join(root, file)
 					stream = open(filePath)
 					yamlFile = yaml.load(stream, Loader = yaml.FullLoader)
 					
@@ -52,7 +53,7 @@ class data_wrapper ():
 		return self.get_tests(paths['dataDirectory'], deep_description = True)
 
 	def describe_test(self, test_name, devices = None, verbose = True, tablefmt = 'simple'):
-        # TO DO: make it cleaner
+        # TODO: make it cleaner
 		if test_name in self.tests.keys():
 			summary_dict = dict()
 			summary_dict[' '] = ['Min Date', 'Max Date',  'Total time delta (minutes)', 'Total time delta (days)', 'Number of records after drop (minutes)', 'Ratio (%)']
@@ -92,35 +93,80 @@ class data_wrapper ():
 		test_id = test['id']
 		
 		std_out('Test preview')
-
-		std_out('Loading test {}'.format(test_id))
 		std_out(test['comment'])
 	
 	def load_test(self, test_name, options = dict()):
-
-		test = test_wrapper(test_name)
+		
+		std_out('Loading test {}'.format(test_name))
+		test = Test(test_name)
 		test.load(options)
 		
 		self.tests[test_name] = test
-		std_out('Test loaded successfully', 'SUCCESS', force = True)
+		
+		if test_name in self.tests.keys(): 
+			std_out('Test loaded successfully', 'SUCCESS', force = True)
+			return True
+		std_out(f'Test {test_name} not-loaded successfully', 'ERROR')	
+		return False
+
+	def load_devices(self, test_name, devices = list(), options = dict()):
+
+		if type(devices) != list: 
+			std_out(f'Devices should be list. Current type: {type(devices)}', 'ERROR')
+			return False
+
+		tname = strftime("%Y-%m", localtime()) + '_INT_' + test_name
+		test = Test(tname)
+		for device in devices:
+			test.add_device(device)
+
+		test.make()
+		test.load(options)
+
+		self.tests[tname] = test
+
+		if tname in self.tests.keys(): 
+			std_out('Test loaded successfully', 'SUCCESS', force = True)
+			return True
+		std_out(f'Test {tname} not-loaded successfully', 'ERROR')	
+		return False		
 
 	def unload_test(self, test_name):
 		if test_name in self.tests.keys():
 			self.tests.pop(test_name)
-		std_out('Unloading {}'.format(test_name))
+		
+		if test_name not in self.tests.keys(): 
+			std_out(f'Test {test_name} unloaded successfully', 'SUCCESS')
+			return True
+		std_out(f'Test {test_name} not-unloaded successfully', 'ERROR')	
+		return False
 
-	# Add base on test description
 	def process_test(self, test_name):
 		return self.tests[test_name].process()
-
-	# 	for device in self.tests[test_name]['devices'].keys():
-	# 		std_out(f'Preprocessing {device}', force = True)
-	# 		self.tests[test_name]['devices'][device]['data_preprocess'] = self.tests[test_name]['devices'][device]['data'].rolling(window = window).mean()
-	# 	std_out('Preprocessing done')
 
 	def clear_tests(self):
 		self.tests.clear()
 		std_out('Tests cleared', 'SUCCESS')
+
+	def export(self, test_name = None, path = '', forced_overwrite = False):
+		# Make list for test names
+		if test_name is None: tnames = list(self.tests.keys())
+		else: tnames = [test_name]
+
+		export_ok = True
+		# Export each one of them
+		for tname in tnames:
+			# If path is empty, send to process folder of each test
+			if path == '': epath = join(paths['dataDirectory'], 'processed', tname[0:4], tname[5:7], tname, 'processed')
+			else: epath = path
+
+			# Export to csv
+			for device in self.tests[tname].devices.keys():
+				export_ok &= self.tests[tname].devices[device].export(epath, forced_overwrite = forced_overwrite)
+
+		if export_ok: std_out(f'Test {test_name} exported successfully', 'SUCCESS')
+		else: std_out(f'Test {test_name} not exported successfully', 'ERROR')		
+		return export_ok
 
 	def combine_devices(self, test_name):
 		from src.data.device import device_wrapper
@@ -326,69 +372,12 @@ class data_wrapper ():
 
 		std_out('Calculation of test {} finished'.format(test_name), force = True)
 
-	# TODO - Change
-	def export_data(self, test_name, device, export_path = '', to_processed_folder = False, all_channels = True, include_raw = False, include_processed = False, rename = False, forced_overwrite = False):
-
-		df = self.tests[test_name].devices[device].readings.copy()
-		if not all_channels:
-
-			with open(join(self.interimDirectory, 'sensorNamesExport.json')) as handle:
-				sensorsDict = json.loads(handle.read())
-
-			sensorShortTitles = list()
-			sensorExportNames = list()
-			sensorExportMask = list()
-
-			for sensor in sensorsDict.keys():
-				sensorShortTitles.append(sensorsDict[sensor]['shortTitle'])
-				sensorExportNames.append(sensorsDict[sensor]['exportName'])
-				# Describe all cases for clarity ('na' are both, processed and raw)
-				if include_processed and sensorsDict[sensor]['processed'] == 'processed': sensorExportMask.append(True)
-				elif include_processed and sensorsDict[sensor]['processed'] == 'na': sensorExportMask.append(True)
-				elif include_raw and sensorsDict[sensor]['processed'] == 'na': sensorExportMask.append(True)
-				elif include_raw and sensorsDict[sensor]['processed'] == 'raw': sensorExportMask.append(True)
-				else: sensorExportMask.append(False)
-			channels = list()
-
-			for sensor in sensorShortTitles:
-				if sensorExportMask[sensorShortTitles.index(sensor)]:
-
-					if any(sensor == column for column in df.columns): exactMatch = True
-					else: exactMatch = False
-					
-					for column in df.columns:
-						if sensor in column and not exactMatch and column not in channels:
-
-							if rename:
-								df.rename(columns={column: sensorExportNames[sensorShortTitles.index(sensor)]}, inplace=True)
-								channels.append(sensorExportNames[sensorShortTitles.index(sensor)])
-							else:
-								channels.append(column)
-							break
-						elif sensor == column and exactMatch:
-							if rename:
-								df.rename(columns={column: sensorExportNames[sensorShortTitles.index(sensor)]}, inplace=True)
-								channels.append(sensorExportNames[sensorShortTitles.index(sensor)])
-							else:
-								channels.append(column)
-							break
-			std_out('Exporting channels: \n {}'.format(channels))
-			df = df.loc[:, channels]
-
-		if export_path != '': self.export_CSV_file(export_path, device, df, forced_overwrite = forced_overwrite)
-		
-		if to_processed_folder:
-			year = test_name[0:4]
-			month = test_name[5:7]
-			exportDir = join(paths['dataDirectory'], 'processed', year, month, test_name, 'processed')
-			std_out('Saving files to: \n{}'.format(exportDir))
-			self.export_CSV_file(exportDir, device,  df, forced_overwrite = forced_overwrite)
-
 	def upload_to_zenodo(self, upload_descriptor_name, sandbox = True, dry_run = True):
 		'''
 		This section uses the code inspired by this repo https://github.com/darvasd/upload-to-zenodo
 		'''
-
+		from src.secrets import ZENODO_TOKEN
+		
 		def fill_template(individual_descriptor, descriptor_file_name, upload_type = 'dataset'):
 			# Open base template with all keys
 
@@ -418,7 +407,7 @@ class data_wrapper ():
 			url = f"{base_url}/api/deposit/depositions"
 
 			headers = {"Content-Type": "application/json"}
-			response = requests.post(url, params={'access_token': zenodo_token}, data=metadata, headers=headers)
+			response = requests.post(url, params={'access_token': ZENODO_TOKEN}, data=metadata, headers=headers)
 			if response.status_code > 210:
 				std_out("Error happened during submission, status code: " + str(response.status_code), 'ERROR')
 				std_out(response.json(), "ERROR")
@@ -430,7 +419,7 @@ class data_wrapper ():
 			return submission_id
 
 		def upload_file(url, upload_metadata, files):
-			response = requests.post(url, params={'access_token': zenodo_token}, data = upload_metadata, files=files)
+			response = requests.post(url, params={'access_token': ZENODO_TOKEN}, data = upload_metadata, files=files)
 			return response.status_code		
 
 		

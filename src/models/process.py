@@ -11,7 +11,7 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plot
 from xgboost import XGBRegressor
 
-class lazy_callable(object):
+class LazyCallable(object):
     '''
         Adapted from Alex Martelli's answer on this post on stackoverflow:
         https://stackoverflow.com/questions/3349157/python-passing-a-function-name-as-an-argument-in-a-function
@@ -45,6 +45,14 @@ def hello_world(string):
     return 82
 
 def sum(dataframe, *args):
+    '''
+    Example of lazy callable function returning the sum of two channels in a pandas dataframe
+    '''
+    df = dataframe.copy()
+    series = df[args[0]] + df[args[1]]
+    return series
+
+def sumkg(dataframe, **kwargs):
     '''
     Example of lazy callable function returning the sum of two channels in a pandas dataframe
     '''

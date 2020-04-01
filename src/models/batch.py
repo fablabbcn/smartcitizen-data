@@ -1,12 +1,12 @@
-from src.data.data import data_wrapper
-from src.models.model import model_wrapper
+from src.data.data import Data
+from src.models.model import Model
 from src.models.model_tools import metrics
-from src.visualization.visualization import plot_wrapper
+from src.visualization.visualization import Plot
 
 import traceback, json, itertools
 from termcolor import colored
 
-class batch_analysis ():
+class Batch(object):
     append_alphasense = 'PRE'
     append_derivative = 'DERIV'
 

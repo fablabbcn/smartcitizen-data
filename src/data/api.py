@@ -6,7 +6,7 @@ import requests as req
 from tzwhere import tzwhere
 from re import search
 
-class sc_api_device:
+class ScApiDevice:
 
     API_BASE_URL='https://api.smartcitizen.me/v0/devices/'
 
@@ -191,7 +191,7 @@ class sc_api_device:
         std_out('Kit ID: {}'.format(self.kit_id))
         if start_date < end_date: std_out(f'Dates: from: {start_date}, to: {end_date}')
         std_out(f'Device timezone: {self.location}')
-        std_out(f'Sensor IDs:\n{self.sensors.keys()}')
+        std_out(f'Sensor IDs:\n{list(self.sensors.keys())}')
 
         df = pd.DataFrame()
         
@@ -201,14 +201,12 @@ class sc_api_device:
             # Request sensor per ID
             request = self.API_BASE_URL + '{}/readings?'.format(self.id)
             
-            request += 'from={}'.format('2001-01-01')
-            if start_date is not None:
-                if start_date < end_date: request += 'from={}'.format(start_date)
-            request += '&rollup={}'.format(rollup)
-            request += '&sensor_id={}'.format(sensor_id)
+            if start_date is None or start_date < end_date: request += 'from=2001-01-01'
+            else : request += f'from={start_date}'
+            request += f'&rollup={rollup}'
+            request += f'&sensor_id={sensor_id}'
             request += '&function=avg'
-            if end_date is not None:
-                if end_date > start_date: request += '&to={}'.format(end_date)
+            if end_date is not None and end_date > start_date: request += f'&to={end_date}'
             
             # Make request
             sensor_req = req.get(request)
@@ -274,7 +272,7 @@ class sc_api_device:
         std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-class muv_api_device:
+class MuvApiDevice:
 
     API_BASE_URL='https://data.waag.org/api/muv/'
 
@@ -317,7 +315,7 @@ class muv_api_device:
             std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
 
         try:
-            # TODO check
+            # Rename columns
             df.rename(columns=self.sensors, inplace=True)
             df = df.set_index('Time')
             df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
@@ -328,7 +326,6 @@ class muv_api_device:
             df = df.apply(pd.to_numeric, errors='coerce')
             # # Resample
             df = df.resample(frequency, limit = 1).mean()
-
             df = df.reindex(df.index.rename('Time'))
                 
             if clean_na is not None:
@@ -343,3 +340,17 @@ class muv_api_device:
             print_exc()
 
         return self.data
+
+class CsicApiDevice:
+
+    API_BASE_URL="https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?"
+
+    def __init__ (self, id):
+        self.id = id
+        self.location = None
+        self.data = None
+        self.sensors = None
+        # Get application token
+        from src.secrets import TRANSPARENCIA_ID, TRANSPARENCIA_TOKEN
+        self.platform_id = TRANSPARENCIA_ID
+        self.token = TRANSPARENCIA_TOKEN

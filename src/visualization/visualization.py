@@ -1,6 +1,7 @@
 from src.visualization.visualization_tools import *
+from src.saf import std_out
 
-class plot_wrapper():
+class Plot(object):
 	'''
 		'plot_type': 
 			- violin
@@ -28,16 +29,9 @@ class plot_wrapper():
 		self.subplots_list = None
 		self.figure = None
 		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
-
-	def std_out(self, msg, type_message = None, force = False):
-		if self.verbose or force: 
-			if type_message is None: print(msg)	
-			elif type_message == 'SUCCESS': print(colored(msg, 'green'))
-			elif type_message == 'WARNING': print(colored(msg, 'yellow')) 
-			elif type_message == 'ERROR': print(colored(msg, 'red'))
 	
 	def prepare_data(self, data):
-		self.std_out('Preparing data for plot')
+		std_out('Preparing data for plot')
 		if "use_preprocessed" in self.options.keys():
 			if self.options["use_preprocessed"]: data_key = 'data_preprocessed'
 			else: data_key = 'data'
@@ -50,7 +44,7 @@ class plot_wrapper():
 				
 			else: raise SystemError ('Trace not assigned to subplot')
 		
-		self.std_out('Making {} subplots'.format(n_subplots))
+		std_out('Making {} subplots'.format(n_subplots))
 		
 		# Generate list of subplots
 		self.subplots_list = [[] for x in range(n_subplots)]
@@ -105,20 +99,20 @@ class plot_wrapper():
 				self.df.dropna(axis = 0, how='any', inplace = True)
 
 
-	def clean_plot(self):
+	def clean(self):
 		# Clean matplotlib cache
 		plt.clf()
 
-	def export_plot(self):
+	def export(self):
 		savePath = self.options['export_path']
 		fileName = self.options['file_name']
 		try:
-			self.std_out('Exporting {} to {}'.format(fileName, savePath))
+			std_out('Exporting {} to {}'.format(fileName, savePath))
 		
 			if self.library == 'matplotlib': self.figure.savefig(savePath+ '/' + fileName + '.png', dpi = 300, transparent=True, bbox_inches='tight', pad_inches=0)
 			elif self.library == 'plotly': pio.write_json(self.figure, savePath+ '/' + fileName + '.plotly')
 		except:
-			self.std_out('No export requested')
+			std_out('No export requested')
 
 	def plot(self, data):
 
@@ -148,15 +142,15 @@ class plot_wrapper():
 		n_subplots = len(self.subplots_list)
 
 		# Generate plot depending on type and library
-		self.std_out('Plotting')
+		std_out('Plotting')
 		
 		if self.type == 'timeseries':
 			if self.library == 'matplotlib': 
 				if self.formatting['width'] > 30: 
-					self.std_out('Reducing width to 12')
+					std_out('Reducing width to 12')
 					self.formatting['width'] = 12
 				if self.formatting['height'] > 30: 
-					self.std_out('Reducing height to 10')
+					std_out('Reducing height to 10')
 					self.formatting['height'] = 10
 				figure, axes = plt.subplots(n_subplots, 1, sharex = self.formatting['sharex'],
 												  figsize=(self.formatting['width'], self.formatting['height']))
@@ -189,10 +183,10 @@ class plot_wrapper():
 			
 			elif self.library == 'plotly':
 				if self.formatting['width'] < 100: 
-					self.std_out('Setting width to 800')
+					std_out('Setting width to 800')
 					self.formatting['width'] = 800
 				if self.formatting['height'] <100: 
-					self.std_out('Reducing height to 600')
+					std_out('Reducing height to 600')
 					self.formatting['height'] = 600				
 				figure = make_subplots(rows=n_subplots, cols=1, 
 									   shared_xaxes = self.formatting['sharex'])
@@ -257,7 +251,7 @@ class plot_wrapper():
 				if 'show_plot' in self.options:
 					if self.options['show_plot']: plt.show()
 
-			if len(self.subplots_list) > 1: self.std_out('WARNING: Ignoring additional subplots')
+			if len(self.subplots_list) > 1: std_out('WARNING: Ignoring additional subplots')
 
 		elif self.type == 'coherence_plot':
 			figure = plt.figure(figsize=(self.formatting['width'], self.formatting['height']))
@@ -271,7 +265,7 @@ class plot_wrapper():
 			if 'show_plot' in self.options:
 					if self.options['show_plot']: plt.show()
 
-			if len(self.subplots_list) > 1: self.std_out('WARNING: Ignoring additional subplots')
+			if len(self.subplots_list) > 1: std_out('WARNING: Ignoring additional subplots')
 
 		elif self.type == 'scatter_matrix':
 
@@ -431,7 +425,7 @@ class plot_wrapper():
 			print(self.df.columns)
 			for index_subplot in range(n_subplots):
 				if len(self.subplots_list[index_subplot]) > 2: 
-					self.std_out('Problem with correlation comparison plot')
+					std_out('Problem with correlation comparison plot')
 					return
 				else:
 					feature_trace = self.subplots_list[index_subplot][0]
@@ -441,10 +435,10 @@ class plot_wrapper():
 				pearsonCorr = list(self.df.corr('pearson')[list(self.df.columns)[0]])[-1]
 				rmse = sqrt(mean_squared_error(self.df[feature_trace].fillna(0), self.df[ref_trace].fillna(0)))
 		
-				self.std_out ('Pearson correlation coefficient: ' + str(pearsonCorr))
-				self.std_out ('Coefficient of determination R²: ' + str(pearsonCorr*pearsonCorr))
-				self.std_out ('RMSE: ' + str(rmse))
-				self.std_out ('')
+				std_out ('Pearson correlation coefficient: ' + str(pearsonCorr))
+				std_out ('Coefficient of determination R²: ' + str(pearsonCorr*pearsonCorr))
+				std_out ('RMSE: ' + str(rmse))
+				std_out ('')
 				
 				# Time Series plot
 				ax1.plot(self.df.index, self.df[feature_trace], color = 'g', label = feature_trace, linewidth = 1, alpha = 0.9)

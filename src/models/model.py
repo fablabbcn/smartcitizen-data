@@ -1,17 +1,10 @@
 from src.models.formulas import *	
-from src.saf import *
+from src.saf import std_out
 from src.models.model_tools import *
 
-class model_wrapper (saf):
+class Model(object):
 
 	def __init__(self, model_dict, verbose = True):
-
-		try:
-			saf.__init__(self, verbose)
-		except:
-			traceback.print_exc()
-		else:
-			self.std_out('Model initialisation done', 'SUCCESS')
 
 		self.name = model_dict['model_name']
 		self.std_out ('Beginning Model {}'.format(self.name))
