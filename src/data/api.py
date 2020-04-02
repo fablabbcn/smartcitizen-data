@@ -2,16 +2,33 @@ from src.saf import std_out
 from src.saf import CURRENT_NAMES, FREQ_CONV_LUT, BLUEPRINTS
 import pandas as pd
 from traceback import print_exc
-import requests as req
+import requests
 from tzwhere import tzwhere
 from re import search
+import io
+
+'''
+About the classes in this file:
+Each of the object interacts with a separate API.
+There should be at minimum the following properties:
+- id: identifier against the API
+- location: timezone
+- sensors: dictionary used to convert the names to saf standard (see saf.py and blueprints.yml) {api_name: saf_name}
+- data: pandas dataframe containing the data. Columns = pollutants or sensors; index = localised timestamp
+Methods
+- get_device_data(start_date, end_date, frequency, clean_na): returns clean pandas dataframe (self.data) with start and end date filtering, and rollup
+- get_device_location: returns timezone for timestamp geolocalisation
+
+The units should not be converted here, as they will be later on converted in device.py
+If you want to support caching, see get_device_data in ScApiDevice
+'''
 
 class ScApiDevice:
 
     API_BASE_URL='https://api.smartcitizen.me/v0/devices/'
 
-    def __init__ (self, id):
-        self.id = id
+    def __init__ (self, did):
+        self.id = did
         self.kit_id = None
         self.mac = None
         self.last_reading_at = None
@@ -28,7 +45,7 @@ class ScApiDevice:
             std_out(f'Requesting MAC from API for device {self.id}')
             # Get device
             try:
-                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.id))
+                deviceR = requests.get(self.API_BASE_URL + '{}/'.format(self.id))
 
                 # If status code OK, retrieve data
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
@@ -45,7 +62,7 @@ class ScApiDevice:
     def get_device_json(self):
         if self.devicejson is None:
             try:
-                deviceR = req.get(self.API_BASE_URL + '{}/'.format(self.id))
+                deviceR = requests.get(self.API_BASE_URL + '{}/'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.devicejson = deviceR.json()
                 else: 
@@ -76,15 +93,11 @@ class ScApiDevice:
     def get_device_location(self):
 
         if self.location is None:
-            if self.get_device_json() is not None:
-                latidude = longitude = None
-                if 'location' in self.devicejson.keys(): latitude, longitude = self.devicejson['location']['latitude'], self.devicejson['location']['longitude']
-                elif 'data' in self.devicejson.keys(): 
-                    if 'location' in self.devicejson['data'].keys(): latitude, longitude = self.devicejson['data']['location']['latitude'], self.devicejson['data']['location']['longitude']
-                
-                # Localize it
-                tz_where = tzwhere.tzwhere()
-                self.location = tz_where.tzNameAt(latitude, longitude)
+            latitude, longitude = self.get_device_lat_long()
+            # Localize it
+            tz_where = tzwhere.tzwhere()
+            self.location = tz_where.tzNameAt(latitude, longitude)
+
         std_out ('Device {} is located at {}'.format(self.id, self.location))               
         
         return self.location
@@ -209,7 +222,7 @@ class ScApiDevice:
             if end_date is not None and end_date > start_date: request += f'&to={end_date}'
             
             # Make request
-            sensor_req = req.get(request)
+            sensor_req = requests.get(request)
             flag_error = False
             try:
                 sensorjson = sensor_req.json()
@@ -276,8 +289,8 @@ class MuvApiDevice:
 
     API_BASE_URL='https://data.waag.org/api/muv/'
 
-    def __init__ (self, id):
-        self.id = id
+    def __init__ (self, did):
+        self.id = did
         self.location = None
         self.data = None
         self.sensors = None
@@ -341,16 +354,253 @@ class MuvApiDevice:
 
         return self.data
 
-class CsicApiDevice:
+class DadesObertesApiDevice:
 
     API_BASE_URL="https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?"
 
-    def __init__ (self, id):
-        self.id = id
+    def __init__ (self, did = None, within = None):
+        if did is None and within is None:
+            std_out('Specify either station id (=codi_eoi) or within (=(lat, long, radius_meters))')
+            return
+
+        if did is not None: self.id = did
+        if within is not None: self.id = self.get_id_from_within(within)
+
         self.location = None
         self.data = None
         self.sensors = None
-        # Get application token
-        from src.secrets import TRANSPARENCIA_ID, TRANSPARENCIA_TOKEN
-        self.platform_id = TRANSPARENCIA_ID
-        self.token = TRANSPARENCIA_TOKEN
+        self.devicejson = None
+        self.lat = None
+        self.long = None
+        self.location = None
+
+    def get_id_from_within(self, within):
+        '''
+            Gets the stations within a radius in meters.
+            within = tuple(lat, long, radius_meters)
+        '''
+        request = self.API_BASE_URL
+        request += f'$where=within_circle(geocoded_column,{within[0]},{within[1]},{within[2]})'
+
+        try:
+            s = requests.get(request)
+        except:
+            std_out('Problem with request from API', 'ERROR')
+            return None
+
+        if s.status_code == 200 or s.status_code == 201:
+            df = pd.read_csv(io.StringIO(s.content.decode('utf-8')))
+        else:
+            std_out('API reported {}'.format(s.status_code), 'ERROR')
+            return None
+
+        if 'codi_eoi' in df.columns: 
+            ids = list(set(df.codi_eoi.values))
+            if ids == []: std_out('No stations within range', 'ERROR')
+            elif len(ids) > 1:
+                for ptid in ids: 
+                    municipi = next(iter(set(df[df.codi_eoi==ptid].municipi.values)))
+                    nom_estaci = next(iter(set(df[df.codi_eoi==ptid].nom_estaci.values)))
+                    rea_urb = next(iter(set(df[df.codi_eoi==ptid].rea_urb.values)))
+                    tipus_est = next(iter(set(df[df.codi_eoi==ptid].tipus_est.values)))
+                    
+                    std_out(f'{ids.index(ptid)+1} /- {ptid} --- {municipi} - {nom_estaci} - Type: {rea_urb} - {tipus_est}')
+                
+                wptid = int(input('Multiple stations found, please select one: ')) - 1
+
+                devid = ids[wptid]
+                std_out(f'Selected station in {next(iter(set(df[df.codi_eoi==devid].municipi.values)))} with codi_eoi={devid}')
+            else:
+                devid = ids[0]
+                municipi = next(iter(set(df[df.codi_eoi==devid].municipi.values)))
+                nom_estaci = next(iter(set(df[df.codi_eoi==devid].nom_estaci.values)))
+                rea_urb = next(iter(set(df[df.codi_eoi==devid].rea_urb.values)))
+                tipus_est = next(iter(set(df[df.codi_eoi==devid].tipus_est.values)))        
+                std_out(f'Found station in {next(iter(set(df[df.codi_eoi==devid].municipi.values)))} with codi_eoi={devid}')
+                std_out(f'Found station in {municipi} - {nom_estaci} - {devid} - Type: {rea_urb} - {tipus_est}')
+
+        else:
+            std_out('Data is empty', 'ERROR')
+            return None            
+
+        return devid
+
+    def get_device_sensors(self):
+
+        if self.sensors is None:
+            if self.get_device_json() is not None:
+                # Get available sensors
+                sensors = list(set(self.devicejson.contaminant))
+            
+                # Put the ids and the names in lists
+                self.sensors = dict()
+                for sensor in sensors: 
+                    for key in BLUEPRINTS:
+                        if not search("csic_station",key): continue
+                        if 'sensors' in BLUEPRINTS[key]:
+                            for sensor_name in BLUEPRINTS[key]['sensors'].keys(): 
+                                if BLUEPRINTS[key]['sensors'][sensor_name]['id'] == str(sensor): 
+                                    # IDs are unique
+                                    self.sensors[sensor] = sensor_name
+        
+        return self.sensors        
+    
+    def get_device_json(self):
+
+        if self.devicejson is None:
+            try:
+                s = requests.get(self.API_BASE_URL + f'codi_eoi={self.id}')
+                if s.status_code == 200 or s.status_code == 201:
+                    self.devicejson = pd.read_csv(io.StringIO(s.content.decode('utf-8')))
+                else: 
+                    std_out('API reported {}'.format(s.status_code), 'ERROR')  
+            except:
+                std_out('Failed request. Probably no connection', 'ERROR')  
+                pass
+        
+        return self.devicejson
+
+    def get_device_location(self):
+
+        if self.location is None:
+            latitude, longitude = self.get_device_lat_long()
+            # Localize it
+            tz_where = tzwhere.tzwhere()
+            self.location = tz_where.tzNameAt(latitude, longitude)
+            
+        std_out ('Device {} timezone is {}'.format(self.id, self.location))               
+        
+        return self.location
+
+    def get_device_lat_long(self):
+
+        if self.lat is None or self.long is None:
+            if self.get_device_json() is not None:
+                latitude = longitude = None
+                if 'latitud' in self.devicejson.columns: 
+                    latitude = next(iter(set(self.devicejson.latitud)))
+                    longitude = next(iter(set(self.devicejson.longitud)))
+                
+                self.lat = latitude
+                self.long = longitude
+        
+            std_out ('Device {} is located at {}, {}'.format(self.id, latitude, longitude))        
+        
+        return (self.lat, self.long)
+
+    def get_device_data(self, start_date = None, end_date = None, frequency = '1H', clean_na = None):
+        '''
+        Based on code snippet from Marc Roig:
+        # I2CAT RESEARCH CENTER - BARCELONA - MARC ROIG (marcroig@i2cat.net)
+        '''
+
+        std_out(f'Requesting data from Dades Obertes API')
+        std_out(f'Device ID: {self.id}')
+        self.get_device_sensors()
+        self.get_device_location()
+
+        request = self.API_BASE_URL
+        request += f'codi_eoi={self.id}'
+
+        if start_date is not None and end_date is not None:
+            request += "&$where=data between " + pd.to_datetime(start_date).strftime("'%Y-%m-%dT%H:%M:%S'") \
+                    + " and " + pd.to_datetime(end_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+        elif start_date is not None:
+            request += "&$where=data >= " + pd.to_datetime(start_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+        elif end_date is not None:
+            request += "&$where=data < " + pd.to_datetime(end_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+
+        try:
+            s = requests.get(request)
+        except:
+            print_exc()
+            std_out('Problem with sensor data from API', 'ERROR')
+            return None
+
+        if s.status_code == 200 or s.status_code == 201:
+            df = pd.read_csv(io.StringIO(s.content.decode('utf-8')))
+        else:
+            std_out('API reported {}'.format(s.status_code), 'ERROR')
+            return None
+
+        # Filter columns
+        measures = ['h0' + str(i) for i in range(1,10)]
+        measures += ['h' + str(i) for i in range(10,25)]
+        # validations = ['v0' + str(i) for i in range(1,10)]
+        # validations  += ['v' + str(i) for i in range(10,25)]
+        new_measures_names = list(range(1,25))
+
+        columns = ['contaminant', 'data'] + measures# + validations
+        try:
+            df_subset = df[columns]
+            df_subset.columns  = ['contaminant', 'date'] + new_measures_names
+        except:
+            print_exc()
+            std_out('Problem while filtering columns', 'Error')
+            return None
+        else:
+            std_out('Successful filtering', 'SUCCESS')
+
+        # Pivot
+        try:
+            df = pd.DataFrame([])
+            for contaminant in self.sensors.keys():
+                if contaminant not in df_subset['contaminant'].values: 
+                    std_out(f'{contaminant} not in columns. Skipping', 'WARNING')
+                    continue
+                df_temp= df_subset.loc[df_subset['contaminant']==contaminant].drop('contaminant', 1).set_index('date').unstack().reset_index()
+                df_temp.columns = ['hours', 'date', contaminant]
+                df_temp['date'] = pd.to_datetime(df_temp['date'])
+                timestamp_lambda = lambda x: x['date'] + pd.DateOffset(hours=int(x['hours']))
+                df_temp['date'] = df_temp.apply( timestamp_lambda, axis=1)
+                df_temp = df_temp.set_index('date')
+                df[contaminant] = df_temp[contaminant]
+        except:
+            print_exc()
+            std_out('Problem while filtering columns', 'Error')
+            return None
+        else:
+            std_out('Successful pivoting', 'SUCCESS')
+
+        df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
+        df.sort_index(inplace=True)
+
+        # Rename
+        try:
+            df.rename(columns=self.sensors, inplace=True)
+        except:
+            print_exc()
+            std_out('Problem while renaming columns', 'Error')
+            return None
+        else:
+            std_out('Successful renaming', 'SUCCESS')
+        
+        # Clean
+        df = df[~df.index.duplicated(keep='first')]
+        # Drop unnecessary columns
+        df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+        # Check for weird things in the data
+        df = df.apply(pd.to_numeric, errors='coerce')
+        # Resample
+        df = df.resample(frequency, limit = 1).mean()
+
+        try:
+            df = df.reindex(df.index.rename('Time'))
+            
+            if clean_na is not None:
+                if clean_na == 'drop':
+                    # std_out('Cleaning na with drop')
+                    df.dropna(axis = 0, how='all', inplace=True)
+                elif clean_na == 'fill':
+                    df = df.fillna(method='bfill').fillna(method='ffill')
+                    # std_out('Cleaning na with fill')
+            self.data = df
+            
+        except:
+            std_out('Problem closing up the API dataframe', 'ERROR')
+            print_exc()
+            return None
+
+        std_out(f'Device {self.id} loaded successfully from Dades Obertes API', 'SUCCESS')
+
+        return self.data

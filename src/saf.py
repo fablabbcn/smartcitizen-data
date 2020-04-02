@@ -45,6 +45,8 @@ import json
 from urllib.request import urlopen
 import requests
 
+from geopy import distance
+
 # ### ALL
 # from os import pardir, getcwd, makedirs, mkdir, walk
 # from os.path import join, abspath, normpath, basename, , dirname, getsize
@@ -389,3 +391,12 @@ def get_localised_date(date, location):
         result_date = None
 
     return result_date
+
+def calculate_geodistance(location_1 = tuple(), location_2 = tuple()):
+    '''
+        Print calculates Euclidean distance between two locations:
+        - location_1= (lat1, long1, alt1)
+        - location_2= (lat2, long2, alt1)
+    '''
+
+    return distance.distance(location_1, location_2).km

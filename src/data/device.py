@@ -22,7 +22,7 @@ class Device(object):
             hmod = __import__('src.data.api', fromlist=['data.api'])
             Hclass = getattr(hmod, self.sources[self.source]['handler'])
             # Create object
-            self.api_device = Hclass(self.id)
+            self.api_device = Hclass(did=self.id)
 
         self.readings = pd.DataFrame()
         self.loaded = False

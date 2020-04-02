@@ -15,37 +15,37 @@ csic_station:
   max_date: null
   min_date: null
   sensors:
+    C6H6:
+      id: C6H6
+      units: ug/m3
     CO:
       id: CO
-      units: ppm
+      units: mg/m3
+    H2S:
+      id: H2S
+      units: ug/m3
     'NO':
       id: 'NO'
-      units: ppm
+      units: ug/m3
     NO2:
-      id: '112'
-      units: ppm
+      id: NO2
+      units: ug/m3
     NOX:
       id: NOX
-      units: ppm
+      units: ug/m3
     O3:
-      id: '112'
-      units: ppm
-    PM_1:
-      id: PM1
-      units: ppm
+      id: O3
+      units: ug/m3
     PM_10:
       id: PM10
-      units: ppm
-    PM_25:
-      id: '112'
-      units: ppm
+      units: ug/m3
     SO2:
-      id: '112'
-      units: ppm
+      id: SO2
+      units: ug/m3
   source: null
   sources:
     api:
-      handler: CsicApiDevice
+      handler: DadesObertesApiDevice
   version: null
 muv_station:
   clean_na: null
