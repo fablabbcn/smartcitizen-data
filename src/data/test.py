@@ -85,7 +85,7 @@ class Test(object):
         if 'devices' not in self.descriptor.keys(): self.descriptor['devices'] = dict()
         
         device = self.devices[device_name]
-        device.processed_data_file = self.name + '_' + str(device.id) + '.csv'
+        if device.source == 'csv': device.processed_data_file = self.name + '_' + str(device.id) + '.csv'
 
         dvars = vars(device).copy()
         for discvar in ['readings', 'api_device', 'options', 'loaded']: 
@@ -189,6 +189,7 @@ class Test(object):
         for key in self.devices.keys():
             
             device = self.devices[key]
+            std_out('---------------------------')
             std_out(f'Loading device {device.id}')
 
             min_date_device = get_localised_date(device.min_date, device.location)
@@ -249,7 +250,10 @@ class Test(object):
                         max_date_to_load = max_date_device
                 else:
                     if self.options['load_cached_API']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
+                    min_date_to_load = min_date_device
+                    max_date_to_load = max_date_device                    
                     load_API = True
+                
                 # Load data from API if necessary
                 if load_API:
                     std_out('Downloading device from API')
@@ -301,6 +305,7 @@ class Test(object):
                 if export_csv_file(cached_file_path, device.id, device.readings, forced_overwrite = True): std_out('Devices cached successfully', 'SUCCESS')
 
             if device.loaded: std_out(f'Device {device.id} has been loaded', 'SUCCESS')
+            else: std_out(f'Could not load device {device.id} from API. Skipping', 'WARNING')
 
         self.update_descriptor()
 

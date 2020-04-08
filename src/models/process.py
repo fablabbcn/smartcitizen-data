@@ -52,13 +52,212 @@ def sum(dataframe, *args):
     series = df[args[0]] + df[args[1]]
     return series
 
-def sumkg(dataframe, **kwargs):
-    '''
-    Example of lazy callable function returning the sum of two channels in a pandas dataframe
-    '''
+# TODO
+def baseline_dcalc(dataframe, **kwargs):
+    return dataframe[kwargs['working']]
+# TODO
+def co_calc(dataframe, **kwargs):
+    return dataframe[kwargs['working']]
+
+def clean_ts(dataframe, **kwargs):
+    """
+    Cleans the time series measurements sensors, by filling the out of band values with NaN
+    Parameters
+    ----------
+        name: string
+            column to clean to apply.
+        limits: list, optional 
+            (0, 99999)
+            Sensor limits. The function will fill with NaN in the values that exceed the band
+        window_size: int, optional 
+            3
+            If not None, will smooth the time series by applying a rolling window of that size
+        window_type: str, optional
+            None
+            Accepts arguments in the list of windows for scipy.signal windows:
+            https://docs.scipy.org/doc/scipy/reference/signal.html#window-functions
+            Default to None implies normal rolling average
+    Returns
+    -------
+        pandas series containing the clean
+    """
+
+    if 'name' not in kwargs: return None
+
+    result = dataframe[kwargs['name']].copy()
+
+    # Limits
+    if 'limits' in kwargs: lower_limit, upper_limit = kwargs['limits'][0], kwargs['limits'][1]
+    else: lower_limit, upper_limit = 0, 99999
+
+    result[result >= upper_limit] = np.nan
+    result[result <= lower_limit] = np.nan
+     
+    # Smoothing
+    if 'window_size' in kwargs: window = kwargs['window_size'] 
+    else: window = 3
+
+    if 'window_type' in kwargs: win_type = kwargs['window_type']
+    else: win_type = None
+
+    result.rolling(window = window, win_type = win_type).mean()
+
+    return result
+
+def merge_ts(dataframe, **kwargs):
+    """
+    Merges readings from sensors into one clean ts. The function checks the dispersion and 
+    picks the desired one (min, max, min_nonzero, avg)
+    Parameters
+    ----------
+        names: list of strings
+            List of sensors to merge into one. Currently only support two ts.
+        pick: string
+            'min'
+            One of the following 'min', 'max', 'avg', 'min_nonzero'
+            Which one two pick in case of high deviation between the metrics. Picks the avg 
+            otherwise
+        factor: float (factor > 0)
+            0.3
+            Maximum allowed deviation of the difference with respect to the each of signals.
+            It creates a window of [factor*signal_X, -factor*signal_X] for X being each signal
+            out of which there will be a flag where one of the signals will be picked. This 
+            factor should be set to a value that is similar to the sensor typical deviation
+        Same parameters as clean_ts apply below:
+        limits: list, optional 
+            (0, 99999)
+            Sensor limits. The function will fill with NaN in the values that exceed the band
+        window_size: int, optional 
+            3
+            If not None, will smooth the time series by applying a rolling window of that size
+        window_type: str, optional
+            None
+            Accepts arguments in the list of windows for scipy.signal windows:
+            https://docs.scipy.org/doc/scipy/reference/signal.html#window-functions
+            Default to None implies normal rolling average
+    Returns
+    -------
+        pandas series containing the clean
+    """
+
     df = dataframe.copy()
-    series = df[args[0]] + df[args[1]]
-    return series
+
+    # Set defaults
+    if 'names' not in kwargs: return None
+    if 'pick' not in kwargs: pick = 'min'
+    else: pick = kwargs['pick']
+    if 'factor' not in kwargs: factor = 0.3
+    else: factor = kwargs['factor']
+
+    # Clean them
+    for name in kwargs['names']: 
+        subkwargs = {'name': name, 
+                    'limits': kwargs['limits'], 
+                    'window_size': kwargs['window_size'], 
+                    'window_type': kwargs['window_type']
+                    }
+        df[name + '_CLEAN'] = clean_ts(df, **subkwargs)
+
+    
+    df['flag'] = np.full((df.shape[0], 1), False, dtype=bool)
+    df['diff'] = df[kwargs['names'][0] + '_CLEAN'] - df[kwargs['names'][1] + '_CLEAN']
+
+    lnames = []
+    # Flag them
+    for name in kwargs['names']:
+        df['flag'] |= (df['diff'] > factor*df[name + '_CLEAN'])
+        df['flag'] |= (df['diff'] < -factor*df[name + '_CLEAN'])
+        lnames.append(name + '_CLEAN')
+
+    df['result'] = df.loc[:, lnames].mean(skipna=True, axis = 1)
+    
+    # Pick
+    if pick == 'min': 
+        df.loc[df['flag'] == True, 'result'] = df.loc[df['flag'] == True, lnames].min(skipna=True, axis = 1)
+    elif pick == 'max':
+        df.loc[df['flag'] == True, 'result'] = df.loc[df['flag'] == True, lnames].max(skipna=True, axis = 1)
+    # elif pick == 'min_nonzero':
+    #     df['result'] = df.loc[df['flag'] == True, kwargs['names']].min(skipna=True, axis = 1)
+
+    return df['result']
+
+def rolling_avg(dataframe, *kwargs):
+    """
+    Performs pandas.rolling with input
+    Parameters
+    ----------
+        name: string
+            column to clean to apply.
+        window_size: int, optional 
+            3
+            If not None, will smooth the time series by applying a rolling window of that size
+        window_type: str, optional
+            None
+            Accepts arguments in the list of windows for scipy.signal windows:
+            https://docs.scipy.org/doc/scipy/reference/signal.html#window-functions
+            Default to None implies normal rolling average
+    Returns
+    -------
+        pandas series containing the rolling average
+    """   
+
+    if 'name' not in kwargs: return None
+
+    result = dataframe[kwargs['name']].copy()
+
+    # Smoothing
+    if 'window_size' in kwargs: window = kwargs['window_size'] 
+    else: window = 3
+
+    if 'window_type' in kwargs: win_type = kwargs['window_type']
+    else: win_type = None
+
+    result.rolling(window = window, win_type = win_type).mean()
+
+    return result
+    
+# TODO
+def absolute_humidity(dataframe, **kwargs):
+    """
+    Calculate Absolute humidity based on vapour equilibrium
+    Parameters
+    ----------
+        temperature: string
+            'TEMP'
+            Name of the column in the daframe for temperature in degC
+        rel_h: string
+            'HUM'
+            Name of the column in the daframe for relative humidity in %rh
+        pressure: string
+            'PRESS'
+            Name of the column in the daframe for atmospheric pressure in mbar
+    Returns
+    -------
+        pandas series containing the absolute humidity calculation in mg/m3?
+    """
+    # Check
+    if 'temperature' not in kwargs: return None
+    if 'rel_h' not in kwargs: return None
+    if 'pressure' not in kwargs: return None
+
+    if kwargs['temperature'] not in dataframe.columns: return None
+    if kwargs['rel_h'] not in dataframe.columns: return None
+    if kwargs['pressure'] not in dataframe.columns: return None
+
+    temp = dataframe[kwargs['temperature']].values
+    rel_h = dataframe[kwargs['rel_h']].values
+    press = dataframe[kwargs['pressure']].values
+
+    # _Temp is temperature in degC, _Press is absolute pressure in mbar
+    vap_eq = (1.0007 + 3.46*1e-6*press)*6.1121*np.exp(17.502*temp/(240.97+temp))
+
+    abs_humidity = rel_h * vap_eq
+
+    return abs_humidity
+
+### ---------------------------------------
+### ----------------OLDIES-----------------
+### ---------------------------------------
 
 def exponential_smoothing(series, alpha = 0.5):
     '''
@@ -121,23 +320,6 @@ def time_diff(series, window = 1):
 def gradient(series, raster):
     return np.gradient(series, raster*2)
 
-def absolute_humidity(temperature, rel_humidity, pressure):
-    '''
-        Calculate Absolute humidity based on vapour equilibrium:
-        Input: 
-            Temperature: in degC
-            Rel_humidity: in %
-            Pressure: in mbar
-        Output:
-            Absolute_humidity: in mg/m3?
-    '''
-    # Vapour equilibrium: 
-    # _Temp is temperature in degC, _Press is absolute pressure in mbar
-    vap_eq = (1.0007 + 3.46*1e-6*pressure)*6.1121*np.exp(17.502*temperature/(240.97+temperature))
-
-    abs_humidity = rel_humidity * vap_eq
-
-    return abs_humidity
 
 def maxer(series, val):
     result = np.zeros(len(series))

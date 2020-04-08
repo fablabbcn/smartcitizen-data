@@ -45,8 +45,6 @@ import json
 from urllib.request import urlopen
 import requests
 
-from geopy import distance
-
 # ### ALL
 # from os import pardir, getcwd, makedirs, mkdir, walk
 # from os.path import join, abspath, normpath, basename, , dirname, getsize
@@ -108,7 +106,10 @@ MOLECULAR_WEIGHTS = {
                         'CO': 28, 
                         'NO': 30, 
                         'NO2': 46, 
-                        'O3': 48
+                        'O3': 48,
+                        'C6H6': 78,
+                        'SO2': 64,
+                        'H2S': 34
                     }
 # Background concentrations
 BACKGROUND_CONC = {
@@ -129,9 +130,13 @@ CHANNEL_LUT = {
                 "PRESS": "kPa",
                 "PM_(\d|[A,B]_\d)": "ug/m3",
                 "CO(\D|$)": "ppm",
+                "NO": "ppb",
                 "NO2": "ppb",
                 "NOX": "ppb",
-                "O3": "ppb"
+                "O3": "ppb",
+                "C6H6": "ppb",
+                "H2S": "ppb",
+                "SO2": "ppb"
             }
 
 # This table is used to convert units
@@ -330,13 +335,6 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
         if index_name in column: 
             df = df.set_index(column)
             break
-    # if index in df.columns: df = df.set_index(index)
-    # if 'Time' in df.columns:
-    #   df = df.set_index('Time')
-    # elif 'TIME' in df.columns:
-    #   df = df.set_index('TIME')
-    # elif refIndex != '':
-    #   df = df.set_index(refIndex)
 
     # Set index
     df.index = pd.to_datetime(df.index).tz_localize('UTC').tz_convert(location)
@@ -391,12 +389,3 @@ def get_localised_date(date, location):
         result_date = None
 
     return result_date
-
-def calculate_geodistance(location_1 = tuple(), location_2 = tuple()):
-    '''
-        Print calculates Euclidean distance between two locations:
-        - location_1= (lat1, long1, alt1)
-        - location_2= (lat2, long2, alt1)
-    '''
-
-    return distance.distance(location_1, location_2).km

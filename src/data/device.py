@@ -53,9 +53,10 @@ class Device(object):
             elif 'api' in self.source:
                 if path is None:
                     df = self.api_device.get_device_data(self.options['min_date'], self.options['max_date'], self.options['frequency'], self.options['clean_na'])
-                    # API Device is not aware of other csv index data, so make it here 
-                    df = df.reindex(df.index.rename(self.sources['csv']['index']))
-                    self.readings = self.readings.combine_first(df)
+                    # API Device is not aware of other csv index data, so make it here
+                    if 'csv' in self.sources and df is not None: df = df.reindex(df.index.rename(self.sources['csv']['index']))
+                    # Combine it with readings if possible
+                    if df is not None: self.readings = self.readings.combine_first(df)
                 else:
                     # Cached case
                     self.readings = self.readings.combine_first(read_csv_file(join(path, self.id + '.csv'), self.location, self.options['frequency'], 
@@ -116,6 +117,13 @@ class Device(object):
     
     def process(self):
         process_ok = True
+
+        if 'metrics' not in vars(self): 
+            std_out(f'Device {self.id} has nothing to process. Skipping', 'WARNING')
+            return process_ok
+            
+        std_out('---------------------------')
+        std_out(f'Processing device {self.id}')
         for metric in self.metrics:
             std_out(f'Processing {metric}')
             process_ok &= self.add_metric({metric: self.metrics[metric]})
@@ -124,7 +132,6 @@ class Device(object):
     def add_metric(self, metric = dict()):
         try:
             metricn = next(iter(metric.keys()))
-            print (f"Function is: src.models.process.{metric[metricn]['process']}")
             funct = LazyCallable(f"src.models.process.{metric[metricn]['process']}")
         except:
             print_exc()
