@@ -9,7 +9,6 @@ test:
   load_cached_API: true
   store_cached_API: true
   clean_na: null
-  frequency: '1Min'
 models:
   # THIS WILL BE APPENDED TO YOUR MODEL IF YOU USE MULTIPLE TRAINING DATASETS
   name_multiple_training_data: 'CDEV'
