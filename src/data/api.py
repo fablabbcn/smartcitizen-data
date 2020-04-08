@@ -54,7 +54,7 @@ class ScApiDevice:
                 else:
                     std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
             except:
-                std_out('Failed request. Probably no connection', 'ERROR')  
+                std_out('Failed request. Probably no connection', 'ERROR')
                 pass
 
         return self.mac
@@ -98,7 +98,7 @@ class ScApiDevice:
             tz_where = tzwhere.tzwhere()
             self.location = tz_where.tzNameAt(latitude, longitude)
 
-        std_out ('Device {} is located at {}'.format(self.id, self.location))               
+        std_out ('Device {} timezone is {}'.format(self.id, self.location))               
         
         return self.location
 
@@ -114,7 +114,7 @@ class ScApiDevice:
                 self.lat = latitude
                 self.long = longitude
         
-        std_out ('Device {} is located at {}-{}'.format(self.id, latitude, longitude))        
+        std_out ('Device {} is located at {}, {}'.format(self.id, latitude, longitude))        
         
         return (self.lat, self.long)
     
@@ -188,6 +188,7 @@ class ScApiDevice:
             start_date = pd.to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ')
         elif start_date is not None:
             start_date = pd.to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        
         if start_date.tzinfo is None: start_date = start_date.tz_localize('UTC').tz_convert(self.location)
         std_out (f'Min Date: {start_date}')
         
@@ -196,6 +197,7 @@ class ScApiDevice:
             end_date = pd.to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ')
         elif end_date is not None:
             end_date = pd.to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        
         if end_date.tzinfo is None: end_date = end_date.tz_localize('UTC').tz_convert(self.location)
         std_out (f'Max Date: {end_date}')
         if start_date > end_date: std_out('Ignoring device dates. Probably SD card device', 'WARNING')
@@ -280,7 +282,8 @@ class ScApiDevice:
                 
             except:
                 std_out('Problem closing up the API dataframe', 'ERROR')
-                print_exc()
+                pass
+                return None
 
         std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
@@ -322,10 +325,10 @@ class MuvApiDevice:
             url = self.API_BASE_URL + 'getSensorData?sensor_id={}/'.format(self.id)
             df = pd.read_json(url)
         except:
-            print_exc()
+            # print_exc()
             std_out('Failed sensor request request. Probably no connection', 'ERROR')
-        else:
-            std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
+            pass
+            return None
 
         try:
             # Rename columns
@@ -350,8 +353,10 @@ class MuvApiDevice:
                 
         except:
             std_out('Problem closing up the API dataframe', 'ERROR')
-            print_exc()
+            pass
+            return None
 
+        std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
 class DadesObertesApiDevice:
@@ -515,12 +520,14 @@ class DadesObertesApiDevice:
         except:
             print_exc()
             std_out('Problem with sensor data from API', 'ERROR')
+            pass
             return None
 
         if s.status_code == 200 or s.status_code == 201:
             df = pd.read_csv(io.StringIO(s.content.decode('utf-8')))
         else:
             std_out('API reported {}'.format(s.status_code), 'ERROR')
+            pass
             return None
 
         # Filter columns
@@ -556,8 +563,9 @@ class DadesObertesApiDevice:
                 df_temp = df_temp.set_index('date')
                 df[contaminant] = df_temp[contaminant]
         except:
-            print_exc()
+            # print_exc()
             std_out('Problem while filtering columns', 'Error')
+            pass
             return None
         else:
             std_out('Successful pivoting', 'SUCCESS')
@@ -569,8 +577,9 @@ class DadesObertesApiDevice:
         try:
             df.rename(columns=self.sensors, inplace=True)
         except:
-            print_exc()
+            # print_exc()
             std_out('Problem while renaming columns', 'Error')
+            pass
             return None
         else:
             std_out('Successful renaming', 'SUCCESS')
@@ -598,9 +607,8 @@ class DadesObertesApiDevice:
             
         except:
             std_out('Problem closing up the API dataframe', 'ERROR')
-            print_exc()
+            pass
             return None
 
-        std_out(f'Device {self.id} loaded successfully from Dades Obertes API', 'SUCCESS')
-
+        std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data

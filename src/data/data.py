@@ -97,7 +97,6 @@ class Data(object):
 	
 	def load_test(self, test_name, options = dict()):
 		
-		std_out('Loading test {}'.format(test_name))
 		test = Test(test_name)
 		test.load(options)
 		
