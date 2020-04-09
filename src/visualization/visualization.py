@@ -73,14 +73,14 @@ class Plot(object):
 				self.df = self.df.combine_first(df)
 			
 			else:
-				for device_records in data.tests[test].devices.keys():
-					if channel in data.tests[test].devices[device_records].readings.columns:
+				for device in data.tests[test].devices.keys():
+					if channel in data.tests[test].devices[device].readings.columns:
 						# Put channel in subplots_list
-						self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device_records)
+						self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device)
 						# Dataframe
-						df = pd.DataFrame(data.tests[test].devices[device_records].readings[channel].values, 
-										  columns = [channel + '_' + device_records],
-										  index = data.tests[test].devices[device_records].readings.index)
+						df = pd.DataFrame(data.tests[test].devices[device].readings[channel].values, 
+										  columns = [channel + '_' + device],
+										  index = data.tests[test].devices[device].readings.index)
 
 					# Combine it in the df
 					self.df = self.df.combine_first(df)
@@ -90,12 +90,17 @@ class Plot(object):
 		if max_date is not None: self.df = self.df[self.df.index < max_date]
 			
 		# Resample it
-		if self.options['frequency'] is not None: self.df.resample(self.options['frequency']).mean()
+		if self.options['frequency'] is not None: 
+			if 'resample' in self.options: 
+				if self.options['resample'] == 'max': self.df = self.df.resample(self.options['frequency']).max()
+				if self.options['resample'] == 'min': self.df = self.df.resample(self.options['frequency']).min()
+				if self.options['resample'] == 'mean': self.df = self.df.resample(self.options['frequency']).mean()
+			else: self.df = self.df.resample(self.options['frequency']).mean()
 
 		if self.options['clean_na'] is not None:
-			if self.options['clean_na_method'] == 'fill':
+			if self.options['clean_na'] == 'fill':
 				self.df = self.df.fillna(method='ffill')
-			if self.options['clean_na_method'] == 'drop':				
+			if self.options['clean_na'] == 'drop':				
 				self.df.dropna(axis = 0, how='any', inplace = True)
 
 
@@ -153,8 +158,8 @@ class Plot(object):
 					std_out('Reducing height to 10')
 					self.formatting['height'] = 10
 				figure, axes = plt.subplots(n_subplots, 1, sharex = self.formatting['sharex'],
-												  figsize=(self.formatting['width'], self.formatting['height']))
-	
+												  figsize=(self.formatting['width'], self.formatting['height']));
+
 				if n_subplots == 1:
 					for trace in self.subplots_list[0]:
 						axes.plot(self.df.index, self.df[trace], label = trace)
@@ -172,14 +177,14 @@ class Plot(object):
 								axes[index_subplot].set_ylim(self.formatting['yrange'][index_subplot+1])
 
 				
-				figure.suptitle(self.formatting['title'], fontsize=14)
-				plt.xlabel(self.formatting['xlabel'])
-				plt.grid(self.formatting['grid'])
-				
+				_ = figure.suptitle(self.formatting['title'], fontsize=14);
+				_ = plt.xlabel(self.formatting['xlabel']);
+				_ = plt.grid(self.formatting['grid']);
+
 				# Save it in global and show
-				self.figure = figure
+				self.figure = figure;
 				if 'show_plot' in self.options:
-					if self.options['show_plot']: plt.show()
+					if self.options['show_plot']: plt.show();
 			
 			elif self.library == 'plotly':
 				if self.formatting['width'] < 100: 
@@ -223,7 +228,7 @@ class Plot(object):
 										title=dict(text=self.formatting['title'])
 									   )
 				
-				self.figure = figure
+				self.figure = figure;
 				if 'show_plot' in self.options:
 					if self.options['show_plot']: figure.show()
 
@@ -313,13 +318,16 @@ class Plot(object):
 			# Include categorical variable
 			if freq_time == 6:
 				labels = ['Morning','Afternoon','Evening', 'Night']
+				yaxis = ''
 			elif freq_time == 12:
 				labels = ['Morning', 'Evening']
+				yaxis = ''
 			else:
-				labels = [str(i) for i in np.arange(0, 24, freq_time)]
+				labels = [f'{i}h-{i+freq_time}h' for i in np.arange(0, 24, freq_time)]
+				yaxis = 'Hour'
 
 			channel = self.df.columns[0]
-			self.df = self.df.assign(session = pd.cut(self.df.index.hour, np.arange(0, 25, freq_time), labels = labels))
+			self.df = self.df.assign(session = pd.cut(self.df.index.hour, np.arange(0, 25, freq_time), labels = labels, right = False))
 			
 			# Group them by session
 			df_session = self.df.groupby(['session']).mean()
@@ -329,7 +337,6 @@ class Plot(object):
 			list_all = ['session', channel]
 
 			# Check relative measurements
-
 			if self.options['relative']:
 				# Calculate average
 				df_session_avg = df_session.mean(axis = 0)
@@ -346,17 +353,19 @@ class Plot(object):
 			self.df.dropna(axis = 0, how='all', inplace = True)
 			
 			if self.library == 'matplotlib':
-				
-				_, ax = plt.subplots(figsize=(self.formatting['width'],self.formatting['height']))         # Sample figsize in inches
+
+				# Sample figsize in inches
+				_, ax = plt.subplots(figsize=(self.formatting['width'],self.formatting['height']));         
 				# Pivot with 'session'
-				g = sns.heatmap(self.df.pivot(columns='session').resample('1D').mean().T, ax=ax)
-				g.set_xticklabels([i.strftime("%Y-%m-%d") for i in self.df.resample('1D').mean().index])
-				g.set_yticklabels(labels)
-				g.set_ylabel('')
+				g = sns.heatmap(self.df.pivot(columns='session').resample('1D').mean().T, ax=ax, cmap = self.formatting['cmap']);
+				_ = g.set_xticklabels([i.strftime("%Y-%m-%d") for i in self.df.resample('1D').mean().index]);
+				_ = g.set_yticklabels(labels);
+				_ = g.set_ylabel(yaxis);
+
 				# Set title
-				g.figure.suptitle(self.formatting['title'])
+				_ = g.figure.suptitle(self.formatting['title']);
 				# Save it in global and show
-				self.figure = g.figure
+				self.figure = g.figure;
 				if 'show_plot' in self.options:
 					if self.options['show_plot']: plt.show()
 
