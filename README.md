@@ -1,17 +1,22 @@
-SmartCitizen-iScape Sensor Data Analysis
+SmartCitizen Sensor Data Analysis Toolset
 =======
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-iscape-data/master?filepath=notebooks)
-
-Welcome to the SmartCitizen-iScape **Sensor Analysis Framework**. This repository is built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating the sensors' data.
+Welcome to the SmartCitizen **Sensor Data Analysis Toolset**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating sensors data.
 
 ![](assets/images/saf_schema.png)
 
 ## Features
 
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework.
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). The documentation is constantly being updated, as well as the framework. Mainly, the framework is used for:
+- Interacting with several sensors APIs (see [here](src/data/api.py))
+- Clean data, export and calculate metrics
+- Model sensor data and calibrate sensors
+- Generate analysis reports and upload them to [Zenodo](http://zenodo.org)
+- Generate data visualisations:
+
+![](assets/images/covid-noise.png)
 
 ## Funding
 
