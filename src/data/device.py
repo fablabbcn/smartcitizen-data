@@ -1,10 +1,9 @@
-from src.saf import std_out, dict_fmerge, read_csv_file, export_csv_file
-from src.saf import BLUEPRINTS, CHANNEL_LUT, MOLECULAR_WEIGHTS, UNIT_CONVERTION_LUT
+from src.saf import std_out, dict_fmerge, read_csv_file, export_csv_file, get_units_convf
+from src.saf import BLUEPRINTS
 from os.path import join
 
 import pandas as pd
 from traceback import print_exc
-from re import search
 from src.models.process import LazyCallable
 
 class Device(object):
@@ -92,28 +91,32 @@ class Device(object):
         '''
         std_out('Checking if units need to be converted')
 
-        for sensor in self.sensors.keys(): 
+        for sensor in self.sensors.keys():
+            factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
+            if factor != 1:
+                self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
+                self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
 
-            for channel in CHANNEL_LUT.keys():
-                if not (search(channel, sensor)): continue
-                # Molecular weight in case of pollutants
-                for pollutant in MOLECULAR_WEIGHTS.keys(): 
-                    if search(channel, pollutant): 
-                        molecular_weight = MOLECULAR_WEIGHTS[pollutant]
-                        break
-                    else: molecular_weight = 1
+            # for channel in CHANNEL_LUT.keys():
+            #     if not (search(channel, sensor)): continue
+            #     # Molecular weight in case of pollutants
+            #     for pollutant in MOLECULAR_WEIGHTS.keys(): 
+            #         if search(channel, pollutant): 
+            #             molecular_weight = MOLECULAR_WEIGHTS[pollutant]
+            #             break
+            #         else: molecular_weight = 1
                 
-                # Check if channel is in look-up table
-                if CHANNEL_LUT[channel] != self.sensors[sensor]['units']: 
-                    std_out(f"Converting units for {sensor}. From {self.sensors[sensor]['units']} to {CHANNEL_LUT[channel]}")
-                    for unit in UNIT_CONVERTION_LUT:
-                        # Get units
-                        if unit[0] == self.sensors[sensor]['units']: factor = unit[2]; break
-                        elif unit[1] == self.sensors[sensor]['units']: factor = 1/unit[2]; break
-                    # Convert channels
-                    self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
-                    self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor/molecular_weight
-                else: std_out(f"No units conversion needed for {sensor}")
+            #     # Check if channel is in look-up table
+            #     if CHANNEL_LUT[channel] != self.sensors[sensor]['units']: 
+            #         std_out(f"Converting units for {sensor}. From {self.sensors[sensor]['units']} to {CHANNEL_LUT[channel]}")
+            #         for unit in UNIT_CONVERTION_LUT:
+            #             # Get units
+            #             if unit[0] == self.sensors[sensor]['units']: factor = unit[2]; break
+            #             elif unit[1] == self.sensors[sensor]['units']: factor = 1/unit[2]; break
+            #         # Convert channels
+            #         self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
+            #         self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor/molecular_weight
+            #     else: std_out(f"No units conversion needed for {sensor}")
     
     def process(self):
         process_ok = True
@@ -121,7 +124,7 @@ class Device(object):
         if 'metrics' not in vars(self): 
             std_out(f'Device {self.id} has nothing to process. Skipping', 'WARNING')
             return process_ok
-            
+
         std_out('---------------------------')
         std_out(f'Processing device {self.id}')
         for metric in self.metrics:

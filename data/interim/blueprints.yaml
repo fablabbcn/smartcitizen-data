@@ -115,12 +115,12 @@ sc_20_station:
   max_date: null
   metrics:
     CO:
-      id: null
       kwargs:
         auxiliary: GB_1A
-        id: id
+        id: null
+        pollutant: CO
         working: GB_1W
-      process: co_calc
+      process: basic_4electrode_alg
       units: ppm
     EXT_PM_10_CLEAN:
       kwargs:
@@ -165,18 +165,16 @@ sc_20_station:
       process: merge_ts
       units: ug/m3
     NO2:
-      id: null
       kwargs:
         auxiliary: GB_2A
-        id: id
+        id: null
         working: GB_2W
       process: baseline_dcalc
       units: ppb
     O3:
-      id: null
       kwargs:
         auxiliary: GB_3A
-        id: id
+        id: null
         working: GB_3W
       process: baseline_dcalc
       units: ppb
@@ -282,12 +280,12 @@ sc_21_station:
       process: clean_ts
       units: ppb
     CO:
-      id: null
       kwargs:
         auxiliary: GB_1A
-        id: id
+        id: null
+        pollutant: CO
         working: GB_1W
-      process: co_calc
+      process: basic_4electrode_alg
       units: ppm
     EXT_PM_10_CLEAN:
       kwargs:
@@ -332,18 +330,16 @@ sc_21_station:
       process: merge_ts
       units: ug/m3
     NO2:
-      id: null
       kwargs:
         auxiliary: GB_2A
-        id: id
+        id: null
         working: GB_2W
       process: baseline_dcalc
       units: ppb
     O3:
-      id: null
       kwargs:
         auxiliary: GB_3A
-        id: id
+        id: null
         working: GB_3W
       process: baseline_dcalc
       units: ppb

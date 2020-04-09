@@ -3,13 +3,8 @@ import math
 import pandas as pd
 import sys
 
-from src.saf import std_out
-from dateutil import relativedelta
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.model_selection import cross_val_score
-import matplotlib.pyplot as plot
-from xgboost import XGBRegressor
+from src.saf import std_out, get_units_convf
+from src.saf import ALPHADELTA_PCB, BACKGROUND_CONC, CALIBRATION_DATA
 
 class LazyCallable(object):
     '''
@@ -32,17 +27,10 @@ class LazyCallable(object):
 ### --------------PROCESSES----------------
 ### ---------------------------------------
 '''
-All functions below are meant to return an np.array object after receiving a pd.DataFrame.
+All functions below are meant to return an pandas Series object after receiving a pd.DataFrame.
 You can implement the process and then use a lazy_callable instance
-to invoke the function by passing the corresponding *args to it.
+to invoke the function by passing the corresponding *args or **kwargs to it.
 '''
-
-def hello_world(string):
-    '''
-    Example of lazy callable function
-    '''
-    print (string)
-    return 82
 
 def sum(dataframe, *args):
     '''
@@ -55,9 +43,61 @@ def sum(dataframe, *args):
 # TODO
 def baseline_dcalc(dataframe, **kwargs):
     return dataframe[kwargs['working']]
+
 # TODO
-def co_calc(dataframe, **kwargs):
-    return dataframe[kwargs['working']]
+def basic_4electrode_alg(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
+    and calibration ID. It adds a configurable background concentration.
+    Parameters
+    ----------
+        working: string
+            Name of working electrode found in dataframe
+        auxiliary: string
+            Name of auxiliary electrode found in dataframe
+        id: int 
+            Sensor ID
+        pollutant: string
+            Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
+            MOLECULAR_WEIGHTS, BACKGROUND_CONC, CHANNEL_LUT
+    Returns
+    -------
+        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+    """
+    flag_error = False
+    if 'working' not in kwargs: flag_error = True
+    if 'auxiliary' not in kwargs: flag_error = True
+    if 'id' not in kwargs: flag_error = True
+    if 'pollutant' not in kwargs: flag_error = True
+
+    if flag_error: 
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    # Get Sensor data
+    if kwargs['id'] not in CALIBRATION_DATA.index: 
+        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
+        return None
+
+    sensitivity_1 = CALIBRATION_DATA.loc[kwargs['id'],'sensitivity_1']
+    sensitivity_2 = CALIBRATION_DATA.loc[kwargs['id'],'sensitivity_2']
+    target_1 = CALIBRATION_DATA.loc[kwargs['id'],'target_1']
+    target_2 = CALIBRATION_DATA.loc[kwargs['id'],'target_2']
+    nWA = CALIBRATION_DATA.loc[kwargs['id'],'w_zero_current']/CALIBRATION_DATA.loc[kwargs['id'],'aux_zero_current']
+
+    if target_1 != kwargs['pollutant']: 
+        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+        return None
+        
+    # This is always in ppm since the calibration data is in signal/ppm
+    result = ALPHADELTA_PCB*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
+
+    # Convert units
+    result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+    # Add Background concentration
+    result += BACKGROUND_CONC[kwargs['pollutant']]
+
+    return result
 
 def clean_ts(dataframe, **kwargs):
     """
@@ -256,7 +296,7 @@ def absolute_humidity(dataframe, **kwargs):
     return abs_humidity
 
 ### ---------------------------------------
-### ----------------OLDIES-----------------
+### -------NOT USED BUT FOR REF-OLDIES-----
 ### ---------------------------------------
 
 def exponential_smoothing(series, alpha = 0.5):

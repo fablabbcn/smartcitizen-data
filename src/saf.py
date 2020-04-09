@@ -32,8 +32,7 @@ def std_out(msg, type_message = None, force = False):
 
 from traceback import print_exc
 from termcolor import colored
-
-import re
+from re import search, sub
 
 from os import pardir, makedirs
 from os.path import join, abspath, dirname, exists
@@ -51,7 +50,6 @@ import requests
 
 # from datetime import datetime, timedelta
 # from tabulate import tabulate
-# import re
 # from shutil import copyfile
 # import io, pytz, time
 # from dateutil import parser
@@ -157,6 +155,49 @@ UNIT_CONVERTION_LUT = (
                         ['ugm3', 'ppm', 1./1000*24.45]
                     )
 
+def get_units_convf(sensor, from_units):
+    """
+    Returns a factor which will be multiplied to sensor. It accounts for unit
+    convertion based on the desired units in the CHANNEL_LUT for each sensor.
+    channel_converted = factor * sensor
+    Parameters
+    ----------
+        sensor: string
+            Name of the sensor channel
+        from_units: string
+            Units in which it currently is
+    Returns
+    -------
+        factor (float)
+        factor = unit_convertion_factor/molecular_weight
+    Note:
+        This would need to be changed if all pollutants were to be expresed in 
+        mass units, instead of ppm/b
+    """
+
+    for channel in CHANNEL_LUT.keys():
+        if not (search(channel, sensor)): continue
+        # Molecular weight in case of pollutants
+        for pollutant in MOLECULAR_WEIGHTS.keys(): 
+            if search(channel, pollutant): 
+                molecular_weight = MOLECULAR_WEIGHTS[pollutant]
+                break
+            else: molecular_weight = 1
+        
+        # Check if channel is in look-up table
+        if CHANNEL_LUT[channel] != from_units: 
+            std_out(f"Converting units for {sensor}. From {from_units} to {CHANNEL_LUT[channel]}")
+            for unit in UNIT_CONVERTION_LUT:
+                # Get units
+                if unit[0] == from_units: factor = unit[2]; break
+                elif unit[1] == from_units: factor = 1/unit[2]; break
+            rfactor = factor/molecular_weight
+        else: 
+            std_out(f"No units conversion needed for {sensor}")
+            rfactor = 1
+
+    return rfactor
+
 ### ---------------------------------------
 ### ----------------PATHS------------------
 ### ---------------------------------------
@@ -258,12 +299,12 @@ def get_firmware_names(sensorsh, json_path, file_name, reload_names = True):
                         # Elimminate unnecessary elements
                         line_tokenized_sublist = list()
                         for item in line_tokenized:
-                                item = re.sub('\t', '', item)
-                                item = re.sub('OneSensor', '', item)
-                                item = re.sub('{', '', item)
-                                item = re.sub('}', '', item)
-                                #item = re.sub(' ', '', item)
-                                item = re.sub('"', '', item)
+                                item = sub('\t', '', item)
+                                item = sub('OneSensor', '', item)
+                                item = sub('{', '', item)
+                                item = sub('}', '', item)
+                                #item = sub(' ', '', item)
+                                item = sub('"', '', item)
                                 
                                 if item != '' and item != ' ':
                                     while item[0] == ' ' and len(item)>0: item = item[1:]
@@ -271,11 +312,11 @@ def get_firmware_names(sensorsh, json_path, file_name, reload_names = True):
                         line_tokenized_sublist = line_tokenized_sublist[:-1]
 
                         if len(line_tokenized_sublist) > 2:
-                                shortTitle = re.sub(' ', '', line_tokenized_sublist[3])
+                                shortTitle = sub(' ', '', line_tokenized_sublist[3])
                                 if len(line_tokenized_sublist)>9:
                                     sensor_names[shortTitle] = dict()
-                                    sensor_names[shortTitle]['SensorLocation'] = re.sub(' ', '', line_tokenized_sublist[0])
-                                    sensor_names[shortTitle]['id'] = re.sub(' ','', line_tokenized_sublist[5])
+                                    sensor_names[shortTitle]['SensorLocation'] = sub(' ', '', line_tokenized_sublist[0])
+                                    sensor_names[shortTitle]['id'] = sub(' ','', line_tokenized_sublist[5])
                                     sensor_names[shortTitle]['title'] = line_tokenized_sublist[4]
                                     sensor_names[shortTitle]['unit'] = line_tokenized_sublist[-1]
             # Save everything to the most recent one
@@ -320,6 +361,32 @@ except:
     std_out('Error loading blueprints file', 'ERROR')
     raise SystemError('Problem saving blueprints file')
 
+### ---------------------------------------
+### ------------CALIBRATIONS---------------
+### ---------------------------------------
+'''
+The calibrations are meant for alphasense's 4 electrode sensors.
+This file follows the next structure:
+{
+    "Target 1": "Pollutant 1", 
+    "Target 2": "Pollutant 2", 
+    "Serial No": "XXXX", 
+    "Sensitivity 1": "Pollutant 1 sensitivity in nA/ppm", 
+    "Sensitivity 2": "Pollutant 2 sensitivity in nA/ppm", 
+    "Zero Current": "in nA", 
+    "Aux Zero Current": "in nA"}
+}
+'''
+try:
+    caldata_path = join(paths['interimDirectory'], 'calibrations.json')
+    std_out(f'Loading calibration data from: {caldata_path}')
+    CALIBRATION_DATA = pd.read_json(caldata_path, orient='columns', lines = True)
+    CALIBRATION_DATA.index = CALIBRATION_DATA['serial_no']
+    std_out('Loaded calibration data file', 'SUCCESS')
+except:
+    std_out('Error loading calibration file', 'WARNING')
+    print_exc()
+    pass
 ### ---------------------------------------
 ### -----------CSV LOAD/EXPORT-------------
 ### ---------------------------------------
@@ -380,6 +447,9 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
     
     return True
 
+### ---------------------------------------
+### ------------DATE FUNCTIONS-------------
+### ---------------------------------------
 def get_localised_date(date, location):
 
     if date is not None:
