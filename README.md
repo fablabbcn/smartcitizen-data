@@ -1,9 +1,9 @@
-SmartCitizen Sensor Data Analysis Toolset
+SmartCitizen Sensor Data Framework
 =======
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 
-Welcome to the SmartCitizen **Sensor Data Analysis Toolset**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating sensors data.
+Welcome to the SmartCitizen **Sensor Data Framework**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating sensors data.
 
 ![](assets/images/saf_schema.png)
 
