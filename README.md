@@ -3,7 +3,7 @@ SmartCitizen Sensor Data Framework
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 
-Welcome to the SmartCitizen **Sensor Data Framework**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating sensors data.
+Welcome to the **SmartCitizen Sensor Data Framework**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to be the primary tool for manipulating sensors data.
 
 ![](assets/images/saf_schema.png)
 
@@ -24,7 +24,7 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 ## Compatibility
 
-Works with `Python 3.7`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. The notebooks in the `notebooks` folder are meant as examples and interfaces to the `python` code in the `src` folder.
+Works with `Python 3.7`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. There are plenty of examples in the `examples` folder. These are meant to show how to interface with the `python` code in the `src` folder.
 
 ## Installation
 
@@ -55,22 +55,7 @@ pip install --editable . --verbose
 
 Verify that the `src.egg-link is performed properly within your environment. You can check this in the final lines of the previous command.
 
-Additional commands to install jupyter lab extensions are given in the `.dotfile`:
-
-```
-jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.0
-jupyter labextension install @jupyterlab/toc
-jupyter labextension install jupyterlab-plotly@1.0.0
-conda install -c conda-forge jupyter_nbextensions_configurator
-```
-
-With an optional one for plotly chart studio:
-
-```
-jupyter labextension install jupyterlab-chart-editor@1.2
-```
-
-You can run it by:
+Additional commands to install jupyter lab extensions are given in the `.dotfile`. You can run it by:
 
 ```
 chmod +x .dotfile
@@ -79,15 +64,13 @@ chmod +x .dotfile
 
 ### Tokens and config
 
-A `secrets.py` is to be placed in the `src` folder with a `token` as below:
+If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill the `secrets.py` with a `token` as below:
 
 ```
-zenodo_token='token'
+ZENODO_TOKEN='your-token'
 ```
 
 You can get more instructions [here](https://docs.smartcitizen.me/Guides/Upload%20data%20to%20zenodo/).
-
-You can configure some functionalities by modifying the `src/config.yaml`. The current file serves as a example, and the topics are self-explanatory.
 
 ### Windows
 
