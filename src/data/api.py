@@ -1,6 +1,7 @@
-from src.saf import std_out
+from src.saf import std_out, calculate_distance
 from src.saf import CURRENT_NAMES, FREQ_CONV_LUT, BLUEPRINTS
 import pandas as pd
+import math
 from traceback import print_exc
 import requests
 from tzwhere import tzwhere
@@ -39,7 +40,67 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
+    
+    @staticmethod
+    def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any'):
+        """
+        Gets devices from Smart Citizen API with certain requirements
+        Parameters
+        ----------
+            min_date: string, datetime-like object, optional
+                None
+                Minimum date to filter out the devices. Device started posted before min_date
+            max_date: string, datetime-like object, optional
+                None
+                Maximum date to filter out the devices. Device posted after max_date
+            city: string, optional
+                Empty string
+                City
+            within: tuple
+                Empty tuple
+                Gets the devices within a circle center on lat, long with a radius_meters
+                within = tuple(lat, long, radius_meters)
+            tags: list of strings
+                None
+                Tags for the device (system or user). Default system wide are: indoor, outdoor, online, and offline
+            tag_method: string
+                'any'
+                'any' or 'all'. Checks if 'all' the tags are to be included in the tags or it could be any
+        Returns
+        -------
+            A list of kit IDs that comply with the requirements. If no requirements are set, returns all of them
+        """
+        def is_within_circle(x, within):
+            if math.isnan(x['latitude']): return False
+            if math.isnan(x['longitude']): return False
+        
+            return calculate_distance(location_A=(within[0], within[1]), location_B=(x['latitude'], x['longitude']))<within[2]
+    
+        world_map = requests.get('https://api.smartcitizen.me/v0/devices/world_map')
+        
+        df = pd.DataFrame(world_map.json()).set_index('id')
+        
+        # Filter out dates
+        if min_date is not None: df=df[(min_date > df['added_at'])]
+        if max_date is not None: df=df[(max_date < df['last_reading_at'])]
+            
+        # Location
+        if city is not None: df=df[(df['city']==city)]
+        if within is not None:
 
+            df['within'] = df.apply(lambda x: is_within_circle(x, within), axis=1)
+            df=df[(df['within']==True)]
+        
+        # Tags
+        if tags is not None: 
+            if tag_method == 'any':
+                df['has_tags'] = df.apply(lambda x: any(tag in x['system_tags']+x['user_tags'] for tag in tags), axis=1)
+            elif tag_method == 'all':
+                df['has_tags'] = df.apply(lambda x: all(tag in x['system_tags']+x['user_tags'] for tag in tags), axis=1)
+            df=df[(df['has_tags']==True)]
+        
+        return list(df.index)
+    
     def get_mac(self):
         if self.mac is None:
             std_out(f'Requesting MAC from API for device {self.id}')
@@ -224,6 +285,7 @@ class ScApiDevice:
             if end_date is not None and end_date > start_date: request += f'&to={end_date}'
             
             # Make request
+            print (request)
             sensor_req = requests.get(request)
             flag_error = False
             try:
