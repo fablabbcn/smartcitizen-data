@@ -109,7 +109,7 @@ sc_20_station:
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
-  id: null
+  id: 19
   info_data_file: null
   location: null
   max_date: null
@@ -523,7 +523,7 @@ sck_21:
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
-  id: null
+  id: 26
   info_data_file: null
   location: null
   max_date: null
