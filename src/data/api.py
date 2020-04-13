@@ -267,7 +267,10 @@ class ScApiDevice:
         std_out('Kit ID: {}'.format(self.kit_id))
         if start_date < end_date: std_out(f'Dates: from: {start_date}, to: {end_date}')
         std_out(f'Device timezone: {self.location}')
-        std_out(f'Sensor IDs:\n{list(self.sensors.keys())}')
+        if not self.sensors.keys(): 
+            std_out(f'Device is empty')
+            return None
+        else: std_out(f'Sensor IDs:\n{list(self.sensors.keys())}')
 
         df = pd.DataFrame()
         
@@ -285,7 +288,7 @@ class ScApiDevice:
             if end_date is not None and end_date > start_date: request += f'&to={end_date}'
             
             # Make request
-            print (request)
+            # print (request)
             sensor_req = requests.get(request)
             flag_error = False
             try:
@@ -440,6 +443,52 @@ class DadesObertesApiDevice:
         self.lat = None
         self.long = None
         self.location = None
+    
+    @staticmethod
+    def get_world_map(city = None, within = None, station_type = None, area_type = None):
+        """
+        Gets devices from Dades Obertes API with certain requirements
+        Parameters
+        ----------
+            city: string, optional
+                Empty string
+                City
+            within: tuple
+                Empty tuple
+                Gets the devices within a circle center on lat, long with a radius_meters
+                within = tuple(lat, long, radius_meters)
+            station_type: string
+                None
+                Type of station, to choose from: 'background', nan or 'traffic'
+            area_type: string
+                None
+                Type of area, to choose from:  nan, 'peri-urban', 'rural', 'suburban', 'urban'
+        Returns
+        -------
+            A list of eoi codes that comply with the requirements. If no requirements are set, returns all of them
+        """
+        def is_within_circle(x, within):
+            if math.isnan(x['latitud']): return False
+            if math.isnan(x['longitud']): return False
+
+            return calculate_distance(location_A=(within[0], within[1]), location_B=(x['latitude'], x['longitude']))<within[2]
+            
+        world_map = requests.get("https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?")
+        df = pd.read_csv(io.StringIO(world_map.content.decode('utf-8'))).set_index('codi_eoi')
+        
+        # Location
+        if city is not None: df=df[(df['municipi']==city)]
+        if within is not None:
+
+            df['within'] = df.apply(lambda x: is_within_circle(x, within), axis=1)
+            df=df[(df['within']==True)]
+            
+        # Station type
+        if station_type is not None: df=df[(df['tipus_est']==station_type)] 
+        # Area type
+        if area_type is not None: df=df[(df['rea_urb']==area_type)]
+        
+        return list(set(list(df.index)))
 
     def get_id_from_within(self, within):
         '''
