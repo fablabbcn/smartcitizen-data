@@ -3,33 +3,49 @@ from src.saf import std_out
 
 class Plot(object):
 	'''
-		'plot_type': 
-			- violin
-			- timeseries
-			- scatter_matrix
-			- correlation_plot
-			- heatmap
-			- barplot
-			- coherence_plot
-		'plotting_library':
-			- matplotlib
-			- plotly
-			- ?   
+		This is a plot wrapper for matplotlib (also seaborn) and plotly, that ingests a plot description 
+        in json format (or python dict) and a Data object. The main method is plot, shown below.
+        Parameters
+	    ----------
+	        description: dict
+	        	Dictionary containing the information to make the plot.
+	        	type: Defines the type of the plot. Current available types are:
+					- timeseries
+					- scatter_matrix
+					- correlation_plot
+					- heatmap
+					- barplot
+					- coherence_plot
+					- violin
+					- correlation_comparison
+					- timeseries_comparison
+					- boxplot_comparison
+				library: Defines the library to use. Current available types are:
+					- matplotlib
+					- plotly
+	    Returns
+	    -------
+	        None. Shows plot if requested
 	'''
 	
-	def __init__(self, plot_description, verbose):
-		self.library = plot_description['plotting_library']
+	def __init__(self, description):
+		# Parse input library
+		self.library = description['library']
 		if self.library not in ['matplotlib', 'plotly']: raise SystemError ('Not supported library')
-		self.type = plot_description['plot_type']
-		if 'data' in plot_description.keys(): self.data = plot_description['data']
-		self.options = plot_description['options']
-		self.formatting = plot_description['formatting']
+		# Plot type
+		self.type = description['type']
+		# Data
+		if 'data' in description.keys(): self.data = description['data']
+		# Options
+		self.options = description['options']
+		# Formatting
+		self.formatting = description['formatting']
+		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
+		# Internals
 		self.df = pd.DataFrame()
-		self.verbose = verbose
 		self.subplots_list = None
 		self.figure = None
-		if 'style' in self.formatting.keys(): style.use(self.formatting['style'])
-	
+		
 	def prepare_data(self, data):
 		std_out('Preparing data for plot')
 		if "use_preprocessed" in self.options.keys():
@@ -58,28 +74,32 @@ class Plot(object):
 		# Put data in the df
 		test = self.data['test']
 		for trace in self.data['traces'].keys():
-			device = self.data['traces'][trace]['device']
+			devicens = self.data['traces'][trace]['device']
 			channel = self.data['traces'][trace]['channel']
 			
-			if device != 'all':
-				# Put channel in subplots_list
-				self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device)
-				# Dataframe
-				df = pd.DataFrame(data.tests[test].devices[device].readings[channel].values, 
-								  columns = [channel + '_' + device],
-								  index = data.tests[test].devices[device].readings.index)
-				
-				# Combine it in the df
-				self.df = self.df.combine_first(df)
+			if devicens != 'all':
+				# Put it in list
+				if type(devicens) == str or type(devicens) == int: devicens = [devicens]
+				for devicen in devicens:
+					if channel not in data.tests[test].devices[devicen].readings.columns: continue
+					# Put channel in subplots_list
+					self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + str(devicen))
+					# Dataframe
+					df = pd.DataFrame(data.tests[test].devices[devicen].readings[channel].values, 
+									  columns = [channel + '_' + str(devicen)],
+									  index = data.tests[test].devices[devicen].readings.index)
+					
+					# Combine it in the df
+					self.df = self.df.combine_first(df)
 			
 			else:
 				for device in data.tests[test].devices.keys():
 					if channel in data.tests[test].devices[device].readings.columns:
 						# Put channel in subplots_list
-						self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + device)
+						self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + str(device))
 						# Dataframe
 						df = pd.DataFrame(data.tests[test].devices[device].readings[channel].values, 
-										  columns = [channel + '_' + device],
+										  columns = [channel + '_' + str(device)],
 										  index = data.tests[test].devices[device].readings.index)
 
 					# Combine it in the df
@@ -119,6 +139,56 @@ class Plot(object):
 		except:
 			std_out('No export requested')
 
+	def groupby_session(self):
+
+		'''
+			Prepares data for plots in heatmap or boxplots
+		'''
+
+		if 'frequency_hours' in self.formatting.keys(): freq_time = self.formatting['frequency_hours']
+		else: freq_time = 6
+
+		# Include categorical variable
+		if freq_time == 6:
+			labels = ['Morning','Afternoon','Evening', 'Night']
+			yaxis = ''
+		elif freq_time == 12:
+			labels = ['Morning', 'Evening']
+			yaxis = ''
+		else:
+			labels = [f'{i}h-{i+freq_time}h' for i in np.arange(0, 24, freq_time)]
+			yaxis = 'Hour'
+
+		channel = self.df.columns[0]
+		self.df = self.df.assign(session = pd.cut(self.df.index.hour, np.arange(0, 25, freq_time), labels = labels, right = False))
+		
+		# Group them by session
+		df_session = self.df.groupby(['session']).mean()
+		df_session = df_session[channel]
+
+		## Full dataframe
+		list_all = ['session', channel]
+		if 'periods' in self.options: list_all.append('period')
+		
+		# Check relative measurements
+		if self.options['relative']:
+			# Calculate average
+			df_session_avg = df_session.mean(axis = 0)
+			channel = channel + '_REL'
+
+			list_all = list(self.df.columns)
+			for column in self.df.columns:
+				if column != 'session':
+					self.df[column + '_REL'] = self.df[column]/df_session_avg
+					list_all.append(column + '_REL')
+			
+		## Full dataframe
+		self.df = self.df[list_all]
+		self.df.dropna(axis = 0, how='all', inplace = True)
+
+		return labels, yaxis, channel
+
+	# TODO PUT IN @classmethods
 	def plot(self, data):
 
 		# Correlation function for plot anotation
@@ -130,8 +200,10 @@ class Plot(object):
 
 		# Clean matplotlib cache
 		plt.clf()
+		if 'fontsize' in self.formatting.keys():
+			matplotlib.rcParams.update({'font.size': self.formatting['fontsize']})
 
-		# Parse options if the come from json. Workaround
+		# Parse y label and range options if they come from json. Workaround
 		if "ylabel" in self.formatting.keys() and self.type != "correlation_plot":
 			axises = self.formatting["ylabel"].keys()
 			for axis in axises:
@@ -312,52 +384,18 @@ class Plot(object):
 
 		elif self.type == 'heatmap':
 
-			if 'frequency_hours' in self.formatting.keys(): freq_time = self.formatting['frequency_hours']
-			else: freq_time = 6
-
-			# Include categorical variable
-			if freq_time == 6:
-				labels = ['Morning','Afternoon','Evening', 'Night']
-				yaxis = ''
-			elif freq_time == 12:
-				labels = ['Morning', 'Evening']
-				yaxis = ''
-			else:
-				labels = [f'{i}h-{i+freq_time}h' for i in np.arange(0, 24, freq_time)]
-				yaxis = 'Hour'
-
-			channel = self.df.columns[0]
-			self.df = self.df.assign(session = pd.cut(self.df.index.hour, np.arange(0, 25, freq_time), labels = labels, right = False))
-			
-			# Group them by session
-			df_session = self.df.groupby(['session']).mean()
-			df_session = df_session[channel]
-
-			## Full dataframe
-			list_all = ['session', channel]
-
-			# Check relative measurements
-			if self.options['relative']:
-				# Calculate average
-				df_session_avg = df_session.mean(axis = 0)
-				channel = channel + '_REL'
-
-				list_all = list(self.df.columns)
-				for column in self.df.columns:
-					if column != 'session':
-						self.df[column + '_REL'] = self.df[column]/df_session_avg
-						list_all.append(column + '_REL')
-				
-			## Full dataframe
-			self.df = self.df[list_all]
-			self.df.dropna(axis = 0, how='all', inplace = True)
+			labels, yaxis, channel = self.groupby_session()
 			
 			if self.library == 'matplotlib':
 
 				# Sample figsize in inches
 				_, ax = plt.subplots(figsize=(self.formatting['width'],self.formatting['height']));         
+				
 				# Pivot with 'session'
-				g = sns.heatmap(self.df.pivot(columns='session').resample('1D').mean().T, ax=ax, cmap = self.formatting['cmap']);
+				g = sns.heatmap(self.df.pivot(columns='session').resample('1D').mean().T, ax=ax, \
+					cmap = self.formatting['cmap'], robust = self.formatting['robust'], \
+					vmin = self.formatting['vmin'], vmax = self.formatting['vmax']);
+
 				_ = g.set_xticklabels([i.strftime("%Y-%m-%d") for i in self.df.resample('1D').mean().index]);
 				_ = g.set_yticklabels(labels);
 				_ = g.set_ylabel(yaxis);
@@ -392,6 +430,47 @@ class Plot(object):
 				if 'show_plot' in self.options:
 					if self.options['show_plot']: iplot(self.figure)
 
+		elif self.type == 'boxplot':
+			
+			if 'periods' in self.options:
+
+				pdates = self.options['periods']['dates']
+
+				if pdates[0] is None: pdates[0] = self.df.index[0]
+				if pdates[-1] is None: pdates[-1] = self.df.index[-1]
+				pdates = pd.to_datetime(pdates, utc=True)
+
+				plabels = self.options['periods']['labels']
+
+				self.df = self.df.assign(period = pd.cut(self.df.index, pdates, labels = plabels, right = False))
+			
+			labels, xaxis, channel = self.groupby_session()
+
+			if self.library == 'matplotlib':
+
+				# Sample figsize in inches
+				_, ax = plt.subplots(figsize=(self.formatting['width'], self.formatting['height']));         
+				
+				# Pivot with 'session'
+				if 'periods' in self.options:
+					g = sns.boxplot(x=self.df['session'], y=self.df[channel], hue = self.df['period'], \
+						ax=ax, palette = self.formatting['cmap']);
+				else:
+					g = sns.boxplot(x=self.df['session'], y=self.df[channel], ax=ax, palette = self.formatting['cmap']);
+				_ = g.set_ylabel(self.formatting['ylabel'][1]);
+				_ = g.set_xlabel(xaxis);
+				_ = g.grid(self.formatting['grid']);
+
+				# Set title
+				_ = g.figure.suptitle(self.formatting['title']);
+				# Save it in global and show
+				self.figure = g.figure;
+				if 'show_plot' in self.options:
+					if self.options['show_plot']: plt.show()
+
+			elif self.library == 'plotly':
+				std_out ('Nothing to see here', 'ERROR')	
+
 		elif self.type == 'violin':
 
 			if self.library == 'matplotlib':
@@ -420,7 +499,7 @@ class Plot(object):
 					if self.options['show_plot']: plt.show()
 				
 			elif self.library == 'plotly':
-				print ('Nothing to see here')
+				std_out ('Nothing to see here', 'ERROR')
 
 		elif self.type == 'correlation_comparison':
 
@@ -479,3 +558,12 @@ class Plot(object):
 			self.figure = fig
 			if 'show_plot' in self.options:
 				if self.options['show_plot']: plt.show()
+
+		elif self.type == 'timeseries_comparison':
+			if 'periods' in self.options: periods = self.options['periods']
+			print ('Not yet')
+
+		
+			
+
+
