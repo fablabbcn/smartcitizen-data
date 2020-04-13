@@ -1,5 +1,5 @@
 from src.saf import std_out, calculate_distance
-from src.saf import CURRENT_NAMES, FREQ_CONV_LUT, BLUEPRINTS
+from src.saf import config, BLUEPRINTS
 import pandas as pd
 import math
 from traceback import print_exc
@@ -221,7 +221,7 @@ class ScApiDevice:
                 frequency_unit = frequency[index_first:]
                 break
 
-        for item in FREQ_CONV_LUT:
+        for item in config.freq_conv_lut:
             if item[1] == frequency_unit: 
                 rollup_unit = item[0]
                 break

@@ -1,32 +1,4 @@
 ### ---------------------------------------
-### ---------------LOGGING-----------------
-### ---------------------------------------
-
-import logging
-logging.basicConfig(
-    level=logging.ERROR,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-    ]
-)
-
-verbose = True
-def std_out(msg, type_message = None, force = False):
-    if verbose or force: 
-        if type_message is None: 
-            print(msg)  
-        elif type_message == 'SUCCESS': 
-            print(colored(msg, 'green'))
-            logging.info(msg)
-        elif type_message == 'WARNING': 
-            print(colored(msg, 'yellow'))
-            logging.warning(msg, 'WARNING')
-        elif type_message == 'ERROR': 
-            print(colored(msg, 'red'))
-            logging.error(msg)
-
-### ---------------------------------------
 ### ---------------IMPORTS-----------------
 ### ---------------------------------------
 
@@ -44,121 +16,42 @@ import json
 from urllib.request import urlopen
 import requests
 
-# ### ALL
-# from os import pardir, getcwd, makedirs, mkdir, walk
-# from os.path import join, abspath, normpath, basename, , dirname, getsize
-
-# from datetime import datetime, timedelta
-# from tabulate import tabulate
-# from shutil import copyfile
-# import io, pytz, time
-# from dateutil import parser
-# from urllib.request import urlopen
-# import requests
-# from tzwhere import tzwhere
-
-# # FILES
-# import yaml, json
-# import joblib
-# import csv
+from geopy import distance
+from src.config import Config
+config = Config()
 
 ### ---------------------------------------
-### ----------------ZENODO-----------------
+### ---------------LOGGING-----------------
 ### ---------------------------------------
 
-# Urls
-ZENODO_SANDBOX_BASE_URL='http://sandbox.zenodo.org'
-ZENODO_REAL_BASE_URL='https://zenodo.org'
+def std_out(msg, mtype = None):
+    out_level = config.out_level
+    # Output levels:
+    # 'QUIET': nothing, 
+    # 'NORMAL': warn, err
+    # 'DEBUG': info, warn, err, success
+
+    if config.out_level == 'QUIET': priority = 0
+    if config.out_level == 'NORMAL': priority = 1
+    elif config.out_level == 'DEBUG': priority = 2
+
+    if mtype is None and priority>1: 
+        print(msg)  
+    elif mtype == 'SUCCESS' and priority>1: 
+        print(colored(msg, 'green'))
+    elif mtype == 'WARNING' and priority>0: 
+        print(colored(msg, 'yellow'))
+    elif mtype == 'ERROR' and priority>0: 
+        print(colored(msg, 'red'))
 
 ### ---------------------------------------
-### -------------SMART CITIZEN-------------
+### ------------UNIT CONVERTION------------
 ### ---------------------------------------
-
-# Urls
-SENSOR_NAMES_URL_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
-SENSOR_NAMES_URL_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
-
-# Convertion table from API SC to Pandas
-# https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
-# https://developer.smartcitizen.me/#get-historical-readings
-FREQ_CONV_LUT = (
-                    ['y','A'],
-                    ['M','M'],
-                    ['w','W'],
-                    ['d','D'],
-                    ['h','H'],
-                    ['m','Min'],
-                    ['s','S'],
-                    ['ms','ms']
-                )
-
-# AlphaDelta PCB factor (converstion from mV to nA)
-ALPHADELTA_PCB = 6.36
-
-### ---------------------------------------
-### -------------METRICS DATA--------------
-### ---------------------------------------
-
-# Molecular weights of certain pollutants for unit convertion
-MOLECULAR_WEIGHTS = {
-                        'CO': 28, 
-                        'NO': 30, 
-                        'NO2': 46, 
-                        'O3': 48,
-                        'C6H6': 78,
-                        'SO2': 64,
-                        'H2S': 34
-                    }
-# Background concentrations
-BACKGROUND_CONC = {
-                    'CO': 0, 
-                    'NO2': 8, 
-                    'O3': 40
-                }
-
-# This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
-# i.e. pollutant data in various units (ppm or ug/m3) from different analysers
-# The table should be used as follows:
-# 'key': 'units',
-# - 'key' is the channel that will lately be used in the analysis. It supports regex
-# - target_unit is the unit you want this channel to be and that will be converted in case of it being found in the channels list of your source
-CHANNEL_LUT = {
-                "TEMP": "degC",
-                "HUM": "%rh",
-                "PRESS": "kPa",
-                "PM_(\d|[A,B]_\d)": "ug/m3",
-                "CO(\D|$)": "ppm",
-                "NO": "ppb",
-                "NO2": "ppb",
-                "NOX": "ppb",
-                "O3": "ppb",
-                "C6H6": "ppb",
-                "H2S": "ppb",
-                "SO2": "ppb"
-            }
-
-# This table is used to convert units
-# ['from_unit', 'to_unit', 'multiplicative_factor']
-# - 'from_unit'/'to_unit' = 'multiplicative_factor'
-# It accepts reverse operations - you don't need to put them twice but in reverse
-UNIT_CONVERTION_LUT = (
-                        ['ppm', 'ppb', 1000],
-                        ['mg/m3', 'ug/m3', 1000],
-                        ['mgm3', 'ugm3', 1000],
-                        ['mg/m3', 'ppm', 24.45],
-                        ['mgm3', 'ppm', 24.45],
-                        ['ug/m3', 'ppb', 24.45],
-                        ['ugm3', 'ppb', 24.45],
-                        ['mg/m3', 'ppb', 1000*24.45],
-                        ['mgm3', 'ppb', 1000*24.45],
-                        ['ug/m3', 'ppm', 1./1000*24.45],
-                        ['ugm3', 'ppm', 1./1000*24.45]
-                    )
 
 def get_units_convf(sensor, from_units):
     """
     Returns a factor which will be multiplied to sensor. It accounts for unit
-    convertion based on the desired units in the CHANNEL_LUT for each sensor.
+    convertion based on the desired units in the config.channel_lut for each sensor.
     channel_converted = factor * sensor
     Parameters
     ----------
@@ -174,27 +67,32 @@ def get_units_convf(sensor, from_units):
         This would need to be changed if all pollutants were to be expresed in 
         mass units, instead of ppm/b
     """
-
-    for channel in CHANNEL_LUT.keys():
+    rfactor = None
+    for channel in config.channel_lut.keys():
         if not (search(channel, sensor)): continue
         # Molecular weight in case of pollutants
-        for pollutant in MOLECULAR_WEIGHTS.keys(): 
+        for pollutant in config.molecular_weights.keys(): 
             if search(channel, pollutant): 
-                molecular_weight = MOLECULAR_WEIGHTS[pollutant]
+                molecular_weight = config.molecular_weights[pollutant]
                 break
             else: molecular_weight = 1
         
         # Check if channel is in look-up table
-        if CHANNEL_LUT[channel] != from_units: 
-            std_out(f"Converting units for {sensor}. From {from_units} to {CHANNEL_LUT[channel]}")
-            for unit in UNIT_CONVERTION_LUT:
+        if config.channel_lut[channel] != from_units: 
+            std_out(f"Converting units for {sensor}. From {from_units} to {config.channel_lut[channel]}")
+            for unit in config.unit_convertion_lut:
                 # Get units
-                if unit[0] == from_units: factor = unit[2]; break
-                elif unit[1] == from_units: factor = 1/unit[2]; break
+                if unit[0] == from_units: 
+                    factor = unit[2]
+                    break
+                elif unit[1] == from_units: 
+                    factor = 1/unit[2]
+                    break
             rfactor = factor/molecular_weight
         else: 
             std_out(f"No units conversion needed for {sensor}")
             rfactor = 1
+        if rfactor is not None: break
 
     return rfactor
 
@@ -214,20 +112,6 @@ try:
 except:
     std_out('Cannot use inventory without path in secrets', 'WARNING')
     pass
-
-### ---------------------------------------
-### ----------------CONFIG-----------------
-### ---------------------------------------
-try:
-    config_path = join(paths['rootDirectory'], 'src', 'config.yaml')
-    with open(config_path, 'r') as config_yaml:
-        std_out(f'Loading configuration file from: {config_path}')
-        configuration = yaml.load(config_yaml, Loader=yaml.SafeLoader)
-        std_out('Loaded configuration file')
-except:
-    std_out('Error loading configuration file', 'ERROR')
-    raise SystemError('Problem loading configuration file')
-
 
 ### ---------------------------------------
 ### --------------BLUEPRINTS---------------
@@ -274,7 +158,7 @@ std_out(f'Merged blueprints', 'SUCCESS')
 ### ---------------------------------------
 ### -------------SENSOR NAMES--------------
 ### ---------------------------------------
-def get_firmware_names(sensorsh, json_path, file_name, reload_names = True):
+def get_firmware_names(sensorsh, json_path, file_name, reload_names = config.reload_firmware_names):
     # Directory
     names_dict = join(json_path, file_name + '.json')
     
@@ -339,8 +223,8 @@ def get_firmware_names(sensorsh, json_path, file_name, reload_names = True):
 
     return sensor_names
 
-sensor_names_21 = get_firmware_names(SENSOR_NAMES_URL_21, join(paths['interimDirectory']), 'sensornames_21', configuration['data']['reload_firmware_names'])
-sensor_names_20 = get_firmware_names(SENSOR_NAMES_URL_20, join(paths['interimDirectory']), 'sensornames_20', configuration['data']['reload_firmware_names'])
+sensor_names_21 = get_firmware_names(config.sensor_names_url_21, join(paths['interimDirectory']), 'sensornames_21')
+sensor_names_20 = get_firmware_names(config.sensor_names_url_20, join(paths['interimDirectory']), 'sensornames_20')
 CURRENT_NAMES = {**sensor_names_21, **sensor_names_20}
 
 # Update blueprints
@@ -438,9 +322,9 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
         makedirs(path)
 
     # If file does not exist 
-    if not exists(path + '/' + file_name + '.csv') or forced_overwrite:
-        df.to_csv(path + '/' + file_name + '.csv', sep=",")
-        std_out('File saved to: \n' + path + '/' + file_name +  '.csv', 'SUCCESS')
+    if not exists(path + '/' + str(file_name) + '.csv') or forced_overwrite:
+        df.to_csv(path + '/' + str(file_name) + '.csv', sep=",")
+        std_out('File saved to: \n' + path + '/' + str(file_name) +  '.csv', 'SUCCESS')
     else:
         std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'WARNING')
         return False
@@ -459,3 +343,24 @@ def get_localised_date(date, location):
         result_date = None
 
     return result_date
+
+### ---------------------------------------
+### -------------LOC FUNCTIONS-------------
+### --------------------------------------- 
+def calculate_distance(location_A, location_B):
+    """
+    Returns distance from two locations in (lat, long, altitude)
+    Parameters
+    ----------
+        location_A: tuple()
+            (lat, long, altitude [optional])
+            Latitude, longitude and altitude (optional) of first location
+        location_B: tuple()
+            (lat, long, altitude [optional])
+            Latitude, longitude and altitude (optional) of second location
+    Returns
+    -------
+        Distance between two points in meters
+    """    
+    
+    return distance.distance(location_A, location_B).m

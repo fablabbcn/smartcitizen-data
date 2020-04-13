@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 
 from src.saf import std_out, get_units_convf
-from src.saf import ALPHADELTA_PCB, BACKGROUND_CONC, CALIBRATION_DATA
+from src.saf import config, CALIBRATION_DATA
 
 class LazyCallable(object):
     '''
@@ -44,7 +44,6 @@ def sum(dataframe, *args):
 def baseline_dcalc(dataframe, **kwargs):
     return dataframe[kwargs['working']]
 
-# TODO
 def basic_4electrode_alg(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
@@ -59,7 +58,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, BACKGROUND_CONC, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
     Returns
     -------
         calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
@@ -88,14 +87,14 @@ def basic_4electrode_alg(dataframe, **kwargs):
     if target_1 != kwargs['pollutant']: 
         std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
         return None
-        
+
     # This is always in ppm since the calibration data is in signal/ppm
-    result = ALPHADELTA_PCB*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
+    result = config.alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
 
     # Convert units
     result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     # Add Background concentration
-    result += BACKGROUND_CONC[kwargs['pollutant']]
+    result += config.background_conc[kwargs['pollutant']]
 
     return result
 
@@ -221,7 +220,7 @@ def merge_ts(dataframe, **kwargs):
 
     return df['result']
 
-def rolling_avg(dataframe, *kwargs):
+def rolling_avg(dataframe, **kwargs):
     """
     Performs pandas.rolling with input
     Parameters
@@ -252,9 +251,7 @@ def rolling_avg(dataframe, *kwargs):
     if 'window_type' in kwargs: win_type = kwargs['window_type']
     else: win_type = None
 
-    result.rolling(window = window, win_type = win_type).mean()
-
-    return result
+    return result.rolling(window = window, win_type = win_type).mean()
     
 # TODO
 def absolute_humidity(dataframe, **kwargs):

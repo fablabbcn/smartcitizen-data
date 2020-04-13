@@ -1,5 +1,5 @@
 from src.saf import std_out
-from src.saf import paths, configuration
+from src.saf import paths, config
 from src.data.test import Test
 from traceback import print_exc
 from os import walk
@@ -104,7 +104,7 @@ class Data(object):
 		
 		if test_name in self.tests.keys(): 
 			std_out('Test loaded successfully', 'SUCCESS', force = True)
-			return True
+			return test_name
 		std_out(f'Test {test_name} not-loaded successfully', 'ERROR')	
 		return False
 
@@ -126,7 +126,7 @@ class Data(object):
 
 		if tname in self.tests.keys(): 
 			std_out('Test loaded successfully', 'SUCCESS', force = True)
-			return True
+			return tname
 		std_out(f'Test {tname} not-loaded successfully', 'ERROR')	
 		return False		
 
@@ -176,8 +176,8 @@ class Data(object):
 		
 		try: 
 			std_out(f'Combining devices for {test_name}')
-			if configuration['data']['combined_devices_name'] in self.tests[test_name].devices.keys(): 
-				self.tests[test_name].devices.pop(configuration['data']['combined_devices_name'], None)
+			if config.combined_devices_name in self.tests[test_name].devices.keys(): 
+				self.tests[test_name].devices.pop(config.combined_devices_name, None)
 			ignore_keys = []
 			if 'models' in vars(self.tests[test_name]).keys():
 				ignore_keys = self.tests[test_name].models.keys()
@@ -196,12 +196,12 @@ class Data(object):
 					dataframe = self.tests[test_name].devices[device].readings.copy()
 					dataframe.columns = new_names
 					dataframe_result = dataframe_result.combine_first(dataframe)
-			self.tests[test_name].devices[configuration['data']['combined_devices_name']] = device_wrapper({'name': configuration['data']['combined_devices_name'],
+			self.tests[test_name].devices[config.combined_devices_name] = device_wrapper({'name': config.combined_devices_name,
 																					'frequency': '1Min',
 																					 'type': '',
 																					 'source': ''}, self)
 
-			self.tests[test_name].devices[configuration['data']['combined_devices_name']].readings = dataframe_result
+			self.tests[test_name].devices[config.combined_devices_name].readings = dataframe_result
 		except:
 			std_out('Error ocurred while combining data. Review data', 'ERROR')
 			print_exc()
@@ -217,7 +217,7 @@ class Data(object):
 		# Create structure for multiple training
 		if len(test_names) > 1: 
 			multiple_training = True
-			combined_name = model.name + '_' + configuration['models']['name_multiple_training_data']
+			combined_name = model.name + '_' + config.name_multiple_training_data
 			frames = list()
 		else:
 			multiple_training = False
@@ -254,7 +254,7 @@ class Data(object):
 						list_features_multiple.append(feature_name_multiple)
 					
 					# Get features from data only and pre-process non-numeric data
-					dataframeModel = self.tests[test_name].devices[configuration['data']['combined_devices_name']].readings.loc[:,list_features]
+					dataframeModel = self.tests[test_name].devices[config.combined_devices_name].readings.loc[:,list_features]
 					
 					# Remove device names if multiple training
 					if multiple_training:
@@ -428,8 +428,8 @@ class Data(object):
 		# Sandbox or not
 		if sandbox: 
 			std_out(f'Using sandbox. Verify output before setting sandbox to False', 'WARNING')
-			base_url = self.config['urls']['ZENODO_SANDBOX_BASE_URL']
-		else: base_url = self.config['urls']['ZENODO_REAL_BASE_URL']
+			base_url = config.zenodo_sandbox_base_url
+		else: base_url = config.zenodo_real_base_url
 		
 		if '.yaml' not in upload_descriptor_name: upload_descriptor_name = upload_descriptor_name + '.yaml'
 		

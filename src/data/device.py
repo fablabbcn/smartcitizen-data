@@ -58,7 +58,7 @@ class Device(object):
                     if df is not None: self.readings = self.readings.combine_first(df)
                 else:
                     # Cached case
-                    self.readings = self.readings.combine_first(read_csv_file(join(path, self.id + '.csv'), self.location, self.options['frequency'], 
+                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'), self.location, self.options['frequency'], 
                                                             self.options['clean_na'], self.sources['csv']['index']))
         
         except FileNotFoundError:
@@ -69,10 +69,22 @@ class Device(object):
             self.loaded = False
         else:
             if self.readings is not None: 
-                self.loaded = True
-                if convert_units: self.convert_units()
+                self.check_sensors()
+
+                if not self.readings.empty: 
+                    self.loaded = True
+                    if convert_units: self.convert_units()
         finally:
             return self.loaded
+
+    def check_sensors(self):
+        remove_sensors = list()
+        for sensor in self.sensors:
+            if sensor not in self.readings.columns: remove_sensors.append(sensor)
+
+        if remove_sensors != []: std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
+        for sensor_to_remove in remove_sensors: self.sensors.pop(sensor_to_remove, None)
+        std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
 
     # TODO VERIFY
     def convert_names(self):
@@ -90,34 +102,14 @@ class Device(object):
             for the readings but never chached like so.
         '''
         std_out('Checking if units need to be converted')
+        for sensor in self.sensors:
 
-        for sensor in self.sensors.keys():
             factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
+            
             if factor != 1:
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
 
-            # for channel in CHANNEL_LUT.keys():
-            #     if not (search(channel, sensor)): continue
-            #     # Molecular weight in case of pollutants
-            #     for pollutant in MOLECULAR_WEIGHTS.keys(): 
-            #         if search(channel, pollutant): 
-            #             molecular_weight = MOLECULAR_WEIGHTS[pollutant]
-            #             break
-            #         else: molecular_weight = 1
-                
-            #     # Check if channel is in look-up table
-            #     if CHANNEL_LUT[channel] != self.sensors[sensor]['units']: 
-            #         std_out(f"Converting units for {sensor}. From {self.sensors[sensor]['units']} to {CHANNEL_LUT[channel]}")
-            #         for unit in UNIT_CONVERTION_LUT:
-            #             # Get units
-            #             if unit[0] == self.sensors[sensor]['units']: factor = unit[2]; break
-            #             elif unit[1] == self.sensors[sensor]['units']: factor = 1/unit[2]; break
-            #         # Convert channels
-            #         self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
-            #         self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor/molecular_weight
-            #     else: std_out(f"No units conversion needed for {sensor}")
-    
     def process(self):
         process_ok = True
 
@@ -127,38 +119,61 @@ class Device(object):
 
         std_out('---------------------------')
         std_out(f'Processing device {self.id}')
+
         for metric in self.metrics:
             std_out(f'Processing {metric}')
-            process_ok &= self.add_metric({metric: self.metrics[metric]})
+
+            try:
+                # metricn = next(iter(self.metrics[metric].keys()))
+                funct = LazyCallable(f"src.models.process.{self.metrics[metric]['process']}")
+            except:
+                print_exc()
+                process_ok &= False
+
+            args, kwargs = list(), dict()
+        
+            if 'args' in self.metrics[metric]: args = self.metrics[metric]['args']
+            if 'kwargs' in self.metrics[metric]: kwargs = self.metrics[metric]['kwargs']
+
+            try:
+                self.readings[metric] = funct(self.readings, *args, **kwargs)
+            except KeyError:
+                std_out('Metric args not in dataframe', 'ERROR')
+                pass
+        
+            if metric in self.readings: process_ok &= True
+
         return process_ok
 
     def add_metric(self, metric = dict()):
+
+        if 'metrics' not in vars(self): 
+            std_out(f'Device {self.id} has no metrics yet. Adding')
+            self.metrics = dict()
+
         try:
             metricn = next(iter(metric.keys()))
-            funct = LazyCallable(f"src.models.process.{metric[metricn]['process']}")
+            self.metrics[metricn] = metric[metricn]
         except:
             print_exc()
             return False
 
-        args, kwargs = list(), dict()
-        
-        if 'args' in metric[metricn]: args = metric[metricn]['args']
-        if 'kwargs' in metric[metricn]: kwargs = metric[metricn]['kwargs']
-
-        self.readings[metricn] = funct(self.readings, *args, **kwargs)
-        
-        if metricn in self.readings: return True
-        return False
+        std_out(f'Metric {metric} added to metrics', 'SUCCESS')
+        return True
 
     def del_metric(self, metricn = ''):
+
+        if metricn in self.metrics: self.metrics.pop(metricn, None)
         if metricn in self.readings.columns: self.readings.__delitem__(metricn)
         
-        if metricn not in self.readings: return True
+        if metricn not in self.readings and metricn not in self.metrics:
+            std_out(f'Metric {metricn} removed from metrics', 'SUCCESS')
+            return True
         return False        
 
     def export(self, path = '', forced_overwrite = False):
         # Export device
-        return export_csv_file(path, self.id, self.readings, forced_overwrite = forced_overwrite)
+        return export_csv_file(path, str(self.id), self.readings, forced_overwrite = forced_overwrite)
 
     # TODO
     def capture(self):

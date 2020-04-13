@@ -1,7 +1,7 @@
 from os import makedirs, walk
 from os.path import join, exists
 from shutil import copyfile
-from src.saf import paths, configuration
+from src.saf import paths, config
 from src.saf import std_out, read_csv_file, export_csv_file, get_localised_date
 from src.data.device import Device
 from traceback import print_exc
@@ -21,7 +21,11 @@ class Test(object):
         self.descriptor['id'] = self.name
         self.cached_info = dict()
         self.ready_to_model = False
-        self.options = configuration['test']
+        self.options = {  
+                        'cached_data_margin': config.cached_data_margin,
+                        'load_cached_API': config.load_cached_API,
+                        'store_cached_API': config.store_cached_API
+                        }
 
     def make(self):
         std_out('Creating new test')
@@ -129,11 +133,11 @@ class Test(object):
         def date_parser(s, a):
             return parser.parse(s).replace(microsecond=int(a[-3:])*1000)
 
-        # Define Paths
+        # Define paths
         raw_src_path = join(paths['dataDirectory'], 'raw')
         raw_dst_path = join(self.path, 'raw')
 
-        # Create Paths
+        # Create paths
         if not exists(raw_dst_path): makedirs(raw_dst_path)
         
         # Get raw files
@@ -251,7 +255,8 @@ class Test(object):
                 else:
                     if self.options['load_cached_API']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
                     min_date_to_load = min_date_device
-                    max_date_to_load = max_date_device                    
+                    max_date_to_load = max_date_device
+                    last_reading_api = None               
                     load_API = True
                 
                 # Load data from API if necessary
@@ -281,9 +286,9 @@ class Test(object):
                             std_out('Requesting up to max available date in the API {}'.format(last_reading_api))
                             max_date_to_load = last_reading_api
 
-                    else:
-                        std_out('Discarding device. No max date available', 'WARNING')
-                        continue
+                    # else:
+                    #     std_out('Discarding device. No max date available', 'WARNING')
+                    #     continue
 
                     self.options['min_date'] = min_date_to_load
                     self.options['max_date'] = max_date_to_load
