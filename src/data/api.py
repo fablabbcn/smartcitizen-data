@@ -42,7 +42,7 @@ class ScApiDevice:
         self.devicejson = None
     
     @staticmethod
-    def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any'):
+    def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
         """
         Gets devices from Smart Citizen API with certain requirements
         Parameters
@@ -66,9 +66,13 @@ class ScApiDevice:
             tag_method: string
                 'any'
                 'any' or 'all'. Checks if 'all' the tags are to be included in the tags or it could be any
+            full: bool
+                False
+                Returns a list with if False, or the whole dataframe if True
         Returns
         -------
-            A list of kit IDs that comply with the requirements. If no requirements are set, returns all of them
+            A list of kit IDs that comply with the requirements, or the full df, depending on full. 
+            If no requirements are set, returns all of them
         """
         def is_within_circle(x, within):
             if math.isnan(x['latitude']): return False
@@ -99,7 +103,8 @@ class ScApiDevice:
                 df['has_tags'] = df.apply(lambda x: all(tag in x['system_tags']+x['user_tags'] for tag in tags), axis=1)
             df=df[(df['has_tags']==True)]
         
-        return list(df.index)
+        if full: return df
+        else: return list(df.index)
     
     def get_mac(self):
         if self.mac is None:
