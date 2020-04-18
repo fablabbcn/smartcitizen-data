@@ -13,10 +13,13 @@ A full documentation of the framework is detailed in [the Smart Citizen Docs](ht
 - Interacting with several sensors APIs (see [here](src/data/api.py))
 - Clean data, export and calculate metrics
 - Model sensor data and calibrate sensors
-- Generate analysis reports and upload them to [Zenodo](http://zenodo.org)
 - Generate data visualisations:
 
 ![](assets/images/covid-noise.png)
+
+- Generate analysis reports and upload them to [Zenodo](http://zenodo.org)
+
+![](assets/images/Workflow.png)
 
 ## Funding
 
