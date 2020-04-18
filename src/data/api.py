@@ -162,7 +162,8 @@ class ScApiDevice:
             latitude, longitude = self.get_device_lat_long()
             # Localize it
             tz_where = tzwhere.tzwhere()
-            self.location = tz_where.tzNameAt(latitude, longitude)
+            if latitude is not None and longitude is not None:
+                self.location = tz_where.tzNameAt(latitude, longitude)
 
         std_out ('Device {} timezone is {}'.format(self.id, self.location))               
         
@@ -180,7 +181,7 @@ class ScApiDevice:
                 self.lat = latitude
                 self.long = longitude
         
-        std_out ('Device {} is located at {}, {}'.format(self.id, latitude, longitude))        
+        std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))        
         
         return (self.lat, self.long)
     
@@ -249,6 +250,8 @@ class ScApiDevice:
         self.get_device_added_at()
         self.get_kit_ID()
 
+        if self.location is None: return None
+
         # Check start date
         if start_date is None and self.added_at is not None:
             start_date = pd.to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ')
@@ -303,14 +306,17 @@ class ScApiDevice:
                 std_out('Problem with json data from API', 'ERROR')
                 flag_error = True
                 pass
+                continue
             
             if 'readings' not in sensorjson.keys(): 
                 std_out(f'No readings key in request for sensor: {sensor_id}', 'ERROR')
                 flag_error = True
+                continue
             
             elif sensorjson['readings'] == []: 
                 std_out(f'No data in request for sensor: {sensor_id}', 'WARNING')
                 flag_error = True
+                continue
 
             if flag_error: continue
 
@@ -334,10 +340,9 @@ class ScApiDevice:
                 print_exc()
                 std_out('Problem with sensor data from API', 'ERROR')
                 flag_error = True
-                pass                
-
-            if flag_error: continue
-
+                pass
+                continue
+                
             try:
                 df = df.reindex(df.index.rename('Time'))
                 
@@ -355,7 +360,7 @@ class ScApiDevice:
                 pass
                 return None
 
-        std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
+        if flag_error == False: std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
 class MuvApiDevice:

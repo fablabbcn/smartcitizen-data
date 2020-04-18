@@ -77,7 +77,7 @@ class Data(object):
 					summary_dict[device].append(min(100,summary_dict[device][-1]/summary_dict[device][2]*100))
 				else:
 					summary_dict[device] = [None, None]
-			std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt), force = True)
+			std_out(tabulate(summary_dict, numalign='right', headers="keys", tablefmt=tablefmt))
 
 			return summary_dict
 		else:
@@ -103,7 +103,7 @@ class Data(object):
 		self.tests[test_name] = test
 		
 		if test_name in self.tests.keys(): 
-			std_out('Test loaded successfully', 'SUCCESS', force = True)
+			std_out('Test loaded successfully', 'SUCCESS')
 			return test_name
 		std_out(f'Test {test_name} not-loaded successfully', 'ERROR')	
 		return False
@@ -125,7 +125,7 @@ class Data(object):
 		self.tests[tname] = test
 
 		if tname in self.tests.keys(): 
-			std_out('Test loaded successfully', 'SUCCESS', force = True)
+			std_out('Test loaded successfully', 'SUCCESS')
 			return tname
 		std_out(f'Test {tname} not-loaded successfully', 'ERROR')	
 		return False		
@@ -336,7 +336,7 @@ class Data(object):
 		# For each kit in the requested reading, calculate the pollutants
 		for device in self.tests[test_name].devices.keys():
 			if 'alphasense' in vars(self.tests[test_name].devices[device]).keys():
-				std_out('Calculating test {} for kit {}'.format(test_name, device), force = True)
+				std_out('Calculating test {} for kit {}'.format(test_name, device))
 				
 				 # Get sensor information
 				sensorSlots = self.tests[test_name].devices[device].alphasense['slots']
@@ -369,7 +369,7 @@ class Data(object):
 						_currentSensorNames = self.currentSensorNames)
 				self.tests[test_name].devices[device].alphasense['model_stats'].update(correlationMetrics)
 
-		std_out('Calculation of test {} finished'.format(test_name), force = True)
+		std_out('Calculation of test {} finished'.format(test_name))
 
 	def upload_to_zenodo(self, upload_descriptor_name, sandbox = True, dry_run = True):
 		'''
@@ -489,7 +489,7 @@ class Data(object):
 							std_out(f"{upload_metadata['name']} submitted with submission ID = {submission_id} (DOI: 10.5281/zenodo.{submission_id})" ,"SUCCESS")    
 						
 						# Load the api devices to have them up to date in the cache
-						if any(yaml_test_descriptor['devices'][device]['source'] == 'api' for device in yaml_test_descriptor['devices'].keys()): self.load_test(test, options = {'store_cached_API': True})
+						if any(yaml_test_descriptor['devices'][device]['source'] == 'api' for device in yaml_test_descriptor['devices'].keys()): self.load_test(test, options = {'store_cached_api': True})
 						
 						for device in yaml_test_descriptor['devices'].keys():
 							std_out(f'Uploading data from device {device}')

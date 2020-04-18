@@ -23,8 +23,8 @@ class Test(object):
         self.ready_to_model = False
         self.options = {  
                         'cached_data_margin': config.cached_data_margin,
-                        'load_cached_API': config.load_cached_API,
-                        'store_cached_API': config.store_cached_API
+                        'load_cached_api': config.load_cached_api,
+                        'store_cached_api': config.store_cached_api
                         }
 
     def make(self):
@@ -166,8 +166,8 @@ class Test(object):
         std_out(f'Test {self.name} path: {self.path}')
 
     def set_options(self, options):
-        if 'load_cached_API' in options.keys(): self.options['load_cached_API'] = options['load_cached_API']
-        if 'store_cached_API' in options.keys(): self.options['store_cached_API'] = options['store_cached_API']
+        if 'load_cached_api' in options.keys(): self.options['load_cached_api'] = options['load_cached_api']
+        if 'store_cached_api' in options.keys(): self.options['store_cached_api'] = options['store_cached_api']
         if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
         if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
         if 'min_date' in options.keys(): self.options['min_date'] = options['min_date'] 
@@ -176,7 +176,7 @@ class Test(object):
     def load(self, options):
         
         # Load descriptor
-        std_out(f'Loading test {self.name}', force = True)
+        std_out(f'Loading test {self.name}')
         with open(join(self.path, 'test_description.yaml'), 'r') as descriptor_file:
             self.descriptor = yaml.load(descriptor_file, Loader = yaml.FullLoader)
 
@@ -208,7 +208,7 @@ class Test(object):
                 if 'get_device_last_reading' in dir(device.api_device): 
                     last_reading_api = get_localised_date(device.api_device.get_device_last_reading(), device.location)
 
-                    if self.options['load_cached_API']:
+                    if self.options['load_cached_api']:
                         std_out(f'Checking if we can load cached data')
                         if not device.load(options = self.options, path = join(self.path, 'cached'), convert_units = False):
 
@@ -224,6 +224,9 @@ class Test(object):
 
                             # Get last reading from cached
                             last_reading_cached = get_localised_date(device.readings.index[-1], device.location)
+                            print (device.readings.index[-1])
+                            std_out(f'Last cached date {last_reading_cached}')
+                            std_out(f'Last reading in API {last_reading_api}')
 
                             # Check which dates to load
                             if max_date_device is not None:
@@ -240,7 +243,7 @@ class Test(object):
                                     std_out('No need to load new data from API', 'SUCCESS')
                             else:
                                 # If no test data specified, check the last reading in the API
-                                if last_reading_api > last_reading_cached + timedelta(hours=self.options['cached_data_margin']):
+                                if last_reading_api > (last_reading_cached + timedelta(hours=self.options['cached_data_margin'])):
                                     load_API = True
                                     combine_cache_API = True
                                     min_date_to_load = last_reading_cached
@@ -253,7 +256,7 @@ class Test(object):
                         min_date_to_load = min_date_device
                         max_date_to_load = max_date_device
                 else:
-                    if self.options['load_cached_API']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
+                    if self.options['load_cached_api']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
                     min_date_to_load = min_date_device
                     max_date_to_load = max_date_device
                     last_reading_api = None               
@@ -298,7 +301,7 @@ class Test(object):
             elif device.source == 'csv':
                 device.load(options = self.options, path = self.path)
                 
-            if self.options['store_cached_API'] and device.loaded and device.source == 'api' and load_API:
+            if self.options['store_cached_api'] and device.loaded and device.source == 'api' and load_API:
 
                 std_out(f'Caching files for {device.id}')
 

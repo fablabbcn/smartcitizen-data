@@ -338,7 +338,12 @@ def get_localised_date(date, location):
 
     if date is not None:
         result_date = pd.to_datetime(date, utc = True)
-        if result_date.tzinfo is None: result_date = result_date.tz_convert(location)
+        if result_date.tzinfo is not None: 
+            result_date = result_date.tz_convert(location)
+        else:
+            result_date = result_date.tz_localize(location)
+            print ('None')
+
     else: 
         result_date = None
 

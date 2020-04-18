@@ -35,8 +35,9 @@ class Device(object):
         if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
         else: self.options['clean_na'] = self.clean_na
         if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
-        else: self.options['frequency'] = self.frequency        
-   
+        elif self.frequency is not None: self.options['frequency'] = self.frequency
+        else: self.options['frequency'] = '1Min'
+
     def load(self, options = None, path = None, convert_units = True):
         # Add test overrides if we have them, otherwise set device defaults
         if options is not None: self.check_overrides(options)
@@ -60,9 +61,8 @@ class Device(object):
                     # Cached case
                     self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'), self.location, self.options['frequency'], 
                                                             self.options['clean_na'], self.sources['csv']['index']))
-        
         except FileNotFoundError:
-            std_out('File does not exist', 'ERROR')
+            std_out('File not found', 'ERROR')
             self.loaded = False
         except:
             print_exc()
@@ -70,7 +70,6 @@ class Device(object):
         else:
             if self.readings is not None: 
                 self.check_sensors()
-
                 if not self.readings.empty: 
                     self.loaded = True
                     if convert_units: self.convert_units()
