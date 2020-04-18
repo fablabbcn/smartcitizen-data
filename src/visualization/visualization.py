@@ -23,6 +23,7 @@ class Plot(object):
 				library: Defines the library to use. Current available types are:
 					- matplotlib
 					- plotly
+				TODO: ADD all parameters
 	    Returns
 	    -------
 	        None. Shows plot if requested
@@ -81,13 +82,13 @@ class Plot(object):
 				# Put it in list
 				if type(devicens) == str or type(devicens) == int: devicens = [devicens]
 				for devicen in devicens:
-					if channel not in data.tests[test].devices[devicen].readings.columns: continue
+					if channel not in data.tests[test].devices[str(devicen)].readings.columns: continue
 					# Put channel in subplots_list
 					self.subplots_list[self.data['traces'][trace]['subplot']-1].append(channel + '_' + str(devicen))
 					# Dataframe
-					df = pd.DataFrame(data.tests[test].devices[devicen].readings[channel].values, 
+					df = pd.DataFrame(data.tests[test].devices[str(devicen)].readings[channel].values, 
 									  columns = [channel + '_' + str(devicen)],
-									  index = data.tests[test].devices[devicen].readings.index)
+									  index = data.tests[test].devices[str(devicen)].readings.index)
 					
 					# Combine it in the df
 					self.df = self.df.combine_first(df)
@@ -478,7 +479,7 @@ class Plot(object):
 				number_of_subplots = len(self.df.columns) 
 				if number_of_subplots % 2 == 0: cols = 2
 				else: cols = 3
-				rows = int(math.ceil(number_of_subplots / cols))
+				rows = int(ceil(number_of_subplots / cols))
 				gs = gridspec.GridSpec(rows, cols)
 				fig = plt.figure(figsize=(self.formatting['width'], self.formatting['height']*rows/2))
 
