@@ -38,11 +38,11 @@ def std_out(msg, mtype = None):
     if mtype is None and priority>1: 
         print(msg)  
     elif mtype == 'SUCCESS' and priority>1: 
-        print(colored(msg, 'green'))
+        print(colored('[SUCCESS]: ', 'green') + msg)
     elif mtype == 'WARNING' and priority>0: 
-        print(colored(msg, 'yellow'))
+        print(colored('[WARNING]: ', 'yellow') + msg)
     elif mtype == 'ERROR' and priority>0: 
-        print(colored(msg, 'red'))
+        print(colored('[ERROR]: ', 'red') + msg)
 
 ### ---------------------------------------
 ### ------------UNIT CONVERTION------------
