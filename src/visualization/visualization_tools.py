@@ -27,7 +27,11 @@ from traceback import print_exc
 
 '''
 Available styles
-['_classic_test', 'bmh', 'classic', 'dark_background', 'fast', 'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn-bright', 'seaborn-colorblind', 'seaborn-dark-palette', 'seaborn-dark', 'seaborn-darkgrid', 'seaborn-deep', 'seaborn-muted', 'seaborn-notebook', 'seaborn-paper', 'seaborn-pastel', 'seaborn-poster', 'seaborn-talk', 'seaborn-ticks', 'seaborn-white', 'seaborn-whitegrid', 'seaborn', 'Solarize_Light2', 'tableau-colorblind10']
+['_classic_test', 'bmh', 'classic', 'dark_background', 'fast', 'fivethirtyeight', 'ggplot', 
+'grayscale', 'seaborn-bright', 'seaborn-colorblind', 'seaborn-dark-palette', 'seaborn-dark', 
+'seaborn-darkgrid', 'seaborn-deep', 'seaborn-muted', 'seaborn-notebook', 'seaborn-paper', 
+'seaborn-pastel', 'seaborn-poster', 'seaborn-talk', 'seaborn-ticks', 'seaborn-white', 
+'seaborn-whitegrid', 'seaborn', 'Solarize_Light2', 'tableau-colorblind10']
 '''
 
 markers = ["o" ,"v" ,"^" ,"<" ,">" ,"1" ,"2" ,"3" ,"4" ,"8" ,"s" ,"p" ,"P" ,"*" ,"h" ,"H" ,"+" ,"x" ,"X" ,"D" ,"d" ,"|", "_"]
@@ -231,8 +235,8 @@ def device_history_map(map_type = 'dynamic', dataframe = None, options = dict())
                         'times': dataframe.loc[sensor, 'date_list'],
                         'icon': options['icon'],
                         'iconstyle': {
-                            'fillColor': dataframe.loc[sensor, 'color'],
                             'fillOpacity': options['fillOpacity'],
+                            'fillColor': dataframe.loc[sensor, 'color'],
                             'stroke': options['stroke'],
                             'radius': options['radius']
                         },

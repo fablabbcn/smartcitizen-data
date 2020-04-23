@@ -251,7 +251,12 @@ def rolling_avg(dataframe, **kwargs):
     if 'window_type' in kwargs: win_type = kwargs['window_type']
     else: win_type = None
 
-    return result.rolling(window = window, win_type = win_type).mean()
+    if 'type' in kwargs: 
+        if kwargs['type'] == 'mean': return result.rolling(window = window, win_type = win_type).mean()
+        if kwargs['type'] == 'max': return result.rolling(window = window, win_type = win_type).max()
+        if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()
+    else:
+        return result.rolling(window = window, win_type = win_type).mean()
     
 # TODO
 def absolute_humidity(dataframe, **kwargs):
