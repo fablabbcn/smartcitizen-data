@@ -1,8 +1,0 @@
-# Jupyter widgets extension
-jupyter labextension install @jupyter-widgets/jupyterlab-manager@1.0
-jupyter labextension install @jupyterlab/toc
-conda install -c conda-forge jupyter_nbextensions_configurator
-# Plotly jupyterlab renderer support
-jupyter labextension install jupyterlab-plotly
-# Jupyterlab cell support
-jupyter labextension install @jupyterlab/celltags

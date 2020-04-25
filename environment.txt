@@ -1,0 +1,359 @@
+# packages in environment at /Users/macoscar/opt/miniconda3/envs/smartcitizen-data:
+#
+# Name                    Version                   Build  Channel
+_anaconda_depends         2019.03                  py37_0  
+_tflow_select             2.3.0                       mkl  
+absl-py                   0.7.1                    py37_0    conda-forge
+alabaster                 0.7.12                   py37_0  
+altair                    4.0.1                    pypi_0    pypi
+anaconda                  custom                   py37_1  
+anaconda-client           1.7.2                    py37_0  
+anaconda-project          0.8.3                      py_0    conda-forge
+applaunchservices         0.2.1                      py_0    conda-forge
+appnope                   0.1.0                    py37_0    conda-forge
+appscript                 1.1.0            py37h1de35cc_0  
+argh                      0.26.2                   py37_0  
+asn1crypto                0.24.0                   py37_0  
+astor                     0.7.1                    py37_0  
+astroid                   2.2.5                    py37_0    conda-forge
+astropy                   3.2.1            py37h1de35cc_0  
+atomicwrites              1.3.0                    py37_1  
+attrs                     19.1.0                   py37_1  
+autopep8                  1.4.4                      py_0    conda-forge
+babel                     2.7.0                      py_0    conda-forge
+backcall                  0.1.0                    py37_0  
+backports                 1.0                        py_2    conda-forge
+backports.os              0.1.1                    py37_0  
+backports.shutil_get_terminal_size 1.0.0                    py37_2  
+base58                    1.0.3                    pypi_0    pypi
+beautifulsoup4            4.7.1                    py37_1  
+bitarray                  0.9.3            py37h1de35cc_0  
+bkcharts                  0.2                      py37_0  
+blas                      1.0                         mkl  
+bleach                    3.1.0                    py37_0  
+blinker                   1.4                      pypi_0    pypi
+blosc                     1.16.3               hd9629dc_0  
+bokeh                     1.4.0                    py37_0  
+boto                      2.49.0                   py37_0  
+boto3                     1.9.243                  pypi_0    pypi
+botocore                  1.12.243                 pypi_0    pypi
+bottleneck                1.2.1            py37h1d22016_1  
+branca                    0.3.1                    pypi_0    pypi
+bzip2                     1.0.8                h1de35cc_0  
+c-ares                    1.15.0               h1de35cc_1  
+ca-certificates           2020.1.1                      0  
+certifi                   2019.11.28               py37_0  
+cffi                      1.12.3           py37hb5b8e2f_0  
+chardet                   3.0.4                    py37_1  
+click                     7.0                      py37_0  
+cloudpickle               1.2.1                      py_0    conda-forge
+clyent                    1.2.2                    py37_1  
+colorama                  0.4.1                    py37_0  
+colorcet                  2.0.2                    pypi_0    pypi
+coloredlogs               14.0                     pypi_0    pypi
+contextlib2               0.5.5                    py37_0  
+cryptography              2.3.1            py37hdbc3d79_0  
+curl                      7.61.1               ha441bb4_0  
+cycler                    0.10.0                   py37_0  
+cython                    0.29.12          py37h0a44026_0  
+cytoolz                   0.10.0           py37h1de35cc_0  
+dask                      2.1.0                      py_0    conda-forge
+dask-core                 2.1.0                      py_0    conda-forge
+dbus                      1.13.6               h90a0687_0  
+decorator                 4.4.0                    py37_1  
+defusedxml                0.6.0                      py_0    conda-forge
+diff-match-patch          20181111                   py_0    conda-forge
+distributed               2.1.0                      py_0    conda-forge
+docutils                  0.14                     py37_0  
+entrypoints               0.3                      py37_0  
+enum-compat               0.0.2                    pypi_0    pypi
+et_xmlfile                1.0.1                    py37_0  
+expat                     2.2.6                h0a44026_0  
+fastcache                 1.1.0            py37h1de35cc_0  
+filelock                  3.0.12                     py_0  
+flake8                    3.7.9                    py37_0    conda-forge
+flask                     1.1.1                      py_0    conda-forge
+folium                    0.10.1                   pypi_0    pypi
+freetype                  2.9.1                hb4e5f40_0  
+ftfy                      5.6                      pypi_0    pypi
+future                    0.17.1                   pypi_0    pypi
+gast                      0.2.2                    py37_0  
+geocoder                  1.38.1                   pypi_0    pypi
+geographiclib             1.50                     pypi_0    pypi
+geopy                     1.20.0                   pypi_0    pypi
+get_terminal_size         1.0.0                h7520d66_0  
+gettext                   0.19.8.1             h15daf44_3  
+gevent                    1.4.0            py37h1de35cc_0    conda-forge
+gitdb2                    2.0.6                    pypi_0    pypi
+gitpython                 3.0.5                    pypi_0    pypi
+glib                      2.56.2               hd9629dc_0  
+glob2                     0.7                        py_0    conda-forge
+gmp                       6.1.2                hb37e062_1  
+gmpy2                     2.0.8            py37h6ef4df4_2  
+greenlet                  0.4.15           py37h1de35cc_0  
+grpcio                    1.14.1           py37h9011c5e_0  
+h5py                      2.9.0            py37h3134771_0  
+hdf5                      1.10.4               hfa1e0ec_0  
+heapdict                  1.0.0                    py37_2  
+holoviews                 1.12.7                   pypi_0    pypi
+html5lib                  1.0.1                    py37_0  
+humanfriendly             8.1                      pypi_0    pypi
+hvplot                    0.5.2                    pypi_0    pypi
+icu                       58.2                 h4b95b61_1  
+idna                      2.8                      py37_0  
+imageio                   2.5.0                    py37_0    conda-forge
+imagesize                 1.1.0                    py37_0  
+importlib_metadata        0.17                     py37_1    conda-forge
+intel-openmp              2019.4                      233  
+intervaltree              3.0.2                      py_0    conda-forge
+ipykernel                 5.1.3            py37h39e3cac_0  
+ipython                   7.6.1            py37h39e3cac_0  
+ipython_genutils          0.2.0                    py37_0  
+ipywidgets                7.5.0                      py_0    conda-forge
+isort                     4.3.21                   py37_0    conda-forge
+itsdangerous              1.1.0                    py37_0  
+jbig                      2.1                  h4d881f8_0  
+jdcal                     1.4.1                      py_0    conda-forge
+jedi                      0.14.1                   py37_0    conda-forge
+jinja2                    2.10.1                   py37_0  
+jmespath                  0.9.4                    pypi_0    pypi
+joblib                    0.13.2                   py37_0  
+jpeg                      9b                   he5867d9_2  
+json5                     0.8.4                      py_0    conda-forge
+jsonschema                3.0.1                    py37_0    conda-forge
+jupyter                   1.0.0                    py37_7  
+jupyter_client            5.3.4                    py37_0    conda-forge
+jupyter_console           6.0.0                    py37_0  
+jupyter_contrib_core      0.3.3                      py_2    conda-forge
+jupyter_core              4.6.1                    py37_0    conda-forge
+jupyter_nbextensions_configurator 0.4.1                    py37_0    conda-forge
+jupyterlab                1.2.6              pyhf63ae98_0  
+jupyterlab_server         1.0.0                      py_1    conda-forge
+keras                     2.2.4                         0  
+keras-applications        1.0.8                      py_0  
+keras-base                2.2.4                    py37_0  
+keras-preprocessing       1.1.0                      py_1  
+keyring                   18.0.0                   py37_0    conda-forge
+kiwisolver                1.1.0            py37h0a44026_0  
+krb5                      1.16.1               h24a3359_6  
+lazy-object-proxy         1.4.1            py37h1de35cc_0  
+libarchive                3.3.3                h786848e_5  
+libcurl                   7.61.1               hf30b1f0_0  
+libcxx                    4.0.1                hcfea43d_1    conda-forge
+libcxxabi                 4.0.1                hcfea43d_1    conda-forge
+libedit                   3.1.20181209         hb402a30_0  
+libffi                    3.2.1                h475c297_4  
+libgfortran               3.0.1                h93005f0_2  
+libiconv                  1.15                 hdd342a3_7  
+liblief                   0.9.0                h2a1bed3_2  
+libpng                    1.6.37               ha441bb4_0  
+libprotobuf               3.8.0                hd9629dc_0  
+libsodium                 1.0.16               h3efe00b_0  
+libspatialindex           1.9.3                h0a44026_0  
+libssh2                   1.8.0                h322a93b_4  
+libtiff                   4.0.10               hcb84e12_2  
+libxml2                   2.9.9                hf6e021a_1  
+libxslt                   1.1.33               h33a18ac_0  
+llvm-openmp               4.0.1                hcfea43d_1    conda-forge
+llvmlite                  0.29.0           py37h98b8051_0  
+locket                    0.2.0                    py37_1  
+lxml                      4.3.4            py37hef8c89e_0  
+lz4-c                     1.8.1.2              h1de35cc_0  
+lzo                       2.10                 h362108e_2  
+markdown                  3.1.1                    py37_0  
+markupsafe                1.1.1            py37h1de35cc_0    conda-forge
+matplotlib                3.1.0            py37h54f8f79_0  
+mccabe                    0.6.1                    py37_1  
+mistune                   0.8.4            py37h1de35cc_0  
+mkl                       2019.4                      233  
+mkl-service               2.0.2            py37h1de35cc_0  
+mkl_fft                   1.0.12           py37h5e564d8_0  
+mkl_random                1.0.2            py37h27c97d8_0  
+mock                      3.0.5                    py37_0    conda-forge
+more-itertools            7.0.0                    py37_0  
+mpc                       1.1.0                h6ef4df4_1  
+mpfr                      4.0.1                h3018a27_3  
+mpmath                    1.1.0                    py37_0  
+msgpack-python            0.6.1            py37h04f5b5a_1  
+multipledispatch          0.6.0                    py37_0  
+nbconvert                 5.5.0                      py_0    conda-forge
+nbdime                    1.1.0                    pypi_0    pypi
+nbformat                  4.4.0                    py37_0  
+ncurses                   6.1                  h0a44026_1  
+networkx                  2.3                        py_0    conda-forge
+nltk                      3.4.4                    py37_0  
+nose                      1.3.7                    py37_2    conda-forge
+notebook                  6.0.0                    py37_0    conda-forge
+numba                     0.45.0           py37h6440ff4_0  
+numexpr                   2.6.9            py37h7413580_0  
+numpy                     1.16.4           py37hacdab7b_0  
+numpy-base                1.16.4           py37h6575580_0  
+numpydoc                  0.9.1                      py_0    conda-forge
+oauthlib                  3.1.0                    pypi_0    pypi
+olefile                   0.46                     py37_0  
+openpyxl                  2.6.2                      py_0    conda-forge
+openssl                   1.0.2u               h1de35cc_0  
+packaging                 19.0                     py37_0  
+pandas                    0.23.4           py37h6440ff4_0  
+pandoc                    2.2.3.2                       0  
+pandocfilters             1.4.2                    py37_1  
+param                     1.9.2                    pypi_0    pypi
+parso                     0.5.0                      py_0    conda-forge
+partd                     1.0.0                      py_0    conda-forge
+path.py                   12.0.1                     py_0    conda-forge
+pathlib2                  2.3.4                    py37_0    conda-forge
+pathtools                 0.1.2                      py_1    conda-forge
+patsy                     0.5.1                    py37_0  
+pcre                      8.43                 h0a44026_0  
+pdfkit                    0.6.1                    pypi_0    pypi
+pdfrw                     0.4                      pypi_0    pypi
+pep8                      1.7.1                    py37_0  
+pexpect                   4.7.0                    py37_0    conda-forge
+pickleshare               0.7.5                    py37_0  
+pillow                    6.1.0            py37hb68e598_0  
+pip                       19.1.1                   py37_0    conda-forge
+pkginfo                   1.5.0.1                  py37_0  
+plotly                    4.0.0                    pypi_0    pypi
+pluggy                    0.12.0                     py_0    conda-forge
+ply                       3.11                     py37_0  
+progressbar               2.5                      pypi_0    pypi
+prometheus_client         0.7.1                      py_0    conda-forge
+prompt_toolkit            2.0.9                    py37_0  
+protobuf                  3.8.0            py37h0a44026_0  
+psutil                    5.6.3            py37h1de35cc_0  
+ptyprocess                0.6.0                    py37_0    conda-forge
+py                        1.8.0                    py37_0  
+py-lief                   0.9.0            py37h1413db1_2  
+pycodestyle               2.5.0                    py37_0  
+pycosat                   0.6.3            py37h1de35cc_0  
+pycparser                 2.19                     py37_0  
+pycrypto                  2.6.1            py37h1de35cc_9  
+pyct                      0.4.6                    pypi_0    pypi
+pycurl                    7.43.0.2         py37hdbc3d79_0  
+pydocstyle                4.0.1                      py_0    conda-forge
+pyflakes                  2.1.1                    py37_0  
+pygments                  2.4.2                      py_0    conda-forge
+pylint                    2.3.1                    py37_0    conda-forge
+pympler                   0.7                        py_0    conda-forge
+pyodbc                    4.0.26           py37h0a44026_0    conda-forge
+pyopenssl                 19.0.0                   py37_0    conda-forge
+pyparsing                 2.4.0                      py_0    conda-forge
+pyqt                      5.9.2            py37h655552a_2  
+pyrsistent                0.14.11          py37h1de35cc_0    conda-forge
+pyserial                  3.4                      pypi_0    pypi
+pysocks                   1.7.0                    py37_0    conda-forge
+pytables                  3.5.2            py37h5bccee9_1  
+pytest                    5.0.1                    py37_0    conda-forge
+pytest-arraydiff          0.3              py37h39e3cac_0  
+pytest-astropy            0.5.0                    py37_0  
+pytest-doctestplus        0.3.0                    py37_0  
+pytest-openfiles          0.3.2                    py37_0  
+pytest-remotedata         0.3.1                    py37_0  
+python                    3.7.0                hc167b69_0  
+python-dateutil           2.8.0                    py37_0  
+python-jsonrpc-server     0.3.2                      py_0    conda-forge
+python-language-server    0.31.2                   py37_0    conda-forge
+python-libarchive-c       2.8                     py37_11  
+python.app                2                        py37_9  
+pytz                      2019.1                     py_0    conda-forge
+pyviz-comms               0.7.2                    pypi_0    pypi
+pywavelets                1.0.3            py37h1d22016_1  
+pyyaml                    5.1.1            py37h1de35cc_0  
+pyzmq                     18.0.0           py37h0a44026_0  
+qdarkstyle                2.7                        py_0    conda-forge
+qt                        5.9.7                h468cd18_1  
+qtawesome                 0.5.7                    py37_1  
+qtconsole                 4.6.0                      py_0    conda-forge
+qtpy                      1.8.0                      py_0    conda-forge
+ratelim                   0.1.6                    pypi_0    pypi
+readline                  7.0                  h1de35cc_5  
+reportlab                 3.5.32                   pypi_0    pypi
+requests                  2.22.0                   py37_0    conda-forge
+requests-oauthlib         1.3.0                    pypi_0    pypi
+retrying                  1.3.3                    pypi_0    pypi
+rope                      0.14.0                     py_0    conda-forge
+rtree                     0.8.3                    py37_0  
+ruamel_yaml               0.15.87          py37h1de35cc_0  
+s3transfer                0.2.1                    pypi_0    pypi
+scikit-image              0.15.0           py37h0a44026_0  
+scikit-learn              0.21.2           py37h27c97d8_0  
+scipy                     1.3.0            py37h1410ff5_0  
+seaborn                   0.9.0                    py37_0  
+send2trash                1.5.0                    py37_0  
+setuptools                41.0.1                   py37_0    conda-forge
+shapely                   1.6.4.post2              pypi_0    pypi
+simplegeneric             0.8.1                    py37_2  
+singledispatch            3.4.0.3                  py37_0  
+sip                       4.19.8           py37h0a44026_0  
+six                       1.12.0                   py37_0  
+smmap2                    2.0.5                    pypi_0    pypi
+snappy                    1.1.7                he62c110_3  
+snowballstemmer           1.9.0                      py_0    conda-forge
+sortedcollections         1.1.2                    py37_0  
+sortedcontainers          2.1.0                    py37_0  
+soupsieve                 1.8                      py37_0    conda-forge
+sphinx                    2.1.2                      py_0    conda-forge
+sphinxcontrib             1.0                      py37_1  
+sphinxcontrib-applehelp   1.0.1                      py_0    conda-forge
+sphinxcontrib-devhelp     1.0.1                      py_0    conda-forge
+sphinxcontrib-htmlhelp    1.0.2                      py_0    conda-forge
+sphinxcontrib-jsmath      1.0.1                      py_0    conda-forge
+sphinxcontrib-qthelp      1.0.2                      py_0    conda-forge
+sphinxcontrib-serializinghtml 1.1.3                      py_0    conda-forge
+sphinxcontrib-websupport  1.1.2                      py_0    conda-forge
+spyder                    3.3.6                    py37_0  
+spyder-kernels            0.5.2                    py37_0  
+sqlalchemy                1.3.5            py37h1de35cc_0  
+sqlite                    3.29.0               ha441bb4_0  
+src                       0.1.0                     dev_0    <develop>
+statsmodels               0.10.0           py37h1d22016_0  
+streamlit                 0.47.4                   pypi_0    pypi
+streamz                   0.5.2                    pypi_0    pypi
+sympy                     1.4                      py37_0    conda-forge
+tabulate                  0.8.5                    pypi_0    pypi
+tbb                       2020.0               h04f5b5a_0  
+tblib                     1.4.0                      py_0    conda-forge
+tensorboard               1.13.1           py37haf313ee_0  
+tensorflow                1.13.1          mkl_py37h70c3834_0  
+tensorflow-base           1.13.1          mkl_py37h66b1bf0_0  
+tensorflow-estimator      1.13.0                     py_0  
+termcolor                 1.1.0                    py37_1  
+terminado                 0.8.2                    py37_0    conda-forge
+testpath                  0.4.2                    py37_0  
+textblob                  0.15.3                   pypi_0    pypi
+timezonefinder            4.2.0                    pypi_0    pypi
+tk                        8.6.8                ha441bb4_0    conda-forge
+toml                      0.10.0                   pypi_0    pypi
+toolz                     0.10.0                     py_0    conda-forge
+tornado                   5.1.1                    pypi_0    pypi
+tqdm                      4.32.1                     py_0    conda-forge
+traitlets                 4.3.2                    py37_0    conda-forge
+tweepy                    3.8.0                    pypi_0    pypi
+tzlocal                   2.0.0                    pypi_0    pypi
+tzwhere                   3.0.3                    pypi_0    pypi
+ujson                     1.35             py37h1de35cc_0  
+unicodecsv                0.14.1                   py37_0  
+unixodbc                  2.3.7                h1de35cc_0  
+urllib3                   1.24.2                   py37_0    conda-forge
+validators                0.14.0                   pypi_0    pypi
+watchdog                  0.9.0                    py37_1    conda-forge
+wcwidth                   0.1.7                    py37_0  
+webencodings              0.5.1                    py37_1  
+werkzeug                  0.15.4                     py_0    conda-forge
+wheel                     0.33.4                   py37_0    conda-forge
+widgetsnbextension        3.5.0                    py37_0    conda-forge
+wrapt                     1.11.2           py37h1de35cc_0  
+wurlitzer                 2.0.0                    py37_0    conda-forge
+xgboost                   0.90                     pypi_0    pypi
+xlrd                      1.2.0                    py37_0  
+xlsxwriter                1.1.8                      py_0    conda-forge
+xlwings                   0.15.8                   py37_0    conda-forge
+xlwt                      1.3.0                    py37_0  
+xz                        5.2.4                h1de35cc_4  
+yaml                      0.1.7                hc338f04_2  
+yapf                      0.28.0                     py_0    conda-forge
+zeromq                    4.3.1                h0a44026_3  
+zict                      1.0.0                      py_0    conda-forge
+zipp                      0.5.1                      py_0    conda-forge
+zlib                      1.2.11               h1de35cc_3  
+zstd                      1.3.7                h5bba6e5_0  
