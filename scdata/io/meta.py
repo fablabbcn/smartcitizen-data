@@ -19,7 +19,7 @@ def load_env(env_file):
 def get_paths():
     
     _paths = dict()
-    _paths['rootDirectory'] = abspath(abspath(join(dirname(__file__), pardir, pardir, pardir)))
+    _paths['rootDirectory'] = abspath(abspath(join(dirname(__file__), pardir, pardir)))
     _paths['dataDirectory'] = join(_paths['rootDirectory'], 'data')
     _paths['interimDirectory'] = join(_paths['dataDirectory'], 'interim')
     _paths['modelDirectory'] = join(_paths['rootDirectory'], 'models')
@@ -34,7 +34,7 @@ def get_paths():
 
     return _paths
 
-def load_blueprints():
+def load_blueprints(paths):
     try:
         blueprints_path = join(paths['interimDirectory'], 'blueprints.yaml')
         with open(blueprints_path, 'r') as blueprints_yaml:
@@ -49,7 +49,7 @@ def load_blueprints():
             
     return blueprints
 
-def load_calibrations():
+def load_calibrations(paths):
     '''
         The calibrations are meant for alphasense's 4 electrode sensors.
         This file follows the next structure:
@@ -68,7 +68,3 @@ def load_calibrations():
     caldf.index = caldf['serial_no']
 
     return caldf
-
-paths = get_paths()
-calibrations = load_calibrations()
-blueprints = load_blueprints()

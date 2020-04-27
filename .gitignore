@@ -25,6 +25,7 @@ secrets.py
 
 # Data types
 *.xls*
+*.bak
 
 # Notebook
 notebooks/temp-plot.html

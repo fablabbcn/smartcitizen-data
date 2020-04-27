@@ -1,5 +1,5 @@
 import sys
-from scdata.utils import std_out
+from .out import std_out
 
 class LazyCallable(object):
     '''

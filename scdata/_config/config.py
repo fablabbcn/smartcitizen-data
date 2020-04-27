@@ -1,4 +1,15 @@
+from os.path import join
+import yaml
+
+from scdata.utils.dictmerge import dict_fmerge
+from scdata.utils.meta import (get_paths, load_blueprints, 
+								load_calibrations)
+from pandas import read_json
+from os import pardir, environ
+from os.path import join, abspath, dirname
+
 class Config(object):
+
 	# Output level. 'QUIET': nothing, 'NORMAL': warn, err, 
 	# 'DEBUG': info, warn, err
 	out_level = 'DEBUG'
@@ -121,3 +132,27 @@ class Config(object):
 	                        ['ug/m3', 'ppm', 1./1000*24.45],
 	                        ['ugm3', 'ppm', 1./1000*24.45]
 	                    )
+
+	def __init__(self):
+		self._is_init = False
+
+	@property
+	def is_init(self):
+		return self._is_init
+	
+	def get_meta_data(self):
+		if not self._is_init:
+			paths = get_paths()
+
+			if paths is not None: 
+				blueprints = load_blueprints(paths)
+				calibrations = load_calibrations(paths)
+
+				self.paths = paths
+
+				if calibrations is not None and blueprints is not None:
+					self.blueprints = blueprints
+					self.calibrations = calibrations
+
+					self._is_init = True
+		return self.is_init

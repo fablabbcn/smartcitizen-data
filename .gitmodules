@@ -1,3 +1,3 @@
-[submodule "scdata/tools"]
-	path = scdata/tools
+[submodule "tools"]
+	path = tools
 	url = https://github.com/fablabbcn/smartcitizen-tools.git

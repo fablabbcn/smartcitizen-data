@@ -9,9 +9,8 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.utils.out import std_out
+from scdata.utils import std_out
 from tzwhere import tzwhere
-from scdata.data.meta import blueprints, calibrations
 
 tz_where = tzwhere.tzwhere()
 
@@ -212,11 +211,11 @@ class ScApiDevice:
                 # Put the ids and the names in lists
                 self.sensors = dict()
                 for sensor in sensors: 
-                    for key in blueprints:
+                    for key in config.blueprints:
                         if not search("sc[k|_]",key): continue
-                        if 'sensors' in blueprints[key]:
-                            for sensor_name in blueprints[key]['sensors'].keys(): 
-                                if blueprints[key]['sensors'][sensor_name]['id'] == str(sensor['id']): 
+                        if 'sensors' in config.blueprints[key]:
+                            for sensor_name in config.blueprints[key]['sensors'].keys(): 
+                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor['id']): 
                                     # IDs are unique
                                     self.sensors[sensor['id']] = sensor_name
         
@@ -285,7 +284,7 @@ class ScApiDevice:
         if not self.sensors.keys(): 
             std_out(f'Device is empty')
             return None
-        else: std_out(f'Sensor IDs:\n{list(self.sensors.keys())}')
+        else: std_out(f'Sensor IDs: {list(self.sensors.keys())}')
 
         df = DataFrame()
         
@@ -387,12 +386,12 @@ class MuvApiDevice:
     def get_device_sensors(self):
         if self.sensors is None:
             self.sensors = dict()
-            for key in blueprints:
+            for key in config.blueprints:
                 if 'muv' not in key: continue
-                if 'sensors' in blueprints[key]:
-                    for sensor_name in blueprints[key]['sensors'].keys():
+                if 'sensors' in config.blueprints[key]:
+                    for sensor_name in config.blueprints[key]['sensors'].keys():
                         # IDs are unique
-                        self.sensors[blueprints[key]['sensors'][sensor_name]['id']] = sensor_name
+                        self.sensors[config.blueprints[key]['sensors'][sensor_name]['id']] = sensor_name
         return self.sensors
 
     def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
@@ -568,11 +567,11 @@ class DadesObertesApiDevice:
                 # Put the ids and the names in lists
                 self.sensors = dict()
                 for sensor in sensors: 
-                    for key in blueprints:
+                    for key in config.blueprints:
                         if not search("csic_station",key): continue
-                        if 'sensors' in blueprints[key]:
-                            for sensor_name in blueprints[key]['sensors'].keys(): 
-                                if blueprints[key]['sensors'][sensor_name]['id'] == str(sensor): 
+                        if 'sensors' in config.blueprints[key]:
+                            for sensor_name in config.blueprints[key]['sensors'].keys(): 
+                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor): 
                                     # IDs are unique
                                     self.sensors[sensor] = sensor_name
         

@@ -1,7 +1,7 @@
 from scdata.utils import std_out, localise_date, dict_fmerge, get_units_convf
-from scdata.data.io import read_csv_file, export_csv_file
-from scdata.data.meta import blueprints, calibrations, paths
-from scdata.process import LazyCallable
+from scdata.io import read_csv_file, export_csv_file
+from scdata.utils import LazyCallable
+from scdata._config import config
 
 from os.path import join
 from pandas import DataFrame
@@ -13,14 +13,14 @@ class Device(object):
         self.blueprint = blueprint
 
         # Set attributes
-        for bpitem in blueprints[blueprint]: self.__setattr__(bpitem, blueprints[blueprint][bpitem]) 
+        for bpitem in config.blueprints[blueprint]: self.__setattr__(bpitem, config.blueprints[blueprint][bpitem]) 
         for ditem in descriptor.keys():
             if type(self.__getattribute__(ditem)) == dict: self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), descriptor[ditem]))
             else: self.__setattr__(ditem, descriptor[ditem])
 
         # Add API handler if needed
         if self.source == 'api':
-            hmod = __import__('scdata.data.io.read_api', fromlist=['io.read_api'])
+            hmod = __import__('scdata.io.read_api', fromlist=['io.read_api'])
             Hclass = getattr(hmod, self.sources[self.source]['handler'])
             # Create object
             self.api_device = Hclass(did=self.id)
