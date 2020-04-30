@@ -1,3 +1,5 @@
+''' Main implementation of class Device '''
+
 from scdata.utils import std_out, localise_date, dict_fmerge, get_units_convf
 from scdata.io import read_csv_file, export_csv_file
 from scdata.utils import LazyCallable
@@ -127,13 +129,12 @@ class Device(object):
             std_out(f'Processing {metric}')
 
             try:
-                funct = LazyCallable(f"scdata.process.formula.{self.metrics[metric]['process']}")
+                funct = LazyCallable(f"scdata.device.process.{self.metrics[metric]['process']}")
             except:
                 print_exc()
                 process_ok &= False
 
             args, kwargs = list(), dict()
-        
             if 'args' in self.metrics[metric]: args = self.metrics[metric]['args']
             if 'kwargs' in self.metrics[metric]: kwargs = self.metrics[metric]['kwargs']
 

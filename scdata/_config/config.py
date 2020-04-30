@@ -12,14 +12,13 @@ class Config(object):
 
 	# Output level. 'QUIET': nothing, 'NORMAL': warn, err, 
 	# 'DEBUG': info, warn, err
-	out_level = 'DEBUG'
+	out_level = 'NORMAL'
 
 	### ---------------------------------------
 	### -----------------DATA------------------
 	### ---------------------------------------
 
 	## Place here options for data load and handling
-
 	combined_devices_name = 'COMBINED_DEVICES'
 
 	# Whether or not to reload smartcitizen firmware names from git repo
@@ -39,6 +38,20 @@ class Config(object):
 
 	# If using multiple training datasets, how to call the joint df
 	name_multiple_training_data = 'CDEV'
+
+	### ---------------------------------------
+	### -----------------PLOT------------------
+	### ---------------------------------------
+
+	### ---------------------------------------
+	### --------------ALGORITHMS---------------
+	### ---------------------------------------	
+
+	# Whether or not to plot intermediate debugging visualisations in the algorithms
+	intermediate_plots = False
+
+	# Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
+	plot_out_level = 'NORMAL'
 	
 	### ---------------------------------------
 	### ----------------ZENODO-----------------

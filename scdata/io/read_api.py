@@ -9,7 +9,7 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.utils import std_out
+from scdata.utils import std_out, localise_date
 from tzwhere import tzwhere
 
 tz_where = tzwhere.tzwhere()
@@ -330,7 +330,8 @@ class ScApiDevice:
             try:
                 dfsensor = DataFrame(sensorjson['readings']).set_index(0)
                 dfsensor.columns = [self.sensors[sensor_id]]
-                dfsensor.index = to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.location)
+                # dfsensor.index = to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.location)
+                dfsensor.index = localise_date(dfsensor.index, self.location)
                 dfsensor.sort_index(inplace=True)
                 dfsensor = dfsensor[~dfsensor.index.duplicated(keep='first')]
                 
@@ -339,7 +340,7 @@ class ScApiDevice:
                 # Check for weird things in the data
                 dfsensor = dfsensor.apply(to_numeric, errors='coerce')
                 # Resample
-                dfsensor = dfsensor.resample(frequency, limit = 1).mean()
+                dfsensor = dfsensor.resample(frequency).mean()
 
                 df = df.combine_first(dfsensor)
             except:
@@ -422,7 +423,7 @@ class MuvApiDevice:
             # Check for weird things in the data
             df = df.apply(to_numeric, errors='coerce')
             # # Resample
-            df = df.resample(frequency, limit = 1).mean()
+            df = df.resample(frequency).mean()
             df = df.reindex(df.index.rename('Time'))
                 
             if clean_na is not None:
@@ -717,7 +718,7 @@ class DadesObertesApiDevice:
         # Check for weird things in the data
         df = df.apply(to_numeric, errors='coerce')
         # Resample
-        df = df.resample(frequency, limit = 1).mean()
+        df = df.resample(frequency).mean()
 
         try:
             df = df.reindex(df.index.rename('Time'))

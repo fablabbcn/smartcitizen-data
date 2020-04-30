@@ -70,28 +70,16 @@ def ExtractBaseline_ALS(_data, _lam = 1e5, _p = 0.01, _niter=10):
 		w = _p * (_data > z) + (1-_p) * (_data < z)
 	return z
 
-def findMax(_listF):
+def find_max(iterable = list()):
 	'''
 		Input: list to obtain maximum value
 		Output: value and index of maximum in the list
 	'''
 	
-	valMax=np.max(_listF)
-	indexMax = np.argmax(_listF)
+	value = np.max(iterable)
+	index = np.argmax(iterable)
 	
-	return valMax, indexMax
-
-def exponential_func(x, A, B, C):
-	# Returns exponential function with the formula: y = A*e^(Bx) + C
-	return A * np.exp(B * x) + C
-
-def fit_exponential_func(y, x):
-	## Fit with y = Ae^(Bx) -> logy = logA + Bx
-	# Returns A and B of a function as: y = A*e^(Bx)
-
-	B, logA, r_value, p_value, std_err = linregress(np.transpose(x.values), np.log(y))
-	
-	return np.exp(logA), B  
+	return value, index
 
 def createBaselines(_dataBaseline, baselineType, hyperparameters, _type_regress = 'linear', _plots = False, _verbose = False):
 	'''

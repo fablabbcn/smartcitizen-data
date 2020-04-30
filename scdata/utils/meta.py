@@ -57,6 +57,16 @@ def load_blueprints(paths):
             
         return blueprints
 
+# TODO
+def add_blueprint(**kwargs):
+    print ('not yet')
+
+def get_current_blueprints():
+    from scdata._config import config
+    if not config.is_init: config.get_meta_data()
+
+    return list(config.blueprints.keys())
+
 def load_calibrations(paths):
     '''
         The calibrations are meant for alphasense's 4 electrode sensors.

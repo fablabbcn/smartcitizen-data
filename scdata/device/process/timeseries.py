@@ -1,71 +1,4 @@
-from numpy import exp, full, nan
-from pandas import DatetimeIndex
-
-# from src.saf import std_out, get_units_convf
-# from src.saf import config, CALIBRATION_DATA
-
-### ---------------------------------------
-### --------------PROCESSES----------------
-### ---------------------------------------
-'''
-All functions below are meant to return an pandas Series object after receiving a pd.DataFrame.
-You can implement the process and then use a lazy_callable instance
-to invoke the function by passing the corresponding *args or **kwargs to it.
-'''
-
-def basic_4electrode_alg(dataframe, **kwargs):
-    """
-    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
-    and calibration ID. It adds a configurable background concentration.
-    Parameters
-    ----------
-        working: string
-            Name of working electrode found in dataframe
-        auxiliary: string
-            Name of auxiliary electrode found in dataframe
-        id: int 
-            Sensor ID
-        pollutant: string
-            Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
-    Returns
-    -------
-        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
-    """
-    flag_error = False
-    if 'working' not in kwargs: flag_error = True
-    if 'auxiliary' not in kwargs: flag_error = True
-    if 'id' not in kwargs: flag_error = True
-    if 'pollutant' not in kwargs: flag_error = True
-
-    if flag_error: 
-        std_out('Problem with input data', 'ERROR')
-        return None
-
-    # Get Sensor data
-    if kwargs['id'] not in CALIBRATION_DATA.index: 
-        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
-        return None
-
-    sensitivity_1 = CALIBRATION_DATA.loc[kwargs['id'],'sensitivity_1']
-    sensitivity_2 = CALIBRATION_DATA.loc[kwargs['id'],'sensitivity_2']
-    target_1 = CALIBRATION_DATA.loc[kwargs['id'],'target_1']
-    target_2 = CALIBRATION_DATA.loc[kwargs['id'],'target_2']
-    nWA = CALIBRATION_DATA.loc[kwargs['id'],'w_zero_current']/CALIBRATION_DATA.loc[kwargs['id'],'aux_zero_current']
-
-    if target_1 != kwargs['pollutant']: 
-        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
-        return None
-
-    # This is always in ppm since the calibration data is in signal/ppm
-    result = config.alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
-
-    # Convert units
-    result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
-    # Add Background concentration
-    result += config.background_conc[kwargs['pollutant']]
-
-    return result
+from numpy import nan, full
 
 def clean_ts(dataframe, **kwargs):
     """
@@ -98,8 +31,8 @@ def clean_ts(dataframe, **kwargs):
     if 'limits' in kwargs: lower_limit, upper_limit = kwargs['limits'][0], kwargs['limits'][1]
     else: lower_limit, upper_limit = 0, 99999
 
-    result[result >= upper_limit] = nan
-    result[result <= lower_limit] = nan
+    result[result > upper_limit] = nan
+    result[result < lower_limit] = nan
      
     # Smoothing
     if 'window_size' in kwargs: window = kwargs['window_size'] 
@@ -226,46 +159,3 @@ def rolling_avg(dataframe, **kwargs):
         if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()
     else:
         return result.rolling(window = window, win_type = win_type).mean()
-  
-# TODO
-def baseline_extraction(dataframe, **kwargs):
-    return dataframe[kwargs['working']]  
-
-# TODO REVIEW
-def absolute_humidity(dataframe, **kwargs):
-    """
-    Calculate Absolute humidity based on vapour equilibrium
-    Parameters
-    ----------
-        temperature: string
-            'TEMP'
-            Name of the column in the daframe for temperature in degC
-        rel_h: string
-            'HUM'
-            Name of the column in the daframe for relative humidity in %rh
-        pressure: string
-            'PRESS'
-            Name of the column in the daframe for atmospheric pressure in mbar
-    Returns
-    -------
-        pandas series containing the absolute humidity calculation in mg/m3?
-    """
-    # Check
-    if 'temperature' not in kwargs: return None
-    if 'rel_h' not in kwargs: return None
-    if 'pressure' not in kwargs: return None
-
-    if kwargs['temperature'] not in dataframe.columns: return None
-    if kwargs['rel_h'] not in dataframe.columns: return None
-    if kwargs['pressure'] not in dataframe.columns: return None
-
-    temp = dataframe[kwargs['temperature']].values
-    rel_h = dataframe[kwargs['rel_h']].values
-    press = dataframe[kwargs['pressure']].values
-
-    # _Temp is temperature in degC, _Press is absolute pressure in mbar
-    vap_eq = (1.0007 + 3.46*1e-6*press)*6.1121*exp(17.502*temp/(240.97+temp))
-
-    abs_humidity = rel_h * vap_eq
-
-    return abs_humidity

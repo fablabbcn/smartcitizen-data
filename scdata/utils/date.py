@@ -25,3 +25,21 @@ def localise_date(date, location):
         result_date = None
 
     return result_date
+
+def find_dates(dataframe):
+    """
+    Calculates minimum, maximum dates in the dataframe and the amount of days in between
+    Parameters
+    ----------
+        dataframe: pd.DataFrame
+            pandas dataframe with datetime index
+    Returns
+    -------
+        Rounded down first day, rounded up last day and number of days between them
+    """    
+
+    range_days = (dataframe.index.max()-dataframe.index.min()).days
+    min_date_df = dataframe.index.min().floor('D')
+    max_date_df = dataframe.index.max().ceil('D')
+    
+    return min_date_df, max_date_df, range_days

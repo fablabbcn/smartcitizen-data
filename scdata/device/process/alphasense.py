@@ -1,0 +1,136 @@
+from scdata.utils import std_out, get_units_convf, find_dates
+from scdata._config import config
+from scdata.device.process import baseline_calc
+from scipy.stats.stats import linregress
+import matplotlib.pyplot as plt
+from pandas import date_range, DataFrame
+
+def basic_4electrode_alg(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
+    and calibration ID. It adds a configurable background concentration.
+    Parameters
+    ----------
+        working: string
+            Name of working electrode found in dataframe
+        auxiliary: string
+            Name of auxiliary electrode found in dataframe
+        id: int 
+            Sensor ID
+        pollutant: string
+            Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
+            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+    Returns
+    -------
+        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+    """
+    flag_error = False
+    if 'working' not in kwargs: flag_error = True
+    if 'auxiliary' not in kwargs: flag_error = True
+    if 'id' not in kwargs: flag_error = True
+    if 'pollutant' not in kwargs: flag_error = True
+
+    if flag_error: 
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    # Get Sensor data
+    if kwargs['id'] not in config.calibrations.index: 
+        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
+        return None
+
+    sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
+    sensitivity_2 = config.calibrations.loc[kwargs['id'],'sensitivity_2']
+    target_1 = config.calibrations.loc[kwargs['id'],'target_1']
+    target_2 = config.calibrations.loc[kwargs['id'],'target_2']
+    nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
+
+    if target_1 != kwargs['pollutant']: 
+        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+        return None
+
+    # This is always in ppm since the calibration data is in signal/ppm
+    result = config.alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
+
+    # Convert units
+    result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+    # Add Background concentration
+    result += config.background_conc[kwargs['pollutant']]
+
+    return result
+
+def baseline_4electrode_alg(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV), but using
+    one of the metrics (baseline) as a baseline of the others. It uses the baseline correction algorithm
+    explained here: 
+    https://docs.smartcitizen.me/Components/sensors/Electrochemical%20Sensors/#baseline-correction-based-on-temperature
+    and the calibration ID. It adds a configurable background concentration.
+    Parameters
+    ----------
+        target: string
+            Name of working electrode found in dataframe
+        baseline: string
+            Name of auxiliary electrode found in dataframe
+        id: int 
+            Sensor ID
+        pollutant: string
+            Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
+            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+        regression_type: 'string'
+            'best'
+            Use a 'linear' or 'exponential' regression for the calculation of the baseline
+        period: pd.offset_alias or 'full'
+            1D
+            The period at which the baseline is calculated. If full, the whole index will be used.
+            https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+    Returns
+    -------
+        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+    """
+
+    result = DataFrame()
+
+    flag_error = False
+    if 'target' not in kwargs: flag_error = True
+    if 'baseline' not in kwargs: flag_error = True
+    if 'id' not in kwargs: flag_error = True
+    if 'pollutant' not in kwargs: flag_error = True
+    
+    if 'regression_type' in kwargs: 
+        if kwargs['regression_type'] not in ['best', 'exponential', 'linear']: flag_error = True
+        else: reg_type = kwargs['regression_type']
+    else: reg_type = 'best'
+    
+    if 'period' in kwargs: 
+        if kwargs['period'] not in ['best', 'exponential', 'linear']: flag_error = True
+        else: period = kwargs['period']
+    else: period = '1D'    
+
+    if flag_error: 
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
+    sensitivity_2 = config.calibrations.loc[kwargs['id'],'sensitivity_2']
+    target_1 = config.calibrations.loc[kwargs['id'],'target_1']
+    target_2 = config.calibrations.loc[kwargs['id'],'target_2']
+    nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
+
+    if target_1 != kwargs['pollutant']: 
+        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+        return None
+
+    min_date, max_date, _ = find_dates(dataframe)
+    pdates = date_range(start = min_date, end = max_date, freq = period)
+
+    for pos in range(0, len(pdates)):
+        chunk = dataframe.loc[pdates[pos]:pdates[pos+1], [kwargs['target'], kwargs['baseline']]]
+        result = result.combine_first(baseline_calc(chunk, reg_type = reg_type))
+
+    # Convert units
+    result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+    # Add Background concentration
+    result += config.background_conc[kwargs['pollutant']]        
+
+    return dataframe[kwargs['working']]

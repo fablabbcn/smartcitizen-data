@@ -1,5 +1,5 @@
 from pandas import read_csv, to_datetime, to_numeric
-from scdata.utils.out import std_out
+from scdata.utils import std_out, localise_date
 
 def read_csv_file(file_path, location, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8'):
     '''
@@ -39,8 +39,8 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
             break
 
     # Set index
-    df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(location)
-
+    # df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(location)
+    df.index = localise_date(df.index, location)
     # Remove duplicates
     df = df[~df.index.duplicated(keep='first')]
     
@@ -54,7 +54,7 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
     df = df.apply(to_numeric,errors='coerce')   
     
     # Resample
-    df = df.resample(frequency, limit = 1).mean()
+    df = df.resample(frequency).mean()
 
     # Remove na
     if clean_na is not None:

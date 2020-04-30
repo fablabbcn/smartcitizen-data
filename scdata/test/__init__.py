@@ -63,7 +63,7 @@ class Test(object):
                 # Wait for input
                 for ctest in test_logn: 
                     if name in ctest:
-                        std_out(str(test_logn.index(ctest) + 1) + ' --- ' + ctest)                
+                        std_out (str(test_logn.index(ctest) + 1) + ' --- ' + ctest, force = True)                
                 which_test = input('Similar tests found, please select one or input other name [New]: ')
                 
                 if which_test == 'New':
@@ -72,7 +72,7 @@ class Test(object):
                 elif which_test.isdigit():
                     self.full_name = test_logn[int(which_test)-1]
                     self.path = test_log[self.full_name]['path']
-                    std_out(f'Test full name, {self.full_name}')
+                    std_out(f'Test full name, {self.full_name}', force = True)
                     return False
                 else: 
                     std_out("Type 'New' for other name, or test number", 'ERROR')
