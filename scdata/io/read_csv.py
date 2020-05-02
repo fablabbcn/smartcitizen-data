@@ -2,33 +2,33 @@ from pandas import read_csv, to_datetime, to_numeric
 from scdata.utils import std_out, localise_date
 
 def read_csv_file(file_path, location, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8'):
-    '''
-        Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
-        Parameters
-        ----------
-            file_path: String
-                File path for csv file
-            location: String
-                Time zone for the csv file
-            clean_na: String or None
-                None
-                Whether to perform clean_na or not. Either None, 'fill' or 'drop'
-            index_name: String
-                ''
-                Name of the column to set an index in the dataframe
-            skiprows: list or None
-                None
-                List of rows to skip (same as skiprows in pandas.read_csv)
-            sep: String
-                ','
-                Separator (same as sep in pandas.read_csv)
-            encoding: String
-                'utf-8'
-                Encoding of the csv file
-        Returns
-        -------
-            Pandas dataframe
-    '''    
+    """
+    Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
+    Parameters
+    ----------
+        file_path: String
+            File path for csv file
+        location: String
+            Time zone for the csv file
+        clean_na: String or None
+            None
+            Whether to perform clean_na or not. Either None, 'fill' or 'drop'
+        index_name: String
+            ''
+            Name of the column to set an index in the dataframe
+        skiprows: list or None
+            None
+            List of rows to skip (same as skiprows in pandas.read_csv)
+        sep: String
+            ','
+            Separator (same as sep in pandas.read_csv)
+        encoding: String
+            'utf-8'
+            Encoding of the csv file
+    Returns
+    -------
+        Pandas dataframe
+    """  
 
     # Read pandas dataframe
     df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = ',', encoding = encoding)

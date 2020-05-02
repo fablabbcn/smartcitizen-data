@@ -6,13 +6,13 @@ from pandas import date_range
 from numpy import min as npmin
 from numpy import max as npmax
 from numpy import abs as npabs
-from numpy import argmax, argmin, arange
+from numpy import argmax, argmin, arange, exp
 from scdata.utils import std_out
 from scdata._config import config
 from math import isnan
 from .formulae import exp_f
 import matplotlib.pyplot as plt
-
+from re import search
 
 def find_min_max(min_max, iterable = list()):
     """
@@ -29,36 +29,57 @@ def find_min_max(min_max, iterable = list()):
     """   
 
     if min_max == 'max':
-        value = max(iterable)
+        value = npmax(iterable)
         index = argmax(iterable)
     elif min_max == 'min':
-        value = min(iterable)
+        value = npmin(iterable)
         index = argmin(iterable)
     else: 
         value, index = None, None
 
     return value, index
 
-def get_delta_baseline(series, delta):
-    '''
-        Input:
-            series: series containing signal to be baselined and index
-            delta : int for delta time in minutes
-        Output:
-            result: vector containing baselined values
-    ''' 
+def get_delta_baseline(series, **kwargs):
+    """
+    Baseline based on deltas method
+    Parameters
+    ----------
+        series: pd.series
+            The timeseries to be baselined
+        delta: int
+            The delta for getting the minimum based baseline
+        btype: 'string' (optional)
+            'min'
+            If is a 'min' or a 'max' baseline
+    Returns
+    -------
+        Series containing baselined values
+    """
+
+    if 'delta' in kwargs: delta = kwargs['delta']
+    else: return None
+
+    # if 'resample' in kwargs: resample = kwargs['resample']
+    # else: resample = '1Min'
+
+    if 'btype' in kwargs: btype = kwargs['btype']
+    else: btype = 'min'
+
+    if delta == 0: std_out(f'Not valid delta = {delta}', 'ERROR'); return None
     
     result = series.copy()
-    result = result.resample('1Min').mean()
+    # result = result.resample(resample).mean()
 
-    pdates = date_range(start = result[0], end = result[-1], freq = f'{delta}Min')
+    pdates = date_range(start = result.index[0], end = result.index[-1], freq = f'{delta}Min')
 
     for pos in range(0, len(pdates)-1):
         chunk = series[pdates[pos]:pdates[pos+1]]
         
         if len(chunk.values) == 0: result[pdates[pos]:pdates[pos+1]] = 0
-        else: result[min_ind:max_ind] = max(0, min(chunk.values))
-
+        else: 
+            if btype == 'min': result[pdates[pos]:pdates[pos+1]] = min(chunk.values)
+            elif btype == 'max': result[pdates[pos]:pdates[pos+1]] = max(chunk.values)
+    
     return result
 
 def get_als_baseline(series, lambd = 1e5, p = 0.01, n_iter=10):
@@ -78,6 +99,19 @@ def get_als_baseline(series, lambd = 1e5, p = 0.01, n_iter=10):
 # TODO DOCUMENT
 def baseline_calc(dataframe, **kwargs):
 
+    '''
+    reg_type
+    baseline_type
+      if als  
+        lambdas
+        p
+      if deltas  
+        esample: int (optional)
+            '1Min'
+            Frequency at which the delta is based on, and therefore to resample to
+        deltas
+    '''
+
     if 'reg_type' not in kwargs: reg_type = 'best'
     else: reg_type = kwargs['reg_type']
 
@@ -85,17 +119,24 @@ def baseline_calc(dataframe, **kwargs):
     else: baseline_type = kwargs['baseline_type']
 
     pearsons =[]
-    target_name = dataframe.iloc[:,0].name; print ('target: ', target_name)
-    baseline_name = dataframe.iloc[:,1].name; print ('baseline: ', baseline_name)
+    target_name = dataframe.iloc[:,0].name; std_out ('Target: ', target_name)
+    baseline_name = dataframe.iloc[:,1].name; std_out ('Baseline: ', baseline_name)
 
     result = dataframe.copy()
+    result.dropna(axis = 0, inplace=True)
 
-    if config.intermediate_plots: fig, ax = plt.subplots(figsize=(20,8))
+    if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
+        fig, ax = plt.subplots(figsize=(12,8))
 
     if baseline_type == 'deltas':
 
-        if 'deltas' not in kwargs: n_deltas = arange(5, 40, 5)
+        if 'deltas' not in kwargs: n_deltas = config.baseline_deltas
         else: n_deltas = kwargs['deltas']
+        
+        if 'resample' not in kwargs: resample = '1Min'
+        else: resample = kwargs['resample']
+
+        result = result.resample(resample).mean()
         
         l_iter = n_deltas
 
@@ -103,17 +144,24 @@ def baseline_calc(dataframe, **kwargs):
 
             name_delta = target_name +'_' +str(delta)
 
-            result[name_delta] = get_delta_baseline(result.loc[:,target_name], delta)
+            result[name_delta] = get_delta_baseline(result.loc[:,target_name], delta = delta)
 
-            if config.intermediate_plots: 
+            # Try to resample to improve correlation of baseline and target
+            off_base = int(search(r'\d+', resample).group())
+            off_alias = ''.join(i for i in resample if not i.isdigit())
+
+            target_resampled = result.loc[:,name_delta].resample(f'{delta*off_base}{off_alias}').mean().values
+            baseline_resampled = result.loc[:,baseline_name].resample(f'{delta*off_base}{off_alias}').mean().values
+
+            if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
                 ax.plot(result.index, result[name_delta], label = name_delta)
 
-            _, _, r_value, _, _ = linregress(transpose(result[name_delta]), transpose(result.loc[:,baseline_name].values))
+            _, _, r_value, _, _ = linregress(transpose(target_resampled), transpose(baseline_resampled))
             pearsons.append(r_value)
 
     elif baseline_type == 'als':
 
-        if 'lambdas' not in kwargs: lambdas = [1e5]
+        if 'lambdas' not in kwargs: lambdas = config.baseline_als_lambdas
         else: lambdas = kwargs['lambdas']
 
         if 'p' not in kwargs: p = 0.01
@@ -126,13 +174,14 @@ def baseline_calc(dataframe, **kwargs):
             name_lambda = name +'_' +str(lambd)
             result[name_lambda] = get_als_baseline(result.loc[:,target_name], lambd, p)
 
-            if config.intermediate_plots: 
+            if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
                 ax.plot(result.index, result[name_lambda], label = name_lambda)
 
             _, _, r_value, _, _ = linregress(transpose(result[name_lambda]), transpose(result.loc[:,baseline_name].values))
             pearsons.append(r_value)
 
-    if config.intermediate_plots:
+    if config.intermediate_plots and config.plot_out_level == 'DEBUG':
+        plt.show()
         ax.plot(result.index, result.loc[:,target_name], label = target_name)
         ax.plot(result.index, result.loc[:,baseline_name], label = baseline_name)
         
@@ -146,19 +195,20 @@ def baseline_calc(dataframe, **kwargs):
 
     ## Find Max in the pearsons - correlation can be negative, so use absolute of the pearson
     _, ind_max = find_min_max('max', npabs(pearsons))
+    # std_out(f'Max index in pearsons: {ind_max}')
+    result.dropna(axis = 0, inplace=True)
 
     if reg_type == 'linear':
         
         ## Fit with y = A + Bx
-        result[(target_name + '_'+str(l_iter[ind_max]))]
-        slope, intercept, r_value, p_value, std_err = linregress(transpose(result.loc[:,baseline_name].values), result[(target_name + '_'+str(l_iter[ind_max]))])
+        slope, intercept, r_value, p_value, std_err = linregress(transpose(result.loc[:,baseline_name].values), result[(target_name + f'_{l_iter[ind_max]}')])
         baseline = intercept + slope*result.loc[:,baseline_name].values
         # print (r_value)
     
     elif reg_type == 'exponential':
         
         ## Fit with y = Ae^(Bx) -> logy = logA + Bx
-        logy = log(result[(target_name + '_'+str(l_iter[ind_max]))])
+        logy = log(result[(target_name + f'_{l_iter[ind_max]}')])
         slope, intercept, r_value, p_value, std_err = linregress(transpose(result.loc[:,baseline_name].values), logy)
         baseline = exp_f(transpose(result.loc[:,baseline_name].values), exp(intercept), slope, 0)
         # print (r_value)
@@ -166,12 +216,12 @@ def baseline_calc(dataframe, **kwargs):
     elif reg_type == 'best':
         
         ## Find linear r_value
-        slope_lin, intercept_lin, r_value_lin, p_value_lin, std_err_lin = linregress(transpose(result.loc[:,baseline_name].values),result[(target_name + '_'+str(l_iter[ind_max]))])
+        slope_lin, intercept_lin, r_value_lin, p_value_lin, std_err_lin = linregress(transpose(result.loc[:, baseline_name].values), result[(target_name + f'_{l_iter[ind_max]}')])
         
         ## Find Exponential r_value
-        logy = log(result[(target_name + '_'+str(l_iter[ind_max]))])
-        slope_exp, intercept_exp, r_value_exp, p_value_exp, std_err_exp = linregress(transpose(result.loc[:,baseline_name].values), logy)
-        
+        logy = log(result[(target_name + f'_{l_iter[ind_max]}')])
+        slope_exp, intercept_exp, r_value_exp, p_value_exp, std_err_exp = linregress(transpose(result.loc[:, baseline_name].values), logy)
+
         ## Pick which one is best
         if ((not isnan(r_value_exp)) and (not isnan(r_value_lin))):
 
@@ -194,12 +244,12 @@ def baseline_calc(dataframe, **kwargs):
     result[target_name + '_baseline_raw'] = baseline
     result[target_name + '_baseline'] = result[[(target_name + '_' + 'baseline_raw'), target_name]].min(axis=1)
     
-    if config.intermediate_plots:
+    if config.intermediate_plots and config.plot_out_level == 'DEBUG':
         with plt.style.context('seaborn-white'):
-            fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(20,8))
+            fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,8))
             
-            ax1.plot(result.loc[:, baseline_name].values, result[(target_name + '_'+str(l_iter[ind_max]))], label = 'Baseline ' + str(l_iter[ind_max]), linewidth=0, marker='o')
-            ax1.plot(result.loc[:, baseline_name].values, result[(name + '_baseline')] , label = 'Regressed value', linewidth=0, marker='o')
+            ax1.plot(result.loc[:, baseline_name].values, result[(target_name + f'_{l_iter[ind_max]}')], label = 'Baseline ' + str(l_iter[ind_max]), linewidth=0, marker='o')
+            ax1.plot(result.loc[:, baseline_name].values, result[(target_name + '_baseline')] , label = 'Regressed value', linewidth=0, marker='o')
             legend = ax1.legend(loc='best')
             ax1.set_xlabel(baseline_name)
             ax1.set_ylabel('Regression values')
@@ -207,7 +257,7 @@ def baseline_calc(dataframe, **kwargs):
             
             lns1 = ax2.plot(result.index, result.loc[:, target_name], label = "Target", linestyle=':', linewidth=1, marker=None)
             #[ax2.plot(result.index, result[(name +'_' +str(delta))].values, label="Delta {}".format(delta), marker=None,  linestyle='-', linewidth=1) for delta in _numberDeltas]
-            lns2 = ax2.plot(result.index, result[name + '_' + 'baseline'], label='Baseline', marker = None)
+            lns2 = ax2.plot(result.index, result[target_name + '_' + 'baseline'], label='Baseline', marker = None)
 
             ax2.axis('tight')
             ax2.set_title("Baseline Extraction")
@@ -223,7 +273,7 @@ def baseline_calc(dataframe, **kwargs):
             labs = [l.get_label() for l in lns]
             ax2.legend(lns, labs, loc='best')
             
-            fig2, ax3 = plt.subplots(figsize=(20,8)) # two axes on figure
+            fig2, ax3 = plt.subplots(figsize=(12,8)) # two axes on figure
             ax3.plot(l_iter, pearsons)
 
             if baseline_type == 'deltas':
@@ -240,4 +290,4 @@ def baseline_calc(dataframe, **kwargs):
             ax3.grid(True)
             plt.show()
 
-    return result[target_name + '_' + 'baseline']    
+    return result[target_name + '_' + 'baseline']

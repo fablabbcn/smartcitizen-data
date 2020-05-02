@@ -3,7 +3,7 @@ from scdata._config import config
 from scdata.device.process import baseline_calc
 from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
-from pandas import date_range, DataFrame
+from pandas import date_range, DataFrame, Series
 
 def basic_4electrode_alg(dataframe, **kwargs):
     """
@@ -84,12 +84,16 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             1D
             The period at which the baseline is calculated. If full, the whole index will be used.
             https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+        store_baseline: boolean
+            True
+            Whether or not to store the baseline in the dataframe
     Returns
     -------
         calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
 
-    result = DataFrame()
+    result = Series()
+    baseline = Series()
 
     flag_error = False
     if 'target' not in kwargs: flag_error = True
@@ -105,7 +109,79 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     if 'period' in kwargs: 
         if kwargs['period'] not in ['best', 'exponential', 'linear']: flag_error = True
         else: period = kwargs['period']
-    else: period = '1D'    
+    else: period = '1D'
+
+    if 'store_baseline' in kwargs: store_baseline = kwargs['store_baseline']
+    else: store_baseline = True
+
+    if flag_error: 
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    min_date, max_date, _ = find_dates(dataframe)
+    pdates = date_range(start = min_date, end = max_date, freq = period)
+
+    for pos in range(0, len(pdates)-1):
+        chunk = dataframe.loc[pdates[pos]:pdates[pos+1], [kwargs['target'], kwargs['baseline']]]
+        baseline = baseline.combine_first(baseline_calc(chunk, reg_type = reg_type))
+
+    if kwargs['pollutant'] not in config.convolved_metrics:
+
+        sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
+        sensitivity_2 = config.calibrations.loc[kwargs['id'],'sensitivity_2']
+        target_1 = config.calibrations.loc[kwargs['id'],'target_1']
+        target_2 = config.calibrations.loc[kwargs['id'],'target_2']
+        nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
+
+        if target_1 != kwargs['pollutant']: 
+            std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+            return None
+        
+        result = config.alphadelta_pcb*(dataframe[kwargs['target']] - baseline)/abs(sensitivity_1)
+
+        # Convert units
+        result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+        # Add Background concentration
+        result += config.background_conc[kwargs['pollutant']]
+    
+    else:
+        # Calculate non convolved part
+        result = dataframe[kwargs['target']] - baseline
+
+    # Make use of DataFrame inmutable properties to store in it the baseline
+    if store_baseline:
+        dataframe[kwargs['target']+'_BASELINE'] = baseline
+    
+    return result
+
+def deconvolution(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration for convolved metrics, such as NO2+O3.
+    Needs convolved metric, and target pollutant sensitivities
+    Parameters
+    ----------
+        source: string
+            Name of convolved metric containing both pollutants (such as NO2+O3)
+        base: string
+            Name of one of the already deconvolved pollutants (for instance NO2)
+        id: int 
+            Sensor ID
+        pollutant: string
+            Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
+            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+    Returns
+    -------
+        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+    """
+
+    result = Series()
+    baseline = Series()
+
+    flag_error = False
+    if 'source' not in kwargs: flag_error = True
+    if 'base' not in kwargs: flag_error = True
+    if 'id' not in kwargs: flag_error = True
+    if 'pollutant' not in kwargs: flag_error = True
 
     if flag_error: 
         std_out('Problem with input data', 'ERROR')
@@ -121,16 +197,12 @@ def baseline_4electrode_alg(dataframe, **kwargs):
         std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
         return None
 
-    min_date, max_date, _ = find_dates(dataframe)
-    pdates = date_range(start = min_date, end = max_date, freq = period)
+    factor_unit_1 = get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+    factor_unit_2 = get_units_convf(kwargs['base'], from_units = 'ppm')
 
-    for pos in range(0, len(pdates)):
-        chunk = dataframe.loc[pdates[pos]:pdates[pos+1], [kwargs['target'], kwargs['baseline']]]
-        result = result.combine_first(baseline_calc(chunk, reg_type = reg_type))
-
-    # Convert units
-    result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
+    result = factor_unit_1*(config.alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
+    
     # Add Background concentration
-    result += config.background_conc[kwargs['pollutant']]        
-
-    return dataframe[kwargs['working']]
+    result += config.background_conc[kwargs['pollutant']]
+    
+    return result

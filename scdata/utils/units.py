@@ -22,7 +22,8 @@ def get_units_convf(sensor, from_units):
         mass units, instead of ppm/b
     """
 
-    rfactor = None
+    rfactor = 1
+
     for channel in config.channel_lut.keys():
         if not (search(channel, sensor)): continue
         # Molecular weight in case of pollutants
@@ -39,13 +40,18 @@ def get_units_convf(sensor, from_units):
                 # Get units
                 if unit[0] == from_units: 
                     factor = unit[2]
+                    requires_conc = unit[3]
                     break
                 elif unit[1] == from_units: 
                     factor = 1/unit[2]
+                    requires_conc = unit[3]
                     break
-            rfactor = factor/molecular_weight
+            if requires_conc: rfactor = factor/molecular_weight
+            else: rfactor = factor
+            std_out(f"Factor: {rfactor}")
         else: 
             std_out(f"No units conversion needed for {sensor}")
             rfactor = 1
-        if rfactor is not None: break
+        if rfactor != 1: break
+    
     return rfactor

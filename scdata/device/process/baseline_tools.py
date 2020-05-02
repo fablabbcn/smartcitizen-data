@@ -21,54 +21,7 @@ from math import sqrt, isnan
 
 from src.data.constants import *
 
-def getCalData(_sensorType, _calibrationDataPath):
-	# print ("Loading sensor calibration data from", _calibrationDataPath)
 
-	calData = pd.read_json('file://' + _calibrationDataPath + _sensorType + '.json', orient='columns', lines = True)
-	calData.index = calData['Serial No']
-
-	return calData
-
-def ExtractBaseline(_data, _delta):
-	'''
-		Input:
-			_data: dataframe containing signal to be baselined and index
-			_delta : int for delta time in minutes
-		Output:
-			result: vector containing baselined values
-	''' 
-	
-	result = _data.copy()
-	result = result.resample('1Min').mean()
-
-	total_minutes = int((result.index[-1]-result.index[0]).seconds/60)
-	
-	# print (f'total minutes: {total_minutes}')
-	
-	for delta_time in range(0, total_minutes, _delta):
-
-		if delta_time >= len(result): delta_time = len(result)-1
-
-		minIndex = max(result.index[delta_time], _data.index[0])
-		maxIndex = min(minIndex + pd.DateOffset(minutes = int(_delta)), _data.index[-1])
-		chunk = _data.loc[minIndex:maxIndex]
-		# print (minIndex, maxIndex)
-		if len(chunk.values) == 0: result[minIndex:maxIndex] = 0
-		else: result[minIndex:maxIndex] = max(0, min(chunk.values))
-		# print (chunk, result[minIndex], minIndex, maxIndex)
-
-	return result
-
-def ExtractBaseline_ALS(_data, _lam = 1e5, _p = 0.01, _niter=10):
-	L = len(_data)
-	D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
-	w = np.ones(L)
-	for i in range(_niter):
-		W = sparse.spdiags(w, 0, L, L)
-		Z = W + _lam * D.dot(D.transpose())
-		z = spsolve(Z, w*_data)
-		w = _p * (_data > z) + (1-_p) * (_data < z)
-	return z
 
 def find_max(iterable = list()):
 	'''

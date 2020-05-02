@@ -61,8 +61,10 @@ class Test(object):
             while undef_test:
                 
                 # Wait for input
+                poss_names = list()
                 for ctest in test_logn: 
                     if name in ctest:
+                        poss_names.append(test_logn.index(ctest) + 1)
                         std_out (str(test_logn.index(ctest) + 1) + ' --- ' + ctest, force = True)                
                 which_test = input('Similar tests found, please select one or input other name [New]: ')
                 
@@ -70,10 +72,13 @@ class Test(object):
                     new_name = input('Enter new name: ')
                     break
                 elif which_test.isdigit():
-                    self.full_name = test_logn[int(which_test)-1]
-                    self.path = test_log[self.full_name]['path']
-                    std_out(f'Test full name, {self.full_name}', force = True)
-                    return False
+                    if int(which_test) in poss_names: 
+                        self.full_name = test_logn[int(which_test)-1]
+                        self.path = test_log[self.full_name]['path']
+                        std_out(f'Test full name, {self.full_name}', force = True)
+                        return False
+                    else:
+                        std_out("Type 'New' for other name, or test number in possible tests", 'ERROR')
                 else: 
                     std_out("Type 'New' for other name, or test number", 'ERROR')
             if self.__check_name__(new_name): self.__set_name__(new_name)

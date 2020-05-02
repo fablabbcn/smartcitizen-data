@@ -166,17 +166,27 @@ sc_20_station:
       units: ug/m3
     NO2:
       kwargs:
-        auxiliary: GB_2A
+        baseline: GB_2A
         id: null
-        working: GB_2W
-      process: baseline_dcalc
+        target: GB_2W
+        pollutant: NO2
+      process: baseline_4electrode_alg
+      units: ppb
+    NO2+O3:
+      kwargs:
+        baseline: GB_3A
+        id: null
+        target: GB_3W
+        pollutant: NO2+O3
+      process: baseline_4electrode_alg
       units: ppb
     O3:
       kwargs:
-        auxiliary: GB_3A
+        source: NO2+O3
         id: null
-        working: GB_3W
-      process: baseline_dcalc
+        base: NO2
+        pollutant: O3
+      process: deconvolution
       units: ppb
   min_date: null
   plaftorm_id: 19
@@ -240,6 +250,9 @@ sc_20_station:
     TEMP: &id004
       id: '55'
       units: degC
+    EXT_TEMP:
+      id: '96'
+      units: degC      
   source: null
   sources: &id005
     api:
@@ -331,17 +344,27 @@ sc_21_station:
       units: ug/m3
     NO2:
       kwargs:
-        auxiliary: GB_2A
+        baseline: GB_2A
         id: null
-        working: GB_2W
-      process: baseline_dcalc
+        target: GB_2W
+        pollutant: NO2
+      process: baseline_4electrode_alg
+      units: ppb
+    NO2+O3:
+      kwargs:
+        baseline: GB_3A
+        id: null
+        target: GB_3W
+        pollutant: NO2+O3
+      process: baseline_4electrode_alg
       units: ppb
     O3:
       kwargs:
-        auxiliary: GB_3A
+        source: NO2+O3
         id: null
-        working: GB_3W
-      process: baseline_dcalc
+        base: NO2
+        pollutant: O3
+      process: deconvolution
       units: ppb
   min_date: null
   plaftorm_id: null
@@ -400,6 +423,9 @@ sc_21_station:
     GB_TEMP:
       id: '79'
       units: degC
+    EXT_TEMP:
+      id: '96'
+      units: degC      
     HUM: *id002
     LIGHT: *id003
     TEMP: *id004

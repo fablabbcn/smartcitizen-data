@@ -141,6 +141,7 @@ class Device(object):
             try:
                 self.readings[metric] = funct(self.readings, *args, **kwargs)
             except KeyError:
+                print_exc()
                 std_out('Metric args not in dataframe', 'ERROR')
                 pass
         

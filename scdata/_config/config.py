@@ -8,6 +8,9 @@ from pandas import read_json
 from os import pardir, environ
 from os.path import join, abspath, dirname
 
+from numpy import arange
+
+
 class Config(object):
 
 	# Output level. 'QUIET': nothing, 'NORMAL': warn, err, 
@@ -34,7 +37,7 @@ class Config(object):
 
 	# If reloading data from the API, how much gap between the saved data and the
 	# latest reading in the API should be ignore
-	cached_data_margin = 1  
+	cached_data_margin = 6  
 
 	# If using multiple training datasets, how to call the joint df
 	name_multiple_training_data = 'CDEV'
@@ -51,7 +54,7 @@ class Config(object):
 	intermediate_plots = False
 
 	# Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
-	plot_out_level = 'NORMAL'
+	plot_out_level = 'DEBUG'
 	
 	### ---------------------------------------
 	### ----------------ZENODO-----------------
@@ -84,6 +87,10 @@ class Config(object):
 	
 	# AlphaDelta PCB factor (converstion from mV to nA)
 	alphadelta_pcb = 6.36
+	# Deltas for baseline deltas algorithm
+	baseline_deltas = arange(5, 180, 15)
+	# Lambdas for baseline ALS algorithm
+	baseline_als_lambdas = [1e5]
 	
 	### ---------------------------------------
 	### -------------METRICS DATA--------------
@@ -104,6 +111,10 @@ class Config(object):
 	                    'NO2': 8, 
 	                    'O3': 40
 	                }
+
+	# Convolved metrics: metrics that measure two or more pollutants at once and that need to be
+	# deconvolved
+	convolved_metrics = ['NO2+O3']
 	
 	# This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
 	# i.e. pollutant data in various units (ppm or ug/m3) from different analysers
@@ -128,22 +139,23 @@ class Config(object):
 	            }
 
 	# This table is used to convert units
-	# ['from_unit', 'to_unit', 'multiplicative_factor']
+	# ['from_unit', 'to_unit', 'multiplicative_factor', 'requires_M']
 	# - 'from_unit'/'to_unit' = 'multiplicative_factor'
+	# - 'requires_M' = whether it  
 	# It accepts reverse operations - you don't need to put them twice but in reverse
 	
 	unit_convertion_lut = (
-	                        ['ppm', 'ppb', 1000],
-	                        ['mg/m3', 'ug/m3', 1000],
-	                        ['mgm3', 'ugm3', 1000],
-	                        ['mg/m3', 'ppm', 24.45],
-	                        ['mgm3', 'ppm', 24.45],
-	                        ['ug/m3', 'ppb', 24.45],
-	                        ['ugm3', 'ppb', 24.45],
-	                        ['mg/m3', 'ppb', 1000*24.45],
-	                        ['mgm3', 'ppb', 1000*24.45],
-	                        ['ug/m3', 'ppm', 1./1000*24.45],
-	                        ['ugm3', 'ppm', 1./1000*24.45]
+	                        ['ppm', 'ppb', 1000, False],
+	                        ['mg/m3', 'ug/m3', 1000, False],
+	                        ['mgm3', 'ugm3', 1000, False],
+	                        ['mg/m3', 'ppm', 24.45, True],
+	                        ['mgm3', 'ppm', 24.45, True],
+	                        ['ug/m3', 'ppb', 24.45, True],
+	                        ['ugm3', 'ppb', 24.45, True],
+	                        ['mg/m3', 'ppb', 1000*24.45, True],
+	                        ['mgm3', 'ppb', 1000*24.45, True],
+	                        ['ug/m3', 'ppm', 1./1000*24.45, True],
+	                        ['ugm3', 'ppm', 1./1000*24.45, True]
 	                    )
 
 	def __init__(self):
