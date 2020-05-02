@@ -1,12 +1,17 @@
 from os.path import join
 from urllib.request import urlopen
-from scdata.utils.out import std_out
+from scdata.utils import std_out
+from scdata._config import config
 
-def get_firmware_names(self, sensorsh, json_path, file_name):
+import json
+from re import sub
+from traceback import print_exc
+
+def get_firmware_names(sensorsh, json_path, file_name):
     # Directory
     names_dict = join(json_path, file_name + '.json')
     
-    if self.config.reload_firmware_names:
+    if config.reload_firmware_names:
         try:
             # Read only 20000 chars
             data = urlopen(sensorsh).read(20000).decode('utf-8')

@@ -180,4 +180,5 @@ class Config(object):
 					self.calibrations = calibrations
 
 					self._is_init = True
+		
 		return self.is_init
