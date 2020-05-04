@@ -38,11 +38,11 @@ def get_units_convf(sensor, from_units):
             std_out(f"Converting units for {sensor}. From {from_units} to {config.channel_lut[channel]}")
             for unit in config.unit_convertion_lut:
                 # Get units
-                if unit[0] == from_units: 
+                if unit[0] == from_units and unit[1] == config.channel_lut[channel]: 
                     factor = unit[2]
                     requires_conc = unit[3]
                     break
-                elif unit[1] == from_units: 
+                elif unit[1] == from_units and unit[0] == config.channel_lut[channel]: 
                     factor = 1/unit[2]
                     requires_conc = unit[3]
                     break
