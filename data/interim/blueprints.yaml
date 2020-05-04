@@ -1,6 +1,7 @@
 base:
   clean_na: null
   frequency: null
+  documentation: null  
   id: null
   location: null
   max_date: null
@@ -10,6 +11,7 @@ base:
 csic_station:
   clean_na: null
   frequency: null
+  documentation: https://analisi.transparenciacatalunya.cat/  
   id: null
   location: null
   max_date: null
@@ -50,6 +52,7 @@ csic_station:
 muv_station:
   clean_na: null
   frequency: null
+  documentation: https://github.com/waagsociety/air_quality_sensor_kit/tree/master/MUV%20Kit
   id: null
   info_data_file: null
   location: null
