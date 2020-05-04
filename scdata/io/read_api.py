@@ -294,8 +294,8 @@ class ScApiDevice:
             # Request sensor per ID
             request = self.API_BASE_URL + '{}/readings?'.format(self.id)
             
-            if start_date is None or start_date < end_date: request += 'from=2001-01-01'
-            else : request += f'from={start_date}'
+            if start_date is None or start_date > end_date: request += 'from=2001-01-01'
+            else: request += f'from={start_date}'
             request += f'&rollup={rollup}'
             request += f'&sensor_id={sensor_id}'
             request += '&function=avg'
