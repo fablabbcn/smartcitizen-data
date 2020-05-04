@@ -4,6 +4,7 @@ import yaml
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
 								load_calibrations)
+
 from pandas import read_json
 from os import pardir, environ
 from os.path import join, abspath, dirname
@@ -16,6 +17,9 @@ class Config(object):
 	# Output level. 'QUIET': nothing, 'NORMAL': warn, err, 
 	# 'DEBUG': info, warn, err
 	out_level = 'NORMAL'
+
+	# Usage
+	framework = 'jupyterlab'
 
 	### ---------------------------------------
 	### -----------------DATA------------------
@@ -88,7 +92,7 @@ class Config(object):
 	# AlphaDelta PCB factor (converstion from mV to nA)
 	alphadelta_pcb = 6.36
 	# Deltas for baseline deltas algorithm
-	baseline_deltas = arange(5, 180, 15)
+	baseline_deltas = arange(30, 45, 5)
 	# Lambdas for baseline ALS algorithm
 	baseline_als_lambdas = [1e5]
 	
@@ -157,6 +161,173 @@ class Config(object):
 	                        ['ug/m3', 'ppm', 1./1000*24.45, True],
 	                        ['ugm3', 'ppm', 1./1000*24.45, True]
 	                    )
+
+	### ---------------------------------------
+	### ----------------PLOTS------------------
+	### ---------------------------------------	
+	plot_def_opt = {
+						'min_date': None,
+						'max_date': None,
+						'frequency': None,
+						'resample': 'mean',
+						'clean_na': 'fill',
+						'show': True
+					}
+
+	plot_style = "seaborn-whitegrid"
+
+	ts_plot_def_fmt = {
+						'mpl': {
+							'width': 12,
+							'height': 8,
+							'sharex': True,
+							'ylabel': None,
+							'xlabel': 'Date (-)',
+							'yrange': None,
+							'xrange': None,
+							'title': None,
+							'suptitle_factor': 0.92,
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							'alpha_highlight': 0.8,
+							'alpha_other': 0.1,
+							'palette': 'gray',
+							'decorators': None,
+							'legend': True,
+							'style': plot_style
+							},
+						'plotly': {
+							'width': 800,
+							'height': 600,
+							'sharex': True,
+							'ylabel': None,
+							'yrange': None,
+							'xlabel': 'Date (-)',
+							'title': None,
+							'suptitle_factor': 0.92,
+							'grid': True,
+							'fontsize': 13,
+							'alpha_highlight': 0.8,
+							'alpha_other': 0.1,
+							'palette': 'gray',
+							'decorators': None,
+							'legend': True
+							}
+					  }
+
+	scatter_plot_def_fmt = {
+						'mpl': {
+							'height': 10,
+							# 'ylabel': None, TODO Not yet
+							# 'xlabel': None, TODO Not yet
+							# 'aspectratio': None, TODO Not yet
+							'yrange': None,
+							'xrange': None,
+							'title': None,
+							'suptitle_factor': 0.92,
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							'palette': 'gray',
+							# 'decorators': None, TODO Not yet
+							'legend': True,
+							'style': plot_style,
+							'kind': 'scatter'
+
+							},
+						'plotly': {
+							'height': 600,
+							# 'ylabel': None, TODO Not yet
+							# 'xlabel': None, TODO Not yet
+							'title': None,
+							# 'suptitle_factor': 0.92, TODO Not yet
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							# 'decorators': None, TODO Not yet
+							'legend': True,
+							'kind': 'scatter'
+							}
+					  }	
+
+	ts_scatter_def_fmt = {
+						'mpl': {
+							'width': 24,
+							'height': 8,
+							'ylabel': None,
+							'xlabel': 'Date (-)',
+							'yrange': None,
+							'xrange': None,
+							'title': None,
+							# 'suptitle_factor': 0.92, TODO Not yet
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							# 'decorators': None, TODO Not yet
+							'legend': True,
+							'style': plot_style							
+						}	
+					}
+
+	heatmap_def_fmt = {
+						'mpl': {
+							'height': 10,
+                            'width': 20,							
+							'xlabel': 'Date (-)',
+							'yrange': None,
+							'xrange': None,
+							'title': None,
+							'suptitle_factor': 0.92,
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							'cmap': 'RdBu_r',
+							'legend': True,
+							'style': plot_style,
+                            'robust': True,
+                            'vmin': None, 
+                            'vmax': None,
+                            'frequency_hours': 2,
+                            'session': '1D'
+							},
+						'plotly': {
+							'height': 600,
+                            'width': 800,
+							'xlabel': 'Date (-)',
+							'yrange': None,
+							'xrange': None,
+							'title': None,
+							'grid': True,
+							# 'fontsize': 10,
+							# 'title_fontsize': 14,
+							# 'cmap': 'RdBu_r',
+							'legend': True,
+                            # 'robust': True,
+                            # 'vmin': None, 
+                            # 'vmax': None,
+                            'frequency_hours': 2,
+                            'session': '1D'
+							}
+					  }
+	boxplot_def_fmt = {
+						'mpl': {
+							'height': 10,
+                            'width': 20,
+                            'ylabel': None,
+							'yrange': None,
+							'title': None,
+							'suptitle_factor': 0.92,
+							'grid': True,
+							'fontsize': 10,
+							'title_fontsize': 14,
+							'cmap': 'RdBu_r',
+							'style': plot_style,
+                            'frequency_hours': 2,
+                            'session': '1D',
+                            'periods': None
+							}
+					  }
 
 	def __init__(self):
 		self._is_init = False
