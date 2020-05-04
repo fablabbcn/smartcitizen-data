@@ -123,7 +123,9 @@ def baseline_4electrode_alg(dataframe, **kwargs):
 
     for pos in range(0, len(pdates)-1):
         chunk = dataframe.loc[pdates[pos]:pdates[pos+1], [kwargs['target'], kwargs['baseline']]]
-        baseline = baseline.combine_first(baseline_calc(chunk, reg_type = reg_type))
+        bchunk = baseline_calc(chunk, reg_type = reg_type)
+        if bchunk is None: continue
+        baseline = baseline.combine_first(bchunk)
 
     if kwargs['pollutant'] not in config.convolved_metrics:
 

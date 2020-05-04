@@ -125,6 +125,8 @@ def baseline_calc(dataframe, **kwargs):
     result = dataframe.copy()
     result.dropna(axis = 0, inplace=True)
 
+    if result.empty: return None
+
     if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
         fig, ax = plt.subplots(figsize=(12,8))
 
