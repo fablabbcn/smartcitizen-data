@@ -14,11 +14,12 @@ from scdata._config import config
 
 class Test(object):
 
-    # from .plot import (ts_plot, scatter_plot, heatmap_plot, 
+    from .plot import (ts_plot, ts_iplot, ts_corr, ts_comparison,
+                        corr_plot, corr_iplot)#, device_metric_map)
+    #, scatter_plot, heatmap_plot, 
     #                     report_plot, cat_plot, violin_plot)
     from .export import to_csv
     from .load import load
-    from .plot import (device_metric_map)
     # from .model import prepare, model, combine
 
     def __init__(self, name):
