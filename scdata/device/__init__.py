@@ -10,8 +10,32 @@ from pandas import DataFrame
 from traceback import print_exc
 
 class Device(object):
+    ''' Main implementation of the device class '''
 
     def __init__(self, blueprint, descriptor):
+
+        '''
+        Creates an instance of device. Devices are objects that contain sensors readings, metrics 
+        (calculations based on sensors readings), and metadata such as units, dates, frequency and source
+        
+        Parameters:
+        -----------
+            blueprint: String
+            
+            Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
+            parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in 
+            blueprints.yaml and accessible via the scdata.utils.load_blueprints function.
+            
+            descriptor: dict()
+            
+            A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
+            needs to have different data. If not all the data is present, the corresponding blueprint's default will 
+            be used
+        Returns
+        ----------
+            Device object
+        '''
+        
         self.blueprint = blueprint
 
         # Set attributes
@@ -56,7 +80,7 @@ class Device(object):
                 self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.location, self.options['frequency'], 
                                                             self.options['clean_na'], self.sources[self.source]['index']))
                 if self.readings is not None:
-                    self.convert_names()
+                    self.__convert_names__()
 
             elif 'api' in self.source:
                 if path is None:
@@ -77,14 +101,14 @@ class Device(object):
             self.loaded = False
         else:
             if self.readings is not None: 
-                self.check_sensors()
+                self.__check_sensors__()
                 if not self.readings.empty: 
                     self.loaded = True
-                    if convert_units: self.convert_units()
+                    if convert_units: self.__convert_units__()
         finally:
             return self.loaded
 
-    def check_sensors(self):
+    def __check_sensors__(self):
         remove_sensors = list()
         for sensor in self.sensors:
             if sensor not in self.readings.columns: remove_sensors.append(sensor)
@@ -93,13 +117,13 @@ class Device(object):
         for sensor_to_remove in remove_sensors: self.sensors.pop(sensor_to_remove, None)
         std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
 
-    def convert_names(self):
+    def __convert_names__(self):
         rename = dict()
         for sensor in self.sensors: 
             if 'id' in self.sensors[sensor] and sensor in self.readings.columns: rename[self.sensors[sensor]['id']] = sensor
         self.readings.rename(columns=rename, inplace=True)
 
-    def convert_units(self):
+    def __convert_units__(self):
         '''
             Convert the units based on the UNIT_LUT and blueprint
             NB: what is read/written from/to the cache is not converted.
@@ -115,7 +139,24 @@ class Device(object):
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
 
-    def process(self):
+    def process(self, only_new = False):
+        '''
+        Processes devices metrics, either added by the blueprint definition
+        or the addition using Device.add_metric(). See help(Device.add_metric) for
+        more information about the definition of the metrics to be added
+
+        Parameters
+        ----------
+            only_new: boolean
+            False
+            To process or not the existing channels in the Device.readings that are
+            defined in Device.metrics
+        Returns
+        ----------
+            boolean
+            True if processed ok, False otherwise
+        '''
+
         process_ok = True
 
         if 'metrics' not in vars(self): 
@@ -128,11 +169,24 @@ class Device(object):
         for metric in self.metrics:
             std_out(f'Processing {metric}')
 
+            if only_new and metric in self.readings: 
+                std_out(f'Skipping. Already in device')
+                continue
+
+            # Check if the 
+            if 'from_list' in self.metrics[metric]:
+                lazy_name = self.metrics[metric]['from_list']
+            else:
+                lazy_name = f"scdata.device.process.{self.metrics[metric]['process']}"
+
             try:
-                funct = LazyCallable(f"scdata.device.process.{self.metrics[metric]['process']}")
-            except:
+                funct = LazyCallable(lazy_name)
+            except ModuleNotFoundError:
                 print_exc()
                 process_ok &= False
+                std_out('Problem adding lazy callable to metrics list', 'ERROR')
+                pass
+                return False
 
             args, kwargs = list(), dict()
             if 'args' in self.metrics[metric]: args = self.metrics[metric]['args']
@@ -150,6 +204,38 @@ class Device(object):
         return process_ok
 
     def add_metric(self, metric = dict()):
+        '''
+        Add a metric to the device to be processed by a callable function
+        Parameters
+        ----------
+            metric: dict
+            Empty dict
+            Description of the metric to be added. It only adds it to
+            Device.metrics, but does not calculate anything yet. The metric dict needs 
+            to follow the format:
+                metric = {
+                            'metric_name': {'process': <function_name>
+                                            'args': <iterable>
+                                            'kwargs': <**kwargs for @function_name>
+                                            'from_list': <module to load function from>
+                            }
+                }
+            
+            The 'from_list' parameter is optional, and onle needed if the process is not 
+            already available in scdata.device.process.
+
+            For a list of available processes call help(scdata.device.process)
+
+            Example:
+            --------
+                metric = {'NO2_CLEAN': {'process': 'clean_ts',
+                                        'kwargs': {'name': pollutant,
+                                                   'limits': [0, 350],
+                                                    'window_size': 5}
+                        }}
+        Returns
+        ----------
+        '''
 
         if 'metrics' not in vars(self): 
             std_out(f'Device {self.id} has no metrics yet. Adding')
@@ -175,10 +261,31 @@ class Device(object):
             return True
         return False        
 
-    def export(self, path = '', forced_overwrite = False):
+    def export(self, path, forced_overwrite = False, file_format = 'csv'):
+        '''
+        Exports Device.readings to file
+        Parameters
+        ----------
+            path: String
+                Path to export file to, does not include filename.
+                The filename will be the Device.id property
+            forced_overwrite: boolean
+                False
+                Force data export in case of already existing file
+            file_format: String
+            'csv'
+            File format to export. Current supported format CSV
+        Returns
+        ---------
+            True if exported ok, False otherwise
+        '''
         # Export device
-        return export_csv_file(path, str(self.id), self.readings, forced_overwrite = forced_overwrite)
+        if file_format == 'csv':
+            return export_csv_file(path, str(self.id), self.readings, forced_overwrite = forced_overwrite)
+        else:
+            std_out('Not supported format' ,'ERROR')
+            return False
 
     # TODO
-    def capture(self):
-        std_out('Not yet', 'ERROR')
+    # def capture(self):
+    #     std_out('Not yet', 'ERROR')

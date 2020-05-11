@@ -54,6 +54,10 @@ def box_plot(self, **kwargs):
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config.plot_style)
+
+    # Make it standard
+    for trace in traces:
+        if 'subplot' not in trace: traces[trace]['subplot'] = 1  
     
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
@@ -100,6 +104,6 @@ def box_plot(self, **kwargs):
         plt.subplots_adjust(top = formatting['suptitle_factor']);
     
     # Show
-    if options['show_plot']: plt.show()
+    if options['show']: plt.show()
 
     return g.figure

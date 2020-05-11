@@ -19,7 +19,7 @@ class Config(object):
 	out_level = 'NORMAL'
 
 	# Usage
-	framework = 'jupyterlab'
+	framework = 'script'
 
 	### ---------------------------------------
 	### -----------------DATA------------------
@@ -192,7 +192,7 @@ class Config(object):
 							'title_fontsize': 14,
 							'alpha_highlight': 0.8,
 							'alpha_other': 0.1,
-							'palette': 'gray',
+							'palette': None,
 							'decorators': None,
 							'legend': True,
 							'style': plot_style
@@ -210,7 +210,7 @@ class Config(object):
 							'fontsize': 13,
 							'alpha_highlight': 0.8,
 							'alpha_other': 0.1,
-							'palette': 'gray',
+							'palette': None,
 							'decorators': None,
 							'legend': True
 							}
@@ -229,7 +229,7 @@ class Config(object):
 							'grid': True,
 							'fontsize': 10,
 							'title_fontsize': 14,
-							'palette': 'gray',
+							'palette': None,
 							# 'decorators': None, TODO Not yet
 							'legend': True,
 							'style': plot_style,
@@ -325,6 +325,7 @@ class Config(object):
 							'style': plot_style,
                             'frequency_hours': 2,
                             'session': '1D',
+                            'palette': None, 
                             'periods': None
 							}
 					  }
@@ -353,3 +354,19 @@ class Config(object):
 					self._is_init = True
 		
 		return self.is_init
+
+	def set_testing(self):
+		'''
+		Convenience method for setting variables as development 
+		in jupyterlab
+		Parameters
+		----------
+			None
+		Returns
+		----------
+			None
+		'''
+		self.out_level = 'DEBUG'
+		self.framework = 'jupyterlab'
+		self.intermediate_plots = True
+		self.plot_out_level = 'DEBUG'

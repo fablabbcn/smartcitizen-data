@@ -41,7 +41,8 @@ def load_env(env_file):
     except FileNotFoundError:
         print('.env file not found in root directory')
 
-def load_blueprints(paths):
+def load_blueprints(paths = get_paths()):
+    
     try:
         blueprints_path = join(paths['interimDirectory'], 'blueprints.yaml')
         with open(blueprints_path, 'r') as blueprints_yaml:

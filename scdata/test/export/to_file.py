@@ -31,3 +31,18 @@ def to_csv(self, path = None, forced_overwrite = False):
     else: std_out(f'Test {self.full_name} not exported successfully', 'ERROR')
 
     return export_ok
+
+def desc_to_html(self, path = None):
+    '''
+    Generates an html description for the test
+    Parameters
+    ----------
+        path:
+            Directory to export it to
+    Returns
+    ----------
+        True if successful export
+    '''
+    print ('Not yet')
+
+    return False    

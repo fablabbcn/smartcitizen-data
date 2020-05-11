@@ -19,7 +19,7 @@ class Test(object):
                         heatmap_plot, heatmap_iplot,
                         box_plot) 
                         #, device_metric_map, report_plot, cat_plot, violin_plot)
-    from .export import to_csv
+    from .export import to_csv, desc_to_html
     from .load import load
     # from .model import prepare, model, combine
 
@@ -43,6 +43,18 @@ class Test(object):
         self.descriptor['id'] = self.full_name
         self.cached_info = dict()
         self.ready_to_model = False
+
+        self._default_fields = {
+                                'id': '',
+                                'comment': '',
+                                'notes': '',
+                                'project': '',
+                                'author': '',
+                                'commit': '',
+                                'devices': dict(),
+                                'report': '',
+                                'type_test': ''
+                                }
 
     def __set_name__(self, name):
         current_date = datetime.now()
@@ -96,7 +108,6 @@ class Test(object):
                 return None
             else: 
                 std_out (f'Overwriting test. Full name: {self.full_name}')
-                makedirs(self.path)
         
         self.__update_descriptor__()
         self.__preprocess__()
@@ -124,15 +135,26 @@ class Test(object):
         if device.id not in self.devices.keys(): self.devices[device.id] = device
         else: std_out(f'Device {device.id} is duplicated', 'WARNING')
 
-    def process(self):
+    def process(self, only_new = False):
+        ''' 
+        Calculates all the metrics in each of the devices
+        Returns True if done OK
+        '''
         process_ok = True
-        for device in self.devices: process_ok &= self.devices[device].process()
+        for device in self.devices: process_ok &= self.devices[device].process(only_new = only_new)
         
         # Cosmetic output
         if process_ok: std_out(f'Test {self.full_name} processed', 'SUCCESS')
         else: std_out(f'Test {self.full_name} not processed', 'ERROR')
         
         return process_ok
+
+    def reprocess(self):
+        ''' 
+        Calculates only the new metrics in each of the devices
+        Returns True if done OK
+        '''
+        return self.process(only_new = True)     
 
     def __set_options__(self, options):
         if 'load_cached_api' in options.keys(): self.options['load_cached_api'] = options['load_cached_api']
@@ -210,9 +232,14 @@ class Test(object):
             std_out('Files preprocessed')
         std_out(f'Test {self.full_name} path: {self.path}')
 
+    @property
+    def default_fields(self):
+        return self._default_fields
+    
     def __update_descriptor__(self):
         if self.descriptor == {}: self.std_out('No descriptor file to update')
-        if 'devices' not in self.descriptor.keys(): self.descriptor['devices'] = dict()
+        for field in self._default_fields:
+            if field not in self.descriptor.keys(): self.descriptor[field] = self._default_fields[field]
         
         # Add details to descriptor, or update them if there is anything in details
         for detail in self.details.keys(): self.descriptor[detail] = self.details[detail]

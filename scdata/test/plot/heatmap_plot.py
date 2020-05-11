@@ -13,13 +13,8 @@ def heatmap_plot(self, **kwargs):
     ----------
         traces: dict
             Data for the plot, with the format:
-            "traces":  {"1": {"devices": ['8019043', '8019044', '8019004'],
-                             "channel" : "PM_10",
-                             "subplot": 1,
-                             "extras": ['max', 'min', 'avg']},
-                        "2": {"devices": "all",
-                             "channel" : "TEMP",
-                             "subplot": 2}
+            "traces":  {"1": {"devices": '8019043',
+                             "channel" : "PM_10"}
                         }     
         options: dict 
             Options including data processing prior to plot. Defaults in config.plot_def_opt
@@ -55,18 +50,21 @@ def heatmap_plot(self, **kwargs):
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config.plot_style)
     
-    # Palette
-    if formatting['palette'] is not None: set_palette(formatting['palette'])
-    
     # Font size
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
+
+    # Make it standard
+    for trace in traces:
+        if 'subplot' not in trace: traces[trace]['subplot'] = 1            
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
     n_subplots = len(subplots)
 
-    dfgb, labels, yaxis, _ = groupby_session(df, formatting['frequency_hours'])
+    gskwags = {'frequency_hours': formatting['frequency_hours']}
+
+    dfgb, labels, yaxis, _ = groupby_session(df, **gskwags)
 
     # Sample figsize in inches
     _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));         
@@ -86,9 +84,9 @@ def heatmap_plot(self, **kwargs):
 
     # Set title
     _ = g.figure.suptitle(formatting['title'], fontsize=formatting['title_fontsize']);
-    plt.subplots_adjust(top=self.formatting['suptitle_factor'])
+    plt.subplots_adjust(top=formatting['suptitle_factor'])
     
     # Show
-    if options['show_plot']: plt.show()
+    if options['show']: plt.show()
 
     return g.figure

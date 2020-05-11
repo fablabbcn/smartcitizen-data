@@ -5,7 +5,21 @@ from pandas import read_csv, to_datetime, to_numeric
 
 def export_csv_file(path, file_name, df, forced_overwrite = False):
     '''
-        Exports pandas dataframe to a csv file
+    Exports pandas dataframe to a csv file
+    Parameters
+    ----------
+        path: String
+            Directory path
+        file_name: String
+            File name for the resulting csv
+        df: pandas.DataFrame
+            Dataframe to export
+        forced_overwrite: boolean
+            False
+            If file exists, overwrite it or not
+    Returns
+    ---------
+        True if exported, False if not (if file exists returns False)
     '''
 
     # If path does not exist, create it

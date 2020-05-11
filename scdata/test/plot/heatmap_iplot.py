@@ -2,33 +2,27 @@ from plotly.graph_objs import Heatmap, Layout, Figure
 from scdata.utils import std_out, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, groupby_session
+from plotly.offline import iplot
 
 def heatmap_iplot(self, **kwargs):
     """
-    Plots heatmap in seaborn plot, based on period binning
+    Plots heatmap in plotly interactive plot
     Parameters
     ----------
         traces: dict
             Data for the plot, with the format:
-            "traces":  {"1": {"devices": ['8019043', '8019044', '8019004'],
-                             "channel" : "PM_10",
-                             "subplot": 1,
-                             "extras": ['max', 'min', 'avg']},
-                        "2": {"devices": "all",
-                             "channel" : "TEMP",
-                             "subplot": 2}
-                        }     
+            "traces":  {"1": {"devices": '8019043',
+                             "channel" : "PM_10"}
+                        }      
         options: dict 
             Options including data processing prior to plot. Defaults in config.plot_def_opt
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config.heatmap_def_fmt
     Returns
     -------
-        Matplotlib figure
+        Plotly figure
     """
-
-    if config.framework == 'jupyterlab': plt.ioff();
-    plt.clf();
+    if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs: 
         std_out('No traces defined', 'ERROR')
@@ -48,11 +42,17 @@ def heatmap_iplot(self, **kwargs):
     else:
         formatting = dict_fmerge(config.heatmap_def_fmt['plotly'], kwargs['formatting'])
 
+    # Make it standard
+    for trace in traces:
+        if 'subplot' not in trace: traces[trace]['subplot'] = 1
+
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
     n_subplots = len(subplots)
 
-    dfgb, labels, yaxis, _ = groupby_session(df, formatting['frequency_hours'])
+    gskwags = {'frequency_hours': formatting['frequency_hours']}    
+
+    dfgb, labels, yaxis, channel = groupby_session(df, **gskwags)
     xticks = [i.strftime("%Y-%m-%d") for i in dfgb.resample(formatting['session']).mean().index]
 
      # Data
@@ -67,12 +67,12 @@ def heatmap_iplot(self, **kwargs):
 
     layout = Layout(
         title = formatting['title'],
-        xaxis = dict(ticks=xticks),
-        yaxis = dict(ticks=labels , categoryarray=labels, autorange = 'reversed')
+        xaxis = dict(ticks=''),
+        yaxis = dict(ticks='' , categoryarray=labels, autorange = 'reversed')
     )
 
     figure = Figure(data=data, layout=layout)
 
-    if options['show_plot']: iplot(self.figure)
+    if options['show']: iplot(figure)
 
     return figure

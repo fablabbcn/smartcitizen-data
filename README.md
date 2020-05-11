@@ -28,15 +28,15 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 ## Compatibility
 
-Works with `Python 3.7`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. There are plenty of examples in the `examples` folder. These are meant to show how to interface with the `python` code in the `scdata` folder.
+Works with `Python 3.*`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. There are plenty of examples in the `examples` folder. These are meant to show how to interface with the `python` code in the `scdata` folder.
 
 ## Installation
 
 Simply clone the repository with:
 
 ```
-git clone git@github.com:fablabbcn/smartcitizen-iscape-data.git
-cd smartcitizen-iscape-data
+git clone https://github.com/fablabbcn/smartcitizen-data-framework.git
+cd smartcitizen-data-framework
 ```
 
 Install requirements with:
@@ -45,25 +45,49 @@ Install requirements with:
 pip install -r requirements.txt
 ```
 
-The code in the framework is managed as internal dependencies. To activate this, you can run:
+You can manage the code in the framework as editable packages. To activate this, you can run:
 
 ```
 pip install --editable . --verbose
 ```
 
+**NB**: maybe one day it will be in `pip`, but not yet.
+
 ### Tokens and config
 
-If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill the `secrets.py` with a `token` as below:
+If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill the `.env` with a `token` as below:
 
 ```
-ZENODO_TOKEN='your-token'
+zenodo_token=your-token
 ```
 
 You can get more instructions [here](https://docs.smartcitizen.me/Guides/Upload%20data%20to%20zenodo/).
 
-### Windows
+### Usage
 
-[xgboost](https://pypi.org/project/xgboost/) is not currently supported in pip for windows users, and needs to be [directly installed from github](https://xgboost.readthedocs.io/en/latest/build.html). Remove the line in the `environment.yml` to avoid installation issues. 
+Find documentation in the official docs.
+
+#### Scripts
+
+Check the examples/scripts folder for common usage examples.
+
+#### Jupyter lab (optional)
+
+It can also be used with `jupyter lab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
+
+1. Notebook extensions configurator:
+
+```
+pip install jupyter_nbextensions_configurator
+```
+
+2. Plotly in jupyter lab (interactive plots):
+
+```
+jupyter labextension install jupyterlab-plotly
+```
+
+If using this option, examples on how to generate automatic reports from `jupyter notebooks` are also given in the examples folder.
 
 ## Contribute
 

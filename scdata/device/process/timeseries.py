@@ -24,6 +24,7 @@ def clean_ts(dataframe, **kwargs):
     """
 
     if 'name' not in kwargs: return None
+    if kwargs['name'] not in dataframe: return None
 
     result = dataframe[kwargs['name']].copy()
 

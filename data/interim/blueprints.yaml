@@ -130,7 +130,7 @@ sc_20_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_10
         - EXT_PM_B_10
@@ -144,7 +144,7 @@ sc_20_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_1
         - EXT_PM_B_1
@@ -158,7 +158,7 @@ sc_20_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_25
         - EXT_PM_B_25
@@ -178,7 +178,6 @@ sc_20_station:
     NO2+O3:
       kwargs:
         baseline: GB_3A
-        id: null
         target: GB_3W
         pollutant: NO2+O3
       process: baseline_4electrode_alg
@@ -308,7 +307,7 @@ sc_21_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_10
         - EXT_PM_B_10
@@ -322,7 +321,7 @@ sc_21_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_1
         - EXT_PM_B_1
@@ -336,7 +335,7 @@ sc_21_station:
         factor: 0.3
         limits:
         - 0
-        - 9000
+        - 1000
         names:
         - EXT_PM_A_25
         - EXT_PM_B_25
@@ -356,7 +355,6 @@ sc_21_station:
     NO2+O3:
       kwargs:
         baseline: GB_3A
-        id: null
         target: GB_3W
         pollutant: NO2+O3
       process: baseline_4electrode_alg
@@ -495,7 +493,7 @@ sck_20:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_10
         window_size: 5
         window_type: null
@@ -505,7 +503,7 @@ sck_20:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_1
         window_size: 5
         window_type: null
@@ -515,7 +513,7 @@ sck_20:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_25
         window_size: 5
         window_type: null
@@ -581,7 +579,7 @@ sck_21:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_10
         window_size: 5
         window_type: null
@@ -591,7 +589,7 @@ sck_21:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_1
         window_size: 5
         window_type: null
@@ -601,7 +599,7 @@ sck_21:
       kwargs:
         limits:
         - 0
-        - 9000
+        - 1000
         name: PM_25
         window_size: 5
         window_type: null

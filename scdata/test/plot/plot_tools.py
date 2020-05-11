@@ -41,6 +41,7 @@ YlOrBr_r, YlOrRd, YlOrRd_r, afmhot, afmhot_r, autumn, autumn_r, binary, binary_r
   viridis, viridis_r, vlag, vlag_r, winter, winter_r
 '''
 
+# TODO Remove
 def export(figure, path, filename = 'plot', library = 'mpl'):
     '''
     Exports a figure to the local filesystem
