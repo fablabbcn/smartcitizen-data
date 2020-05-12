@@ -1,7 +1,8 @@
 ''' Implementation of csv export for devices in test '''
 
-from os.path import join
+from os.path import join, dirname
 from scdata.utils import std_out
+import flask
 
 def to_csv(self, path = None, forced_overwrite = False):
     """
@@ -32,17 +33,44 @@ def to_csv(self, path = None, forced_overwrite = False):
 
     return export_ok
 
-def desc_to_html(self, path = None):
+def desc_to_html(self, title = 'Test description', path = None, show_logo = True):
     '''
     Generates an html description for the test
+    Inspired by the code of rbardaji in: https://github.com/rbardaji/mooda
     Parameters
     ----------
-        path:
-            Directory to export it to
+        title: String
+            None
+            Document title
+        path: String
+            None
+            Directory to export it to. If None, writes it to default test folder
+        show_logo: bool
+            True
+            Show logo or not
     Returns
     ----------
-        True if successful export
+        filename: String
+            Path to file
     '''
-    print ('Not yet')
 
-    return False    
+    # Find the path to the html templates directory
+    template_folder = join(dirname(__file__), 'templates')
+
+    if path is None: path = self.path
+    filename = join(path, 'test_description.html')
+    
+    app = flask.Flask('test descriptor', template_folder = template_folder)
+
+    with app.app_context():
+        rendered = flask.render_template(
+            'descriptor.html',
+            title = title,
+            descriptor = self.descriptor,
+            show_logo = show_logo
+        )
+
+    with open(filename, 'w') as handle:
+        handle.write(rendered)
+    
+    return filename

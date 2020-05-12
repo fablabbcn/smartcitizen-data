@@ -238,6 +238,7 @@ class Test(object):
     
     def __update_descriptor__(self):
         if self.descriptor == {}: self.std_out('No descriptor file to update')
+
         for field in self._default_fields:
             if field not in self.descriptor.keys(): self.descriptor[field] = self._default_fields[field]
         
