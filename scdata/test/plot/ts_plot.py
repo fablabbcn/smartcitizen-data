@@ -28,7 +28,7 @@ def ts_plot(self, **kwargs):
         options: dict 
             Options including data processing prior to plot. Defaults in config.plot_def_opt
         formatting: dict
-            Name of auxiliary electrode found in dataframe. Defaults in config.ts_plot_def_fmt
+            Formatting dict. Defaults in config.ts_plot_def_fmt
     Returns
     -------
         Matplotlib figure

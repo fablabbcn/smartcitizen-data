@@ -331,6 +331,21 @@ class Config(object):
 							}
 					  }
 
+	dendrogram_def_fmt = {
+						  'mpl': {
+						  			'height': 10,
+						  			'width': 25,
+						  			'ylabel': 'Name', 
+						  			'xlabel': 'Distance',
+						  			'title': 'Hierarchical Clustering dendrogram'
+						  			'fontsize': 8.,
+						  			'orientation': 'left',
+						  			'title_fontsize': 14,
+						  			'suptitle_factor': 0.92
+
+							}
+						}
+
 	def __init__(self):
 		self._is_init = False
 

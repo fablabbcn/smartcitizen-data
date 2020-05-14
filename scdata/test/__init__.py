@@ -17,7 +17,7 @@ class Test(object):
     from .plot import (ts_plot, ts_iplot,
                         scatter_plot, scatter_iplot, 
                         heatmap_plot, heatmap_iplot,
-                        box_plot) 
+                        box_plot, ts_dendrogram) 
                         #, device_metric_map, report_plot, cat_plot, violin_plot)
     from .export import to_csv, desc_to_html
     from .load import load
