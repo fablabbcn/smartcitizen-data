@@ -26,7 +26,8 @@ def scatter_iplot(self, **kwargs):
     -------
         Plotly figure
     """
-
+    std_out ('Not yet working', 'ERROR')
+    return None
     if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs: 
@@ -47,12 +48,12 @@ def scatter_iplot(self, **kwargs):
     else:
         formatting = dict_fmerge(config.scatter_plot_def_fmt['plotly'], kwargs['formatting'])
 
-    # Set options to not show in corr_plot
+    # Set options to not show in scatter_plot
     toshow = options['show']
     options['show'] = False
     
     # Make sns plot
-    mfig = corr_plot(self, traces = traces, options = options, formatting = formatting)
+    mfig = scatter_plot(self, traces = traces, options = options, formatting = formatting)
     options['show'] = toshow
     
     pfig = tls.mpl_to_plotly(mfig);

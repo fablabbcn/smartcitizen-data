@@ -90,7 +90,7 @@ def ts_iplot(self, **kwargs):
     
     # Add layout
     figure['layout'].update(height = formatting['height'],
-                            legend = dict(x=0.2, y=0, 
+                            legend = dict(x=0.2, y=-0.3, 
                                         traceorder='normal',
                                         font = dict(family='sans-serif',
                                                     size=10,

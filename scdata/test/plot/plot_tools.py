@@ -14,10 +14,10 @@ Available styles
 # markers = ["o" ,"v" ,"^" ,"<" ,">" ,"1" ,"2" ,"3" ,"4" ,"8" ,"s" ,"p" ,
 #             "P" , "*" ,"h" ,"H" ,"+" ,"x" ,"X" ,"D" ,"d" ,"|", "_"]
 
-# colors = ['black',    'silver',    'red',        'sienna',     'gold',
-#           'orange',   'salmon',    'chartreuse', 'green',      'mediumspringgreen', 'lightseagreen',
-#           'darkcyan', 'royalblue', 'blue',       'blueviolet', 'purple',            'fuchsia',
-#           'pink',     'tan',       'olivedrab',  'tomato',     'yellow',            'turquoise']
+colors = ['sienna',     'gold',
+          'orange',   'salmon',    'chartreuse', 'green',      'mediumspringgreen', 'lightseagreen',
+          'darkcyan', 'royalblue', 'blue',       'blueviolet', 'purple',            'fuchsia',
+          'pink',     'tan',       'olivedrab',  'tomato',     'yellow',            'turquoise']
 
 '''
 Colormaps:

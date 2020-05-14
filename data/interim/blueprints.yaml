@@ -45,9 +45,16 @@ csic_station:
       id: SO2
       units: ug/m3
   source: null
+  raw_data_file: null
+  processed_data_file: null
   sources:
     api:
       handler: DadesObertesApiDevice
+    csv:
+      header_skip:
+      - 1
+      - 4
+      index: date
   version: null
 muv_station:
   clean_na: null
@@ -93,10 +100,8 @@ muv_station:
     api:
       handler: MuvApiDevice
     csv:
-      header_skip:
-      - 1
-      - 4
-      index: time
+      header_skip: null
+      index: Time
   version: null
 parrot_soil:
   clean_na: null
