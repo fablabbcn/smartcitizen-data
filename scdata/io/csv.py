@@ -68,13 +68,18 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
     # Read pandas dataframe
     df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = ',', encoding = encoding)
 
+    flag_found = False
     for column in df.columns:
         if index_name in column: 
             df = df.set_index(column)
+            flag_found = True
             break
 
+    if not flag_found:
+        std_out('Index not found. Cannot reindex', 'ERROR')
+        return None
+
     # Set index
-    # df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(location)
     df.index = localise_date(df.index, location)
     # Remove duplicates
     df = df[~df.index.duplicated(keep='first')]

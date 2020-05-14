@@ -46,6 +46,8 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
+
+        if not config.is_init: config.get_meta_data()
     
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
@@ -84,7 +86,7 @@ class ScApiDevice:
             if isnan(x['latitude']): return False
             if isnan(x['longitude']): return False
         
-            return distance(location_A=(within[0], within[1]), location_B=(x['latitude'], x['longitude'])).m<within[2]
+            return distance((within[0], within[1]), (x['latitude'], x['longitude'])).m<within[2]
     
         world_map = get('https://api.smartcitizen.me/v0/devices/world_map')
         
@@ -210,7 +212,7 @@ class ScApiDevice:
             
                 # Put the ids and the names in lists
                 self.sensors = dict()
-                for sensor in sensors: 
+                for sensor in sensors:
                     for key in config.blueprints:
                         if not search("sc[k|_]",key): continue
                         if 'sensors' in config.blueprints[key]:

@@ -1,4 +1,44 @@
-from numpy import nan, full
+from numpy import nan, full, power, ones
+
+def poly_ts(dataframe, **kwargs):
+    """
+    Calculates the a polinomy based on channels.
+    Parameters
+    ----------
+        channels: list of strings
+            list containing channels
+        coefficients: list or np array
+            list containing coefficients
+        exponents: list or np array
+            list containing exponents
+        extra_term: float
+            0
+            Independent term
+    Returns
+    -------
+        result = sum(coefficients[i]*channels[i]^exponents[i] + extra_term)
+    """
+    
+    if 'channels' not in kwargs: return None
+    else: channels = kwargs['channels']
+    n_channels = len(channels)
+
+    result = 0 * dataframe[channels[0]].copy()
+
+    if 'coefficients' not in kwargs: coefficients = ones(n_channels)
+    else: coefficients = kwargs['coefficients']
+    
+    if 'exponents' not in kwargs: exponents = ones(n_channels)
+    else: exponents = kwargs['exponents']
+    
+    if 'extra_term' not in kwargs: extra_term = 0
+    else: extra_term = kwargs['extra_term']
+
+    # Do it in pandas to ensure index and na handling
+    for i in range(n_channels):
+        result += power(dataframe[channels[i]], exponents[i]) * coefficients[i]
+
+    return result + extra_term
 
 def clean_ts(dataframe, **kwargs):
     """

@@ -219,9 +219,9 @@ class Config(object):
 	scatter_plot_def_fmt = {
 						'mpl': {
 							'height': 10,
-							# 'ylabel': None, TODO Not yet
-							# 'xlabel': None, TODO Not yet
-							# 'aspectratio': None, TODO Not yet
+							'width': 12,
+							'ylabel': None,
+							'xlabel': None,
 							'yrange': None,
 							'xrange': None,
 							'title': None,
@@ -230,11 +230,12 @@ class Config(object):
 							'fontsize': 10,
 							'title_fontsize': 14,
 							'palette': None,
-							# 'decorators': None, TODO Not yet
 							'legend': True,
 							'style': plot_style,
-							'kind': 'scatter'
-
+							'kind': 'reg',
+							'sharex': True,
+							'sharey': False,
+							'nrows': 1
 							},
 						'plotly': {
 							'height': 600,

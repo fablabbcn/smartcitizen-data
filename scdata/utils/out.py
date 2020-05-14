@@ -14,7 +14,7 @@ def std_out(msg, mtype = None, force = False):
 
     if mtype is None and priority>1: 
         print('[INFO]: ' + msg)
-    elif mtype == 'SUCCESS' and priority>1: 
+    elif mtype == 'SUCCESS' and priority>0: 
         print(colored('[SUCCESS]: ', 'green') + msg)
     elif mtype == 'WARNING' and priority>0: 
         print(colored('[WARNING]: ', 'yellow') + msg)

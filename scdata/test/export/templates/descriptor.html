@@ -88,8 +88,8 @@
                                 <td class='table-center'><em>{{ value.units }}</em></td>
                                 <td class='table-center'>Raw</td>
                                 <td class='table-center'>n/a</td>
-                                {% if 'descr' in value %}
-                                    <td class='table-center'>{{ value.descr }}</td>
+                                {% if 'desc' in value %}
+                                    <td class='table-center'>{{ value.desc }}</td>
                                 {% else %}
                                     <td class='table-center'>No description available</td>
                                 {% endif %}
@@ -103,8 +103,8 @@
                                     <td class='table-center'>{{ value.units }}</td>
                                     <td class='table-center'>Processed</td>
                                     <td class='table-center'>{{ value.process }}</td>
-                                    {% if 'descr' in value %}
-                                        <td class='table-center'>{{ value.descr }}</td>
+                                    {% if 'desc' in value %}
+                                        <td class='table-center'>{{ value.desc }}</td>
                                     {% else %}
                                         <td class='table-center'>No description available</td>
                                     {% endif %}
