@@ -1,3 +1,5 @@
+
+{% if full %}
 <!doctype html>
 
 <html>
@@ -14,6 +16,7 @@
     </head>
 
     <body>
+{% endif %}        
         <div id="report-header">
             <h1 id="top">{{ title }}</h1>
             
@@ -116,13 +119,7 @@
             {% endfor %}
         </div>
 
-        <footer style="background-color: #222324; color: white;">
-            <p style="margin: 3rem">
-                <strong>
-                    {{ footer_text }}
-                </strong>
-            </p>
-        </footer>
+{% if full %}
 
     </body>
 
@@ -228,3 +225,5 @@
         }
     } 
 </style>
+
+{% endif %} 

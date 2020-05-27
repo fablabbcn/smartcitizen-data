@@ -84,7 +84,7 @@ def load(self, options = dict()):
                                 combine_cache_API = True
                                 min_date_to_load = last_reading_cached
                                 max_date_to_load = last_reading_api
-                                std_out('Loading new data from API', 'WARNING')
+                                std_out('Loading new data from API')
                             else:
                                 load_API = False
                                 std_out('No need to load new data from API')

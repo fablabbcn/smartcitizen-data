@@ -7,5 +7,5 @@ from .heatmap_plot import heatmap_plot
 from .heatmap_iplot import heatmap_iplot
 from .box_plot import box_plot
 from .ts_dendrogram import ts_dendrogram
+from .maps import device_metric_map
 # from .tools import (target_diagram, scatter_diagram)
-# from .maps import device_metric_map

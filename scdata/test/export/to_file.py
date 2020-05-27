@@ -33,7 +33,7 @@ def to_csv(self, path = None, forced_overwrite = False):
 
     return export_ok
 
-def desc_to_html(self, title = 'Test description', path = None, show_logo = True):
+def desc_to_html(self, title = 'Test description', path = None, show_logo = True, full = True):
     '''
     Generates an html description for the test
     Inspired by the code of rbardaji in: https://github.com/rbardaji/mooda
@@ -48,10 +48,13 @@ def desc_to_html(self, title = 'Test description', path = None, show_logo = True
         show_logo: bool
             True
             Show logo or not
+        full: bool
+            True
+            Whether to return a full html
     Returns
     ----------
-        filename: String
-            Path to file
+        rendered: 
+            flask rendered template
     '''
 
     # Find the path to the html templates directory
@@ -67,10 +70,13 @@ def desc_to_html(self, title = 'Test description', path = None, show_logo = True
             'descriptor.html',
             title = title,
             descriptor = self.descriptor,
-            show_logo = show_logo
+            show_logo = show_logo, 
+            full = full
         )
 
     with open(filename, 'w') as handle:
         handle.write(rendered)
+
+    std_out (f'File saved to: {filename}')
     
-    return filename
+    return rendered

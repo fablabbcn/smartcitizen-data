@@ -1,6 +1,6 @@
 from os import makedirs
 from os.path import exists
-from scdata.utils import std_out, localise_date
+from scdata.utils import std_out, localise_date, clean
 from pandas import read_csv, to_datetime, to_numeric
 
 def export_csv_file(path, file_name, df, forced_overwrite = False):
@@ -91,16 +91,12 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
     
     # Check for weird things in the data
-    df = df.apply(to_numeric,errors='coerce')   
+    df = df.apply(to_numeric, errors='coerce')   
     
     # Resample
     df = df.resample(frequency).mean()
 
     # Remove na
-    if clean_na is not None:
-        if clean_na == 'fill':
-            df = df.fillna(method='ffill')
-        elif clean_na == 'drop':
-            df.dropna(axis = 0, how='all', inplace=True)
-
+    df = clean(df, clean_na, how = 'all')
+    
     return df    

@@ -9,7 +9,7 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.utils import std_out, localise_date
+from scdata.utils import std_out, localise_date, clean
 from tzwhere import tzwhere
 
 tz_where = tzwhere.tzwhere()
@@ -354,14 +354,15 @@ class ScApiDevice:
                 
             try:
                 df = df.reindex(df.index.rename('Time'))
-                
-                if clean_na is not None:
-                    if clean_na == 'drop':
-                        # std_out('Cleaning na with drop')
-                        df.dropna(axis = 0, how='all', inplace=True)
-                    elif clean_na == 'fill':
-                        df = df.fillna(method='bfill').fillna(method='ffill')
-                        # std_out('Cleaning na with fill')
+
+                df = clean(df, clean_na, how = 'all')                
+                # if clean_na is not None:
+                #     if clean_na == 'drop':
+                #         # std_out('Cleaning na with drop')
+                #         df.dropna(axis = 0, how='all', inplace=True)
+                #     elif clean_na == 'fill':
+                #         df = df.fillna(method='bfill').fillna(method='ffill')
+                #         # std_out('Cleaning na with fill')
                 self.data = df
                 
             except:
@@ -427,12 +428,14 @@ class MuvApiDevice:
             # # Resample
             df = df.resample(frequency).mean()
             df = df.reindex(df.index.rename('Time'))
+
+            df = clean(df, clean_na, how = 'all')
                 
-            if clean_na is not None:
-                if clean_na == 'drop':
-                    df.dropna(axis = 0, how='all', inplace=True)
-                elif clean_na == 'fill':
-                    df = df.fillna(method='bfill').fillna(method='ffill')
+            # if clean_na is not None:
+            #     if clean_na == 'drop':
+            #         df.dropna(axis = 0, how='all', inplace=True)
+            #     elif clean_na == 'fill':
+            #         df = df.fillna(method='bfill').fillna(method='ffill')
             self.data = df
                 
         except:
@@ -725,13 +728,14 @@ class DadesObertesApiDevice:
         try:
             df = df.reindex(df.index.rename('Time'))
             
-            if clean_na is not None:
-                if clean_na == 'drop':
-                    # std_out('Cleaning na with drop')
-                    df.dropna(axis = 0, how='all', inplace=True)
-                elif clean_na == 'fill':
-                    df = df.fillna(method='bfill').fillna(method='ffill')
-                    # std_out('Cleaning na with fill')
+            df = clean(df, clean_na, how = 'all')
+            # if clean_na is not None:
+            #     if clean_na == 'drop':
+            #         # std_out('Cleaning na with drop')
+            #         df.dropna(axis = 0, how='all', inplace=True)
+            #     elif clean_na == 'fill':
+            #         df = df.fillna(method='bfill').fillna(method='ffill')
+            #         # std_out('Cleaning na with fill')
             self.data = df
             
         except:

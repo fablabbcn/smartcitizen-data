@@ -7,6 +7,7 @@ from traceback import print_exc
 from datetime import datetime
 import yaml
 import json
+import folium
 
 from scdata.utils import std_out, get_tests_log
 from scdata.io import read_csv_file
@@ -14,25 +15,25 @@ from scdata._config import config
 
 class Test(object):
 
-    from .plot import (ts_plot, ts_iplot,
+    from .plot import (ts_plot, ts_iplot, device_metric_map,
                         scatter_plot, scatter_iplot, 
                         heatmap_plot, heatmap_iplot,
-                        box_plot, ts_dendrogram) 
-                        #, device_metric_map, report_plot, cat_plot, violin_plot)
+                        box_plot, ts_dendrogram)
+                        #, report_plot, cat_plot, violin_plot)
     from .export import to_csv, desc_to_html
     from .load import load
-    # from .model import prepare, model, combine
+    from .utils import combine, prepare
 
     def __init__(self, name):
         # Init configuration
         if not config.is_init: config.get_meta_data()
+        
         self.options = {  
                         'cached_data_margin': config.cached_data_margin,
                         'load_cached_api': config.load_cached_api,
                         'store_cached_api': config.store_cached_api
                         }
 
-        
         if self.__check_name__(name): self.__set_name__(name)
 
         self.details = dict()

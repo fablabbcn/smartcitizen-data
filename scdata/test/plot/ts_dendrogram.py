@@ -1,6 +1,6 @@
 from scipy.cluster import hierarchy as hc
 from pandas import DataFrame
-from scdata.utils import std_out, dict_fmerge
+from scdata.utils import std_out, dict_fmerge, clean
 from scdata._config import config
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -76,12 +76,6 @@ def ts_dendrogram(self, **kwargs):
     # Font size
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
-
-    # if 'frequency' not in kwargs: frequency = '1H'
-    # else: frequency: kwargs['frequency']
-        
-    # if 'clean_na' not in kwargs: clean_na = 'drop'
-    # else: clean_na = kwargs['clean_na']
         
     df = DataFrame()
     
@@ -93,10 +87,12 @@ def ts_dendrogram(self, **kwargs):
             for channel in channels: 
                 if channel in dfd.columns: df = df.append(dfd[channel].rename(device+'_'+channel))
         else: df = df.append(dfd)
+
+    df = clean(df, options['clean_na'], how = 'any')    
             
-    if options['clean_na'] is not None:
-        if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
-        if options['clean_na'] == 'fill': df = df.fillna(method='ffill')
+    # if options['clean_na'] is not None:
+    #     if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
+    #     if options['clean_na'] == 'fill': df = df.fillna(method='ffill')
     
     # Do the clustering        
     Z = hac.linkage(df, method = method, metric = metric)
