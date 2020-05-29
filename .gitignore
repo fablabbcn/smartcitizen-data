@@ -7,12 +7,10 @@ data/interim/development/*
 data/interim/deliveries/*
 data/interim/tests/*
 models/*
-models/ALPHASENSE/*
-models/MICS/*
-models/PMS/*
 work
 working_tasks
 notebooks/working_*.ipynb
+notebooks/wip*.*
 notebooks/src_ipynb
 reports/*.html
 reports/*.pdf
