@@ -68,7 +68,7 @@ setup(
                         'PyYAML==5.3.1',
                         'requests==2.23.0',
                         'scipy==1.4.1',
-                        'scikit-learn==0.22.2.post1',
+                        'scikit-learn==0.23.1',
                         'seaborn==0.10.1',
                         'Shapely==1.7.0',
                         'six==1.14.0',
