@@ -23,7 +23,6 @@ def model_export(name = None, path = None, model = None, variables = None, hyper
     if hyperparameters is not None:
         std_out('Saving hyperparameters')
         dump(hyperparameters, filename + '_hyperparameters.sav')
-    else: return False
     
     if variables is not None:
         std_out('Saving variables')

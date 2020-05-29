@@ -6,7 +6,7 @@ print (device.get_device_location())
 print (device.get_mac())
 
 print ('Getting devices in Barcelona')
-wm = ScApiDevice.get_world_map(city = 'Barcelona', max_date = '2020-04-20')
+wm = ScApiDevice.get_world_map(city = 'Barcelona', max_date = '2020-05-01')
 print ('World map get successful')
 
 for kit in wm:

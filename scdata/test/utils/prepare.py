@@ -36,12 +36,25 @@ def prepare(self, measurand, inputs, options = dict()):
         combined_df = self.combine(devices = [input_device], readings = inputs[input_device])
         df = df.combine_first(combined_df)
 
+    if options['common_avg']:
+        
+        common_channels = inputs[list(inputs.keys())[0]]
+        for input_device in inputs.keys():
+            common_channels = list(set(common_channels).intersection(set(inputs[input_device])))
+        std_out(f'Performing avg in common columns {common_channels}')
+        for channel in common_channels:
+            columns_list = [channel + '_' + device for device in list(inputs.keys())]
+            df[channel + '_AVG'] = df[columns_list].mean(axis = 1)
+
+        df = df.loc[:, df.columns.str.contains("_AVG")| df.columns.str.contains(measurand_name)]
+
     if options['clean_na'] is not None: df = clean(df, options['clean_na'], how = 'any')
     
     return df, measurand_name
 
 def normalise_vbls(df, refn):
     # Get labels and features as numpy arrays
+    df = df.reindex(sorted(df.columns), axis = 1)
     labels = array(df[refn])
     features = array(df.drop(refn, axis = 1))
 

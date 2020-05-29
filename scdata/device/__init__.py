@@ -139,7 +139,7 @@ class Device(object):
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
 
-    def process(self, only_new = False):
+    def process(self, only_new = False, metrics = None):
         '''
         Processes devices metrics, either added by the blueprint definition
         or the addition using Device.add_metric(). See help(Device.add_metric) for
@@ -147,10 +147,13 @@ class Device(object):
 
         Parameters
         ----------
-            only_new: boolean
+        only_new: boolean
             False
             To process or not the existing channels in the Device.readings that are
             defined in Device.metrics
+        metrics: list
+            None
+            List of metrics to process. If none, processes all
         Returns
         ----------
             boolean
@@ -166,18 +169,20 @@ class Device(object):
         std_out('---------------------------')
         std_out(f'Processing device {self.id}')
 
-        for metric in self.metrics:
+        if metrics is None: metrics = self.metrics
+
+        for metric in metrics:
             std_out(f'Processing {metric}')
 
             if only_new and metric in self.readings: 
                 std_out(f'Skipping. Already in device')
                 continue
 
-            # Check if the 
-            if 'from_list' in self.metrics[metric]:
-                lazy_name = self.metrics[metric]['from_list']
+            # Check if the metric contains a custom from_list
+            if 'from_list' in metrics[metric]:
+                lazy_name = metrics[metric]['from_list']
             else:
-                lazy_name = f"scdata.device.process.{self.metrics[metric]['process']}"
+                lazy_name = f"scdata.device.process.{metrics[metric]['process']}"
 
             try:
                 funct = LazyCallable(lazy_name)
@@ -189,8 +194,8 @@ class Device(object):
                 return False
 
             args, kwargs = list(), dict()
-            if 'args' in self.metrics[metric]: args = self.metrics[metric]['args']
-            if 'kwargs' in self.metrics[metric]: kwargs = self.metrics[metric]['kwargs']
+            if 'args' in metrics[metric]: args = metrics[metric]['args']
+            if 'kwargs' in metrics[metric]: kwargs = metrics[metric]['kwargs']
 
             try:
                 self.readings[metric] = funct(self.readings, *args, **kwargs)

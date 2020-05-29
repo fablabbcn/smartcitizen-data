@@ -30,10 +30,9 @@ def apply_regressor(dataframe, **kwargs):
 	for device in kwargs['variables']['inputs']:
 		inputs = list(set(inputs).union(set(kwargs['variables']['inputs'][device])))
 
-	print (inputs)
-	
 	try:
 		inputdf = dataframe[inputs].copy()
+		inputdf = inputdf.reindex(sorted(inputdf.columns), axis=1)
 	except KeyError:
 		std_out('Inputs not in dataframe', 'ERROR')
 		pass
@@ -49,10 +48,6 @@ def apply_regressor(dataframe, **kwargs):
 	else:
 		options = dict_fmerge(config.model_def_opt, kwargs['options'])
 	
-	# TODO
-	# Resample
-	# dataframeModel = dataframeModel.resample(self.data['data_options']['frequency'], limit = 1).mean()
-	
 	# Remove na
 	inputdf = clean(inputdf, options['clean_na'], how = 'any') 
 
@@ -60,31 +55,3 @@ def apply_regressor(dataframe, **kwargs):
 	result = DataFrame(model.predict(features)).set_index(inputdf.index)
 
 	return result
-
-	# feature_list = list(dataframeModel.columns)
-
-	# if self.type == 'RF' or self.type == 'SVR':
-	# 	## Get model prediction
-	# 	dataframe = pd.DataFrame(self.model.predict(features_array), columns = ['prediction']).set_index(indexModel)
-	# 	dataframeModel = dataframeModel.combine_first(dataframe)
-	# 	data_input[prediction_name] = dataframeModel['prediction']
-
-	# elif self.type == 'XGB':
-	# 	features_array_scaled = scaler.transform(features_array)
-	# 	dataframe = pd.DataFrame(self.model.predict(features_array_scaled), columns = ['prediction']).set_index(indexModel)
-	# 	dataframeModel = dataframeModel.combine_first(dataframe)
-	# 	data_input[prediction_name] = dataframeModel['prediction']
-
-	# if self.plots:
-	# 	# Plot
-	# 	fig = plot.figure(figsize=(15,10))
-	# 	# Fitted values
-	# 	plot.plot(dataframeModel.index, dataframeModel['prediction'], 'b', label = 'Predicted value')
-	# 	if reference is not None:
-	# 		plot.plot(dataframeModel.index, dataframeModel['reference'], 'b', alpha = 0.3, label = 'Reference')
-	# 	plot.grid(True)
-	# 	plot.legend(loc='best')
-	# 	plot.title('Model prediction for {}'.format(prediction_name))
-	# 	plot.xlabel('Time (-)')
-	# 	plot.ylabel(prediction_name)
-	# 	plot.show()		

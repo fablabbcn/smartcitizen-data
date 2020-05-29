@@ -364,7 +364,8 @@ class Config(object):
     model_def_opt = {
                         'test_size': 0.2, 
                         'shuffle': False,
-                        'clean_na': 'drop'
+                        'clean_na': 'drop',
+                        'common_avg': True
                     }
 
     model_hyperparameters = {
