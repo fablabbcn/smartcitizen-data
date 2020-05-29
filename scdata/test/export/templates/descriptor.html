@@ -1,0 +1,229 @@
+
+{% if full %}
+<!doctype html>
+
+<html>
+
+    <head>
+        <meta charset="utf-8"/>
+
+        <title>{{ descriptor['id'] }}</title>
+        
+        <!-- Web Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i%7CMontserrat:400,700"
+            rel="stylesheet">     
+
+    </head>
+
+    <body>
+{% endif %}        
+        <div id="report-header">
+            <h1 id="top">{{ title }}</h1>
+            
+            {% if show_logo %}  
+                <div style="text-align: right">
+                    <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=50px height=50px>
+                </div>
+            {% endif %}
+        </div>
+
+        <div id="container">
+
+            <div class="header">
+                <h2>Test details</h2>
+            </div>
+
+            <ul>
+                <li><strong>Author:</strong> {{ descriptor.author }}</li>
+                <li><strong>Date:</strong> {{ descriptor.id[0:7].replace("_", "-") }}</li>
+                <li><strong>Comment:</strong> {{ descriptor.comment }}</li>
+                <li><strong>Conditions:</strong> {{ descriptor.type_test }}</li>
+                <li><strong>Project:</strong> {{ descriptor.project }}</li>
+            </ul>
+
+            <div class="header">
+                <h2>Devices summary</h2>
+            </div>
+        
+            <table>
+                <tr>
+                    <th style="width: 20vh;"> Device </th>
+                    <th class='table-center' style="width: 20vh;"> Blueprint </th>
+                    <th class='table-center' style="width: 20vh;"> Documentation </th>
+                    <th class='table-center' style="width: 20vh;"> Timezone </th>
+                    <th class='table-center' style="width: 20vh;"> Source </th>                       
+                </tr>
+
+                {% for key, value in descriptor.devices.items() %}
+                    <tr>
+                        <td>{{ key }}</td>
+                        <td class='table-center'>{{ value.blueprint.upper().replace("_", " ") }}</td>
+                        <td class='table-center'><a href="{{ value.documentation }}" >Documentation</a></td>
+                        <td class='table-center'><a>{{ value.location }}</a></td>
+                        <td class='table-center'><em>{{ value.source.upper().replace("_", " ") }}</em></td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+            <div class="header">
+                <h2>Device information</h2>
+            </div>
+
+            {% for device, _ in descriptor.devices.items() %}
+                <div class="header">
+                    <h3>Device {{ device }}</h3>
+                </div>
+                {% if descriptor.devices[device]['sensors'].items().__len__() == 0 %}
+                    <p style="margin-left: 2rem;">Device empty. No data to show</p>
+                {% else %}
+                    <table>
+                        <tr>
+                            <th style="width: 20vh;"> Channel </th>
+                            <th class='table-center' style="width: 10vh;"> Units </th>
+                            <th class='table-center' style="width: 20vh;"> Type (raw/processed) </th>
+                            <th class='table-center' style="width: 20vh;"> Algorithm </th>
+                            <th class='table-center' style="width: 50vh;"> Description </th>
+                        </tr>
+
+                        {% for metric, value in descriptor.devices[device]['sensors'].items() %}
+                            <tr>
+                                <td>{{ metric }}</td>
+                                <td class='table-center'><em>{{ value.units }}</em></td>
+                                <td class='table-center'>Raw</td>
+                                <td class='table-center'>n/a</td>
+                                {% if 'desc' in value %}
+                                    <td class='table-center'>{{ value.desc }}</td>
+                                {% else %}
+                                    <td class='table-center'>No description available</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        
+                        {% if 'metrics' in descriptor.devices[device] %}
+                            {% for metric, value in descriptor.devices[device]['metrics'].items() %}
+                                <tr>
+                                    <td>{{ metric }}</td>
+                                    <td class='table-center'>{{ value.units }}</td>
+                                    <td class='table-center'>Processed</td>
+                                    <td class='table-center'>{{ value.process }}</td>
+                                    {% if 'desc' in value %}
+                                        <td class='table-center'>{{ value.desc }}</td>
+                                    {% else %}
+                                        <td class='table-center'>No description available</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </table>
+                {% endif %}   
+            {% endfor %}
+        </div>
+
+{% if full %}
+
+    </body>
+
+</html>
+
+<style type="text/css">
+
+    body {
+        text-align: justify;
+        line-height: 1.6;
+        font-size: 1rem;
+        font-family: Roboto, sans-serif; 
+        margin: 15px;
+        overflow: visible;
+    }
+
+    div#container{
+        padding: 20px 40px;
+    }
+
+    h1#top {
+        margin: 0px !important;
+        padding: 0px !important;
+        font-size: 250% !important;
+        font-weight: bold;
+    }
+
+    h2{
+        font-size: 17px;
+        font-weight: 1.1em;
+    }
+
+    h3{
+        font-size: 15px;
+        font-weight: 1.1em;
+    }
+
+    ul {
+        list-style: none;
+        font-size: 1rem;
+    }
+
+    table {
+        font-size: 1rem;
+        margin-left: 2rem;
+    }
+
+    div#report-header {
+        display: flex;
+        flex-direction: row;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+        -ms-flex-pack: justify;
+        -webkit-justify-content: space-between;
+        justify-content: space-between;
+        color: #FFFFFF;
+        height: 120px;
+        padding-left: 40px;
+        overflow: hidden;
+        border-top: none;
+        background: #000000;
+        box-shadow: 0px 0px 12px 1px rgba(87, 87, 87, 0.2);
+        border-radius: 5px 5px 0px 0px;
+        padding-right: 60px;
+    }
+
+    td.table-center{
+        text-align: center;
+    }
+
+    th.table-center{
+        text-align: center;
+    }
+
+    @page  
+      { 
+        size: auto;   /* auto is the initial value */ 
+
+        /* this affects the margin in the printer settings */ 
+        margin: 0mm;  
+    } 
+
+    @media print {
+        body{
+          padding: 0mm !important;
+          margin: 0mm !important;
+        }
+
+        div#report-header{
+          background: #000000 !important;
+          font-size: 90% !important;
+          page-break-inside: avoid;
+        }
+
+        div.device { 
+          display: block;
+          page-break-inside: avoid; 
+        }
+
+        table { 
+          page-break-inside: avoid;
+        }
+    } 
+</style>
+
+{% endif %} 
