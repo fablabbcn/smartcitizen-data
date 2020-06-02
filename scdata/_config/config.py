@@ -365,7 +365,7 @@ class Config(object):
                         'test_size': 0.2, 
                         'shuffle': False,
                         'clean_na': 'drop',
-                        'common_avg': True
+                        'common_avg': False
                     }
 
     model_hyperparameters = {

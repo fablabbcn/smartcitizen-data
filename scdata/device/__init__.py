@@ -4,6 +4,7 @@ from scdata.utils import std_out, localise_date, dict_fmerge, get_units_convf
 from scdata.io import read_csv_file, export_csv_file
 from scdata.utils import LazyCallable
 from scdata._config import config
+from scdata.device.process import *
 
 from os.path import join
 from pandas import DataFrame
@@ -240,6 +241,7 @@ class Device(object):
                         }}
         Returns
         ----------
+        True if added metric
         '''
 
         if 'metrics' not in vars(self): 
