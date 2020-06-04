@@ -9,8 +9,8 @@
 {%- block html_head -%}
 <meta charset="utf-8" />
 {% set nb_title = nb.metadata.get('title', '') or resources['metadata']['name'] %}
-<title>{{nb_title}}</title>
-
+<title>Smart Citizen Delivery</title>
+<link rel="shortcut icon" type="image/png" href="https://smartcitizen.me/assets/images/smartcitizen_logo.svg"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
@@ -149,9 +149,6 @@
   }
 </style>
 
-<!-- Custom stylesheet, it must be in the same directory as the html file -->
-<link rel="stylesheet" href="custom.css">
-
 <!-- Loading mathjax macro -->
 {{ mathjax() }}
 {%- endblock html_head -%}
@@ -162,7 +159,7 @@
 <body>
     <div id="report-header">
       {% set nb_title = nb.metadata.get('title', '') or resources['metadata']['name'] %}
-      <h1 id="top">{{nb_title}}</h1>
+      <h1 id="top">Delivery report</h1>
       
       <div style="text-align: right">
         <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=50px height=50px>
