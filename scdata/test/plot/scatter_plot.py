@@ -64,10 +64,10 @@ def scatter_plot(self, **kwargs):
     
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
+    print (formatting['palette'])
     
     # Font size
-    if formatting['fontsize'] is not None:
-            rcParams.update({'font.size': formatting['fontsize']});
+    if formatting['fontsize'] is not None: rcParams.update({'font.size': formatting['fontsize']});
 
     # Make it standard
     ptraces = dict()
@@ -122,12 +122,18 @@ def scatter_plot(self, **kwargs):
             else:
                 ax = axes[subplots.index(i)]
 
-            regplot(df[i[2*j]], df[i[2*j+1]],
-                        data=df, ax = ax, color = colors[cind], label = f'{i[2*j+1]} vs. {i[2*j]}')
+            kwargs = {
+                        'data':df, 
+                        'ax': ax,
+                        'label': f'{i[2*j+1]} vs. {i[2*j]}'
+                    }
+
+            if formatting['palette'] is None: kwargs['color'] = colors[cind]
+
+            regplot(df[i[2*j]], df[i[2*j+1]], **kwargs)
 
             if formatting['legend']: 
                 ax.legend(loc='best')
-
 
             if formatting['ylabel'] is not None:
                 try:
