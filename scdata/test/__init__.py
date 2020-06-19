@@ -16,7 +16,7 @@ from scdata._config import config
 class Test(object):
 
     from .plot import (ts_plot, ts_iplot, device_metric_map,
-                        scatter_plot, scatter_iplot, 
+                        scatter_plot, scatter_iplot, ts_scatter,
                         heatmap_plot, heatmap_iplot,
                         box_plot, ts_dendrogram)
                         #, report_plot, cat_plot, violin_plot)
