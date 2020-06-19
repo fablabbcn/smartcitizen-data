@@ -259,7 +259,7 @@ class Device(object):
         return True
 
     def del_metric(self, metricn = ''):
-
+        if 'metrics' not in vars(self): return
         if metricn in self.metrics: self.metrics.pop(metricn, None)
         if metricn in self.readings.columns: self.readings.__delitem__(metricn)
         
