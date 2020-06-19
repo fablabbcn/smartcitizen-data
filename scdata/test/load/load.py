@@ -91,6 +91,7 @@ def load(self, options = dict()):
                 else:
                     min_date_to_load = min_date_device
                     max_date_to_load = max_date_device
+                    load_API = True
             else:
                 if self.options['load_cached_api']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
                 min_date_to_load = min_date_device
