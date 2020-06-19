@@ -176,32 +176,32 @@ sc_20_station:
       process: merge_ts
       units: ug/m3
       desc: 'PM2.5 calculated based on both PMS5003 PM2.5 inputs'
-    NO2:
-      kwargs:
-        baseline: GB_2A
-        id: null
-        target: GB_2W
-        pollutant: NO2
-      process: baseline_4electrode_alg
-      units: ppb
-      desc: 'NO2 calculated based on Working electrode baseline substraction'
-    NO2+O3:
-      kwargs:
-        baseline: GB_3A
-        target: GB_3W
-        pollutant: NO2+O3
-      process: baseline_4electrode_alg
-      units: ppb
-      desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
-    O3:
-      kwargs:
-        source: NO2+O3
-        id: null
-        base: NO2
-        pollutant: O3
-      process: deconvolution
-      units: ppb
-      desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
+    # NO2:
+    #   kwargs:
+    #     baseline: GB_2A
+    #     id: null
+    #     target: GB_2W
+    #     pollutant: NO2
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2 calculated based on Working electrode baseline substraction'
+    # NO2+O3:
+    #   kwargs:
+    #     baseline: GB_3A
+    #     target: GB_3W
+    #     pollutant: NO2+O3
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
+    # O3:
+    #   kwargs:
+    #     source: NO2+O3
+    #     id: null
+    #     base: NO2
+    #     pollutant: O3
+    #   process: deconvolution
+    #   units: ppb
+    #   desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
   min_date: null
   plaftorm_id: 19
   processed_data_file: null
@@ -378,32 +378,32 @@ sc_21_station:
       process: merge_ts
       units: ug/m3
       desc: 'PM2.5 calculated based on both PMS5003 PM2.5 inputs'
-    NO2:
-      kwargs:
-        baseline: GB_2A
-        id: null
-        target: GB_2W
-        pollutant: NO2
-      process: baseline_4electrode_alg
-      units: ppb
-      desc: 'NO2 calculated based on Working electrode baseline substraction'
-    NO2+O3:
-      kwargs:
-        baseline: GB_3A
-        target: GB_3W
-        pollutant: NO2+O3
-      process: baseline_4electrode_alg
-      units: ppb
-      desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
-    O3:
-      kwargs:
-        source: NO2+O3
-        id: null
-        base: NO2
-        pollutant: O3
-      process: deconvolution
-      units: ppb
-      desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
+    # NO2:
+    #   kwargs:
+    #     baseline: GB_2A
+    #     id: null
+    #     target: GB_2W
+    #     pollutant: NO2
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2 calculated based on Working electrode baseline substraction'
+    # NO2+O3:
+    #   kwargs:
+    #     baseline: GB_3A
+    #     target: GB_3W
+    #     pollutant: NO2+O3
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
+    # O3:
+    #   kwargs:
+    #     source: NO2+O3
+    #     id: null
+    #     base: NO2
+    #     pollutant: O3
+    #   process: deconvolution
+    #   units: ppb
+    #   desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
   min_date: null
   plaftorm_id: null
   processed_data_file: null
