@@ -1,4 +1,4 @@
-from pandas import (DataFrame, to_datetime, to_numeric, read_json, 
+from pandas import (DataFrame, to_datetime, to_numeric, 
                     to_numeric, read_csv, DateOffset)
 
 from math import isnan
@@ -261,27 +261,35 @@ class ScApiDevice:
         if self.location is None: return None
 
         # Check start date
-        if start_date is None and self.added_at is not None:
-            start_date = to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ')
-        elif start_date is not None:
-            start_date = to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        # if start_date is None and self.added_at is not None:
+        #     start_date = localise_date(to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
+        #     # to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ')
+        # elif start_date is not None:
+        #     start_date = to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        if start_date is not None:
+            start_date = localise_date(to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
         
-        if start_date.tzinfo is None: start_date = start_date.tz_localize('UTC').tz_convert(self.location)
-        std_out (f'Min Date: {start_date}')
+        # if start_date.tzinfo is None: start_date = start_date.tz_localize('UTC').tz_convert(self.location)
+            std_out (f'Min Date: {start_date}')
         
-        # Check end date
-        if end_date is None and self.last_reading_at is not None:
-            end_date = to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ')
-        elif end_date is not None:
-            end_date = to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        # # Check end date
+        # if end_date is None and self.last_reading_at is not None:
+        #     # end_date = to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ')
+        #     end_date = localise_date(to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
+        # elif end_date is not None:
+        #     end_date = to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        if end_date is not None:
+            end_date = localise_date(to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
         
-        if end_date.tzinfo is None: end_date = end_date.tz_localize('UTC').tz_convert(self.location)
-        std_out (f'Max Date: {end_date}')
-        if start_date > end_date: std_out('Ignoring device dates. Probably SD card device', 'WARNING')
+        # if end_date.tzinfo is None: end_date = end_date.tz_localize('UTC').tz_convert(self.location)
+        
+            std_out (f'Max Date: {end_date}')
+
+        # if start_date > end_date: std_out('Ignoring device dates. Probably SD card device', 'WARNING')
         
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
-        if start_date < end_date: std_out(f'Dates: from: {start_date}, to: {end_date}')
+        # if start_date < end_date: std_out(f'Dates: from: {start_date}, to: {end_date}')
         std_out(f'Device timezone: {self.location}')
         if not self.sensors.keys(): 
             std_out(f'Device is empty')
@@ -296,15 +304,21 @@ class ScApiDevice:
             # Request sensor per ID
             request = self.API_BASE_URL + '{}/readings?'.format(self.id)
             
-            if start_date is None or start_date > end_date: request += 'from=2001-01-01'
-            else: request += f'from={start_date}'
+            if start_date is None:
+                request += 'from=2001-01-01'
+            elif end_date is not None:
+                if start_date > end_date: request += 'from=2001-01-01'
+                else: 
+                    request += f'from={start_date}'
+                    request += f'&to={end_date}'
+
             request += f'&rollup={rollup}'
             request += f'&sensor_id={sensor_id}'
             request += '&function=avg'
-            if end_date is not None and end_date > start_date: request += f'&to={end_date}'
+            # if end_date is not None:
+            #     if end_date > start_date: request += f'&to={end_date}'
             
             # Make request
-            # print (request)
             sensor_req = get(request)
             flag_error = False
             try:
@@ -407,22 +421,24 @@ class MuvApiDevice:
         
         # Get devices
         try:
-            url = self.API_BASE_URL + 'getSensorData?sensor_id={}/'.format(self.id)
-            df = read_json(url)
+            url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}'            
+            df = DataFrame(get(url).json())
         except:
-            # print_exc()
+            print_exc()
             std_out('Failed sensor request request. Probably no connection', 'ERROR')
             pass
             return None
 
         try:
             # Rename columns
-            df.rename(columns=self.sensors, inplace=True)
-            df = df.set_index('Time')
-            df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
+            df.rename(columns = self.sensors, inplace = True)
+            df = df.set_index('time')
+
+            df.index = localise_date(df.index, self.location)
             df = df[~df.index.duplicated(keep='first')]
             # Drop unnecessary columns
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+            df.drop('id', axis=1, inplace=True)
             # Check for weird things in the data
             df = df.apply(to_numeric, errors='coerce')
             # # Resample
@@ -431,14 +447,10 @@ class MuvApiDevice:
 
             df = clean(df, clean_na, how = 'all')
                 
-            # if clean_na is not None:
-            #     if clean_na == 'drop':
-            #         df.dropna(axis = 0, how='all', inplace=True)
-            #     elif clean_na == 'fill':
-            #         df = df.fillna(method='bfill').fillna(method='ffill')
             self.data = df
                 
         except:
+            print_exc()
             std_out('Problem closing up the API dataframe', 'ERROR')
             pass
             return None
