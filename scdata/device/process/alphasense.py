@@ -87,9 +87,16 @@ def baseline_4electrode_alg(dataframe, **kwargs):
         store_baseline: boolean
             True
             Whether or not to store the baseline in the dataframe
+        resample: str
+            '1Min'
+            Resample frequency for the target dataframe         
+        pcb_factor: int
+            config.alphadelta_pcb (6.36)
+            Factor converting mV to nA due to the board configuration
+
     Returns
     -------
-        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+        calculation of pollutant based on: pcb_factor*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
 
     result = Series()
@@ -114,6 +121,18 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     if 'store_baseline' in kwargs: store_baseline = kwargs['store_baseline']
     else: store_baseline = True
 
+    if 'resample' in kwargs: resample = kwargs['resample']
+    else: resample = '1Min'    
+
+    if 'pcb_factor' in kwargs: pcb_factor = kwargs['pcb_factor']
+    else: pcb_factor = config.alphadelta_pcb
+    
+    if 'baseline_type' in kwargs: baseline_type = kwargs['baseline_type']
+    else: baseline_type = 'deltas'
+
+    if 'deltas' in kwargs: deltas = kwargs['deltas']
+    else: deltas = config.baseline_deltas
+    
     if flag_error: 
         std_out('Problem with input data', 'ERROR')
         return None
@@ -123,7 +142,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
 
     for pos in range(0, len(pdates)-1):
         chunk = dataframe.loc[pdates[pos]:pdates[pos+1], [kwargs['target'], kwargs['baseline']]]
-        bchunk = baseline_calc(chunk, reg_type = reg_type)
+        bchunk = baseline_calc(chunk, reg_type = reg_type, resample = resample, baseline_type = baseline_type, deltas = deltas)
         if bchunk is None: continue
         baseline = baseline.combine_first(bchunk)
 
@@ -139,7 +158,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
             return None
         
-        result = config.alphadelta_pcb*(dataframe[kwargs['target']] - baseline)/abs(sensitivity_1)
+        result = pcb_factor*(dataframe[kwargs['target']] - baseline)/abs(sensitivity_1)
 
         # Convert units
         result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
