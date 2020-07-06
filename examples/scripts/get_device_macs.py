@@ -1,7 +1,7 @@
 from scdata.io.read_api import ScApiDevice
 
-print ('Getting device 10972')
-device = ScApiDevice('10972')
+print ('Getting device 13045')
+device = ScApiDevice('13045')
 print (device.get_device_location())
 print (device.get_mac())
 
