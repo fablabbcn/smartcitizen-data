@@ -39,16 +39,10 @@ git clone https://github.com/fablabbcn/smartcitizen-data-framework.git
 cd smartcitizen-data-framework
 ```
 
-Install requirements with:
+Install scdata package with requirements:
 
 ```
-pip install -r requirements.txt
-```
-
-You can manage the code in the framework as editable packages. To activate this, you can run:
-
-```
-pip install --editable . --verbose
+python setup.py install
 ```
 
 **NB**: maybe one day it will be in `pip`, but not yet.

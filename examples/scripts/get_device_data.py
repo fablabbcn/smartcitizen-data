@@ -2,7 +2,7 @@ from scdata.io.read_api import ScApiDevice
 from os.path import dirname, join
 
 # Device id needs to be as str
-device = ScApiDevice('13045')
+device = ScApiDevice('10972')
 device.get_device_location()
 device.get_device_sensors()
 
