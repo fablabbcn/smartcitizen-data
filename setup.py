@@ -77,4 +77,6 @@ setup(
                         'urllib3==1.25.9',
                         'webencodings==0.5.1',
                         'zipp==3.1.0'],
+
+    setup_requires=['wheel']
 )
