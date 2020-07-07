@@ -12,12 +12,3 @@ def test_get_device():
     assert resp.status_code == 200, resp.text
     assert j['id'] == id, resp.text
     assert j['uuid'] == uuid, resp.text
-# def test_file1_method1():
-# 	x=5
-# 	y=6
-# 	assert x+1 == y,"test failed"
-# 	assert x == y,"test failed"
-# def test_file1_method2():
-# 	x=5
-# 	y=6
-# 	assert x+1 == y,"test failed" 
