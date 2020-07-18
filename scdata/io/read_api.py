@@ -12,6 +12,8 @@ from scdata._config import config
 from scdata.utils import std_out, localise_date, clean
 from tzwhere import tzwhere
 
+from datetime import date
+
 tz_where = tzwhere.tzwhere()
 
 '''
@@ -412,7 +414,10 @@ class MuvApiDevice:
                         self.sensors[config.blueprints[key]['sensors'][sensor_name]['id']] = sensor_name
         return self.sensors
 
-    def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
+    def get_device_data(self, start_date = None, end_date = None, frequency = '3Min', clean_na = None):
+
+        if start_date is not None: days_ago = (to_datetime(date.today())-to_datetime(start_date)).days
+        else: days_ago = 365 # One year of data
 
         std_out(f'Requesting data from MUV API')
         std_out(f'Device ID: {self.id}')
@@ -421,7 +426,8 @@ class MuvApiDevice:
         
         # Get devices
         try:
-            url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}'            
+            if days_ago == -1: url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}'            
+            else: url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}&days={days_ago}'
             df = DataFrame(get(url).json())
         except:
             print_exc()
