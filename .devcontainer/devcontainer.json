@@ -1,0 +1,9 @@
+{
+	"name": "smartcitizen",
+	"dockerFile": "Dockerfile",
+	"appPort": 5000,
+	"context": "..",
+	"extensions": [
+		"ms-python.python"
+	]
+}
