@@ -39,7 +39,7 @@ git clone https://github.com/fablabbcn/smartcitizen-data-framework.git
 cd smartcitizen-data-framework
 ```
 
-Install scdata package with requirements:
+Install `scdata` package with requirements:
 
 ```
 python setup.py install
