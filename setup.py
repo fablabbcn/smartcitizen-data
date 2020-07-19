@@ -67,6 +67,7 @@ setup(
                         'pytz==2020.1',
                         'PyYAML==5.3.1',
                         'requests==2.23.0',
+                        'reportlab==3.5.*',
                         'scipy==1.4.1',
                         'scikit-learn==0.23.1',
                         'seaborn==0.10.1',
