@@ -34,6 +34,10 @@ notebooks/cheatsheet.ipynb
 */.DS_Store
 .DS_Store
 
+# Others
+.vscode/
+__pycache__/
+
 # Byte-compiled / optimized / DLL files
 *__pycache__/*
 *.py[cod]

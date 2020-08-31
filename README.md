@@ -49,11 +49,7 @@ python setup.py install
 
 ### Tokens and config
 
-If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill the `.env` with a `token` as below:
-
-```
-zenodo_token=your-token
-```
+If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set a variable called `ZENODO_TOKEN` in your environment.
 
 You can get more instructions [here](https://docs.smartcitizen.me/Guides/Upload%20data%20to%20zenodo/).
 
