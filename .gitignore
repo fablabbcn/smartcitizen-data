@@ -1,6 +1,6 @@
 # Remove
 data/export/*
-data/raw/*.csv
+data/raw/*
 data/processed/20*/
 data/reports/*
 data/interim/development/*

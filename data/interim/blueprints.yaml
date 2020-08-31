@@ -290,7 +290,8 @@ sc_20_station:
     csv:
       header_skip:
       - 1
-      - 4
+      - 2
+      - 3
       index: TIME
   version: null
 sc_21_station:
