@@ -56,7 +56,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 			if key in filled_template['metadata'].keys():
 				filled_template['metadata'][key] = value
 
-		with open (join(config.paths['dataDirectory'], 'uploads', descriptor_file_name), 'w') as descriptor_json:
+		with open (join(config.paths['data'], 'uploads', descriptor_file_name), 'w') as descriptor_json:
 			json.dump(filled_template, descriptor_json, ensure_ascii=True)
 			std_out(f'Created descriptor file for {descriptor_file_name}', 'SUCCESS')
 		
@@ -93,7 +93,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 	
 	if '.yaml' not in upload_descritor: upload_descritor = upload_descritor + '.yaml'
 	
-	with open (join(config.paths['dataDirectory'], 'uploads', upload_descritor), 'r') as descriptor_file:
+	with open (join(config.paths['data'], 'uploads', upload_descritor), 'r') as descriptor_file:
 		descriptor = yaml.load(descriptor_file)
 
 	for key in descriptor:
@@ -227,7 +227,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 
 					for file_name in descriptor[key]['report']:
 
-						file_path = join(paths['dataDirectory'], 'uploads', file_name)
+						file_path = join(paths['data'], 'uploads', file_name)
 						
 						if options['include_footer_doi'] and file_name.endswith('.pdf'):
 

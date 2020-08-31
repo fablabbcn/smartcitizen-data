@@ -1,6 +1,5 @@
 from os.path import join
 import yaml
-
 from .dictmerge import dict_fmerge
 from pandas import read_json
 from os import pardir, environ
@@ -8,22 +7,29 @@ from os.path import join, abspath, dirname
 
 def get_paths():
 
+    # Try to initialise paths based on environment
     try:
-    
         _paths = dict()
-        _paths['rootDirectory'] = abspath(abspath(join(dirname(__file__), pardir, pardir)))
-        _paths['dataDirectory'] = join(_paths['rootDirectory'], 'data')
-        _paths['processedDirectory'] = join(_paths['dataDirectory'], 'processed')
-        _paths['interimDirectory'] = join(_paths['dataDirectory'], 'interim')
-        _paths['modelDirectory'] = join(_paths['rootDirectory'], 'models')
+        if 'DATA_PATH' in environ.keys():
+            _paths['data'] = environ['DATA_PATH']
+            _paths['processed'] = join(_paths['data'], 'processed')
+            _paths['interim'] = join(_paths['data'], 'interim')
+            _paths['models'] = join(_paths['data'], 'models')
+            # print ('DATA_PATH found in environ')
+        else: 
+            print ('DATA_PATH not set in environ')
         
-        load_env(join(_paths['rootDirectory'], '.env'))
+        if 'INVENTORY_PATH' in environ.keys():
+            _paths['inventory'] = environ['INVENTORY_PATH']
+            # print ('INVENTORY_PATH found in environ')
+        else: 
+            print ('INVENTORY_PATH not set in environ')        
 
-        if 'inventory_path' in environ.keys():
-            _paths['inventoryDirectory'] = environ['inventory_path']
-        
-        if 'tools_path' in environ.keys(): 
-            _paths['toolsDirectory'] = environ['tools_path']
+        if 'TOOLS_PATH' in environ.keys(): 
+            _paths['tools'] = environ['TOOLS_PATH']
+            # print ('TOOLS_PATH found in environ')
+        else: 
+            print ('TOOLS_PATH not set in environ')            
     except:
         return None
    
@@ -34,17 +40,20 @@ def load_env(env_file):
     try:
         with open(env_file) as f:
             for line in f:
+                # Ignore empty lines or lines that start with #
                 if line.startswith('#') or not line.strip(): continue
                 # Load to local environ
                 key, value = line.strip().split('=', 1)
                 environ[key] = value  
+        return True
     except FileNotFoundError:
-        print('.env file not found in root directory')
+        print('.env file not found')
+        return False
 
-def load_blueprints(paths = get_paths()):
+def load_blueprints(paths):
     
     try:
-        blueprints_path = join(paths['interimDirectory'], 'blueprints.yaml')
+        blueprints_path = join(paths['interim'], 'blueprints.yaml')
         with open(blueprints_path, 'r') as blueprints_yaml:
             blueprints = yaml.load(blueprints_yaml, Loader=yaml.SafeLoader)
     except FileNotFoundError:
@@ -83,11 +92,11 @@ def load_calibrations(paths):
         }
     '''
     try:
-        caldata_path = join(paths['interimDirectory'], 'calibrations.json')
+        caldata_path = join(paths['interim'], 'calibrations.json')
         caldf = read_json(caldata_path, orient='columns', lines = True)
         caldf.index = caldf['serial_no']
     except FileNotFoundError:
-        print('Problem loading blueprints file')
+        print('Problem loading calibrations file')
         return None
     else:   
         return caldf

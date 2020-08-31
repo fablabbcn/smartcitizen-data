@@ -11,7 +11,7 @@ def model_export(name = None, path = None, model = None, variables = None, hyper
         return False
 
     if path is None: 
-        path = config.paths['modelDirectory']
+        path = config.paths['models']
     
     modeldir = join(path, name)
 
@@ -51,7 +51,7 @@ def model_export(name = None, path = None, model = None, variables = None, hyper
 def model_load(name = '', path = None):
 
     if path is None: 
-        path = config.paths['modelDirectory']
+        path = config.paths['models']
     
     modeldir = join(path, name)
     filename = join(modeldir, name)

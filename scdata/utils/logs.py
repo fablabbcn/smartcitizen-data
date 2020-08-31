@@ -10,7 +10,7 @@ def get_tests_log(deep_description = False):
 
     # Get available tests in the data folder structure
     tests = dict()
-    for root, dirs, files in walk(config.paths['processedDirectory']):
+    for root, dirs, files in walk(config.paths['processed']):
         for file in files:
             if file.endswith(".yaml"):
                 test_name = root.split('/')[-1]

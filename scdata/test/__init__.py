@@ -34,7 +34,7 @@ class Test(object):
                         'store_cached_api': config.store_cached_api
                         }
 
-        if self.__check_name__(name): self.__set_name__(name)
+        if self.__check_tname__(name): self.__set_tname__(name)
 
         self.details = dict()
         self.devices = dict()
@@ -57,14 +57,14 @@ class Test(object):
                                 'type_test': ''
                                 }
 
-    def __set_name__(self, name):
+    def __set_tname__(self, name):
         current_date = datetime.now()
         self.full_name = f'{current_date.year}_{str(current_date.month).zfill(2)}_{name}'
-        self.path = join(config.paths['processedDirectory'], str(current_date.year), \
+        self.path = join(config.paths['processed'], str(current_date.year), \
                 str(current_date.month).zfill(2), self.full_name)
         std_out (f'Full Name: {self.full_name}') 
 
-    def __check_name__(self, name):
+    def __check_tname__(self, name):
         test_log = get_tests_log()
         test_logn = list(test_log.keys())
 
@@ -96,7 +96,7 @@ class Test(object):
                         std_out("Type 'New' for other name, or test number in possible tests", 'ERROR')
                 else: 
                     std_out("Type 'New' for other name, or test number", 'ERROR')
-            if self.__check_name__(new_name): self.__set_name__(new_name)
+            if self.__check_tname__(new_name): self.__set_tname__(new_name)
 
     def create(self, force = False):
         # Create folder structure under data subdir
@@ -202,7 +202,7 @@ class Test(object):
             return parser.parse(s).replace(microsecond=int(a[-3:])*1000)
 
         # Define paths
-        raw_src_path = join(config.paths['dataDirectory'], 'raw')
+        raw_src_path = join(config.paths['data'], 'raw')
         raw_dst_path = join(self.path, 'raw')
 
         # Create path
@@ -227,7 +227,9 @@ class Test(object):
                         dst_path = join(self.path, device.processed_data_file)
 
                         # Load csv file, only localising and removing 
-                        df = read_csv_file(src_path, device.location, device.frequency, clean_na = None, index_name = device.sources[device.source]['index'], skiprows = device.sources[device.source]['header_skip'])
+                        df = read_csv_file(src_path, device.location, device.frequency, clean_na = None, 
+                                           index_name = device.sources[device.source]['index'], 
+                                           skiprows = device.sources[device.source]['header_skip'])
                         df.to_csv(dst_path, sep=",")
                     
             std_out('Files preprocessed')
