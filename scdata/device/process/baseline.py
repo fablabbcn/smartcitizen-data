@@ -127,12 +127,12 @@ def baseline_calc(dataframe, **kwargs):
 
     if result.empty: return None
 
-    if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
+    if config._intermediate_plots and config._plot_out_level == 'DEBUG': 
         fig, ax = plt.subplots(figsize=(12,8))
 
     if baseline_type == 'deltas':
 
-        if 'deltas' not in kwargs: n_deltas = config.baseline_deltas
+        if 'deltas' not in kwargs: n_deltas = config._baseline_deltas
         else: n_deltas = kwargs['deltas']
         
         if 'resample' not in kwargs: resample = '1Min'
@@ -155,7 +155,7 @@ def baseline_calc(dataframe, **kwargs):
             target_resampled = result.loc[:,name_delta].resample(f'{delta*off_base}{off_alias}').mean().values
             baseline_resampled = result.loc[:,baseline_name].resample(f'{delta*off_base}{off_alias}').mean().values
 
-            if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
+            if config._intermediate_plots and config._plot_out_level == 'DEBUG': 
                 ax.plot(result.index, result[name_delta], label = name_delta)
 
             _, _, r_value, _, _ = linregress(transpose(target_resampled), transpose(baseline_resampled))
@@ -163,7 +163,7 @@ def baseline_calc(dataframe, **kwargs):
 
     elif baseline_type == 'als':
 
-        if 'lambdas' not in kwargs: lambdas = config.baseline_als_lambdas
+        if 'lambdas' not in kwargs: lambdas = config._baseline_als_lambdas
         else: lambdas = kwargs['lambdas']
 
         if 'p' not in kwargs: p = 0.01
@@ -176,13 +176,13 @@ def baseline_calc(dataframe, **kwargs):
             name_lambda = name +'_' +str(lambd)
             result[name_lambda] = get_als_baseline(result.loc[:,target_name], lambd, p)
 
-            if config.intermediate_plots and config.plot_out_level == 'DEBUG': 
+            if config._intermediate_plots and config._plot_out_level == 'DEBUG': 
                 ax.plot(result.index, result[name_lambda], label = name_lambda)
 
             _, _, r_value, _, _ = linregress(transpose(result[name_lambda]), transpose(result.loc[:,baseline_name].values))
             pearsons.append(r_value)
 
-    if config.intermediate_plots and config.plot_out_level == 'DEBUG':
+    if config._intermediate_plots and config._plot_out_level == 'DEBUG':
         plt.show()
         ax.plot(result.index, result.loc[:,target_name], label = target_name)
         ax.plot(result.index, result.loc[:,baseline_name], label = baseline_name)
@@ -246,7 +246,7 @@ def baseline_calc(dataframe, **kwargs):
     result[target_name + '_baseline_raw'] = baseline
     result[target_name + '_baseline'] = result[[(target_name + '_' + 'baseline_raw'), target_name]].min(axis=1)
     
-    if config.intermediate_plots and config.plot_out_level == 'DEBUG':
+    if config._intermediate_plots and config._plot_out_level == 'DEBUG':
         with plt.style.context('seaborn-white'):
             fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,8))
             

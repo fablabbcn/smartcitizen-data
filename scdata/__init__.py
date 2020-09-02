@@ -1,6 +1,5 @@
 from .test import Test
 from .device import Device
-from ._config import config
 
 # from .batch import Batch
 

@@ -48,8 +48,6 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
-
-        if not config.is_init: config.get_meta_data()
     
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
@@ -237,7 +235,7 @@ class ScApiDevice:
                 frequency_unit = frequency[index_first:]
                 break
 
-        for item in config.freq_conv_lut:
+        for item in config._freq_conv_lut:
             if item[1] == frequency_unit: 
                 rollup_unit = item[0]
                 break

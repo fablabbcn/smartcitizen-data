@@ -5,7 +5,7 @@ from scdata._config import config
 def get_units_convf(sensor, from_units):
     """
     Returns a factor which will be multiplied to sensor. It accounts for unit
-    convertion based on the desired units in the config.channel_lut for each sensor.
+    convertion based on the desired units in the config._channel_lut for each sensor.
     channel_converted = factor * sensor
     Parameters
     ----------
@@ -24,7 +24,7 @@ def get_units_convf(sensor, from_units):
 
     rfactor = 1
 
-    for channel in config.channel_lut.keys():
+    for channel in config._channel_lut.keys():
         if not (search(channel, sensor)): continue
         # Molecular weight in case of pollutants
         for pollutant in config.molecular_weights.keys(): 
@@ -34,15 +34,15 @@ def get_units_convf(sensor, from_units):
             else: molecular_weight = 1
         
         # Check if channel is in look-up table
-        if config.channel_lut[channel] != from_units: 
-            std_out(f"Converting units for {sensor}. From {from_units} to {config.channel_lut[channel]}")
-            for unit in config.unit_convertion_lut:
+        if config._channel_lut[channel] != from_units: 
+            std_out(f"Converting units for {sensor}. From {from_units} to {config._channel_lut[channel]}")
+            for unit in config._unit_convertion_lut:
                 # Get units
-                if unit[0] == from_units and unit[1] == config.channel_lut[channel]: 
+                if unit[0] == from_units and unit[1] == config._channel_lut[channel]: 
                     factor = unit[2]
                     requires_conc = unit[3]
                     break
-                elif unit[1] == from_units and unit[0] == config.channel_lut[channel]: 
+                elif unit[1] == from_units and unit[0] == config._channel_lut[channel]: 
                     factor = 1/unit[2]
                     requires_conc = unit[3]
                     break

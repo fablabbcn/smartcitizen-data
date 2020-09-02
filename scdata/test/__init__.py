@@ -25,13 +25,11 @@ class Test(object):
     from .utils import combine, prepare
 
     def __init__(self, name):
-        # Init configuration
-        if not config.is_init: config.get_meta_data()
         
         self.options = {  
-                        'cached_data_margin': config.cached_data_margin,
-                        'load_cached_api': config.load_cached_api,
-                        'store_cached_api': config.store_cached_api
+                        'cached_data_margin': config.data['cached_data_margin'],
+                        'load_cached_api': config.data['load_cached_api'],
+                        'store_cached_api': config.data['store_cached_api']
                         }
 
         if self.__check_tname__(name): self.__set_tname__(name)

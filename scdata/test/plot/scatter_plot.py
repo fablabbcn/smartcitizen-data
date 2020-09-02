@@ -31,7 +31,7 @@ def scatter_plot(self, **kwargs):
         options: dict 
             Options including data processing prior to plot. Defaults in config.plot_def_opt
         formatting: dict
-            Formatting dict. Defaults in config.scatter_plot_def_fmt
+            Formatting dict. Defaults in config._scatter_plot_def_fmt
     Returns
     -------
         Matplotlib figure and axes
@@ -54,13 +54,13 @@ def scatter_plot(self, **kwargs):
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
-        formatting = config.scatter_plot_def_fmt['mpl']
+        formatting = config._scatter_plot_def_fmt['mpl']
     else:
-        formatting = dict_fmerge(config.scatter_plot_def_fmt['mpl'], kwargs['formatting'])
+        formatting = dict_fmerge(config._scatter_plot_def_fmt['mpl'], kwargs['formatting'])
 
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
-    else: style.use(config.plot_style)
+    else: style.use(config._plot_style)
     
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])

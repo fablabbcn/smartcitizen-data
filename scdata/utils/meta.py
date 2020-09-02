@@ -1,39 +1,63 @@
-from os.path import join
 import yaml
 from .dictmerge import dict_fmerge
-from os import pardir, environ
-from os.path import join, abspath, dirname
+from os import pardir, environ, name, makedirs
+from os.path import join, abspath, dirname, expanduser, exists
+import os
 
 def get_paths():
 
-    # Try to initialise paths based on environment
-    try:
-        _paths = dict()
-        if 'DATA_PATH' in environ.keys():
-            _paths['data'] = environ['DATA_PATH']
-            _paths['processed'] = join(_paths['data'], 'processed')
-            _paths['interim'] = join(_paths['data'], 'interim')
-            _paths['models'] = join(_paths['data'], 'models')
-            # print ('DATA_PATH found in environ')
-        else: 
-            print ('DATA_PATH not set in environ')
-        
-        if 'INVENTORY_PATH' in environ.keys():
-            _paths['inventory'] = environ['INVENTORY_PATH']
-            # print ('INVENTORY_PATH found in environ')
-        else: 
-            print ('INVENTORY_PATH not set in environ')        
+    # Check if windows
+    _mswin = name == "nt"
+    # Get user_home
+    _user_home = expanduser("~")
 
-        if 'TOOLS_PATH' in environ.keys(): 
-            _paths['tools'] = environ['TOOLS_PATH']
-            # print ('TOOLS_PATH found in environ')
-        else: 
-            print ('TOOLS_PATH not set in environ')            
-    except:
-        return None
-   
+    # Get .config dir
+    if _mswin:
+        _cdir = environ["APPDATA"]
+    elif 'XDG_CONFIG_HOME' in environ:
+        _cdir = environ['XDG_CONFIG_HOME']
     else:
-        return _paths
+        _cdir = join(expanduser("~"), '.config')
+
+    # Get .cache dir - maybe change it if found in config.json
+    if _mswin:
+        _ddir = environ["APPDATA"]
+    elif 'XDG_CACHE_HOME' in environ:
+        _ddir = environ['XDG_CACHE_HOME']
+    else:
+        _ddir = join(expanduser("~"), '.cache')
+
+    # Set config and cache (data) dirs
+    _sccdir = join(_cdir, 'scdata')
+    _scddir = join(_ddir, 'scdata')
+
+    makedirs(_sccdir, exist_ok=True)
+    makedirs(_scddir, exist_ok=True)
+
+    _paths = dict()
+
+    _paths['config'] = _sccdir
+    _paths['data'] = _scddir
+
+    # Auxiliary folders
+    _paths['processed'] = join(_paths['data'], 'processed')
+    makedirs(_paths['processed'], exist_ok=True)
+    _paths['interim'] = join(_paths['data'], 'interim')
+    makedirs(_paths['interim'], exist_ok=True)
+    _paths['models'] = join(_paths['data'], 'models')
+    makedirs(_paths['models'], exist_ok=True)
+    _paths['export'] = join(_paths['data'], 'export')
+    makedirs(_paths['export'], exist_ok=True)
+    _paths['raw'] = join(_paths['data'], 'raw')
+    makedirs(_paths['raw'], exist_ok=True)
+    _paths['reports'] = join(_paths['data'], 'reports')
+    makedirs(_paths['reports'], exist_ok=True)
+    _paths['uploads'] = join(_paths['data'], 'uploads')
+    makedirs(_paths['uploads'], exist_ok=True)
+
+    _paths['inventory'] = ''
+
+    return _paths
 
 def load_env(env_file):
     try:
@@ -43,11 +67,13 @@ def load_env(env_file):
                 if line.startswith('#') or not line.strip(): continue
                 # Load to local environ
                 key, value = line.strip().split('=', 1)
-                environ[key] = value  
-        return True
+                environ[key] = value
+    
     except FileNotFoundError:
         print('.env file not found')
         return False
+    else:
+        return True
 
 def load_blueprints(paths):
     

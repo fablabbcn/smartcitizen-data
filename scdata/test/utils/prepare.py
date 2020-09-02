@@ -14,14 +14,14 @@ def prepare(self, measurand, inputs, options = dict()):
             inputs per device and reading
                 inputs = {'devicename': ['reading-1', 'reading-2']}
         options: dict
-            Options including data processing. Defaults in config.model_def_opt
+            Options including data processing. Defaults in config._model_def_opt
     Returns
     -------
         df = pandas Dataframe
         measurand_name = string
     """
     
-    options = dict_fmerge(options, config.model_def_opt)
+    options = dict_fmerge(options, config._model_def_opt)
     std_out(f'Using options {options}')
     
     # Measurand

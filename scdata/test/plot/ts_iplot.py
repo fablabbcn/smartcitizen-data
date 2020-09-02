@@ -25,9 +25,9 @@ def ts_iplot(self, **kwargs):
                              "subplot": 2}
                         }     
         options: dict 
-            Options including data processing prior to plot. Defaults in config.ts_plot_def_opt
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
-            Name of auxiliary electrode found in dataframe. Defaults in config.ts_plot_def_fmt
+            Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
     Returns
     -------
         Plotly figure
@@ -43,15 +43,15 @@ def ts_iplot(self, **kwargs):
 
     if 'options' not in kwargs:
         std_out('Using default options', 'WARNING')
-        options = config.plot_def_opt
+        options = config._plot_def_opt
     else:
-        options = dict_fmerge(config.plot_def_opt, kwargs['options'])
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting', 'WARNING')
-        formatting = config.ts_plot_def_fmt['plotly']
+        formatting = config._ts_plot_def_fmt['plotly']
     else:
-        formatting = dict_fmerge(config.ts_plot_def_fmt['plotly'], kwargs['formatting'])
+        formatting = dict_fmerge(config._ts_plot_def_fmt['plotly'], kwargs['formatting'])
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)

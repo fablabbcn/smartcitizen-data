@@ -15,9 +15,9 @@ def heatmap_iplot(self, **kwargs):
                              "channel" : "PM_10"}
                         }      
         options: dict 
-            Options including data processing prior to plot. Defaults in config.plot_def_opt
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
-            Name of auxiliary electrode found in dataframe. Defaults in config.heatmap_def_fmt
+            Name of auxiliary electrode found in dataframe. Defaults in config._heatmap_def_fmt
     Returns
     -------
         Plotly figure
@@ -32,15 +32,15 @@ def heatmap_iplot(self, **kwargs):
 
     if 'options' not in kwargs:
         std_out('Using default options')
-        options = config.plot_def_opt
+        options = config._plot_def_opt
     else:
-        options = dict_fmerge(config.plot_def_opt, kwargs['options'])
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
-        formatting = config.heatmap_def_fmt['plotly']
+        formatting = config._heatmap_def_fmt['plotly']
     else:
-        formatting = dict_fmerge(config.heatmap_def_fmt['plotly'], kwargs['formatting'])
+        formatting = dict_fmerge(config._heatmap_def_fmt['plotly'], kwargs['formatting'])
 
     # Make it standard
     for trace in traces:

@@ -437,7 +437,7 @@ class Batch(object):
 
                     # Export model if requested
                     if current_model.options['export_model']:
-                        current_model.export(self.results[task]['data'].modelDirectory)
+                        current_model.export(self.results[task]['data'].models)
                 except:
                     traceback.print_exc()
                     pass

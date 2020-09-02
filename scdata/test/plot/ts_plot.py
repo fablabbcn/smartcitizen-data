@@ -26,9 +26,9 @@ def ts_plot(self, **kwargs):
                              "subplot": 2}
                         }     
         options: dict 
-            Options including data processing prior to plot. Defaults in config.plot_def_opt
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
-            Formatting dict. Defaults in config.ts_plot_def_fmt
+            Formatting dict. Defaults in config._ts_plot_def_fmt
     Returns
     -------
         Matplotlib figure
@@ -45,19 +45,19 @@ def ts_plot(self, **kwargs):
 
     if 'options' not in kwargs:
         std_out('Using default options')
-        options = config.plot_def_opt
+        options = config._plot_def_opt
     else:
-        options = dict_fmerge(config.plot_def_opt, kwargs['options'])
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
-        formatting = config.ts_plot_def_fmt['mpl']
+        formatting = config._ts_plot_def_fmt['mpl']
     else:
-        formatting = dict_fmerge(config.ts_plot_def_fmt['mpl'], kwargs['formatting'])
+        formatting = dict_fmerge(config._ts_plot_def_fmt['mpl'], kwargs['formatting'])
 
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
-    else: style.use(config.plot_style)
+    else: style.use(config._plot_style)
     
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])

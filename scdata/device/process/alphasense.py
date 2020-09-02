@@ -19,7 +19,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
     Returns
     -------
         calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
@@ -50,12 +50,12 @@ def basic_4electrode_alg(dataframe, **kwargs):
         return None
 
     # This is always in ppm since the calibration data is in signal/ppm
-    result = config.alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
+    result = config._alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
 
     # Convert units
     result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     # Add Background concentration
-    result += config.background_conc[kwargs['pollutant']]
+    result += config._background_conc[kwargs['pollutant']]
 
     return result
 
@@ -76,7 +76,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
         regression_type: 'string'
             'best'
             Use a 'linear' or 'exponential' regression for the calculation of the baseline
@@ -91,7 +91,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             '1Min'
             Resample frequency for the target dataframe         
         pcb_factor: int
-            config.alphadelta_pcb (6.36)
+            config._alphadelta_pcb (6.36)
             Factor converting mV to nA due to the board configuration
 
     Returns
@@ -125,13 +125,13 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     else: resample = '1Min'    
 
     if 'pcb_factor' in kwargs: pcb_factor = kwargs['pcb_factor']
-    else: pcb_factor = config.alphadelta_pcb
+    else: pcb_factor = config._alphadelta_pcb
     
     if 'baseline_type' in kwargs: baseline_type = kwargs['baseline_type']
     else: baseline_type = 'deltas'
 
     if 'deltas' in kwargs: deltas = kwargs['deltas']
-    else: deltas = config.baseline_deltas
+    else: deltas = config._baseline_deltas
     
     if flag_error: 
         std_out('Problem with input data', 'ERROR')
@@ -163,7 +163,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
         # Convert units
         result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
         # Add Background concentration
-        result += config.background_conc[kwargs['pollutant']]
+        result += config._background_conc[kwargs['pollutant']]
     
     else:
         # Calculate non convolved part
@@ -189,7 +189,7 @@ def deconvolution(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config.background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
     Returns
     -------
         calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
@@ -221,9 +221,9 @@ def deconvolution(dataframe, **kwargs):
     factor_unit_1 = get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     factor_unit_2 = get_units_convf(kwargs['base'], from_units = 'ppm')
 
-    result = factor_unit_1*(config.alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
+    result = factor_unit_1*(config._alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
     
     # Add Background concentration
-    result += config.background_conc[kwargs['pollutant']]
+    result += config._background_conc[kwargs['pollutant']]
     
     return result

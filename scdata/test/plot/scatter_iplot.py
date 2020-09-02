@@ -19,16 +19,16 @@ def scatter_iplot(self, **kwargs):
                               }    
                     }     
         options: dict 
-            Options including data processing prior to plot. Defaults in config.plot_def_opt
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
-            Name of auxiliary electrode found in dataframe. Defaults in config.corr_plot_def_fmt
+            Name of auxiliary electrode found in dataframe. Defaults in config._corr_plot_def_fmt
     Returns
     -------
         Plotly figure
     """
     std_out ('Not yet working', 'ERROR')
     return None
-    if config.framework == 'jupyterlab': renderers.default = config.framework
+    if config._framework == 'jupyterlab': renderers.default = config._framework
 
     if 'traces' not in kwargs: 
         std_out('No traces defined', 'ERROR')
@@ -38,15 +38,15 @@ def scatter_iplot(self, **kwargs):
 
     if 'options' not in kwargs:
         std_out('Using default options')
-        options = config.plot_def_opt
+        options = config._plot_def_opt
     else:
-        options = dict_fmerge(config.plot_def_opt, kwargs['options'])
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
-        formatting = config.scatter_plot_def_fmt['plotly']
+        formatting = config._scatter_plot_def_fmt['plotly']
     else:
-        formatting = dict_fmerge(config.scatter_plot_def_fmt['plotly'], kwargs['formatting'])
+        formatting = dict_fmerge(config._scatter_plot_def_fmt['plotly'], kwargs['formatting'])
 
     # Set options to not show in scatter_plot
     toshow = options['show']

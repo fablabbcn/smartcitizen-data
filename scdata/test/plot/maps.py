@@ -67,7 +67,7 @@ def device_history_map(map_type = 'dynamic', dataframe = None, options = dict())
     dataframe['color'] = dataframe.apply(lambda x: color(x), axis=1)
     dataframe['coordinates'] = dataframe.apply(lambda x: coordinates(x), axis=1)
 
-    options = dict_fmerge(config.map_def_opt, options)
+    options = dict_fmerge(config._map_def_opt, options)
 
     if map_type == 'dynamic':
         dataframe['date_list'] = dataframe.apply(lambda x: range_list(x), axis=1)
@@ -214,7 +214,7 @@ def device_metric_map(self, channel, start_date, end_date, options = dict()):
     }
 
     # Set defaults
-    options = dict_fmerge(config.map_def_opt, options)
+    options = dict_fmerge(config._map_def_opt, options)
 
     # Make date range
     date_r = date_range(start=start_date, end=end_date, normalize = True, freq=options['period']).strftime('%Y-%m-%d')

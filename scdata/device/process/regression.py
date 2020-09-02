@@ -11,7 +11,7 @@ def apply_regressor(dataframe, **kwargs):
     	model: sklearn predictor
     		Model with .predict method
 		options: dict
-			Options for data preprocessing. Defaults in config.model_def_opt
+			Options for data preprocessing. Defaults in config._model_def_opt
 		variables: dict
 			variables dictionary with:
 				{
@@ -44,9 +44,9 @@ def apply_regressor(dataframe, **kwargs):
 		model = kwargs['model']
 
 	if 'options' not in kwargs:
-		options = config.model_def_opt
+		options = config._model_def_opt
 	else:
-		options = dict_fmerge(config.model_def_opt, kwargs['options'])
+		options = dict_fmerge(config._model_def_opt, kwargs['options'])
 	
 	# Remove na
 	inputdf = clean(inputdf, options['clean_na'], how = 'any') 
