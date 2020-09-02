@@ -1,7 +1,6 @@
 from os.path import join
 import yaml
 from .dictmerge import dict_fmerge
-from pandas import read_json
 from os import pardir, environ
 from os.path import join, abspath, dirname
 
@@ -69,7 +68,7 @@ def load_blueprints(paths):
 
 # TODO
 def add_blueprint(**kwargs):
-    print ('not yet')
+    print ('Not yet')
 
 def get_current_blueprints():
     from scdata._config import config
@@ -79,24 +78,36 @@ def get_current_blueprints():
 
 def load_calibrations(paths):
     '''
-        The calibrations are meant for alphasense's 4 electrode sensors.
-        This file follows the next structure:
-        {
-            "Target 1": "Pollutant 1", 
-            "Target 2": "Pollutant 2", 
-            "Serial No": "XXXX", 
-            "Sensitivity 1": "Pollutant 1 sensitivity in nA/ppm", 
-            "Sensitivity 2": "Pollutant 2 sensitivity in nA/ppm", 
-            "Zero Current": "in nA", 
-            "Aux Zero Current": "in nA"}
-        }
+        Loads calibrations from yaml file. 
+        The calibrations are meant for alphasense's 4 electrode sensors. The yaml file contains:
+        'SENSOR_ID':
+            sensor_type: ''
+            we_electronic_zero_mv: ''
+            we_sensor_zero_mv: ''
+            we_total_zero_mv: ''
+            ae_electronic_zero_mv: ''
+            ae_sensor_zero_mv: ''
+            ae_total_zero_mv: ''
+            we_sensitivity_na_ppb: ''
+            we_cross_sensitivity_no2_na_ppb: ''
+            pcb_gain: ''
+            we_sensitivity_mv_ppb: ''
+            we_cross_sensitivity_no2_mv_ppb: ''
+        Parameters
+        ----------
+            path: String
+                yaml file path
+        Returns
+        ---------
+            Dictionary containing calibrations otherwise None
     '''
     try:
-        caldata_path = join(paths['interim'], 'calibrations.json')
-        caldf = read_json(caldata_path, orient='columns', lines = True)
-        caldf.index = caldf['serial_no']
+        calspath = join(paths['interim'], 'calibrations.yaml')
+        
+        with open(calspath, 'r') as j:
+            cals = load.load(j)
     except FileNotFoundError:
         print('Problem loading calibrations file')
         return None
     else:   
-        return caldf
+        return cals

@@ -113,7 +113,7 @@ parrot_soil:
   min_date: null
   source: null
   version: null
-sc_20_station:
+sc_20_station_iscape:
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
@@ -294,7 +294,7 @@ sc_20_station:
       - 3
       index: TIME
   version: null
-sc_21_station:
+sc_21_station_iscape:
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
