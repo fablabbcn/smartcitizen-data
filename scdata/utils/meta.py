@@ -105,7 +105,7 @@ def load_calibrations(paths):
         calspath = join(paths['interim'], 'calibrations.yaml')
         
         with open(calspath, 'r') as j:
-            cals = load.load(j)
+            cals = yaml.load(j, Loader = yaml.SafeLoader)
     except FileNotFoundError:
         print('Problem loading calibrations file')
         return None

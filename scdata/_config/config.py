@@ -3,11 +3,10 @@ import yaml
 
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
-                                load_calibrations)
+                                load_calibrations, load_env)
 
-from pandas import read_json
 from os import pardir, environ
-from os.path import join, abspath, dirname
+from os.path import join, abspath, dirname, exists
 
 from numpy import arange
 
@@ -381,12 +380,24 @@ class Config(object):
 
     def __init__(self):
         self._is_init = False
+        self._env_file = False
 
     @property
     def is_init(self):
         return self._is_init
     
     def get_meta_data(self):
+
+        # Find environment file in root or in scdata/
+        if exists('.env'): env_file = '.env'
+        elif exists('../.env'): env_file = '../.env'
+        else: env_file = None
+
+        # Load env if succesfull
+        if env_file is not None and not self._env_file: 
+            print(f'Found Environment file at: {env_file}')
+            if load_env(env_file): self._env_file = True
+            
         if not self._is_init:
             paths = get_paths()
 
@@ -401,10 +412,13 @@ class Config(object):
                     self.calibrations = calibrations
 
                     self._is_init = True
+
+            else: 
+                print(f'Cannot get paths')
         
         return self.is_init
 
-    def set_testing(self):
+    def set_testing(self, env_file = None):
         '''
         Convenience method for setting variables as development 
         in jupyterlab
@@ -415,7 +429,16 @@ class Config(object):
         ----------
             None
         '''
+
+        print ('Setting test mode')
         self.out_level = 'DEBUG'
         self.framework = 'jupyterlab'
         self.intermediate_plots = True
         self.plot_out_level = 'DEBUG'
+        
+        # Load Environment
+        if env_file is not None and not self._env_file: 
+            if load_env(env_file): self._env_file = True
+
+        # Load paths
+        self.get_meta_data()
