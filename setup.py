@@ -4,6 +4,11 @@ from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
+import sys
+
+if sys.version_info < (3,0):
+    sys.exit("scdata requires python 3.")
+
 from scdata import __version__
 
 here = path.abspath(path.dirname(__file__))
@@ -14,7 +19,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='scdata',
-    # Versions should comply with PEP440.  For a discussion on single-sourcing
+    # Versions should comply with PEP440. For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version= __version__,
