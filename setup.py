@@ -56,6 +56,7 @@ setup(
                         'matplotlib==3.2.1',
                         'numpy==1.18.3',
                         'pandas==1.0.3',
+                        'pdfrw==0.4',
                         'PDPbox==0.2.0',
                         'plotly==4.6.0',
                         'pyparsing==2.4.7',
