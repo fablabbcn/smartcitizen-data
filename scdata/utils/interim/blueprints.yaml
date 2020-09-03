@@ -704,3 +704,114 @@ sck_21:
   source: null
   sources: *id005
   version: null
+sc_21_station_box:
+  expands: sck_21
+  sensors:
+    EXT_PM_A_1:
+      id: '71'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 A'
+    EXT_PM_A_10:
+      id: '73'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 A'
+    EXT_PM_A_25:
+      id: '72'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 A'
+    EXT_PM_B_1:
+      id: '75'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 B'
+    EXT_PM_B_10:
+      id: '77'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 B'
+    EXT_PM_B_25:
+      id: '76'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 B'
+    ADC_48_0:
+      id: null
+      units: V
+      desc: 'Channel 0 of ADC 0x48'
+    ADC_48_1:
+      id: 'null'
+      units: V
+      desc: 'Channel 1 of ADC 0x48'
+    ADC_48_2:
+      id: 'null'
+      units: V
+      desc: 'Channel 2 of ADC 0x48'
+    ADC_48_3:
+      id: 'null'
+      units: V
+      desc: 'Channel 3 of ADC 0x48'
+    ADC_49_0:
+      id: null
+      units: V
+      desc: 'Channel 0 of ADC 0x49'
+    ADC_49_1:
+      id: 'null'
+      units: V
+      desc: 'Channel 1 of ADC 0x49'
+    ADC_49_2:
+      id: 'null'
+      units: V
+      desc: 'Channel 2 of ADC 0x49'
+    ADC_49_3:
+      id: 'null'
+      units: V
+      desc: 'Channel 3 of ADC 0x49'
+    ADC_4A_0:
+      id: null
+      units: V
+      desc: 'Channel 0 of ADC 0x4A'
+    ADC_4A_1:
+      id: 'null'
+      units: V
+      desc: 'Channel 1 of ADC 0x4A'
+    ADC_4A_2:
+      id: 'null'
+      units: V
+      desc: 'Channel 2 of ADC 0x4A'
+    ADC_4A_3:
+      id: 'null'
+      units: V
+      desc: 'Channel 3 of ADC 0x4A'
+    ADC_4B_0:
+      id: null
+      units: V
+      desc: 'Channel 0 of ADC 0x4B'
+    ADC_4B_1:
+      id: 'null'
+      units: V
+      desc: 'Channel 1 of ADC 0x4B'
+    ADC_4B_2:
+      id: 'null'
+      units: V
+      desc: 'Channel 2 of ADC 0x4B'
+    ADC_4B_3:
+      id: 'null'
+      units: V
+      desc: 'Channel 3 of ADC 0x4B'
+    EXT_SHT31_TEMP:
+      id: 'null'
+      units: 'ºC'
+      desc: 'External SHT31 temperature'
+    EXT_SHT31_HUM:
+      id: 'null'
+      units: '%rh'
+      desc: 'External SHT31 humidity'
+    EXT_TEMP:
+      id: '96'
+      units: degC
+      desc: 'Dallas External probe Temperature'
+    GPS_LAT:
+      id: null
+      units: null
+      desc: 'GPS lat'
+    GPS_LONG:
+      id: null
+      units: null
+      desc: 'GPS long'      
