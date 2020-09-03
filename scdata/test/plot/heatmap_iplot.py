@@ -22,7 +22,7 @@ def heatmap_iplot(self, **kwargs):
     -------
         Plotly figure
     """
-    if config.framework == 'jupyterlab': renderers.default = config.framework
+    if config._framework == 'jupyterlab': renderers.default = config._framework
 
     if 'traces' not in kwargs: 
         std_out('No traces defined', 'ERROR')

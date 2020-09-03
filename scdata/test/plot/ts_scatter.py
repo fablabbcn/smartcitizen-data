@@ -36,7 +36,7 @@ def ts_scatter(self, **kwargs):
         Matplotlib figure containing timeseries and scatter plot with correlation 
         coefficients on it
     """
-    if config.framework == 'jupyterlab': plt.ioff();
+    if config._framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
     if 'traces' not in kwargs: 

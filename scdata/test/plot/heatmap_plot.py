@@ -25,7 +25,7 @@ def heatmap_plot(self, **kwargs):
         Matplotlib figure
     """
 
-    if config.framework == 'jupyterlab': plt.ioff();
+    if config._framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
     if 'traces' not in kwargs: 
