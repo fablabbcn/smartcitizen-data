@@ -368,6 +368,7 @@ class Config(object):
         self._env_file = False
         self.paths = get_paths()
         self.load()
+        self.get_meta_data()
 
     def __getattr__(self, name):
         try:
