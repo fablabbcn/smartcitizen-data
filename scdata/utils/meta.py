@@ -3,6 +3,7 @@ from .dictmerge import dict_fmerge
 from os import pardir, environ, name, makedirs
 from os.path import join, abspath, dirname, expanduser, exists
 import os
+from shutil import copyfile
 
 def get_paths():
 
@@ -74,6 +75,14 @@ def get_paths():
     # - Uploads
     _paths['uploads'] = join(_paths['data'], 'uploads')
     makedirs(_paths['uploads'], exist_ok=True)
+    
+    # Check for uploads
+    _example_uploads = ['example_upload_1.json', 'example_zenodo_upload.yaml']
+    _udir = join(_dir, 'uploads')
+    for item in _example_uploads:
+        s = join(_udir, item)
+        d = join(_paths['uploads'], item)
+        if not exists(d): copyfile(s, d)
     
     # Inventory (normally not used by user)
     _paths['inventory'] = ''
