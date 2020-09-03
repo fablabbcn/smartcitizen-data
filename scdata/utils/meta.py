@@ -122,10 +122,15 @@ def load_blueprints(paths):
         print('Problem loading blueprints file')
         return None
     else:
+        # If blueprint has expands attribute, add it to the expanded one
         for blueprint in blueprints.keys():
             if 'expands' in blueprints[blueprint]: 
                 blueprints[blueprint] = dict_fmerge(blueprints[blueprint], blueprints[blueprints[blueprint]['expands']])
                 blueprints[blueprint].pop('expands')
+
+        
+        with open(blueprints_path, 'w') as b:
+            yaml.dump(blueprints, b)        
             
         return blueprints
 
