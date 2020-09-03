@@ -9,45 +9,36 @@ import sys
 if sys.version_info < (3,0):
     sys.exit("scdata requires python 3.")
 
-from scdata import __version__
-
-here = path.abspath(path.dirname(__file__))
-
-# Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
-
 setup(
     name='scdata',
-    # Versions should comply with PEP440. For a discussion on single-sourcing
-    # the version across setup.py and the project code, see
-    # https://packaging.python.org/en/latest/single_source_version.html
-    version= __version__,
+    version= '0.1.0',
     description='Smart Citizen Data',
     author='oscgonfer',
     license='GNU-GPL3.0',
     packages=find_packages(),
+    keywords=['air', 'sensors', 'Smart Citizen'],
 
-    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    LONG_DESCRIPTION = ("""
+        SCDATA - Module for analysis of air quality data using sensors
+        scdata is a framework built with the purpose of *analysis*, *calibration* 
+        and *post-processing* of sensors data, related to any field, but particularly 
+        focused on air-quality data coming from low-cost sensors. 
+        It aims to unify several sources of data and to provide tools for analysing data by:
+        * Interacting with several sensors APIs (see [here](scdata/data/api.py))
+        * Clean data, export and calculate metrics
+        * Model sensor data and calibrate sensors
+        * Generate data visualisations:
+        Documentation is available at: https://docs.smartcitizen.me/Data%20Analysis/
+    """),
+
     classifiers=[
         'Development Status :: 4 - Beta',
-
-        # Indicate who your project is intended for
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering',
-
-        # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-
-        # Specify the Python versions you support here. In particular, ensure
-        # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 3',
     ],
 
-    # List run-time dependencies here.  These will be installed by pip when
-    # your project is installed. For an analysis of "install_requires" vs pip's
-    # requirements files see:
-    # https://packaging.python.org/en/latest/requirements.html
     install_requires=[  'attrs==19.3.0',
                         'branca==0.4.0',
                         'certifi==2020.4.5.1',
@@ -84,5 +75,8 @@ setup(
                         'webencodings==0.5.1',
                         'zipp==3.1.0'],
 
-    setup_requires=['wheel']
+    setup_requires=['wheel'],
+
+    include_package_data=True,
+    zip_safe=False
 )

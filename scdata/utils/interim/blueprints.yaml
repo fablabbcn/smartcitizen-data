@@ -1,0 +1,706 @@
+base:
+  clean_na: null
+  frequency: null
+  documentation: null  
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  source: null
+  version: null
+csic_station:
+  clean_na: null
+  frequency: null
+  documentation: https://analisi.transparenciacatalunya.cat/  
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  sensors:
+    C6H6:
+      id: C6H6
+      units: ug/m3
+    CO:
+      id: CO
+      units: mg/m3
+    H2S:
+      id: H2S
+      units: ug/m3
+    'NO':
+      id: 'NO'
+      units: ug/m3
+    NO2:
+      id: NO2
+      units: ug/m3
+    NOX:
+      id: NOX
+      units: ug/m3
+    O3:
+      id: O3
+      units: ug/m3
+    PM_10:
+      id: PM10
+      units: ug/m3
+    SO2:
+      id: SO2
+      units: ug/m3
+  source: null
+  raw_data_file: null
+  processed_data_file: null
+  sources:
+    api:
+      handler: DadesObertesApiDevice
+    csv:
+      header_skip:
+      - 1
+      - 4
+      index: date
+  version: null
+muv_station:
+  clean_na: null
+  frequency: null
+  documentation: https://github.com/waagsociety/air_quality_sensor_kit/tree/master/MUV%20Kit
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  min_date: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    GB_2A:
+      id: no2op2
+      units: mV
+    GB_2W:
+      id: no2op1
+      units: mV
+    GB_3A:
+      id: o3op2
+      units: mV
+    GB_3W:
+      id: o3op1
+      units: mV
+    HUM:
+      id: h
+      units: '%rh'
+    NOISE_A:
+      id: dB
+      units: dBA
+    PM_10:
+      id: p10
+      units: ug/m3
+    PM_25:
+      id: p25
+      units: ug/m3
+    TEMP:
+      id: t
+      units: degC
+  source: null
+  sources:
+    api:
+      handler: MuvApiDevice
+    csv:
+      header_skip: null
+      index: Time
+  version: null
+parrot_soil:
+  clean_na: null
+  documentation: null
+  frequency: null
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  source: null
+  version: null
+sc_20_station_iscape:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: 19
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CO:
+      kwargs:
+        auxiliary: GB_1A
+        id: null
+        pollutant: CO
+        working: GB_1W
+      process: basic_4electrode_alg
+      units: ppm
+      desc: 'CO calculation based on simple electrode substraction'
+    EXT_PM_10_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_10
+        - EXT_PM_B_10
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM10 calculated based on both PMS5003 PM10 inputs'
+    EXT_PM_1_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_1
+        - EXT_PM_B_1
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM1 calculated based on both PMS5003 PM1 inputs'
+    EXT_PM_25_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_25
+        - EXT_PM_B_25
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM2.5 calculated based on both PMS5003 PM2.5 inputs'
+    # NO2:
+    #   kwargs:
+    #     baseline: GB_2A
+    #     id: null
+    #     target: GB_2W
+    #     pollutant: NO2
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2 calculated based on Working electrode baseline substraction'
+    # NO2+O3:
+    #   kwargs:
+    #     baseline: GB_3A
+    #     target: GB_3W
+    #     pollutant: NO2+O3
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
+    # O3:
+    #   kwargs:
+    #     source: NO2+O3
+    #     id: null
+    #     base: NO2
+    #     pollutant: O3
+    #   process: deconvolution
+    #   units: ppb
+    #   desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
+  min_date: null
+  plaftorm_id: 19
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: &id001
+      id: '10'
+      units: '%'
+      desc: 'Device battery status'
+    EXT_PM_A_1:
+      id: '71'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 A'
+    EXT_PM_A_10:
+      id: '73'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 A'
+    EXT_PM_A_25:
+      id: '72'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 A'
+    EXT_PM_B_1:
+      id: '75'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 B'
+    EXT_PM_B_10:
+      id: '77'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 B'
+    EXT_PM_B_25:
+      id: '76'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 B'
+    GB_1A:
+      id: '65'
+      units: mV
+      desc: 'Auxiliary electrode 1'
+    GB_1W:
+      id: '64'
+      units: mV
+      desc: 'Working electrode 1'
+    GB_2A:
+      id: '62'
+      units: mV
+      desc: 'Auxiliary electrode 2'
+    GB_2W:
+      id: '61'
+      units: mV
+      desc: 'Working electrode 2'
+    GB_3A:
+      id: '68'
+      units: mV
+      desc: 'Auxiliary electrode 3'
+    GB_3W:
+      id: '67'
+      units: mV
+      desc: 'Working electrode 3'
+    GB_HUM:
+      id: '80'
+      units: '%rh'
+      desc: 'Gases board humidity (SHT31)'
+    GB_TEMP:
+      id: '79'
+      units: degC
+      desc: 'Gases board temperature (SHT31)'
+    HUM: &id002
+      id: '56'
+      units: '%rh'
+      desc: 'Urban board humidity (SHT31)'
+    LIGHT: &id003
+      id: '14'
+      units: lux
+      desc: 'Urban board ambient light'
+    TEMP: &id004
+      id: '55'
+      units: degC
+      desc: 'Urban board temperature (SHT31)'
+    EXT_TEMP:
+      id: '96'
+      units: degC
+      desc: 'Dallas External probe Temperature'      
+  source: null
+  sources: &id005
+    api:
+      handler: ScApiDevice
+    csv:
+      header_skip:
+      - 1
+      - 2
+      - 3
+      index: TIME
+  version: null
+sc_21_station_iscape:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CCS811_ECO2_CLEAN:
+      kwargs:
+        limits:
+        - 400
+        - 65000
+        name: CCS811_ECO2
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppm
+      desc: 'eCO2 cleaned data'
+    CCS811_VOCS_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 65000
+        name: CCS811_VOCS
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppb
+      desc: 'Volatile Organic Compounds cleaned data'
+    CO:
+      kwargs:
+        auxiliary: GB_1A
+        id: null
+        pollutant: CO
+        working: GB_1W
+      process: basic_4electrode_alg
+      units: ppm
+      desc: 'CO calculation based on simple electrode substraction'
+    EXT_PM_10_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_10
+        - EXT_PM_B_10
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM10 calculated based on both PMS5003 PM10 inputs'
+    EXT_PM_1_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_1
+        - EXT_PM_B_1
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM1 calculated based on both PMS5003 PM1 inputs'
+    EXT_PM_25_CLEAN:
+      kwargs:
+        factor: 0.3
+        limits:
+        - 0
+        - 1000
+        names:
+        - EXT_PM_A_25
+        - EXT_PM_B_25
+        pick: min
+        window_size: 5
+        window_type: null
+      process: merge_ts
+      units: ug/m3
+      desc: 'PM2.5 calculated based on both PMS5003 PM2.5 inputs'
+    # NO2:
+    #   kwargs:
+    #     baseline: GB_2A
+    #     id: null
+    #     target: GB_2W
+    #     pollutant: NO2
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2 calculated based on Working electrode baseline substraction'
+    # NO2+O3:
+    #   kwargs:
+    #     baseline: GB_3A
+    #     target: GB_3W
+    #     pollutant: NO2+O3
+    #   process: baseline_4electrode_alg
+    #   units: ppb
+    #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
+    # O3:
+    #   kwargs:
+    #     source: NO2+O3
+    #     id: null
+    #     base: NO2
+    #     pollutant: O3
+    #   process: deconvolution
+    #   units: ppb
+    #   desc: 'O3 deconvolution, based on NO2+O3 cell and NO2'
+  min_date: null
+  plaftorm_id: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    NOISE_A:
+      id: '53'
+      units: dBA
+      desc: 'A-scale noise SPL'
+    CCS811_ECO2:
+      id: '112'
+      units: ppm
+    CCS811_VOCS:
+      id: '113'
+      units: ppm
+    EXT_PM_A_1:
+      id: '71'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 A'
+    EXT_PM_A_10:
+      id: '73'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 A'
+    EXT_PM_A_25:
+      id: '72'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 A'
+    EXT_PM_B_1:
+      id: '75'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003 B'
+    EXT_PM_B_10:
+      id: '77'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003 B'
+    EXT_PM_B_25:
+      id: '76'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003 B'
+    GB_1A:
+      id: '65'
+      units: mV
+      desc: 'Auxiliary electrode 1'
+    GB_1W:
+      id: '64'
+      units: mV
+      desc: 'Working electrode 1'
+    GB_2A:
+      id: '62'
+      units: mV
+      desc: 'Auxiliary electrode 2'
+    GB_2W:
+      id: '61'
+      units: mV
+      desc: 'Working electrode 2'
+    GB_3A:
+      id: '68'
+      units: mV
+      desc: 'Auxiliary electrode 3'
+    GB_3W:
+      id: '67'
+      units: mV
+      desc: 'Working electrode 3'
+    GB_HUM:
+      id: '80'
+      units: '%rh'
+      desc: 'Gases board humidity (SHT31)'
+    GB_TEMP:
+      id: '79'
+      units: degC
+      desc: 'Gases board temperature (SHT31)'
+    EXT_TEMP:
+      id: '96'
+      units: degC
+      desc: 'Dallas External probe Temperature' 
+    HUM: *id002
+    LIGHT: *id003
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck:
+  clean_na: null
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  min_date: null
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    HUM: *id002
+    LIGHT: *id003
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck_15:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  location: null
+  max_date: null
+  min_date: null
+  sensors:
+    BATT: *id001
+    HUM: *id002
+    LIGHT: *id003
+    TEMP: *id004
+  source: null
+  sources:
+    api:
+      handler: ScApiDevice
+    csv:
+      header_skip: null
+      index: Time
+  version: null
+sck_20:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: null
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    PM_10_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_10
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM10 calculated based on both PMS5003 PM10 inputs'      
+    PM_1_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_1
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM1 calculated based on both PMS5003 PM10 inputs'   
+    PM_25_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_25
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM2.5 calculated based on both PMS5003 PM2.5 inputs'      
+  min_date: null
+  platform_id: 11
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    HUM: *id002
+    LIGHT: *id003
+    NOISE_A:
+      id: '53'
+      units: dBA
+      desc: 'A-scale noise SPL'
+    PM_1:
+      id: '89'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003'      
+    PM_10:
+      id: '88'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003'      
+    PM_25:
+      id: '87'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003'      
+    PRESS:
+      id: '58'
+      units: kPa
+      desc: 'Atmospheric pressure'      
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null
+sck_21:
+  clean_na: null
+  documentation: https://docs.smartcitizen.me/
+  frequency: null
+  id: 26
+  info_data_file: null
+  location: null
+  max_date: null
+  metrics:
+    CCS811_ECO2_CLEAN:
+      kwargs:
+        limits:
+        - 400
+        - 65000
+        name: CCS811_ECO2
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppm
+      desc: 'eCO2 cleaned data'
+    CCS811_VOCS_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 65000
+        name: CCS811_VOCS
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppb
+      desc: 'Volatile Organic Compounds cleaned data'
+    PM_10_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_10
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM10 calculated based on both PMS5003 PM10 inputs'
+    PM_1_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_1
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM1 calculated based on both PMS5003 PM1 inputs'
+    PM_25_CLEAN:
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_25
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      desc: 'PM2. calculated based on both PMS5003 PM2.5 inputs'
+  min_date: null
+  platform_id: 28
+  processed_data_file: null
+  raw_data_file: null
+  sensors:
+    BATT: *id001
+    CCS811_ECO2:
+      id: '112'
+      units: ppm
+      desc: 'Equivalent CO2'      
+    CCS811_VOCS:
+      id: '113'
+      units: ppm
+      desc: 'total Volatile Organics Compounds'
+    HUM: *id002
+    LIGHT: *id003
+    NOISE_A:
+      id: '53'
+      units: dBA
+      desc: 'A-scale noise SPL'
+    PM_1:
+      id: '89'
+      units: ug/m3
+      desc: 'PM1 measurement from PMS5003'      
+    PM_10:
+      id: '88'
+      units: ug/m3
+      desc: 'PM10 measurement from PMS5003'      
+    PM_25:
+      id: '87'
+      units: ug/m3
+      desc: 'PM2.5 measurement from PMS5003'      
+    PRESS:
+      id: '58'
+      units: kPa
+      desc: 'Atmospheric pressure'
+    TEMP: *id004
+  source: null
+  sources: *id005
+  version: null

@@ -9,7 +9,7 @@ Welcome to the **SmartCitizen Sensor Data Framework**. This is a framework built
 
 ## Features
 
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Sensor%20Analysis%20Framework/). Some features include:
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). Some features include:
 
 - Interacting with several sensors APIs (see [here](scdata/data/api.py))
 - Clean data, export and calculate metrics
@@ -49,9 +49,32 @@ python setup.py install
 
 ### Tokens and config
 
-If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set a variable called `ZENODO_TOKEN` in your environment.
+If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set an environment variable called `ZENODO_TOKEN` in your environment.
 
 You can get more instructions [here](https://docs.smartcitizen.me/Guides/Upload%20data%20to%20zenodo/).
+
+A configuration file is available at `~/.config/scdata/config.yaml`, which contains a set of configurable variables to allow or not the local storage of relevant data in the data folder, normally in `~/.cache/scdata/data`:
+
+```
+data:
+  cached_data_margin: 2
+  load_cached_api: true
+  reload_firmware_names: true
+  store_cached_api: true
+paths:
+  config: /Users/username/.config/scdata
+  data: /Users/username/.cache/scdata
+  export: /Users/username/.cache/scdata/export
+  interim: /Users/username/.cache/scdata/interim
+  inventory: ''
+  models: /Users/username/.cache/scdata/models
+  processed: /Users/username/.cache/scdata/processed
+  raw: /Users/username/.cache/scdata/raw
+  reports: /Users/username/.cache/scdata/reports
+  uploads: /Users/username/.cache/scdata/uploads
+zenodo_real_base_url: https://zenodo.org
+zenodo_sandbox_base_url: http://sandbox.zenodo.org
+```
 
 ### Usage
 
@@ -81,4 +104,4 @@ If using this option, examples on how to generate automatic reports from `jupyte
 
 ## Contribute
 
-Issues and PR welcome!
+Issues and PR more than welcome!

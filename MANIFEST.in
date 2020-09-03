@@ -1,0 +1,7 @@
+include README.md
+include LICENSE
+include setup.py
+include setup.cfg
+include scdata/utils/interim/*.yaml
+include scdata/test/export/templates/descriptor.html
+include scdata/utils/zenodo_templates/*.*s

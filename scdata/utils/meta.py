@@ -40,21 +40,42 @@ def get_paths():
     _paths['data'] = _scddir
 
     # Auxiliary folders
+    
+    # - Processed data
     _paths['processed'] = join(_paths['data'], 'processed')
     makedirs(_paths['processed'], exist_ok=True)
+    
+    # - Internal data: blueprints and calibrations
     _paths['interim'] = join(_paths['data'], 'interim')
     makedirs(_paths['interim'], exist_ok=True)
+    # Check for blueprints and calibrations
+    # Find the path to the interim folder
+    _dir = dirname(__file__)
+    _idir = join(_dir, 'interim')
+    if not exists(join(_paths['interim'], 'blueprints.yaml')): create_blueprints(_idir, _paths['interim'])
+    if not exists(join(_paths['interim'], 'calibrations.yaml')): create_calibrations(_idir, _paths['interim'])
+    
+    # - Models and local tests
     _paths['models'] = join(_paths['data'], 'models')
     makedirs(_paths['models'], exist_ok=True)
+    
+    # - Exports
     _paths['export'] = join(_paths['data'], 'export')
     makedirs(_paths['export'], exist_ok=True)
+    
+    # - Raw
     _paths['raw'] = join(_paths['data'], 'raw')
     makedirs(_paths['raw'], exist_ok=True)
+    
+    # - Reports
     _paths['reports'] = join(_paths['data'], 'reports')
     makedirs(_paths['reports'], exist_ok=True)
+    
+    # - Uploads
     _paths['uploads'] = join(_paths['data'], 'uploads')
     makedirs(_paths['uploads'], exist_ok=True)
-
+    
+    # Inventory (normally not used by user)
     _paths['inventory'] = ''
 
     return _paths
@@ -75,12 +96,19 @@ def load_env(env_file):
     else:
         return True
 
+def create_blueprints(path_to_pkg_data, path_to_interim):
+    with open(join(path_to_pkg_data, 'blueprints.yaml'), 'r') as bi:
+        blueprints = yaml.load(bi, Loader=yaml.SafeLoader)
+
+    with open(join(path_to_interim, 'blueprints.yaml'), 'w') as bo: 
+        yaml.dump(blueprints, bo)
+
 def load_blueprints(paths):
     
     try:
         blueprints_path = join(paths['interim'], 'blueprints.yaml')
-        with open(blueprints_path, 'r') as blueprints_yaml:
-            blueprints = yaml.load(blueprints_yaml, Loader=yaml.SafeLoader)
+        with open(blueprints_path, 'r') as b:
+            blueprints = yaml.load(b, Loader=yaml.SafeLoader)
     except FileNotFoundError:
         print('Problem loading blueprints file')
         return None
@@ -101,6 +129,13 @@ def get_current_blueprints():
     if not config.is_init: config.get_meta_data()
 
     return list(config.blueprints.keys())
+
+def create_calibrations(path_to_pkg_data, path_to_interim):
+    with open(join(path_to_pkg_data, 'calibrations.yaml'), 'r') as ci:
+        calibrations = yaml.load(ci, Loader=yaml.SafeLoader)
+    
+    with open(join(path_to_interim, 'calibrations.yaml'), 'w') as co: 
+        yaml.dump(calibrations, co)
 
 def load_calibrations(paths):
     '''
@@ -130,8 +165,8 @@ def load_calibrations(paths):
     try:
         calspath = join(paths['interim'], 'calibrations.yaml')
         
-        with open(calspath, 'r') as j:
-            cals = yaml.load(j, Loader = yaml.SafeLoader)
+        with open(calspath, 'r') as c:
+            cals = yaml.load(c, Loader = yaml.SafeLoader)
     except FileNotFoundError:
         print('Problem loading calibrations file')
         return None
