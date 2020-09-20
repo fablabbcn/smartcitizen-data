@@ -96,8 +96,8 @@ class Device(object):
                                                             self.options['clean_na'], self.sources['csv']['index']))
         except FileNotFoundError:
             # Handle error
-            if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {self.path}. Moving on', 'WARNING')
-            elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {self.path}', 'ERROR')
+            if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
+            elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {path}', 'ERROR')
             
             self.loaded = False
         except:
