@@ -49,6 +49,7 @@ def get_paths():
     # - Internal data: blueprints and calibrations
     _paths['interim'] = join(_paths['data'], 'interim')
     makedirs(_paths['interim'], exist_ok=True)
+    
     # Check for blueprints and calibrations
     # Find the path to the interim folder
     _dir = dirname(__file__)
@@ -67,7 +68,11 @@ def get_paths():
     # - Raw
     _paths['raw'] = join(_paths['data'], 'raw')
     makedirs(_paths['raw'], exist_ok=True)
-    
+    _ename = 'example.csv'
+    s = join(_idir, _ename)
+    d = join(_paths['raw'], _ename)
+    if not exists(join(_paths['raw'], _ename)): copyfile(s, d)
+
     # - Reports
     _paths['reports'] = join(_paths['data'], 'reports')
     makedirs(_paths['reports'], exist_ok=True)
