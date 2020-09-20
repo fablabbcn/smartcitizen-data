@@ -35,7 +35,6 @@ notebooks/cheatsheet.ipynb
 .DS_Store
 
 # Others
-.vscode/
 __pycache__/
 
 # Byte-compiled / optimized / DLL files

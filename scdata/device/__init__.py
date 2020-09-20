@@ -280,8 +280,8 @@ class Device(object):
                 False
                 Force data export in case of already existing file
             file_format: String
-            'csv'
-            File format to export. Current supported format CSV
+                'csv'
+                File format to export. Current supported format CSV
         Returns
         ---------
             True if exported ok, False otherwise
