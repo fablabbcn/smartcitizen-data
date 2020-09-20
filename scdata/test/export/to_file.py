@@ -1,4 +1,4 @@
-''' Implementation of csv export for devices in test '''
+''' Implementation of csv and html export for devices in test '''
 
 from os.path import join, dirname
 from scdata.utils import std_out
@@ -76,7 +76,6 @@ def desc_to_html(self, title = 'Test description', path = None, show_logo = True
 
     with open(filename, 'w') as handle:
         handle.write(rendered)
-
-    std_out (f'File saved to: {filename}')
-    
+        
+    std_out (f'File saved to: {filename}', 'SUCCESS')
     return rendered

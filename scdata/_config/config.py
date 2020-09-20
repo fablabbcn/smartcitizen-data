@@ -17,7 +17,7 @@ class Config(object):
     # 'DEBUG': info, warn, err
     _out_level = 'NORMAL'
 
-    # Usage
+    # Usage in jupyterlab or script. For renderer plots
     _framework = 'script'
 
     ### ---------------------------------------
