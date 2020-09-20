@@ -1,24 +1,29 @@
-SmartCitizen Sensor Data Framework
+SmartCitizen Data
 =======
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
 
-Welcome to the **SmartCitizen Sensor Data Framework**. This is a framework built with the purpose of *analysis*, *calibration* and *post-processing* of sensors data, related to any field, but particularly focused on air-quality data coming from low-cost sensors. It aims to unify several sources of data and to provide tools for analysing data, creating reports and more.
+Welcome to the **SmartCitizen Data**. This is a framework built with many purposes, some of them being:
+
+ - *Analysis*, *calibration* and *post-processing* of sensor data for development or performance assessment
+ - *Unify* several sources of data and to *provide tools* for analysis in a standard way
+ - *Tidy up* sensor data and allow for **traceability** of results and conclusions, and **reproducibility**
+ - *Create visualisations* and reports in html format or print them as pdf
 
 ![](assets/images/saf_schema.png)
 
 ## Features
 
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). Some features include:
-
-- Interacting with several sensors APIs (see [here](scdata/data/api.py))
-- Clean data, export and calculate metrics
-- Model sensor data and calibrate sensors
-- Generate data visualisations:
 
 ![](assets/images/covid-noise.png)
 
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). Some examples in this repository include:
+
+- Interacting with several sensors APIs
+- Clean data, export and calculate metrics
+- Model sensor data and calibrate sensors
+- Generate data visualisations
 - Generate analysis reports and upload them to [Zenodo](http://zenodo.org)
 
 ![](assets/images/Workflow.png)
@@ -77,15 +82,7 @@ zenodo_real_base_url: https://zenodo.org
 zenodo_sandbox_base_url: http://sandbox.zenodo.org
 ```
 
-### Usage
-
-Find documentation in the official docs.
-
-#### Scripts
-
-Check the examples/scripts folder for common usage examples.
-
-#### Jupyter lab (optional)
+### Using with Jupyterlab (optional)
 
 It can also be used with `jupyter lab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
 
