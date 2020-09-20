@@ -20,9 +20,10 @@ def basic_4electrode_alg(dataframe, **kwargs):
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
             MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
+        hardware: alphadelta or isb
     Returns
     -------
-        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+        calculation of pollutant based on: 6.36 * sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
     flag_error = False
     if 'working' not in kwargs: flag_error = True
@@ -35,22 +36,28 @@ def basic_4electrode_alg(dataframe, **kwargs):
         return None
 
     # Get Sensor data
-    if kwargs['id'] not in config.calibrations.index: 
+    if kwargs['id'] not in config.calibrations: 
         std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
         return None
 
-    sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
-    sensitivity_2 = config.calibrations.loc[kwargs['id'],'sensitivity_2']
-    target_1 = config.calibrations.loc[kwargs['id'],'target_1']
-    target_2 = config.calibrations.loc[kwargs['id'],'target_2']
-    nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
+    we_sensitivity_na_ppb = config.calibrations[kwargs['id']]['we_sensitivity_na_ppb']
+    we_cross_sensitivity_no2_na_ppb = config.calibrations[kwargs['id']]['we_cross_sensitivity_no2_na_ppb']
+    sensor_type = config.calibrations[kwargs['id']]['sensor_type']
+    # TODO - implement different algorithms
+    nWA = config.calibrations[kwargs['id']]['we_sensor_zero_mv']/config.calibrations[kwargs['id']]['ae_sensor_zero_mv']
 
-    if target_1 != kwargs['pollutant']: 
+    if sensor_type != kwargs['pollutant']: 
         std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
         return None
 
     # This is always in ppm since the calibration data is in signal/ppm
-    result = config._alphadelta_pcb*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(sensitivity_1)
+    if kwargs['hardware'] == 'alphadelta': current_factor = config._alphadelta_pcb
+    elif kwargs['hardware'] == 'isb': current_factor = 1 #TODO make it so we talk in mV
+    else: 
+        std_out(f"Measurement hardware {kwargs['hardware']} not supported", 'ERROR')
+        return None
+
+    result = current_factor*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(we_sensitivity_na_ppb)
 
     # Convert units
     result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
@@ -192,7 +199,7 @@ def deconvolution(dataframe, **kwargs):
             MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
     Returns
     -------
-        calculation of pollutant based on: 6.36*sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
+        calculation of pollutant based on: 6.36 * sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
 
     result = Series()

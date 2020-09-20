@@ -128,6 +128,7 @@ sc_20_station_iscape:
         id: null
         pollutant: CO
         working: GB_1W
+        hardware: alphadelta
       process: basic_4electrode_alg
       units: ppm
       desc: 'CO calculation based on simple electrode substraction'
@@ -182,6 +183,7 @@ sc_20_station_iscape:
     #     id: null
     #     target: GB_2W
     #     pollutant: NO2
+    #     hardware: alphadelta
     #   process: baseline_4electrode_alg
     #   units: ppb
     #   desc: 'NO2 calculated based on Working electrode baseline substraction'
@@ -190,6 +192,7 @@ sc_20_station_iscape:
     #     baseline: GB_3A
     #     target: GB_3W
     #     pollutant: NO2+O3
+    #     hardware: alphadelta
     #   process: baseline_4electrode_alg
     #   units: ppb
     #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
@@ -331,6 +334,7 @@ sc_21_station_iscape:
         id: null
         pollutant: CO
         working: GB_1W
+        hardware: alphadelta
       process: basic_4electrode_alg
       units: ppm
       desc: 'CO calculation based on simple electrode substraction'
@@ -385,6 +389,7 @@ sc_21_station_iscape:
     #     id: null
     #     target: GB_2W
     #     pollutant: NO2
+    #     hardware: alphadelta
     #   process: baseline_4electrode_alg
     #   units: ppb
     #   desc: 'NO2 calculated based on Working electrode baseline substraction'
@@ -393,6 +398,7 @@ sc_21_station_iscape:
     #     baseline: GB_3A
     #     target: GB_3W
     #     pollutant: NO2+O3
+    #     hardware: alphadelta
     #   process: baseline_4electrode_alg
     #   units: ppb
     #   desc: 'NO2+O3 intermediate calculation, based on OXB43F cell'
