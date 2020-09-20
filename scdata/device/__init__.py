@@ -95,7 +95,10 @@ class Device(object):
                     self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'), self.location, self.options['frequency'], 
                                                             self.options['clean_na'], self.sources['csv']['index']))
         except FileNotFoundError:
-            std_out('File not found', 'ERROR')
+            # Handle error
+            if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {self.path}. Moving on', 'WARNING')
+            elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {self.path}', 'ERROR')
+            
             self.loaded = False
         except:
             print_exc()
