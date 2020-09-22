@@ -12,6 +12,7 @@ import folium
 from scdata.utils import std_out, get_tests_log
 from scdata.io import read_csv_file
 from scdata._config import config
+from scdata.device import Device
 
 class Test(object):
 
@@ -126,6 +127,23 @@ class Test(object):
         '''
 
         for detail in details.keys(): self.details[detail] = details[detail]
+
+    def add_devices_list(self, devices_list, blueprint):
+        '''
+            Convenience method to add devices from a list of api devices with a certain blueprint
+        '''
+        if blueprint is None: return False
+
+        if blueprint not in config.blueprints.keys():
+            std_out(f'Blueprint {blueprint} not in blueprints', 'ERROR')
+            return False      
+
+        for device in devices_list:
+            self.add_device(Device(blueprint = blueprint , descriptor = {'source': 'api', 
+                                                                            'id': str(device)
+                                                                            }
+                                    )
+            ) 
 
     def add_device(self, device):
         '''
