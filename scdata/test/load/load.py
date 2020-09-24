@@ -7,6 +7,43 @@ import yaml
 from datetime import timedelta
 
 def load(self, options = dict()):
+
+    '''
+        Loads the test data and the different devices
+        
+        Parameters:
+        -----------
+            options: dict()
+            
+                load_cached_api: bool
+                Default: config.data['data']['load_cached_api']
+                Load or not cached data from the API in previous test loads
+
+                store_cached_api: bool
+                Default: config.data['data']['store_cached_api']
+                Cache or not newly downloaded API data for future test loads
+
+                clean_na: String
+                Default: 'fill_na'
+                Clean NaN as pandas format. Possibilities: 'fill_na', 'drop_na' or None
+
+                frequency: String (timedelta format: https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags)
+                Default: 1Min
+                Frequency to load or request data
+
+                min_date: String or datetime
+                Default: None
+                Minimum data to load data from
+
+                max_date: String or datetime
+                Default: None
+                Maximum date to load data to
+
+
+        Returns
+        ----------
+            None
+    '''
     
     # Load descriptor
     std_out(f'Loading test {self.full_name}')

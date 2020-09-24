@@ -131,6 +131,12 @@ class Test(object):
     def add_devices_list(self, devices_list, blueprint):
         '''
             Convenience method to add devices from a list of api devices with a certain blueprint
+            Params:
+                devices_list: list
+                Contains devices ids (str or int)
+
+                blueprint: String
+                Blueprint name
         '''
         if blueprint is None: return False
 
