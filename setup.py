@@ -1,5 +1,6 @@
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+
 # To use a consistent encoding
 from codecs import open
 from os import path
@@ -9,26 +10,36 @@ import sys
 if sys.version_info < (3,0):
     sys.exit("scdata requires python 3.")
 
+PROJECT_URLS = {
+    "Documentation": "https://docs.smartcitizen.me/Data%20Analysis/",
+    "Source Code": "https://github.com/fablabbcn/smartcitizen-data",
+}    
+
 setup(
     name='scdata',
-    version= '0.1.0',
-    description='Smart Citizen Data',
+    version= '0.1.1',
+    description='Module for analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
     packages=find_packages(),
     keywords=['air', 'sensors', 'Smart Citizen'],
+    url='https://github.com/fablabbcn/smartcitizen-data',
+    project_urls=PROJECT_URLS,
+    long_description = ("""
+        scdata - Module for analysis of sensors and time series data.
 
-    LONG_DESCRIPTION = ("""
-        SCDATA - Module for analysis of air quality data using sensors
         scdata is a framework built with the purpose of *analysis*, *calibration* 
         and *post-processing* of sensors data, related to any field, but particularly 
-        focused on air-quality data coming from low-cost sensors. 
+        focused on air-quality data coming from low-cost sensors in the 
+        `Smart Citizen Project <https://www.smartcitizen.me>`__ .
+
         It aims to unify several sources of data and to provide tools for analysing data by:
-        * Interacting with several sensors APIs (see [here](scdata/data/api.py))
+
+        * Interacting with several sensors APIs
         * Clean data, export and calculate metrics
         * Model sensor data and calibrate sensors
-        * Generate data visualisations:
-        Documentation is available at: https://docs.smartcitizen.me/Data%20Analysis/
+        * Generate data visualisations
+
     """),
 
     classifiers=[

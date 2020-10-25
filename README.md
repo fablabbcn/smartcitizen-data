@@ -1,10 +1,10 @@
-SmartCitizen Data
+Smart Citizen Data
 =======
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
 
-Welcome to the **SmartCitizen Data**. This is a framework built with many purposes, some of them being:
+Welcome to **SmartCitizen Data**. This is a data analysis framework built with many purposes, such as:
 
  - *Analysis*, *calibration* and *post-processing* of sensor data for development or performance assessment
  - *Unify* several sources of data and to *provide tools* for analysis in a standard way
@@ -15,10 +15,9 @@ Welcome to the **SmartCitizen Data**. This is a framework built with many purpos
 
 ## Features
 
-
 ![](assets/images/covid-noise.png)
 
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). Some examples in this repository include:
+Some examples in this repository include:
 
 - Interacting with several sensors APIs
 - Clean data, export and calculate metrics
@@ -28,15 +27,27 @@ A full documentation of the framework is detailed in [the Smart Citizen Docs](ht
 
 ![](assets/images/Workflow.png)
 
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). 
+
 ## Funding
 
 This work has received funding from the European Union's Horizon 2020 research and innovation program under the grant agreement [No. 689954](https://cordis.europa.eu/project/rcn/202639_en.html)
 
 ## Compatibility
 
-Works with `Python 3.*`. It can be used with [JupyterLab](https://github.com/jupyterlab/jupyterlab) for data analysis, but it is not mandatory. There are plenty of examples in the `examples` folder. These are meant to show how to interface with the `python` code in the `scdata` folder.
+Works with `Python 3.*`.
 
 ## Installation
+
+You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want.
+
+You can just run:
+
+```
+pip install scdata
+```
+
+### Work on the source code
 
 Simply clone the repository with:
 
@@ -51,7 +62,12 @@ Install `scdata` package with requirements:
 python setup.py install
 ```
 
-**NB**: maybe one day it will be in `pip`, but not yet.
+Or if you want to edit:
+
+```
+cd scdata
+pip install --editable .
+```
 
 ### Tokens and config
 
@@ -84,7 +100,7 @@ zenodo_sandbox_base_url: http://sandbox.zenodo.org
 
 ### Using with Jupyterlab (optional)
 
-It can also be used with `jupyter lab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
+It can also be used with `jupyterlab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
 
 1. Notebook extensions configurator:
 

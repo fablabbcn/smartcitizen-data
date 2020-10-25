@@ -56,6 +56,9 @@ class Test(object):
                                 'type_test': ''
                                 }
 
+    def __str__(self):
+        return self.full_name
+
     def __set_tname__(self, name):
         current_date = datetime.now()
         self.full_name = f'{current_date.year}_{str(current_date.month).zfill(2)}_{name}'
