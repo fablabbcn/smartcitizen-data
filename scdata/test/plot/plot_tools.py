@@ -81,19 +81,19 @@ def export(figure, path, filename = 'plot', library = 'mpl'):
 def prepare_data(test, traces, options):
 
     std_out('Preparing data for plot')
-    
+
     # Dataframe to return
     df = DataFrame()
         
     # Check if there are different subplots
     n_subplots = 1
-    
+
     for trace in traces:
         if 'subplot' in traces[trace].keys(): 
             n_subplots = max(n_subplots, traces[trace]['subplot'])
         else: 
             std_out (f'Trace {trace} not assigned to subplot. Skipping', 'WARNING')
-    
+
     std_out (f'Making {n_subplots} subplots')
     
     # Generate list of subplots
@@ -115,16 +115,53 @@ def prepare_data(test, traces, options):
             ndev = str(device)
             
             # Check if device is in columns
-            if channel not in test.devices[ndev].readings.columns: continue
+            if channel not in test.devices[ndev].readings.columns:
+                std_out(f'The device {ndev} does not contain {channel}. Ignoring', 'WARNING')
+                continue
 
             # Put channel in subplots
             subplots[traces[trace]['subplot']-1].append(channel + '_' + ndev)
+
+            column_orig = [channel]
+            columns_add = [channel + '_' + ndev]
+
+            # Add filtering name to dfdev
+            if 'filter' in traces[trace]:
+                col_name = traces[trace]['filter']['col']
+
+                if col_name not in test.devices[ndev].readings.columns:
+                    std_out(f'Column {col_name} not in dataframe. Ignoring filtering', 'WARNING')
+                else:
+                    column_orig.append(col_name)
+                    columns_add.append(col_name)
             
             # Device dataframe
-            dfdev = DataFrame(test.devices[ndev].readings[channel].values, 
-                            columns = [channel + '_' + ndev],
+            dfdev = DataFrame(test.devices[ndev].readings[column_orig].values,
+                            columns = columns_add,
                             index = test.devices[ndev].readings.index)
-            
+
+            # Add filtering function
+            if 'filter' in traces[trace]:
+                value = traces[trace]['filter']['value']
+                relationship = traces[trace]['filter']['relationship']
+
+                if col_name in dfdev.columns:
+                    if relationship == '==':
+                        dfdev.loc[dfdev[col_name]==value]
+                    elif relationship == '<=':
+                        dfdev.loc[dfdev[col_name]<=value]
+                    elif relationship == '>=':
+                        dfdev.loc[dfdev[col_name]>=value]
+                    elif relationship == '<':
+                        dfdev.loc[dfdev[col_name]<value]
+                    elif relationship == '>':
+                        dfdev.loc[dfdev[col_name]>value]
+                    else:
+                        std_out(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'", 'ERROR')
+                        continue
+                    # Remove column for filtering from dfdev
+                    dfdev.drop(columns=[col_name], inplace = True)
+
             # Combine it in the df
             df = df.combine_first(dfdev)
 

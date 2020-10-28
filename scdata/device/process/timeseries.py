@@ -1,4 +1,5 @@
 from numpy import nan, full, power, ones
+from scdata.device.process import is_within_circle
 
 def poly_ts(dataframe, **kwargs):
     """
@@ -200,3 +201,34 @@ def rolling_avg(dataframe, **kwargs):
         if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()
     else:
         return result.rolling(window = window, win_type = win_type).mean()
+
+def geo_located(dataframe, **kwargs):
+    """
+    Performs pandas.rolling with input
+    Parameters
+    ----------
+        within: tuple
+            Empty tuple
+            Gets the devices within a circle center on lat, long with a radius_meters
+            within = tuple(lat, long, radius_meters)
+        lat_name: str, optional
+            GPS_LAT
+            Column name for latitude in dataframe
+        long_name: str, optional
+            GPS_LONG
+            Column name for long in dataframe
+    Returns
+    -------
+        pandas series containing bool defining wether or not each dataframe[:, [lat_name, long_name]] are within circle of basepoint(lat, long)
+    """
+
+    result = dataframe.copy()
+
+    if 'within' not in kwargs: return None
+
+    if 'lat_name' not in kwargs: lat_name = 'GPS_LAT'
+    if 'long_name' not in kwargs: long_name = 'GPS_LONG'
+
+    result['within'] = result.apply(lambda x: is_within_circle(x, kwargs['within'], lat_name, long_name), axis=1)
+
+    return result['within']
