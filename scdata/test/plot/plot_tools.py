@@ -1,6 +1,6 @@
 from scdata.utils import std_out
 from numpy import arange
-from pandas import cut, DataFrame, to_datetime
+from pandas import cut, DataFrame, to_datetime, option_context, to_numeric
 
 '''
 Available styles
@@ -102,7 +102,10 @@ def prepare_data(test, traces, options):
     # Put data in the df
     for trace in traces.keys():
 
-        if 'subplot' not in traces[trace].keys(): continue
+        if 'subplot' not in traces[trace].keys():
+            std_out(f'The trace {traces[trace]} was not placed in any subplot. Assuming subplot #1', 'WARNING')
+            traces[trace]['subplot'] = 1
+
         ndevs = traces[trace]['devices']
         channel = traces[trace]['channel']
 
@@ -188,17 +191,23 @@ def prepare_data(test, traces, options):
     # Trim data
     if options['min_date'] is not None: df = df[df.index > options['min_date']]
     if options['max_date'] is not None: df = df[df.index < options['max_date']]
-        
+
+    # Make sure everything is numeric before resampling
+    # https://stackoverflow.com/questions/34257069/resampling-pandas-dataframe-is-deleting-column#34270422
+    df = df.apply(to_numeric, errors='coerce')
+
     # Resample it
     if options['frequency'] is not None: 
+        std_out(f"Resampling at {options['frequency']}", "INFO")
 
         if 'resample' in options: 
 
             if options['resample'] == 'max': df = df.resample(options['frequency']).max()
             if options['resample'] == 'min': df = df.resample(options['frequency']).min()
             if options['resample'] == 'mean': df = df.resample(options['frequency']).mean()
-        
+
         else: df = df.resample(options['frequency']).mean()
+
 
     # Clean na
     if options['clean_na'] is not None:

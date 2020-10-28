@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import exists
 from scdata.utils import std_out, localise_date, clean
-from pandas import read_csv, to_datetime, to_numeric
+from pandas import read_csv, to_datetime, to_numeric, option_context
 
 def export_csv_file(path, file_name, df, forced_overwrite = False):
     '''

@@ -74,7 +74,8 @@ def ts_iplot(self, **kwargs):
             
             figure.append_trace({'x': df.index, 
                                  'y': df[trace], 
-                                 'type': 'scatter', 
+                                 'type': 'scatter',
+                                 'mode': 'lines+markers',
                                  'name': trace}, 
                                 isbplt + 1, 1)
         # Name the axis
