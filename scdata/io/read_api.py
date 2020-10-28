@@ -48,6 +48,7 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
+        self.post_info = None
     
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
@@ -163,6 +164,23 @@ class ScApiDevice:
         std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
 
         return self.last_reading_at
+
+    def get_post_info(self):
+
+        if self.post_info is None:
+            try:
+                deviceR = get(self.API_BASE_URL + '{}/postprocessing_info'.format(self.id))
+                if deviceR.status_code == 200 or deviceR.status_code == 201:
+                    self.post_info = deviceR.json()
+                    print (post_info)
+                else: 
+                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
+            except:
+                std_out('Failed request. Probably no connection', 'ERROR')  
+                pass    
+
+        return self.post_info
+        print ('TODO')
 
     def get_device_location(self):
 

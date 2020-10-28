@@ -3,7 +3,6 @@
   ae_sensor_zero_mv: '-20.8'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -16,7 +15,6 @@
   ae_sensor_zero_mv: '-13.9'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -29,7 +27,6 @@
   ae_sensor_zero_mv: '-18.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -42,7 +39,6 @@
   ae_sensor_zero_mv: '-35.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -55,7 +51,6 @@
   ae_sensor_zero_mv: '-46.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -68,7 +63,6 @@
   ae_sensor_zero_mv: '-51.1'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -81,7 +75,6 @@
   ae_sensor_zero_mv: '-43.2'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -94,7 +87,6 @@
   ae_sensor_zero_mv: '-33.4'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -107,7 +99,6 @@
   ae_sensor_zero_mv: '-36.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -120,7 +111,6 @@
   ae_sensor_zero_mv: '-71.9'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -133,7 +123,6 @@
   ae_sensor_zero_mv: '-46.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -146,7 +135,6 @@
   ae_sensor_zero_mv: '-52'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -159,7 +147,6 @@
   ae_sensor_zero_mv: '-24'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -172,7 +159,6 @@
   ae_sensor_zero_mv: '-7.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -185,7 +171,6 @@
   ae_sensor_zero_mv: '-51.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -198,7 +183,6 @@
   ae_sensor_zero_mv: '-21.1'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -211,7 +195,6 @@
   ae_sensor_zero_mv: '-36.9'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -224,7 +207,6 @@
   ae_sensor_zero_mv: '-19.2'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -237,7 +219,6 @@
   ae_sensor_zero_mv: '-53.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -250,7 +231,6 @@
   ae_sensor_zero_mv: '-30'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -263,7 +243,6 @@
   ae_sensor_zero_mv: '-29.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -276,7 +255,6 @@
   ae_sensor_zero_mv: '-35.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -289,7 +267,6 @@
   ae_sensor_zero_mv: '-30.9'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -302,7 +279,6 @@
   ae_sensor_zero_mv: '19.54698'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -315,7 +291,6 @@
   ae_sensor_zero_mv: '3.152739'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -328,7 +303,6 @@
   ae_sensor_zero_mv: '-2.206917'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -341,7 +315,6 @@
   ae_sensor_zero_mv: '-13.55678'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -354,7 +327,6 @@
   ae_sensor_zero_mv: '-13.2415'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -367,7 +339,6 @@
   ae_sensor_zero_mv: '-4.729108'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -380,7 +351,6 @@
   ae_sensor_zero_mv: '-22.69972'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -393,7 +363,6 @@
   ae_sensor_zero_mv: '-13.2415'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -406,7 +375,6 @@
   ae_sensor_zero_mv: '11.66513'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -419,7 +387,6 @@
   ae_sensor_zero_mv: '25.53718'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -432,7 +399,6 @@
   ae_sensor_zero_mv: '28.05937'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -445,7 +411,6 @@
   ae_sensor_zero_mv: '0.9458216'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -458,7 +423,6 @@
   ae_sensor_zero_mv: '-23.64554'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -471,7 +435,6 @@
   ae_sensor_zero_mv: '20.4928'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -484,7 +447,6 @@
   ae_sensor_zero_mv: '4.09856'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: CO
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -497,7 +459,6 @@
   ae_sensor_zero_mv: '9.8'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -510,7 +471,6 @@
   ae_sensor_zero_mv: '8.5'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -523,7 +483,6 @@
   ae_sensor_zero_mv: '13.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -536,7 +495,6 @@
   ae_sensor_zero_mv: '15.1'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -549,7 +507,6 @@
   ae_sensor_zero_mv: '-3.2'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -562,7 +519,6 @@
   ae_sensor_zero_mv: '1.9'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -575,7 +531,6 @@
   ae_sensor_zero_mv: '8.2'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -588,7 +543,6 @@
   ae_sensor_zero_mv: '5.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -601,7 +555,6 @@
   ae_sensor_zero_mv: '2.5'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -614,7 +567,6 @@
   ae_sensor_zero_mv: '11.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -627,7 +579,6 @@
   ae_sensor_zero_mv: '6.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -640,7 +591,6 @@
   ae_sensor_zero_mv: '8.5'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -653,7 +603,6 @@
   ae_sensor_zero_mv: '11'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -666,7 +615,6 @@
   ae_sensor_zero_mv: '7.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -679,7 +627,6 @@
   ae_sensor_zero_mv: '11.3'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -692,7 +639,6 @@
   ae_sensor_zero_mv: '-7.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -705,7 +651,6 @@
   ae_sensor_zero_mv: '10.1'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -718,7 +663,6 @@
   ae_sensor_zero_mv: '6.6'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -731,7 +675,6 @@
   ae_sensor_zero_mv: '10.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -744,7 +687,6 @@
   ae_sensor_zero_mv: '4.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -757,7 +699,6 @@
   ae_sensor_zero_mv: '15.44842'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -770,7 +711,6 @@
   ae_sensor_zero_mv: '17.02479'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -783,7 +723,6 @@
   ae_sensor_zero_mv: '14.5026'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -796,7 +735,6 @@
   ae_sensor_zero_mv: '23.64554'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -809,7 +747,6 @@
   ae_sensor_zero_mv: '21.12335'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -822,7 +759,6 @@
   ae_sensor_zero_mv: '16.70951'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -835,7 +771,6 @@
   ae_sensor_zero_mv: '13.87205'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -848,7 +783,6 @@
   ae_sensor_zero_mv: '13.55678'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -861,7 +795,6 @@
   ae_sensor_zero_mv: '15.13315'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -874,7 +807,6 @@
   ae_sensor_zero_mv: '17.65534'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -887,7 +819,6 @@
   ae_sensor_zero_mv: '15.4'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -900,7 +831,6 @@
   ae_sensor_zero_mv: '14.2'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -913,7 +843,6 @@
   ae_sensor_zero_mv: '17.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -926,7 +855,6 @@
   ae_sensor_zero_mv: '11.03458'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -939,7 +867,6 @@
   ae_sensor_zero_mv: '18.91643'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -952,7 +879,6 @@
   ae_sensor_zero_mv: '27.7441'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -965,7 +891,6 @@
   ae_sensor_zero_mv: '20.17753'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -978,7 +903,6 @@
   ae_sensor_zero_mv: '18.28588'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -991,7 +915,6 @@
   ae_sensor_zero_mv: '22.06917'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1004,7 +927,6 @@
   ae_sensor_zero_mv: '26.79828'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1017,7 +939,6 @@
   ae_sensor_zero_mv: '22.06917'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1030,7 +951,6 @@
   ae_sensor_zero_mv: '23.96081'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1043,7 +963,6 @@
   ae_sensor_zero_mv: '23.96081'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1056,7 +975,6 @@
   ae_sensor_zero_mv: '21.7539'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1069,7 +987,6 @@
   ae_sensor_zero_mv: '24.27609'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1082,7 +999,6 @@
   ae_sensor_zero_mv: '17.02479'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1095,7 +1011,6 @@
   ae_sensor_zero_mv: '23.33027'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1108,7 +1023,6 @@
   ae_sensor_zero_mv: '16.07897'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1121,7 +1035,6 @@
   ae_sensor_zero_mv: '18.28588'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1134,7 +1047,6 @@
   ae_sensor_zero_mv: '20.80807'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1147,7 +1059,6 @@
   ae_sensor_zero_mv: '17.65534'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1160,7 +1071,6 @@
   ae_sensor_zero_mv: '25.53718'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1173,7 +1083,6 @@
   ae_sensor_zero_mv: '27.11355'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1186,7 +1095,6 @@
   ae_sensor_zero_mv: '23.96081'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1199,7 +1107,6 @@
   ae_sensor_zero_mv: '19.86225'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1212,7 +1119,6 @@
   ae_sensor_zero_mv: '22.69972'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1225,7 +1131,6 @@
   ae_sensor_zero_mv: '26.16773'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1238,7 +1143,6 @@
   ae_sensor_zero_mv: '28.05937'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1251,7 +1155,6 @@
   ae_sensor_zero_mv: '12.29568'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1264,7 +1167,6 @@
   ae_sensor_zero_mv: '18.91643'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1277,7 +1179,6 @@
   ae_sensor_zero_mv: '16.07897'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1290,7 +1191,6 @@
   ae_sensor_zero_mv: '14.18732'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: NO2
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '0'
   we_electronic_zero_mv: ''
@@ -1303,7 +1203,6 @@
   ae_sensor_zero_mv: '27.43'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-499.71'
   we_electronic_zero_mv: ''
@@ -1316,7 +1215,6 @@
   ae_sensor_zero_mv: '27.74'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-524.3'
   we_electronic_zero_mv: ''
@@ -1329,7 +1227,6 @@
   ae_sensor_zero_mv: '19.86'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-602.96'
   we_electronic_zero_mv: ''
@@ -1342,7 +1239,6 @@
   ae_sensor_zero_mv: '26.17'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-524.46'
   we_electronic_zero_mv: ''
@@ -1355,7 +1251,6 @@
   ae_sensor_zero_mv: '22.38'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-556.46'
   we_electronic_zero_mv: ''
@@ -1368,7 +1263,6 @@
   ae_sensor_zero_mv: '22.07'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-558.35'
   we_electronic_zero_mv: ''
@@ -1381,7 +1275,6 @@
   ae_sensor_zero_mv: '15.76'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-527.3'
   we_electronic_zero_mv: ''
@@ -1394,7 +1287,6 @@
   ae_sensor_zero_mv: '24.91'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-497.82'
   we_electronic_zero_mv: ''
@@ -1407,7 +1299,6 @@
   ae_sensor_zero_mv: '23.65'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-530.92'
   we_electronic_zero_mv: ''
@@ -1420,7 +1311,6 @@
   ae_sensor_zero_mv: '30.27'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-569.38'
   we_electronic_zero_mv: ''
@@ -1433,7 +1323,6 @@
   ae_sensor_zero_mv: '26.17'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-613.68'
   we_electronic_zero_mv: ''
@@ -1446,7 +1335,6 @@
   ae_sensor_zero_mv: '23.01'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-555.04'
   we_electronic_zero_mv: ''
@@ -1459,7 +1347,6 @@
   ae_sensor_zero_mv: '19.23'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-516.1'
   we_electronic_zero_mv: ''
@@ -1472,7 +1359,6 @@
   ae_sensor_zero_mv: '22.7'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-536.44'
   we_electronic_zero_mv: ''
@@ -1485,7 +1371,6 @@
   ae_sensor_zero_mv: '21.44'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-528.87'
   we_electronic_zero_mv: ''
@@ -1498,7 +1383,6 @@
   ae_sensor_zero_mv: '13.87'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-539.28'
   we_electronic_zero_mv: ''
@@ -1511,7 +1395,6 @@
   ae_sensor_zero_mv: '21.12'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-556.77'
   we_electronic_zero_mv: ''
@@ -1524,7 +1407,6 @@
   ae_sensor_zero_mv: '23.96'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-523.99'
   we_electronic_zero_mv: ''
@@ -1537,7 +1419,6 @@
   ae_sensor_zero_mv: '18.92'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-554.25'
   we_electronic_zero_mv: ''
@@ -1550,7 +1431,6 @@
   ae_sensor_zero_mv: '20.49'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-583.41'
   we_electronic_zero_mv: ''
@@ -1563,7 +1443,6 @@
   ae_sensor_zero_mv: '14.5'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-506.96'
   we_electronic_zero_mv: ''
@@ -1576,7 +1455,6 @@
   ae_sensor_zero_mv: '18.92'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-471.65'
   we_electronic_zero_mv: ''
@@ -1589,7 +1467,6 @@
   ae_sensor_zero_mv: '19.86'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-466.29'
   we_electronic_zero_mv: ''
@@ -1602,7 +1479,6 @@
   ae_sensor_zero_mv: '10.08876'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-650.7252'
   we_electronic_zero_mv: ''
@@ -1615,7 +1491,6 @@
   ae_sensor_zero_mv: '11.34986'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-642.2128'
   we_electronic_zero_mv: ''
@@ -1628,7 +1503,6 @@
   ae_sensor_zero_mv: '12.92623'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-630.3901'
   we_electronic_zero_mv: ''
@@ -1641,7 +1515,6 @@
   ae_sensor_zero_mv: '14.18732'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-563.552'
   we_electronic_zero_mv: ''
@@ -1654,7 +1527,6 @@
   ae_sensor_zero_mv: '10.08876'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-605.3258'
   we_electronic_zero_mv: ''
@@ -1667,7 +1539,6 @@
   ae_sensor_zero_mv: '9.142941'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-626.6068'
   we_electronic_zero_mv: ''
@@ -1680,7 +1551,6 @@
   ae_sensor_zero_mv: '17.34006'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-571.9068'
   we_electronic_zero_mv: ''
@@ -1693,7 +1563,6 @@
   ae_sensor_zero_mv: '15.13315'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-655.7697'
   we_electronic_zero_mv: ''
@@ -1706,7 +1575,6 @@
   ae_sensor_zero_mv: '11.03458'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-634.8039'
   we_electronic_zero_mv: ''
@@ -1719,7 +1587,6 @@
   ae_sensor_zero_mv: '17.34006'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-618.252'
   we_electronic_zero_mv: ''
@@ -1732,7 +1599,6 @@
   ae_sensor_zero_mv: '11.98041'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-610.3702'
   we_electronic_zero_mv: ''
@@ -1745,7 +1611,6 @@
   ae_sensor_zero_mv: '18.60116'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-541.9557'
   we_electronic_zero_mv: ''
@@ -1758,7 +1623,6 @@
   ae_sensor_zero_mv: '11.66513'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-654.8238'
   we_electronic_zero_mv: ''
@@ -1771,7 +1635,6 @@
   ae_sensor_zero_mv: '13.87205'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-637.1685'
   we_electronic_zero_mv: ''
@@ -1784,7 +1647,6 @@
   ae_sensor_zero_mv: '11.66513'
   ae_total_zero_mv: ''
   pcb_gain_mv_na: ''
-  sensor_type: O3
   we_cross_sensitivity_no2_mv_ppb: ''
   we_cross_sensitivity_no2_na_ppb: '-646.7843'
   we_electronic_zero_mv: ''

@@ -4,6 +4,7 @@ from os import pardir, environ, name, makedirs
 from os.path import join, abspath, dirname, expanduser, exists
 import os
 from shutil import copyfile
+from requests import get
 
 def get_paths():
 
@@ -155,6 +156,21 @@ def create_calibrations(path_to_pkg_data, path_to_interim):
     
     with open(join(path_to_interim, 'calibrations.yaml'), 'w') as co: 
         yaml.dump(calibrations, co)
+
+def get_info(path):
+    # Gets a json from an url and returns it as a dict
+    try:
+        info = get(path)
+
+        if info.status_code == 200 or info.status_code == 201:
+            info_json = info.json()
+        else:
+            print (f'Failed info request. Response {info.status_code}')
+    except:
+        print ('Failed hardware info request. Probably no connection')
+        pass
+
+    return info_json
 
 def load_calibrations(paths):
     '''

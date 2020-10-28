@@ -1,6 +1,7 @@
 base:
   clean_na: null
   documentation: null
+  post_info: null
   frequency: null
   id: null
   location: null
@@ -114,6 +115,7 @@ parrot_soil:
   source: null
   version: null
 sc_20_station_iscape:
+  post_info: null
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
@@ -270,6 +272,7 @@ sc_20_station_iscape:
       index: TIME
   version: null
 sc_21_station_box:
+  post_info: null
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null
@@ -482,6 +485,7 @@ sc_21_station_box:
   sources: *id005
   version: null
 sc_21_station_iscape:
+  post_info: null
   clean_na: null
   documentation: https://docs.smartcitizen.me/
   frequency: null

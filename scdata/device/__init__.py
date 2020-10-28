@@ -106,11 +106,66 @@ class Device(object):
         else:
             if self.readings is not None: 
                 self.__check_sensors__()
+
+                if self.api_device.get_post_info() is not None:
+                    self.__fill_metrics__()
+
                 if not self.readings.empty: 
                     self.loaded = True
                     if convert_units: self.__convert_units__()
         finally:
             return self.loaded
+
+    def __fill_metrics__(self):
+        
+        if 'hardware_id' in self.api_device.post_info:
+            hw_id = self.api_device.post_info['hardware_id']
+
+            if hw_id in config.hardware_info.keys():
+                std_out('Hardware ID found in history', "SUCCESS")
+                
+                hw_info = config.hardware_info[hw_id]
+                
+                # First validate blueprint is correct
+                if hw_info["blueprint"] != self.blueprint: 
+                    std_out("Blueprint in hardware history does not match device blueprint", "ERROR")
+                    return False
+
+                # Now go through sensor versions and parse them
+                for version in hw_info["versions"]:
+
+                    from_date = hw_info["versions"][version]["from"]
+                    to_date = hw_info["versions"][version]["to"]
+                    
+                    for slot in hw_info["versions"][version]["ids"]:
+                        
+                        # Alphasense type
+                        if slot.startswith('AS'):
+
+                            sensor_id = hw_info["versions"][version]["ids"][slot]
+                            as_type = config._sensor_codes[sensor_id[0:3]]
+                            metricn = as_type[as_type.index('_')+1:]
+                            process = 'alphasense_calc'
+
+                            wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
+                            aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
+
+                            metricfn = f'{metricn}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
+                            metric = { metricfn: { 'process': process,
+                                                             'kwargs':  {
+                                                                            'from_date': from_date,
+                                                                            'to_date': to_date,
+                                                                            'id': sensor_id,
+                                                                            'we': wen, 
+                                                                            'ae': aen,
+                                                                            't': 'EXT_TEMP'
+                                                                        }
+
+                                                            }
+
+                            }
+                        
+                        self.add_metric(metric)
 
     def __check_sensors__(self):
         remove_sensors = list()

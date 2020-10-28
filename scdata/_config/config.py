@@ -4,7 +4,7 @@ import json
 
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
-                                load_calibrations, load_env)
+                                load_calibrations, load_env, get_info)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -57,7 +57,8 @@ class Config(object):
     # Urls
     zenodo_sandbox_base_url='http://sandbox.zenodo.org'
     zenodo_real_base_url='https://zenodo.org'
-    
+    hardware_url='https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/hardware.json'
+
     ### ---------------------------------------
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
@@ -105,7 +106,23 @@ class Config(object):
                         'NO2': 8, 
                         'O3': 40
                     }
-    
+
+    # Sensor codes
+    _sensor_codes = {
+                        '132': 'ASA4_CO',
+                        '133': 'ASA4_H2S',
+                        '130': 'ASA4_NO',
+                        '212': 'ASA4_NO2',
+                        '214': 'ASA4_OX',
+                        '134': 'ASA4_SO2',
+                        '162': 'ASB4_CO',
+                        '133': 'ASB4_H2S',#
+                        '130': 'ASB4_NO',#
+                        '202': 'ASB4_NO2',
+                        '204': 'ASB4_OX',
+                        '134': 'ASB4_SO2',#
+    }
+
     # This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
     # i.e. pollutant data in various units (ppm or ug/m3) from different analysers
     # The table should be used as follows:
@@ -392,9 +409,11 @@ class Config(object):
         # Blueprints and calibrations
         blueprints = load_blueprints(self.paths)
         calibrations = load_calibrations(self.paths)
+        hardware_info = get_info(self.hardware_url)
 
         if calibrations is not None: self.calibrations = calibrations
         if blueprints is not None: self.blueprints = blueprints
+        if hardware_info is not None: self.hardware_info = hardware_info
 
         # Find environment file in root or in scdata/ for clones
         if exists('.env'): env_file = '.env'

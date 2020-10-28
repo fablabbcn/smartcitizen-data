@@ -5,6 +5,32 @@ from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series
 
+def alphasense_calc(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
+    and calibration ID. It adds a configurable background concentration and correction
+    based on AAN803-04
+    Parameters
+    ----------
+        from_date: string, datetime object
+            Date from which this calibration id is valid from
+        to_date: string, datetime object
+            Date until which this calibration id is valid to. None if current            
+        id: 
+            Alphasense sensor ID (must be in calibrations.yaml)
+        we: string
+            Name of working electrode found in dataframe (V)
+        ae: string
+            Name of auxiliary electrode found in dataframe (V)
+        t: string
+            Name of reference temperature     
+    Returns
+    -------
+        calculation of pollutant in ppm or ppb
+    """
+
+    returns None
+
 def basic_4electrode_alg(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
@@ -25,6 +51,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
     -------
         calculation of pollutant based on: 6.36 * sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
+
     flag_error = False
     if 'working' not in kwargs: flag_error = True
     if 'auxiliary' not in kwargs: flag_error = True
