@@ -66,6 +66,7 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
     """  
 
     # Read pandas dataframe
+
     df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = ',', encoding = encoding)
 
     flag_found = False

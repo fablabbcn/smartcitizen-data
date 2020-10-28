@@ -72,6 +72,7 @@ class Device(object):
         else: self.options['frequency'] = '1Min'
 
     def load(self, options = None, path = None, convert_units = True):
+
         # Add test overrides if we have them, otherwise set device defaults
         if options is not None: self.check_overrides(options)
         else: self.check_overrides()
@@ -117,15 +118,15 @@ class Device(object):
             return self.loaded
 
     def __fill_metrics__(self):
-        
+
         if 'hardware_id' in self.api_device.post_info:
             hw_id = self.api_device.post_info['hardware_id']
 
             if hw_id in config.hardware_info.keys():
                 std_out('Hardware ID found in history', "SUCCESS")
-                
+
                 hw_info = config.hardware_info[hw_id]
-                
+
                 # First validate blueprint is correct
                 if hw_info["blueprint"] != self.blueprint: 
                     std_out("Blueprint in hardware history does not match device blueprint", "ERROR")
@@ -136,9 +137,9 @@ class Device(object):
 
                     from_date = hw_info["versions"][version]["from"]
                     to_date = hw_info["versions"][version]["to"]
-                    
+
                     for slot in hw_info["versions"][version]["ids"]:
-                        
+
                         # Alphasense type
                         if slot.startswith('AS'):
 
@@ -156,15 +157,13 @@ class Device(object):
                                                                             'from_date': from_date,
                                                                             'to_date': to_date,
                                                                             'id': sensor_id,
-                                                                            'we': wen, 
+                                                                            'we': wen,
                                                                             'ae': aen,
                                                                             't': 'EXT_TEMP'
                                                                         }
-
                                                             }
-
                             }
-                        
+
                         self.add_metric(metric)
 
     def __check_sensors__(self):

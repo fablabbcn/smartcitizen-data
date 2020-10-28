@@ -15,15 +15,15 @@ def alphasense_calc(dataframe, **kwargs):
         from_date: string, datetime object
             Date from which this calibration id is valid from
         to_date: string, datetime object
-            Date until which this calibration id is valid to. None if current            
-        id: 
+            Date until which this calibration id is valid to. None if current
+        id: string
             Alphasense sensor ID (must be in calibrations.yaml)
         we: string
             Name of working electrode found in dataframe (V)
         ae: string
             Name of auxiliary electrode found in dataframe (V)
         t: string
-            Name of reference temperature     
+            Name of reference temperature
     Returns
     -------
         calculation of pollutant in ppm or ppb
