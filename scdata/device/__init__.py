@@ -144,24 +144,28 @@ class Device(object):
                         if slot.startswith('AS'):
 
                             sensor_id = hw_info["versions"][version]["ids"][slot]
-                            as_type = config._sensor_codes[sensor_id[0:3]]
-                            metricn = as_type[as_type.index('_')+1:]
+                            as_type = config._as_sensor_codes[sensor_id[0:3]]
+                            pollutant = as_type[as_type.index('_')+1:]
                             process = 'alphasense_calc'
 
                             wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                             aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                            metricfn = f'{metricn}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
-                            metric = { metricfn: { 'process': process,
-                                                             'kwargs':  {
-                                                                            'from_date': from_date,
-                                                                            'to_date': to_date,
-                                                                            'id': sensor_id,
-                                                                            'we': wen,
-                                                                            'ae': aen,
-                                                                            't': 'EXT_TEMP'
-                                                                        }
-                                                            }
+                            metricfn = f'{pollutant}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
+                            metric = { metricfn:
+                                                {
+                                                    'process': process,
+                                                    'desc': f'Calculation of {pollutant} based on AAN 803-04'
+                                                    'units': 'ppb',
+                                                    'kwargs':  {
+                                                                'from_date': from_date,
+                                                                'to_date': to_date,
+                                                                'id': sensor_id,
+                                                                'we': wen,
+                                                                'ae': aen,
+                                                                't': 'EXT_TEMP'
+                                                                }
+                                                }
                             }
 
                         self.add_metric(metric)

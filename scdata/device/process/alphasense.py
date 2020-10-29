@@ -24,12 +24,101 @@ def alphasense_calc(dataframe, **kwargs):
             Name of auxiliary electrode found in dataframe (V)
         t: string
             Name of reference temperature
+        use_alternative: boolean
+            Default false
+            Use alternative algorithm as shown in the AAN
     Returns
     -------
-        calculation of pollutant in ppm or ppb
+        calculation of pollutant in ppb
     """
 
-    returns None
+    def alg_1(x, cal_data):
+        return x['we_t'] - x['n_t'] * x['ae_t']
+
+    def alg_2(x, cal_data):
+        return x['we_t'] - x['k_t'] * (cal_data['we_sensor_zero_mv'] / cal_data['ae_sensor_zero_mv'] ) * x['ae_t']
+
+    def alg_3(x, cal_data):
+        return x['we_t'] - (cal_data['we_sensor_zero_mv'] - cal_data['ae_sensor_zero_mv']) / 1000.0 - x['kp_t'] * x['ae_t']
+
+    def alg_4(x, cal_data):
+        return x['we_t'] - cal_data['we_sensor_zero_mv'] / 1000.0 - x['kpp_t']
+
+    def comp_t(x, comp_lut):
+        # Below min temperature, we saturate
+        if x['t'] < config._as_t_comp[0]:
+            return comp_lut[0]
+
+        # Over max temperature, we saturate    
+        if x['t'] > config._as_t_comp[-1]:
+            return comp_lut[-1]
+
+        # Otherwise, we calculate
+        idx_2 = next(x[0] for x in enumerate(config._as_t_comp) if x[1] > x['t'])
+        idx_1 = idx_2 - 1
+
+        delta_y = comp_lut[idx_2] - comp_lut[idx_1]
+        delta_x = config._as_t_comp[idx_2] - config._as_t_comp[idx_1]
+
+        return comp_lut[idx_1] + (x['t'] - config._as_t_comp[idx_1]) * delta_y / delta_x
+
+    # Check inputs
+    flag_error = False
+    if 'we' not in kwargs: flag_error = True
+    if 'ae' not in kwargs: flag_error = True
+    if 'id' not in kwargs: flag_error = True
+    if 't' not in kwargs: flag_error = True
+
+    if flag_error:
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    # Get Sensor data
+    if kwargs['id'] not in config.calibrations:
+        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
+        return None
+
+    df = dataframe.copy()
+
+    # Get sensor type
+    as_type = config._as_sensor_codes[sensor_id[0:3]]
+
+    # Use alternative method or not
+    if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
+    if use_alternative: algorithm_idx = 1
+    else: algorithm_idx = 0
+
+    # Get algorithm name
+    algorithm = list(config._as_sensor_algs[as_type].keys())[algorithm_idx]
+    comp_type = config._as_sensor_algs[as_type][algorithm][0]
+    comp_lut = config._as_sensor_algs[as_type][algorithm][1]
+
+    # Retrieve calibration data
+    cal_data = config.calibrations[kwargs['id']]
+
+    # Compensate electronic zero
+    df['we_t'] = df[kwargs['we']] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
+    df['ae_t'] = df[kwargs['ae']] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+    # Get requested temperature
+    df['t'] = df[kwargs['t']]
+
+    ## TODO
+    ## CROSS-SENSITIVITY FOR NO2 AFFECTED SENSORS
+
+    df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
+
+    if algorithm == 1:
+        df['we_c'] = df.apply(lambda x: alg_1(x, cal_data), axis = 1) # in V
+    elif algorithm == 2:
+        df['we_c'] = df.apply(lambda x: alg_2(x, cal_data), axis = 1) # in V
+    elif algorithm == 3:
+        df['we_c'] = df.apply(lambda x: alg_3(x, cal_data), axis = 1) # in V
+    elif algorithm == 4:
+        df['we_c'] = df.apply(lambda x: alg_4(x, cal_data), axis = 1) # in V
+
+    df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
+
+    return df['conc']
 
 def basic_4electrode_alg(dataframe, **kwargs):
     """
@@ -70,7 +159,6 @@ def basic_4electrode_alg(dataframe, **kwargs):
     we_sensitivity_na_ppb = config.calibrations[kwargs['id']]['we_sensitivity_na_ppb']
     we_cross_sensitivity_no2_na_ppb = config.calibrations[kwargs['id']]['we_cross_sensitivity_no2_na_ppb']
     sensor_type = config.calibrations[kwargs['id']]['sensor_type']
-    # TODO - implement different algorithms
     nWA = config.calibrations[kwargs['id']]['we_sensor_zero_mv']/config.calibrations[kwargs['id']]['ae_sensor_zero_mv']
 
     if sensor_type != kwargs['pollutant']: 
