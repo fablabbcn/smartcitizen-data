@@ -5,7 +5,7 @@ from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series
 
-def alphasense_calc(dataframe, **kwargs):
+def alphasense_803_04(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
     and calibration ID. It adds a configurable background concentration and correction
@@ -49,7 +49,7 @@ def alphasense_calc(dataframe, **kwargs):
         if x['t'] < config._as_t_comp[0]:
             return comp_lut[0]
 
-        # Over max temperature, we saturate    
+        # Over max temperature, we saturate
         if x['t'] > config._as_t_comp[-1]:
             return comp_lut[-1]
 

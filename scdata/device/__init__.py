@@ -146,7 +146,7 @@ class Device(object):
                             sensor_id = hw_info["versions"][version]["ids"][slot]
                             as_type = config._as_sensor_codes[sensor_id[0:3]]
                             pollutant = as_type[as_type.index('_')+1:]
-                            process = 'alphasense_calc'
+                            process = 'alphasense_803_04'
 
                             wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                             aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
