@@ -157,7 +157,7 @@ class Device(object):
                             metric = { metric_name:
                                                 {
                                                     'process': process,
-                                                    'desc': f'Calculation of {pollutant} based on AAN 803-04'
+                                                    'desc': f'Calculation of {pollutant} based on AAN 803-04',
                                                     'units': 'ppb', # always for sensors
                                                     'kwargs':  {
                                                                 'from_date': from_date,

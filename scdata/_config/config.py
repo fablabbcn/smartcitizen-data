@@ -472,7 +472,7 @@ class Config(object):
             return val
 
     def __iter__(self):
-        return (i for i in dir(self))            
+        return (i for i in dir(self))
     
     def get_meta_data(self):
         """ Get meta data from blueprints and calibrations """

@@ -2,6 +2,7 @@
 
 Below is the explanation of hardware description in pseudo-json format.
 
+```
 {"SCTEST":
   {
     # Sensor blueprint as in blueprints.yaml
@@ -26,3 +27,4 @@ Below is the explanation of hardware description in pseudo-json format.
                 }
   }
 }
+```
