@@ -151,19 +151,22 @@ class Device(object):
                             wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                             aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                            metricfn = f'{pollutant}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
-                            metric = { metricfn:
+                            # metric_name = f'{pollutant}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
+                            metric_name = f'{pollutant}'
+
+                            metric = { metric_name:
                                                 {
                                                     'process': process,
                                                     'desc': f'Calculation of {pollutant} based on AAN 803-04'
-                                                    'units': 'ppb',
+                                                    'units': 'ppb', # always for sensors
                                                     'kwargs':  {
                                                                 'from_date': from_date,
                                                                 'to_date': to_date,
                                                                 'id': sensor_id,
                                                                 'we': wen,
                                                                 'ae': aen,
-                                                                't': 'EXT_TEMP'
+                                                                't': 'EXT_TEMP', # With external temperature?
+                                                                'location': self.location
                                                                 }
                                                 }
                             }

@@ -120,7 +120,7 @@ class Config(object):
                         '130': 'ASB4_NO', #
                         '202': 'ASB4_NO2',
                         '204': 'ASB4_OX',
-                        '134': 'ASB4_SO2' #
+                        '164': 'ASB4_SO2'
     }
 
     # From Tables 2 and 3 of AAN 803-04

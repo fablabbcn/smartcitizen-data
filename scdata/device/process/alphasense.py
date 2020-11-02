@@ -1,4 +1,4 @@
-from scdata.utils import std_out, get_units_convf, find_dates
+from scdata.utils import std_out, get_units_convf, find_dates, localise_date
 from scdata._config import config
 from scdata.device.process import baseline_calc
 from scipy.stats.stats import linregress
@@ -27,6 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
+        location: string
+            Valid location for date localisation
     Returns
     -------
         calculation of pollutant in ppb
@@ -46,12 +48,10 @@ def alphasense_803_04(dataframe, **kwargs):
 
     def comp_t(x, comp_lut):
         # Below min temperature, we saturate
-        if x['t'] < config._as_t_comp[0]:
-            return comp_lut[0]
+        if x['t'] < config._as_t_comp[0]: return comp_lut[0]
 
         # Over max temperature, we saturate
-        if x['t'] > config._as_t_comp[-1]:
-            return comp_lut[-1]
+        if x['t'] > config._as_t_comp[-1]: return comp_lut[-1]
 
         # Otherwise, we calculate
         idx_2 = next(x[0] for x in enumerate(config._as_t_comp) if x[1] > x['t'])
@@ -61,6 +61,9 @@ def alphasense_803_04(dataframe, **kwargs):
         delta_x = config._as_t_comp[idx_2] - config._as_t_comp[idx_1]
 
         return comp_lut[idx_1] + (x['t'] - config._as_t_comp[idx_1]) * delta_y / delta_x
+
+    def reverse_no2(x, cal_data):
+        return x['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
 
     # Check inputs
     flag_error = False
@@ -78,7 +81,26 @@ def alphasense_803_04(dataframe, **kwargs):
         std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
         return None
 
+    # Process input dates
+    if 'from_date' not in kwargs: from_date = None
+    else:
+        if 'location' not in kwargs:
+            std_out('Cannot localise date without location')
+            return None
+        from_date = localise_date(kwargs['from_date'], kwargs['location'])
+
+    if 'to_date' not in kwargs: to_date = None
+    else:
+        if 'location' not in kwargs:
+            std_out('Cannot localise date without location')
+            return None
+        to_date = localise_date(kwargs['to_date'], kwargs['location'])
+
+    # Make copy
     df = dataframe.copy()
+    # Trim data
+    if from_date is not None: df = df[df.index > from_date]
+    if to_date is not None: df = df[df.index < to_date]
 
     # Get sensor type
     as_type = config._as_sensor_codes[sensor_id[0:3]]
@@ -93,8 +115,9 @@ def alphasense_803_04(dataframe, **kwargs):
     comp_type = config._as_sensor_algs[as_type][algorithm][0]
     comp_lut = config._as_sensor_algs[as_type][algorithm][1]
 
-    # Retrieve calibration data
+    # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['id']]
+    for item in cal_data: cal_data[item] = float (cal_data[item])
 
     # Compensate electronic zero
     df['we_t'] = df[kwargs['we']] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
@@ -102,11 +125,10 @@ def alphasense_803_04(dataframe, **kwargs):
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 
-    ## TODO
-    ## CROSS-SENSITIVITY FOR NO2 AFFECTED SENSORS
-
+    # Temperature compensation
     df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
 
+    # Algorithm selection
     if algorithm == 1:
         df['we_c'] = df.apply(lambda x: alg_1(x, cal_data), axis = 1) # in V
     elif algorithm == 2:
@@ -116,6 +138,12 @@ def alphasense_803_04(dataframe, **kwargs):
     elif algorithm == 4:
         df['we_c'] = df.apply(lambda x: alg_4(x, cal_data), axis = 1) # in V
 
+    # Verify if it has NO2 cross-sensitivity
+    if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0):
+        df['we_no2_eq'] = df.apply(lambda x: reverse_no2(x, cal_data), axis = 1) # in V
+        df['we_c'] -= df['we_no2_eq'] # in V
+
+    # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
     return df['conc']
