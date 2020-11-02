@@ -172,7 +172,7 @@ class ScApiDevice:
                 deviceR = get(self.API_BASE_URL + '{}/postprocessing_info'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.post_info = deviceR.json()
-                    print (post_info)
+                    std_out(post_info, 'ERROR')
                 else: 
                     std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
             except:
@@ -180,7 +180,6 @@ class ScApiDevice:
                 pass    
 
         return self.post_info
-        print ('TODO')
 
     def get_device_location(self):
 

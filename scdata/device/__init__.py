@@ -47,7 +47,7 @@ class Device(object):
 
         # Add API handler if needed
         if self.source == 'api':
-            hmod = __import__('scdata.io.read_api', fromlist=['io.read_api'])
+            hmod = __import__('scdata.io.device_api', fromlist=['io.device_api'])
             Hclass = getattr(hmod, self.sources[self.source]['handler'])
             # Create object
             self.api_device = Hclass(did=self.id)
