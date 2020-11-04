@@ -1,5 +1,8 @@
-from scdata.io.read_api import ScApiDevice
-from os.path import dirname, join
+from scdata.io.device_api import ScApiDevice
+from scdata._config import config
+
+# Set verbose level
+config._out_level = 'DEBUG'
 
 # Device id needs to be as str
 device = ScApiDevice('10972')

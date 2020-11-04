@@ -6,6 +6,7 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 
 - Get device data: [scripts/get_device_data.py](scripts/get_device_data.py)
 - Get devices by location and mac addresses: [scripts/get_device_data.py](scripts/get_device_macs.py)
+- Process data based on blueprints: [scripts/process_data.py](scripts/process_data.py)
 
 ## Notebooks
 

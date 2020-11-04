@@ -1,4 +1,4 @@
-from scdata.io.read_api import ScApiDevice
+from scdata.io.device_api import ScApiDevice
 
 print ('Getting device 10972')
 device = ScApiDevice('10972')
