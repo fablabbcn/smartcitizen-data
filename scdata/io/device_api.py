@@ -3,7 +3,7 @@ from pandas import (DataFrame, to_datetime, to_numeric,
 
 from math import isnan
 from traceback import print_exc
-from requests import get
+from requests import get, post, patch
 from re import search
 from io import StringIO
 
@@ -13,6 +13,8 @@ from scdata.utils import std_out, localise_date, clean
 from tzwhere import tzwhere
 
 from datetime import date
+from os import environ
+from json import dumps
 
 tz_where = tzwhere.tzwhere()
 
@@ -48,7 +50,7 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
-        self.post_info = None
+        self.postprocessing_info = None
     
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
@@ -165,21 +167,21 @@ class ScApiDevice:
 
         return self.last_reading_at
 
-    def get_post_info(self):
+    def get_postprocessing_info(self):
 
-        if self.post_info is None:
+        if self.postprocessing_info is None:
             try:
                 deviceR = get(self.API_BASE_URL + '{}/postprocessing_info'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
-                    self.post_info = deviceR.json()
-                    std_out(post_info, 'ERROR')
-                else: 
-                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
+                    self.postprocessing_info = deviceR.json()
+                    std_out(postprocessing_info, 'ERROR')
+                else:
+                    std_out('API reported {} when loading postprocessing information'.format(deviceR.status_code), 'WARNING')
             except:
-                std_out('Failed request. Probably no connection', 'ERROR')  
-                pass    
+                std_out('Failed request. Probably no connection', 'ERROR')
+                pass
 
-        return self.post_info
+        return self.postprocessing_info
 
     def get_device_location(self):
 
@@ -403,6 +405,66 @@ class ScApiDevice:
 
         if flag_error == False: std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
+
+    def post_device_data(self, df, clean_na = 'drop'):
+        '''
+            POST data in the SmartCitizen Api
+        '''
+        if 'SC_BEARER' not in environ:
+            std_out('Cannot post without Auth Bearer', 'ERROR')
+            return
+
+        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
+
+        # Clean df of nans
+        df = clean(df, clean_na, how = 'all')
+        # print (df)
+
+        # TODO process df and post
+
+        payload = df.to_json()
+
+        payload_json = dumps(payload)
+        # print (payload_json)
+
+        return True
+
+        # print (payload_json)
+        # response = post(f'https://api.smartcitizen.me/v0/devices/{kit_id}/', data = post_json, headers = headers)
+        # if response.status_code == 200 or response.status_code == 201:
+        #     return True
+        # else:
+        #     return False
+
+    def post_postprocessing_info(self):
+        '''
+            POST postprocessing info into the device in the SmartCitizen API
+            Updates all the post info. Changes need to be made info the keys of the postprocessing_info outside of here
+
+            # Example postprocessing_info:
+            # {
+            #   "updated_at": "2020-10-29T04:35:23Z",
+            #   "postprocessing_blueprint": 'sck_21_gps',
+            #   "hardware_id": "SCS20100",
+            #   "latest_postprocessing": "2020-10-29T08:35:23Z"
+            # }
+
+        '''
+
+        if 'SC_BEARER' not in environ:
+            std_out('Cannot post without Auth Bearer', 'ERROR')
+            return
+
+        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
+
+        post_json = dumps(self.postprocessing_info)
+        std_out(f'Posting post-processing info:\n {post_json}')
+        response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}/', data = post_json, headers = headers)
+
+        if response.status_code == 200 or response.status_code == 201:
+            return True
+        else:
+            return False
 
 class MuvApiDevice:
 

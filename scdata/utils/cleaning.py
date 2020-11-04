@@ -16,7 +16,7 @@ def clean(df, clean_na = None, how = 'all'):
 
     if clean_na is not None:
         if clean_na == 'drop':
-            df.dropna(axis = 0, how=how, inplace=True)
+            df.dropna(axis = 0, how = how, inplace = True)
         elif clean_na == 'fill':
-            df = df.fillna(method='bfill').fillna(method='ffill')
+            df = df.fillna(method = 'bfill').fillna(method = 'ffill')
     return df

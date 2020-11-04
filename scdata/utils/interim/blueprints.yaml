@@ -292,6 +292,7 @@ sc_21_station_box:
         window_type: null
       process: clean_ts
       units: ppm
+      post: true
     CCS811_VOCS_CLEAN:
       desc: Volatile Organic Compounds cleaned data
       kwargs:
@@ -303,39 +304,55 @@ sc_21_station_box:
         window_type: null
       process: clean_ts
       units: ppb
-    PM_10_CLEAN:
+      post: false
+    EXT_PM_10_CLEAN:
       desc: PM10 calculated based on both PMS5003 PM10 inputs
       kwargs:
+        factor: 0.3
         limits:
         - 0
         - 1000
-        name: PM_10
+        names:
+        - EXT_PM_A_10
+        - EXT_PM_B_10
+        pick: min
         window_size: 5
         window_type: null
-      process: clean_ts
+      process: merge_ts
       units: ug/m3
-    PM_1_CLEAN:
+      post: true
+    EXT_PM_1_CLEAN:
       desc: PM1 calculated based on both PMS5003 PM1 inputs
       kwargs:
+        factor: 0.3
         limits:
         - 0
         - 1000
-        name: PM_1
+        names:
+        - EXT_PM_A_1
+        - EXT_PM_B_1
+        pick: min
         window_size: 5
         window_type: null
-      process: clean_ts
+      process: merge_ts
       units: ug/m3
-    PM_25_CLEAN:
-      desc: PM2. calculated based on both PMS5003 PM2.5 inputs
+      post: true
+    EXT_PM_25_CLEAN:
+      desc: PM2.5 calculated based on both PMS5003 PM2.5 inputs
       kwargs:
+        factor: 0.3
         limits:
         - 0
         - 1000
-        name: PM_25
+        names:
+        - EXT_PM_A_25
+        - EXT_PM_B_25
+        pick: min
         window_size: 5
         window_type: null
-      process: clean_ts
+      process: merge_ts
       units: ug/m3
+      post: true
   min_date: null
   platform_id: 28
   processed_data_file: null
@@ -712,6 +729,7 @@ sck_20:
         window_type: null
       process: clean_ts
       units: ug/m3
+      post: true
     PM_1_CLEAN:
       desc: PM1 calculated based on both PMS5003 PM10 inputs
       kwargs:
@@ -723,6 +741,7 @@ sck_20:
         window_type: null
       process: clean_ts
       units: ug/m3
+      post: true
     PM_25_CLEAN:
       desc: PM2.5 calculated based on both PMS5003 PM2.5 inputs
       kwargs:
@@ -734,6 +753,7 @@ sck_20:
         window_type: null
       process: clean_ts
       units: ug/m3
+      post: true
   min_date: null
   platform_id: 11
   processed_data_file: null
@@ -774,7 +794,67 @@ sck_21:
   info_data_file: null
   location: null
   max_date: null
-  metrics: *id006
+  metrics:
+    CCS811_ECO2_CLEAN:
+      desc: eCO2 cleaned data
+      kwargs:
+        limits:
+        - 400
+        - 65000
+        name: CCS811_ECO2
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppm
+      post: true
+    CCS811_VOCS_CLEAN:
+      desc: Volatile Organic Compounds cleaned data
+      kwargs:
+        limits:
+        - 0
+        - 65000
+        name: CCS811_VOCS
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppb
+      post: true
+    PM_10_CLEAN:
+      desc: PM10 calculated based on both PMS5003 PM10 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_10
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
+    PM_1_CLEAN:
+      desc: PM1 calculated based on both PMS5003 PM10 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_1
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
+    PM_25_CLEAN:
+      desc: PM2.5 calculated based on both PMS5003 PM2.5 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_25
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
   min_date: null
   platform_id: 28
   processed_data_file: null
@@ -802,7 +882,67 @@ sck_21_gps:
   info_data_file: null
   location: null
   max_date: null
-  metrics: *id006
+  metrics:
+    CCS811_ECO2_CLEAN:
+      desc: eCO2 cleaned data
+      kwargs:
+        limits:
+        - 400
+        - 65000
+        name: CCS811_ECO2
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppm
+      post: true
+    CCS811_VOCS_CLEAN:
+      desc: Volatile Organic Compounds cleaned data
+      kwargs:
+        limits:
+        - 0
+        - 65000
+        name: CCS811_VOCS
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ppb
+      post: true
+    PM_10_CLEAN:
+      desc: PM10 calculated based on both PMS5003 PM10 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_10
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
+    PM_1_CLEAN:
+      desc: PM1 calculated based on both PMS5003 PM10 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_1
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
+    PM_25_CLEAN:
+      desc: PM2.5 calculated based on both PMS5003 PM2.5 inputs
+      kwargs:
+        limits:
+        - 0
+        - 1000
+        name: PM_25
+        window_size: 5
+        window_type: null
+      process: clean_ts
+      units: ug/m3
+      post: true
   min_date: null
   platform_id: 28
   processed_data_file: null

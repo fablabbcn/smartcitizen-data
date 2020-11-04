@@ -9,26 +9,29 @@ from scdata.device.process import *
 from os.path import join
 from pandas import DataFrame
 from traceback import print_exc
+import datetime
 
 class Device(object):
     ''' Main implementation of the device class '''
 
-    def __init__(self, blueprint, descriptor):
+    def __init__(self, blueprint = 'sck_21', descriptor = {}):
 
         '''
         Creates an instance of device. Devices are objects that contain sensors readings, metrics 
         (calculations based on sensors readings), and metadata such as units, dates, frequency and source
-        
+
         Parameters:
         -----------
-            blueprint: String
-            
+        blueprint: String
+            Default: 'sck_21'
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
             parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in 
             blueprints.yaml and accessible via the scdata.utils.load_blueprints function.
-            
-            descriptor: dict()
-            
+            The blueprint can also be defined from the postprocessing info in SCAPI. The manual
+            parameter passed here is prioritary to that of the API
+
+        descriptor: dict()
+            Default: empty dict
             A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
             needs to have different data. If not all the data is present, the corresponding blueprint's default will 
             be used
@@ -36,40 +39,79 @@ class Device(object):
         ----------
             Device object
         '''
-        
-        self.blueprint = blueprint
+
+        if blueprint is not None:
+            self.blueprint = blueprint
 
         # Set attributes
-        for bpitem in config.blueprints[blueprint]: self.__setattr__(bpitem, config.blueprints[blueprint][bpitem]) 
+        for bpitem in config.blueprints[blueprint]: self.__setattr__(bpitem, config.blueprints[blueprint][bpitem])
         for ditem in descriptor.keys():
-            if type(self.__getattribute__(ditem)) == dict: self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), descriptor[ditem]))
-            else: self.__setattr__(ditem, descriptor[ditem])
+            if type(self.__getattribute__(ditem)) == dict: 
+                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), descriptor[ditem]))
+            else: self.__setattr__(ditem, descriptor[ditem])    
 
         # Add API handler if needed
         if self.source == 'api':
-            hmod = __import__('scdata.io.device_api', fromlist=['io.device_api'])
+            hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
             Hclass = getattr(hmod, self.sources[self.source]['handler'])
             # Create object
-            self.api_device = Hclass(did=self.id)
+            self.api_device = Hclass(did = self.id)
+
+        std_out(f'Checking postprocessing info from API device')
+        self.load_postprocessing_info()
+
+        if self.blueprint is None:
+            std_out('Need a blueprint to proceed', 'ERROR')
+            return None
+        else:
+            std_out(f'Device {self.id} is using {blueprint}')
 
         self.readings = DataFrame()
         self.loaded = False
         self.options = dict()
 
+        self.hw_id = None
+        self.latest_postprocessing = None
+
     def check_overrides(self, options = {}):
         
-        if 'min_date' in options.keys(): self.options['min_date'] = options['min_date'] 
+        if 'min_date' in options.keys(): self.options['min_date'] = options['min_date']
         else: self.options['min_date'] = self.min_date
-        
+
         if 'max_date' in options.keys(): self.options['max_date'] = options['max_date']
         else: self.options['max_date'] = self.max_date
-        
+
         if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
         else: self.options['clean_na'] = self.clean_na
-        
+
         if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
         elif self.frequency is not None: self.options['frequency'] = self.frequency
         else: self.options['frequency'] = '1Min'
+
+    def load_postprocessing_info(self):
+
+        if self.source != 'api':
+            return None
+
+        if self.sources[self.source]['handler'] != 'ScApiDevice':
+            return None
+
+        # Request to get postprocessing information
+        if self.api_device.get_postprocessing_info() is None:
+            return None
+
+        # Put it where it goes
+        self.hw_id = self.api_device.postprocessing_info['hardware_id']
+        self.hw_updated_at = self.api_device.postprocessing_info['updated_at']
+        self.hw_post_blueprint = self.api_device.postprocessing_info['postprocessing_blueprint']
+        self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
+
+        # Use postprocessing info blueprint
+        if self.hw_post_blueprint in config.blueprints.keys():
+            std_out(f'Using hardware postprocessing blueprint: {self.hw_post_blueprint}')
+            self.blueprint = self.hw_post_blueprint
+
+        return self.api_device.postprocessing_info
 
     def load(self, options = None, path = None, convert_units = True):
 
@@ -79,22 +121,41 @@ class Device(object):
 
         try:
             if self.source == 'csv':
-                self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.location, self.options['frequency'], 
-                                                            self.options['clean_na'], self.sources[self.source]['index']))
+                self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.location,
+                                                            self.options['frequency'], self.options['clean_na'],
+                                                            self.sources[self.source]['index']))
                 if self.readings is not None:
                     self.__convert_names__()
 
             elif 'api' in self.source:
+
+                # Get device location
+                self.location = self.api_device.get_device_location()
+
                 if path is None:
-                    df = self.api_device.get_device_data(self.options['min_date'], self.options['max_date'], self.options['frequency'], self.options['clean_na'])
+                    if self.load_postprocessing_info():
+                        # Override dates for post-processing
+                        if self.latest_postprocessing is not None:
+                            hw_latest_post = localise_date(self.latest_postprocessing, self.location)
+                            # Override min processing date
+                            self.options['min_date'] = hw_latest_post
+
+                    df = self.api_device.get_device_data(self.options['min_date'], self.options['max_date'],
+                                                         self.options['frequency'], self.options['clean_na'])
+
                     # API Device is not aware of other csv index data, so make it here
-                    if 'csv' in self.sources and df is not None: df = df.reindex(df.index.rename(self.sources['csv']['index']))
+                    if 'csv' in self.sources and df is not None:
+                        df = df.reindex(df.index.rename(self.sources['csv']['index']))
+
                     # Combine it with readings if possible
                     if df is not None: self.readings = self.readings.combine_first(df)
+
                 else:
                     # Cached case
-                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'), self.location, self.options['frequency'], 
-                                                            self.options['clean_na'], self.sources['csv']['index']))
+                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
+                                                                self.location, self.options['frequency'],
+                                                                self.options['clean_na'], self.sources['csv']['index']))
+
         except FileNotFoundError:
             # Handle error
             if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
@@ -108,10 +169,10 @@ class Device(object):
             if self.readings is not None: 
                 self.__check_sensors__()
 
-                if self.api_device.get_post_info() is not None:
+                if self.load_postprocessing_info() is not None:
                     self.__fill_metrics__()
 
-                if not self.readings.empty: 
+                if not self.readings.empty:
                     self.loaded = True
                     if convert_units: self.__convert_units__()
         finally:
@@ -119,59 +180,56 @@ class Device(object):
 
     def __fill_metrics__(self):
 
-        if 'hardware_id' in self.api_device.post_info:
-            hw_id = self.api_device.post_info['hardware_id']
+            
+        if self.hw_id in config.hardware_info:
+            std_out('Hardware ID found in history', "SUCCESS")
+            hw_info = config.hardware_info[self.hw_id]
+        else:
+            std_out(f"Hardware id: {self.hw_id} not found in hardware_info", 'ERROR')
+            return False
 
-            if hw_id in config.hardware_info.keys():
-                std_out('Hardware ID found in history', "SUCCESS")
+        # Now go through sensor versions and parse them
+        for version in hw_info.keys():
 
-                hw_info = config.hardware_info[hw_id]
+            from_date = hw_info[version]["from"]
+            to_date = hw_info[version]["to"]
 
-                # First validate blueprint is correct
-                if hw_info["blueprint"] != self.blueprint: 
-                    std_out("Blueprint in hardware history does not match device blueprint", "ERROR")
-                    return False
+            for slot in hw_info[version]["ids"]:
 
-                # Now go through sensor versions and parse them
-                for version in hw_info["versions"]:
+                # Alphasense type
+                if slot.startswith('AS'):
 
-                    from_date = hw_info["versions"][version]["from"]
-                    to_date = hw_info["versions"][version]["to"]
+                    sensor_id = hw_info[version]["ids"][slot]
+                    as_type = config._as_sensor_codes[sensor_id[0:3]]
+                    pollutant = as_type[as_type.index('_')+1:]
+                    process = 'alphasense_803_04'
 
-                    for slot in hw_info["versions"][version]["ids"]:
+                    wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
+                    aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                        # Alphasense type
-                        if slot.startswith('AS'):
+                    # metric_name = f'{pollutant}_V{version}_S{list(hw_info[version]["ids"]).index(slot)}'
+                    metric_name = f'{pollutant}'
 
-                            sensor_id = hw_info["versions"][version]["ids"][slot]
-                            as_type = config._as_sensor_codes[sensor_id[0:3]]
-                            pollutant = as_type[as_type.index('_')+1:]
-                            process = 'alphasense_803_04'
+                    metric = {metric_name:
+                                        {
+                                            'process': process,
+                                            'desc': f'Calculation of {pollutant} based on AAN 803-04',
+                                            'units': 'ppb', # always for sensors,
+                                            'post': True,
+                                            'kwargs':  {
+                                                        'from_date': from_date,
+                                                        'to_date': to_date,
+                                                        'id': sensor_id,
+                                                        'we': wen,
+                                                        'ae': aen,
+                                                        't': 'EXT_TEMP', # With external temperature?
+                                                        'location': self.location
+                                                        }
+                                        }
+                    }
 
-                            wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
-                            aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
+                self.add_metric(metric)
 
-                            # metric_name = f'{pollutant}_V{version}_S{list(hw_info["versions"][version]["ids"]).index(slot)}'
-                            metric_name = f'{pollutant}'
-
-                            metric = { metric_name:
-                                                {
-                                                    'process': process,
-                                                    'desc': f'Calculation of {pollutant} based on AAN 803-04',
-                                                    'units': 'ppb', # always for sensors
-                                                    'kwargs':  {
-                                                                'from_date': from_date,
-                                                                'to_date': to_date,
-                                                                'id': sensor_id,
-                                                                'we': wen,
-                                                                'ae': aen,
-                                                                't': 'EXT_TEMP', # With external temperature?
-                                                                'location': self.location
-                                                                }
-                                                }
-                            }
-
-                        self.add_metric(metric)
 
     def __check_sensors__(self):
         remove_sensors = list()
@@ -227,7 +285,7 @@ class Device(object):
 
         process_ok = True
 
-        if 'metrics' not in vars(self): 
+        if 'metrics' not in vars(self):
             std_out(f'Device {self.id} has nothing to process. Skipping', 'WARNING')
             return process_ok
 
@@ -268,8 +326,14 @@ class Device(object):
                 print_exc()
                 std_out('Metric args not in dataframe', 'ERROR')
                 pass
-        
+
             if metric in self.readings: process_ok &= True
+
+        if process_ok:
+            # Latest postprocessing to latest readings
+            if self.api_device.get_postprocessing_info() is not None:
+                latest_postprocessing = localise_date(self.readings.index[-1], self.location).strftime('%Y-%m-%dT%H:%M:%S')
+                self.api_device.postprocessing_info['latest_postprocessing'] = latest_postprocessing
 
         return process_ok
 
@@ -356,6 +420,36 @@ class Device(object):
         else:
             std_out('Not supported format' ,'ERROR')
             return False
+
+    def post(self, with_post_info = True):
+        '''
+        Posts devices metrics. Only available for parent of ScApiDevice
+        Parameters
+        ----------
+            with_post_info: boolean
+                Default True
+                Add the post info to the package
+        Returns
+        ----------
+            boolean
+            True if posted ok, False otherwise
+        '''
+
+        post_ok = True
+        if self.sources[self.source]['handler'] != 'ScApiDevice':
+            std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
+            return False
+
+        for metric in self.metrics:
+            if self.metrics[metric]['post'] == True:
+                # Get single series for post
+                df = self.readings[metric]
+                post_ok &= self.api_device.post_device_data(df)
+
+        # Post info if requested. It should be updated elsewhere
+        if with_post_info: self.api_device.post_postprocessing_info()
+
+        return post_ok
 
     # TODO
     # def capture(self):
