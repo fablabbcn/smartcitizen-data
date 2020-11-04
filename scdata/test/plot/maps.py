@@ -6,6 +6,8 @@ from traceback import print_exc
 from math import inf
 from pandas import cut, date_range
 from numpy import array
+from scdata.utils import dict_fmerge
+from scdata._config import config
 
 def device_history_map(map_type = 'dynamic', dataframe = None, options = dict()):
     '''

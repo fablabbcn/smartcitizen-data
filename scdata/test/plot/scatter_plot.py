@@ -29,7 +29,7 @@ def scatter_plot(self, **kwargs):
                           'subplot': 2} 
                     }
         options: dict 
-            Options including data processing prior to plot. Defaults in config.plot_def_opt
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Formatting dict. Defaults in config._scatter_plot_def_fmt
     Returns
@@ -48,9 +48,9 @@ def scatter_plot(self, **kwargs):
 
     if 'options' not in kwargs:
         std_out('Using default options')
-        options = config.plot_def_opt
+        options = config._plot_def_opt
     else:
-        options = dict_fmerge(config.plot_def_opt, kwargs['options'])
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
@@ -64,7 +64,6 @@ def scatter_plot(self, **kwargs):
     
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
-    print (formatting['palette'])
     
     # Font size
     if formatting['fontsize'] is not None: rcParams.update({'font.size': formatting['fontsize']});
@@ -173,7 +172,7 @@ def scatter_plot(self, **kwargs):
             # Set y axis limit
             if formatting['yrange'] is not None and not formatting['sharey']:
                 try:
-                    ax.set_ylim(formatting['yrange'][subplots.index(i)+1]);
+                    ax.set_ylim(formatting['yrange']);
                 except:
                     std_out (f'yrange for subplot {subplots.index(i)} not set', 'WARNING')
                     pass                
@@ -183,7 +182,7 @@ def scatter_plot(self, **kwargs):
             # Set x axis limit
             if formatting['xrange'] is not None and not formatting['sharex']:
                 try:
-                    ax.set_xlim(formatting['xrange'][subplots.index(i)+1]);
+                    ax.set_xlim(formatting['xrange']);
                 except:
                     std_out (f'xrange for subplot {subplots.index(i)} not set', 'WARNING')
                     pass                     

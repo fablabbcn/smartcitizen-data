@@ -318,7 +318,7 @@ class Config(object):
                             'legend': True,
                             'style': _plot_style,
                             'kind': 'reg',
-                            'sharex': True,
+                            'sharex': False,
                             'sharey': False,
                             'nrows': 1
                             },
