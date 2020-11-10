@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from scdata.io.device_api import ScApiDevice
 
 print ('Getting device 10972')

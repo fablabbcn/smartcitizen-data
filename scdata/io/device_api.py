@@ -39,8 +39,8 @@ class ScApiDevice:
     API_BASE_URL='https://api.smartcitizen.me/v0/devices/'
 
     def __init__ (self, did):
-        self.id = did
-        self.kit_id = None
+        self.id = did # the number after https://smartcitizen.me/kits/######
+        self.kit_id = None # the number that defines the type of blueprint
         self.mac = None
         self.last_reading_at = None
         self.added_at = None
@@ -51,6 +51,7 @@ class ScApiDevice:
         self.sensors = None
         self.devicejson = None
         self.postprocessing_info = None
+        self.token = None
     
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
@@ -117,8 +118,8 @@ class ScApiDevice:
         if full: return df
         else: return list(df.index)
     
-    def get_mac(self):
-        if self.mac is None:
+    def get_mac(self, update = False):
+        if self.mac is None or update:
             std_out(f'Requesting MAC from API for device {self.id}')
             # Get device
             try:
@@ -136,8 +137,8 @@ class ScApiDevice:
 
         return self.mac
 
-    def get_device_json(self):
-        if self.devicejson is None:
+    def get_device_json(self, update = False):
+        if self.devicejson is None or update:
             try:
                 deviceR = get(self.API_BASE_URL + '{}/'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
@@ -149,27 +150,54 @@ class ScApiDevice:
                 pass                
         return self.devicejson
 
-    def get_kit_ID(self):
+    def get_kit_ID(self, update = False):
 
-        if self.kit_id is None:
-            if self.get_device_json() is not None:
-                self.kit_id = self.devicejson['kit']['id']                
+        if self.kit_id is None or update:
+            if self.get_device_json(update) is not None:
+                self.kit_id = self.devicejson['kit']['id']
         
         return self.kit_id
 
-    def get_device_last_reading(self):
+    def post_kit_ID(self):
+        '''
+            Posts kit id to platform
+        '''
 
-        if self.last_reading_at is None:
-            if self.get_device_json() is not None:
-                self.last_reading_at = self.devicejson['last_reading_at']                
-        
+        if 'SC_ADMIN_BEARER' not in environ:
+            std_out('Cannot post without Auth Admin Bearer', 'ERROR')
+            return
+
+        headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'], 'Content-type': 'application/json'}
+
+        if self.kit_id is not None:
+
+            payload = {'kit_id': self.kit_id}
+
+            payload_json = dumps(payload)
+            response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}', 
+                        data = payload_json, headers = headers)
+
+            if response.status_code == 200 or response.status_code == 201:
+                std_out(f'Kit ID for device {self.id} was updated to {self.kit_id}', 'SUCCESS')
+                return True
+
+        std_out(f'Problem while updating kit ID for device {self.id}')
+
+        return False
+
+    def get_device_last_reading(self, update = False):
+
+        if self.last_reading_at is None or update:
+            if self.get_device_json(update) is not None:
+                self.last_reading_at = self.devicejson['last_reading_at']
+
         std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
 
         return self.last_reading_at
 
-    def get_postprocessing_info(self):
+    def get_postprocessing_info(self, update = False):
 
-        if self.postprocessing_info is None:
+        if self.postprocessing_info is None or update:
             try:
                 deviceR = get(self.API_BASE_URL + '{}/postprocessing_info'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
@@ -183,63 +211,67 @@ class ScApiDevice:
 
         return self.postprocessing_info
 
-    def get_device_location(self):
+    def get_device_location(self, update = False):
 
-        if self.location is None:
-            latitude, longitude = self.get_device_lat_long()
+        if self.location is None or update:
+            latitude, longitude = self.get_device_lat_long(update)
             # Localize it
             
             if latitude is not None and longitude is not None:
                 self.location = tz_where.tzNameAt(latitude, longitude)
 
-        std_out ('Device {} timezone is {}'.format(self.id, self.location))               
-        
+        std_out ('Device {} timezone is {}'.format(self.id, self.location))
+
         return self.location
 
-    def get_device_lat_long(self):
+    def get_device_lat_long(self, update = False):
 
-        if self.lat is None or self.long is None:
-            if self.get_device_json() is not None:
+        if self.lat is None or self.long is None or update:
+            if self.get_device_json(update) is not None:
                 latidude = longitude = None
-                if 'location' in self.devicejson.keys(): latitude, longitude = self.devicejson['location']['latitude'], self.devicejson['location']['longitude']
+                if 'location' in self.devicejson.keys():
+                    latitude, longitude = self.devicejson['location']['latitude'],
+                                          self.devicejson['location']['longitude']
                 elif 'data' in self.devicejson.keys(): 
-                    if 'location' in self.devicejson['data'].keys(): latitude, longitude = self.devicejson['data']['location']['latitude'], self.devicejson['data']['location']['longitude']
+                    if 'location' in self.devicejson['data'].keys():
+                        latitude, longitude = self.devicejson['data']['location']['latitude'],
+                                              self.devicejson['data']['location']['longitude']
                 
                 self.lat = latitude
                 self.long = longitude
-        
+
         std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))        
-        
+
         return (self.lat, self.long)
     
-    def get_device_added_at(self):
+    def get_device_added_at(self, update = False):
 
-        if self.added_at is None:
-            if self.get_device_json() is not None:
-                self.added_at = self.devicejson['added_at']                
+        if self.added_at is None or update:
+            if self.get_device_json(update) is not None:
+                self.added_at = self.devicejson['added_at']
         
         std_out ('Device {} was added at {}'.format(self.id, self.added_at))
 
         return self.added_at
 
-    def get_device_sensors(self):
+    def get_device_sensors(self, update = False):
 
-        if self.sensors is None:
-            if self.get_device_json() is not None:
+        if self.sensors is None or update:
+            if self.get_device_json(update) is not None:
                 # Get available sensors
                 sensors = self.devicejson['data']['sensors']
-            
+
                 # Put the ids and the names in lists
                 self.sensors = dict()
                 for sensor in sensors:
                     for key in config.blueprints:
                         if not search("sc[k|_]",key): continue
                         if 'sensors' in config.blueprints[key]:
-                            for sensor_name in config.blueprints[key]['sensors'].keys(): 
-                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor['id']): 
+                            for sensor_name in config.blueprints[key]['sensors'].keys():
+                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor['id']):
                                     # IDs are unique
                                     self.sensors[sensor['id']] = sensor_name
-        
+
         return self.sensors
 
     def convert_rollup(self, frequency):
@@ -255,7 +287,7 @@ class ScApiDevice:
                 break
 
         for item in config._freq_conv_lut:
-            if item[1] == frequency_unit: 
+            if item[1] == frequency_unit:
                 rollup_unit = item[0]
                 break
 
