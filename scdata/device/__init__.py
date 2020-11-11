@@ -35,6 +35,14 @@ class Device(object):
             A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
             needs to have different data. If not all the data is present, the corresponding blueprint's default will 
             be used
+
+        Examples:
+        ----------
+        Device('sck_21', descriptor = {'source': 'api', 'id': '1919'})
+            device with sck_21 blueprint with 1919 ID
+        Device(descriptor = {'source': 'api', 'id': '1919'})
+            device with sck_21 blueprint with 1919 ID
+
         Returns
         ----------
             Device object
@@ -202,6 +210,8 @@ class Device(object):
                     sensor_id = hw_info[version]["ids"][slot]
                     as_type = config._as_sensor_codes[sensor_id[0:3]]
                     pollutant = as_type[as_type.index('_')+1:]
+                    platform_sensor_id = config._platform_sensor_ids[pollutant]
+                    # TODO - USE POLLUTANT OR PLATFORM SENSOR ID?
                     process = 'alphasense_803_04'
 
                     wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
@@ -214,7 +224,8 @@ class Device(object):
                                         {
                                             'process': process,
                                             'desc': f'Calculation of {pollutant} based on AAN 803-04',
-                                            'units': 'ppb', # always for sensors,
+                                            'units': 'ppb', # always for alphasense sensors,
+                                            'id': platform_sensor_id,
                                             'post': True,
                                             'kwargs':  {
                                                         'from_date': from_date,
@@ -262,7 +273,7 @@ class Device(object):
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
 
-    def process(self, only_new = False, metrics = None):
+    def process(self, only_new = False, lmetrics = None):
         '''
         Processes devices metrics, either added by the blueprint definition
         or the addition using Device.add_metric(). See help(Device.add_metric) for
@@ -274,7 +285,7 @@ class Device(object):
             False
             To process or not the existing channels in the Device.readings that are
             defined in Device.metrics
-        metrics: list
+        lmetrics: list
             None
             List of metrics to process. If none, processes all
         Returns
@@ -292,7 +303,8 @@ class Device(object):
         std_out('---------------------------')
         std_out(f'Processing device {self.id}')
 
-        if metrics is None: metrics = self.metrics
+        if lmetrics is None: metrics = self.metrics
+        else: metrics = dict([(key, self.metrics[key]) for key in lmetrics])
 
         for metric in metrics:
             std_out(f'Processing {metric}')
@@ -443,8 +455,9 @@ class Device(object):
         for metric in self.metrics:
             if self.metrics[metric]['post'] == True:
                 # Get single series for post
-                df = self.readings[metric]
-                post_ok &= self.api_device.post_device_data(df)
+                df = DataFrame(self.readings[metric])
+                sensor_id = self.metrics[metric]['id']
+                post_ok &= self.api_device.post_device_data(df, sensor_id = sensor_id)
 
         # Post info if requested. It should be updated elsewhere
         if with_post_info: self.api_device.post_postprocessing_info()

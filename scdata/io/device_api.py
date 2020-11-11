@@ -1,5 +1,5 @@
 from pandas import (DataFrame, to_datetime, to_numeric, 
-                    to_numeric, read_csv, DateOffset)
+                    to_numeric, read_csv, DateOffset, MultiIndex)
 
 from math import isnan
 from traceback import print_exc
@@ -13,8 +13,10 @@ from scdata.utils import std_out, localise_date, clean
 from tzwhere import tzwhere
 
 from datetime import date
-from os import environ
+from os import environ, urandom
 from json import dumps
+
+import binascii
 
 tz_where = tzwhere.tzwhere()
 
@@ -39,6 +41,7 @@ class ScApiDevice:
     API_BASE_URL='https://api.smartcitizen.me/v0/devices/'
 
     def __init__ (self, did):
+
         self.id = did # the number after https://smartcitizen.me/kits/######
         self.kit_id = None # the number that defines the type of blueprint
         self.mac = None
@@ -51,8 +54,70 @@ class ScApiDevice:
         self.sensors = None
         self.devicejson = None
         self.postprocessing_info = None
-        self.token = None
-    
+
+    @staticmethod
+    def new_device(name, kit_id = 26, latitude = 41.396867,  longitude = 2.194351, exposure = 'indoor', user_tags = 'Lab, Research, Experimental'):
+        '''
+            Creates a new device in the Smart Citizen Platform provided a name
+            Parameters
+            ----------
+                name: string
+                    Minimum date to filter out the devices. Device started posted before min_date
+                kit_id: int, optional
+                    26 (SCK 2.1)
+                    Kit ID - related to blueprint
+                latitude: int, optional
+                    41.396867
+                    Latitude
+                longitude: int, optional
+                    2.194351
+                    Longitude
+                exposure: string, optional
+                    'indoor'
+                    Type of exposure ('indoor', 'outdoor')
+                user_tags: string
+                    'Lab, Research, Experimental'
+                    User tags, comma sepparated
+            Returns
+            -------
+                platform id
+        '''
+
+        if 'SC_ADMIN_BEARER' not in environ:
+            std_out('Cannot post without Auth Bearer', 'ERROR')
+            return
+
+        headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'], 'Content-type': 'application/json'}
+
+        device = {}
+        try:
+            device['name'] = name
+        except:
+            std_out('Your device needs a name!', 'ERROR')
+            # TODO ask for a name
+            sys.exit()
+
+        device['device_token'] = binascii.b2a_hex(urandom(3)).decode('utf-8')
+        device['description'] = ''
+        device['kit_id'] = kit_id
+        device['latitude'] = latitude
+        device['longitude'] = longitude
+        device['exposure'] = exposure
+        device['user_tags'] = user_tags
+
+        device_json = dumps(device)
+        backed_device = post('https://api.smartcitizen.me/v0/devices', data=device_json, headers=headers)
+
+        if backed_device.status_code == 200 or backed_device.status_code == 201:
+            
+            platform_id = str(backed_device.json()['id'])
+            platform_url = "https://smartcitizen.me/kits/" + platform_id
+            std_out(f'Device created with: \n{platform_url}', 'SUCCESS')
+            return platform_id
+
+        std_out(f'Error while creating new device, platform returned {backed_device.status_code}', 'ERROR')
+        return False
+
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
         """
@@ -230,12 +295,10 @@ class ScApiDevice:
             if self.get_device_json(update) is not None:
                 latidude = longitude = None
                 if 'location' in self.devicejson.keys():
-                    latitude, longitude = self.devicejson['location']['latitude'],
-                                          self.devicejson['location']['longitude']
+                    latitude, longitude = self.devicejson['location']['latitude'], self.devicejson['location']['longitude']
                 elif 'data' in self.devicejson.keys(): 
                     if 'location' in self.devicejson['data'].keys():
-                        latitude, longitude = self.devicejson['data']['location']['latitude'],
-                                              self.devicejson['data']['location']['longitude']
+                        latitude, longitude = self.devicejson['data']['location']['latitude'], self.devicejson['data']['location']['longitude']
                 
                 self.lat = latitude
                 self.long = longitude
@@ -393,7 +456,6 @@ class ScApiDevice:
 
             if flag_error: continue
 
-            # Put 
             try:
                 dfsensor = DataFrame(sensorjson['readings']).set_index(0)
                 dfsensor.columns = [self.sensors[sensor_id]]
@@ -419,15 +481,7 @@ class ScApiDevice:
                 
             try:
                 df = df.reindex(df.index.rename('Time'))
-
                 df = clean(df, clean_na, how = 'all')                
-                # if clean_na is not None:
-                #     if clean_na == 'drop':
-                #         # std_out('Cleaning na with drop')
-                #         df.dropna(axis = 0, how='all', inplace=True)
-                #     elif clean_na == 'fill':
-                #         df = df.fillna(method='bfill').fillna(method='ffill')
-                #         # std_out('Cleaning na with fill')
                 self.data = df
                 
             except:
@@ -438,35 +492,63 @@ class ScApiDevice:
         if flag_error == False: std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-    def post_device_data(self, df, clean_na = 'drop'):
+    def post_device_data(self, df, sensor_id, clean_na = 'drop'):
         '''
-            POST data in the SmartCitizen Api
+            POST data in the SmartCitizen API
+            Parameters
+            ----------
+                df: pandas DataFrame
+                    Contains data in a DataFrame format. 
+                    Data is posted regardless the name of the dataframe
+                    It uses the sensor id provided, not the name
+                    Data is posted in UTC TZ so dataframe needs to have located 
+                    timestamp
+                sensor_id: int
+                    The sensor id
+                clean_na: string, optional
+                    'drop'
+                    'drop', 'fill'
+            Returns
+            -------
+                True if the data was posted succesfully
         '''
-        if 'SC_BEARER' not in environ:
+        if 'SC_ADMIN_BEARER' not in environ:
             std_out('Cannot post without Auth Bearer', 'ERROR')
             return
 
-        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
+        headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'], 'Content-type': 'application/json'}
 
+        # Get sensor name
+        sensor_name = list(df.columns)[0]
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
-        # print (df)
 
-        # TODO process df and post
+        # Process dataframe
+        df['id'] = sensor_id
+        df.index.name = 'recorded_at'
+        df.rename(columns = {sensor_name: 'value'}, inplace = True)
+        df.columns = MultiIndex.from_product([['sensors'], df.columns])
+        j = (df.groupby('recorded_at', as_index = True)
+                .apply(lambda x: x['sensors'][['value', 'id']].to_dict('r'))
+        )
 
-        payload = df.to_json()
+        # Prepare json post
+        payload = {"data":[]}
+        for item in j.index:
+            payload["data"].append(
+                {
+                    "recorded_at": localise_date(item, 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    "sensors": j[item]
+                }
+            )
 
         payload_json = dumps(payload)
-        # print (payload_json)
 
-        return True
+        response = post(f'https://api.smartcitizen.me/v0/devices/{self.id}/readings', data = payload_json, headers = headers)
+        if response.status_code == 200 or response.status_code == 201:
+            return True
 
-        # print (payload_json)
-        # response = post(f'https://api.smartcitizen.me/v0/devices/{kit_id}/', data = post_json, headers = headers)
-        # if response.status_code == 200 or response.status_code == 201:
-        #     return True
-        # else:
-        #     return False
+        return False
 
     def post_postprocessing_info(self):
         '''
@@ -480,7 +562,6 @@ class ScApiDevice:
             #   "hardware_id": "SCS20100",
             #   "latest_postprocessing": "2020-10-29T08:35:23Z"
             # }
-
         '''
 
         if 'SC_BEARER' not in environ:
@@ -495,8 +576,8 @@ class ScApiDevice:
 
         if response.status_code == 200 or response.status_code == 201:
             return True
-        else:
-            return False
+
+        return False
 
 class MuvApiDevice:
 
