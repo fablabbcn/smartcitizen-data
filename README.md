@@ -3,6 +3,7 @@ Smart Citizen Data
 
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
+[![PyPI version](https://badge.fury.io/py/scdata.svg)](https://badge.fury.io/py/scdata)
 
 Welcome to **SmartCitizen Data**. This is a data analysis framework built with many purposes, such as:
 
