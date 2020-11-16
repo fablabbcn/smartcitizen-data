@@ -7,8 +7,7 @@ from scdata.utils.meta import load_env
 config._out_level = 'DEBUG'
 
 # Device id needs to be as str
-device = sc.Device(descriptor = {'source': 'api', 
-								 'id': '4742'})
+device = sc.Device(descriptor = {'source': 'api', 'id': '4742'})
 
 device.api_device.get_device_location()
 device.api_device.get_device_sensors()
