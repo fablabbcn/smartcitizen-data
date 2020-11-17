@@ -1,10 +1,10 @@
 ''' Implementation of zenodo export '''
 
 from scdata._config import config
-from scdata.utils import std_out, get_tests_log, descriptor_to_html, include_footer
+from scdata.utils import std_out, get_tests_log, include_footer
 from scdata import Test
-import json
-from os.path import join
+import json, yaml
+from os.path import join, dirname, getsize, exists
 from requests import post
 from os import environ
 
@@ -12,7 +12,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 	'''
 	This section uses the code inspired by this repo https://github.com/darvasd/upload-to-zenodo
 	Uploads a series of tests to zenodo.org using a template in /zenodo_templates and the descriptor
-	file in data/uploads. It will need a zenodo_token environment variable to work
+	file in data/uploads. It will need a ZENODO_TOKEN environment variable to work
 	The submission needs an additional "Publish" step. 
 	This can also be done from a script, but to be on the safe side, it is not included. 
 	(The attached file cannot be changed after publication)
@@ -43,7 +43,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 		if upload_type == 'dataset': template_file_name = 'template_zenodo_dataset'
 		elif upload_type == 'publication': template_file_name = 'template_zenodo_publication'
 
-		with open (join('zenodo_templates', f'{template_file_name}.json'), 'r') as template_file:
+		with open (join(dirname(__file__), 'zenodo_templates', f'{template_file_name}.json'), 'r') as template_file:
 			template = json.load(template_file)
 
 		filled_template = template
@@ -66,10 +66,11 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 		url = f"{base_url}/api/deposit/depositions"
 
 		headers = {"Content-Type": "application/json"}
-		response = post(url, params={'access_token': environ.zenodo_token}, data=metadata, headers=headers)
+
+		response = post(url, params={'access_token': environ['ZENODO_TOKEN']}, data = metadata, headers = headers)
 		if response.status_code > 210:
 			std_out("Error happened during submission, status code: " + str(response.status_code), 'ERROR')
-			std_out(response.json(), "ERROR")
+			std_out(response.json()['message'], 'ERROR')
 			return None
 
 		# Get the submission ID
@@ -78,7 +79,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 		return submission_id
 
 	def upload_file(url, upload_metadata, files):
-		response = post(url, params={'access_token': environ.zenodo_token}, data = upload_metadata, files=files)
+		response = post(url, params={'access_token': environ['ZENODO_TOKEN']}, data = upload_metadata, files=files)
 		return response.status_code		
 
 	std_out(f'Uploading {upload_descritor} to zenodo')
@@ -94,7 +95,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 	if '.yaml' not in upload_descritor: upload_descritor = upload_descritor + '.yaml'
 	
 	with open (join(config.paths['uploads'], upload_descritor), 'r') as descriptor_file:
-		descriptor = yaml.load(descriptor_file)
+		descriptor = yaml.load(descriptor_file, Loader = yaml.SafeLoader)
 
 	for key in descriptor:
 
@@ -102,7 +103,12 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 		stage_list = ['base']
 		
 		if 'options' in descriptor[key].keys(): options = descriptor[key]['options']
-		else: options = {'include_processed_data': True, 'include_footer_doi': True, 'include_td_html': False}
+		else: options = {'include_processed_data': False, 'include_footer_doi': True, 'include_td_html': False}
+
+		# Defaults
+		if 'include_processed_data' not in options: options['include_processed_data'] = False
+		if 'include_footer_doi' not in options: options['include_footer_doi'] = True
+		if 'include_td_html' not in options: options['include_td_html'] = False
 		
 		if options['include_processed_data']: stage_list.append('processed')
 		std_out(f'Options {options}')
@@ -141,7 +147,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 					# Upload the test descriptor (yaml (and html) format)
 					td_upload = ['yaml']
 					with open (join(test_path, 'test_description.yaml'), 'r') as td: 
-						yaml_td = yaml.load(td)
+						yaml_td = yaml.load(td, Loader = yaml.SafeLoader)
 					
 					if options['include_td_html']:
 						html_td = td_to_html(yaml_td, test_path)
@@ -227,7 +233,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 
 					for file_name in descriptor[key]['report']:
 
-						file_path = join(paths['uploads'], file_name)
+						file_path = join(config.paths['uploads'], file_name)
 						
 						if options['include_footer_doi'] and file_name.endswith('.pdf'):
 
