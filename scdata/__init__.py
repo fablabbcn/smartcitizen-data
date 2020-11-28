@@ -3,4 +3,4 @@ from .device import Device
 
 # from .batch import Batch
 
-__version__ = '0.1.4'
+__version__ = '0.1.6'
