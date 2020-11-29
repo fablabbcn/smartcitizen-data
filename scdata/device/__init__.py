@@ -122,6 +122,32 @@ class Device(object):
         return self.api_device.postprocessing_info
 
     def load(self, options = None, path = None, convert_units = True):
+        '''
+        Loads the device with some options
+
+        Parameters:
+        -----------
+        options: dict()
+            Default: None
+            options['min_date'] = date to load data from
+                Default to device min_date (from blueprint or test)
+            options['max_date'] = date to load data to
+                Default to device max_date (from blueprint or test)
+            options['clean_na'] = clean na (drop_na, fill_na or None)
+                Default to device clean_na (from blueprint or test)
+            options['frequency'] = frequency to load data at in pandas format
+                Default to device frequency (from blueprint or test) or '1Min'
+        path: String
+            Default: None
+            Path were the csv file is, if any. Normally not needed to be provided, only for internal usage
+        convert_units: bool
+            Default: True
+            Convert units for channels based on config._channel_lut
+
+        Returns
+        ----------
+            True if loaded correctly
+        '''
 
         # Add test overrides if we have them, otherwise set device defaults
         if options is not None: self.check_overrides(options)
