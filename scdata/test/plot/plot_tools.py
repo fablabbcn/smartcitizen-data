@@ -107,8 +107,9 @@ def prepare_data(test, traces, options):
             traces[trace]['subplot'] = 1
 
         ndevs = traces[trace]['devices']
-        channel = traces[trace]['channel']
+        nchans = traces[trace]['channel']
 
+        # Make them lists always
         if ndevs == 'all': devices = list(test.devices.keys())
         elif type(ndevs) == str or type(ndevs) == int: devices = [ndevs]
         else: devices = ndevs
@@ -116,57 +117,63 @@ def prepare_data(test, traces, options):
         for device in devices:
 
             ndev = str(device)
+
+            # Make them lists always
+            if nchans == 'all': channels = list(test.devices[ndev].readings.columns)
+            elif type(nchans) == str: channels = [nchans]
+            else: channels = nchans
             
-            # Check if device is in columns
-            if channel not in test.devices[ndev].readings.columns:
-                std_out(f'The device {ndev} does not contain {channel}. Ignoring', 'WARNING')
-                continue
+            for channel in channels:
+                # Check if device is in columns
+                if channel not in test.devices[ndev].readings.columns:
+                    std_out(f'The device {ndev} does not contain {channel}. Ignoring', 'WARNING')
+                    continue
 
-            # Put channel in subplots
-            subplots[traces[trace]['subplot']-1].append(channel + '_' + ndev)
+                # Put channel in subplots
+                subplots[traces[trace]['subplot']-1].append(channel + '_' + ndev)
 
-            column_orig = [channel]
-            columns_add = [channel + '_' + ndev]
+                column_orig = [channel]
+                columns_add = [channel + '_' + ndev]
 
-            # Add filtering name to dfdev
-            if 'filter' in traces[trace]:
-                col_name = traces[trace]['filter']['col']
+                # Add filtering name to dfdev
+                if 'filter' in traces[trace]:
+                    col_name = traces[trace]['filter']['col']
 
-                if col_name not in test.devices[ndev].readings.columns:
-                    std_out(f'Column {col_name} not in dataframe. Ignoring filtering', 'WARNING')
-                else:
-                    column_orig.append(col_name)
-                    columns_add.append(col_name)
-            
-            # Device dataframe
-            dfdev = DataFrame(test.devices[ndev].readings[column_orig].values,
-                            columns = columns_add,
-                            index = test.devices[ndev].readings.index)
-
-            # Add filtering function
-            if 'filter' in traces[trace]:
-                value = traces[trace]['filter']['value']
-                relationship = traces[trace]['filter']['relationship']
-
-                if col_name in dfdev.columns:
-                    if relationship == '==':
-                        dfdev.loc[dfdev[col_name]==value]
-                    elif relationship == '<=':
-                        dfdev.loc[dfdev[col_name]<=value]
-                    elif relationship == '>=':
-                        dfdev.loc[dfdev[col_name]>=value]
-                    elif relationship == '<':
-                        dfdev.loc[dfdev[col_name]<value]
-                    elif relationship == '>':
-                        dfdev.loc[dfdev[col_name]>value]
+                    if col_name not in test.devices[ndev].readings.columns:
+                        std_out(f'Column {col_name} not in dataframe. Ignoring filtering', 'WARNING')
                     else:
-                        std_out(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'", 'ERROR')
-                        continue
-                    # Remove column for filtering from dfdev
-                    dfdev.drop(columns=[col_name], inplace = True)
+                        column_orig.append(col_name)
+                        columns_add.append(col_name)
+                
+                # Device dataframe
+                dfdev = DataFrame(test.devices[ndev].readings[column_orig].values,
+                                columns = columns_add,
+                                index = test.devices[ndev].readings.index)
 
-            # Combine it in the df
-            df = df.combine_first(dfdev)
+                # Add filtering function
+                if 'filter' in traces[trace]:
+                    value = traces[trace]['filter']['value']
+                    relationship = traces[trace]['filter']['relationship']
+
+                    if col_name in dfdev.columns:
+                        if relationship == '==':
+                            dfdev.loc[dfdev[col_name]==value]
+                        elif relationship == '<=':
+                            dfdev.loc[dfdev[col_name]<=value]
+                        elif relationship == '>=':
+                            dfdev.loc[dfdev[col_name]>=value]
+                        elif relationship == '<':
+                            dfdev.loc[dfdev[col_name]<value]
+                        elif relationship == '>':
+                            dfdev.loc[dfdev[col_name]>value]
+                        else:
+                            std_out(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'", 'ERROR')
+                            continue
+                        # Remove column for filtering from dfdev
+                        dfdev.drop(columns=[col_name], inplace = True)
+
+                # Combine it in the df
+                df = df.combine_first(dfdev)
 
         # Add average or other extras
         # TODO Check this to simplify
