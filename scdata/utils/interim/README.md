@@ -2,6 +2,7 @@
 
 ## Alphasense Sensors
 
+```
 'SENSORID':
   # Electronic zero in mV for aux. electrode - i.e. ISB offset without sensor
   ae_electronic_zero_mv: ''
@@ -25,3 +26,11 @@
   we_sensor_zero_mv: '-34'
   # Sensor + ISB total working zero in mV
   we_total_zero_mv: ''
+```
+
+### Connections to the SmartCitizen ASB
+
+When using the ASB 4-ch, the measurements are as follows:
+
+- Working electrode is either CH0 or CH2 of the ADC (depending on the row)  
+- Auxiliary electrode is either CH1 or CH3 of the ADC (same as above)
