@@ -10,7 +10,7 @@
   ae_sensor_zero_mv: '-20.8'
   # Sensor + ISB total aux. zero in mV
   ae_total_zero_mv: ''
-  # PCB gain only for alphadelta
+  # PCB gain
   pcb_gain_mv_na: ''
   # Working electrode cross sensitivity to NO2 in mV
   we_cross_sensitivity_no2_mv_ppb: ''
