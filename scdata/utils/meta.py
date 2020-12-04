@@ -1,10 +1,11 @@
 import yaml
 from .dictmerge import dict_fmerge
 from os import pardir, environ, name, makedirs
-from os.path import join, abspath, dirname, expanduser, exists
+from os.path import join, dirname, expanduser, exists
 import os
 from shutil import copyfile
 from requests import get
+from traceback import print_exc
 
 def get_paths():
 
@@ -162,6 +163,7 @@ def create_calibrations(path_to_pkg_data, path_to_interim):
         yaml.dump(calibrations, co)
 
 def get_info(path):
+    info_json = dict()
     # Gets a json from an url and returns it as a dict
     try:
         info = get(path)
@@ -171,7 +173,8 @@ def get_info(path):
         else:
             print (f'Failed info request. Response {info.status_code}')
     except:
-        print ('Failed hardware info request. Probably no connection')
+        print_exc()
+        print ('Failed hardware info request. Probably no connection or invalid json file')
         pass
 
     return info_json
