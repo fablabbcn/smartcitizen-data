@@ -1,10 +1,9 @@
 # Hardware description
 
-Below is the explanation of hardware description in pseudo-json format.
+Below is the explanation of hardware description in pseudo-json format. Each hardware now is a json, in order to have an url for each:
 
 ```
-{"SCTEST":
-  {
+{
     "1":
         {
             # Date from
@@ -22,7 +21,6 @@ Below is the explanation of hardware description in pseudo-json format.
                 "AS_4A_23": "162581706"
                 }
         }
-}
 }
 ```
 
