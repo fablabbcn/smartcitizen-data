@@ -235,7 +235,7 @@ class Config(object):
                     "PM_(\d|[A,B]_\d)": "ug/m3",
                     "CO(\D|$)": "ppm",
                     "NOISE_A": "dBA",
-                    "NO": "ppb",
+                    "NO\Z": "ppb",
                     "NO2": "ppb",
                     "NOX": "ppb",
                     "O3": "ppb",
