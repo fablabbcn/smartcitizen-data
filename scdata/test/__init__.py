@@ -282,7 +282,7 @@ class Test(object):
                 device.processed_data_file = self.full_name + '_' + str(device.id) + '.csv'
 
             dvars = vars(device).copy()
-            for discvar in ['readings', 'api_device', 'options', 'loaded', 'hw_id', 'latest_postprocessing']:
+            for discvar in config._discvars:
                 if discvar in dvars: dvars.pop(discvar)
 
             self.descriptor['devices'][device.id] = dvars

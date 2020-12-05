@@ -4,7 +4,7 @@ import json
 
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
-                                load_calibrations, load_env, get_info)
+                                load_calibrations, load_env)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -57,7 +57,6 @@ class Config(object):
     # Urls
     zenodo_sandbox_base_url='http://sandbox.zenodo.org'
     zenodo_real_base_url='https://zenodo.org'
-    hardware_url='https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/hardware.json'
 
     ### ---------------------------------------
     ### -------------SMART CITIZEN-------------
@@ -65,7 +64,26 @@ class Config(object):
     # # Urls
     # sensor_names_url_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
     # sensor_names_url_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
-    
+    calibrations_urls = [
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/calibrations/calibrations.json'
+    ]
+
+    blueprints_urls = [
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/base.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/csic_station.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/muv_station.json',
+        # 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/parrot_soil.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_20_station_iscape.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_iscape.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_15.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_20.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21_gps.json'
+    ]
+
     # Convertion table from API SC to Pandas
     # https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
     # https://developer.smartcitizen.me/#get-historical-readings
@@ -461,6 +479,16 @@ class Config(object):
                             }
                     }
 
+    _discvars = ['readings',
+                 'api_device',
+                 'options',
+                 'loaded',
+                 'hw_id',
+                 'latest_postprocessing',
+                 'blueprint_loaded_from_url',
+                 'hw_loaded_from_url',
+                 'hw_url']
+
     def __init__(self):
         self._env_file = False
         self.paths = get_paths()
@@ -485,15 +513,13 @@ class Config(object):
         return (i for i in dir(self))
     
     def get_meta_data(self):
-        """ Get meta data from blueprints and calibrations """
+        """ Get meta data from blueprints and _calibrations """
         # Blueprints and calibrations
-        blueprints = load_blueprints(self.paths)
-        calibrations = load_calibrations(self.paths)
-        hardware_info = get_info(self.hardware_url)
+        blueprints = load_blueprints(self.blueprints_urls)
+        calibrations = load_calibrations(self.calibrations_urls)
 
         if calibrations is not None: self.calibrations = calibrations
         if blueprints is not None: self.blueprints = blueprints
-        if hardware_info is not None: self.hardware_info = hardware_info
 
         # Find environment file in root or in scdata/ for clones
         if exists('.env'): env_file = '.env'

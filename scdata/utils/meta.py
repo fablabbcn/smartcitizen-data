@@ -1,7 +1,8 @@
 import yaml
 from .dictmerge import dict_fmerge
 from os import pardir, environ, name, makedirs
-from os.path import join, dirname, expanduser, exists
+from os.path import join, dirname, expanduser, exists, basename
+from urllib.parse import urlparse
 import os
 from shutil import copyfile
 from requests import get
@@ -56,9 +57,7 @@ def get_paths():
     # Find the path to the interim folder
     _dir = dirname(__file__)
     _idir = join(_dir, 'interim')
-    if not exists(join(_paths['interim'], 'blueprints.yaml')): create_blueprints(_idir, _paths['interim'])
-    if not exists(join(_paths['interim'], 'calibrations.yaml')): create_calibrations(_idir, _paths['interim'])
-    
+
     # - Models and local tests
     _paths['models'] = join(_paths['data'], 'models')
     makedirs(_paths['models'], exist_ok=True)
@@ -112,42 +111,17 @@ def load_env(env_file):
     else:
         return True
 
-def create_blueprints(path_to_pkg_data, path_to_interim):
-    with open(join(path_to_pkg_data, 'blueprints.yaml'), 'r') as bi:
-        blueprints = yaml.load(bi, Loader=yaml.SafeLoader)
+def load_blueprints(urls):
 
-    with open(join(path_to_interim, 'blueprints.yaml'), 'w') as bo: 
-        yaml.dump(blueprints, bo)
+    blueprints = dict()
+    for url in urls:
+        _nblueprint = basename(urlparse(url).path).split('.')[0]
+        _blueprint = get_json_from_url(url)
 
-def load_blueprints(paths):
-    
-    try:
-        blueprints_path = join(paths['interim'], 'blueprints.yaml')
-        with open(blueprints_path, 'r') as b:
-            blueprints = yaml.load(b, Loader = yaml.SafeLoader)
-    except FileNotFoundError:
-        print('Problem loading blueprints file')
-        return None
-    else:
-
-        fchange = False
-        # If blueprint has expands attribute, add it to the expanded one
-        for blueprint in blueprints.keys():
-            if 'expands' in blueprints[blueprint]: 
-                blueprints[blueprint] = dict_fmerge(blueprints[blueprint], blueprints[blueprints[blueprint]['expands']])
-                blueprints[blueprint].pop('expands')
-
-                fchange = True
-
-        if fchange:
-            with open(blueprints_path, 'w') as b:
-                yaml.dump(blueprints, b)        
+        if _nblueprint not in blueprints:
+            blueprints[_nblueprint] = _blueprint
             
-        return blueprints
-
-# TODO
-def add_blueprint(**kwargs):
-    print ('Not yet')
+    return blueprints
 
 def get_current_blueprints():
     from scdata._config import config
@@ -155,62 +129,59 @@ def get_current_blueprints():
 
     return list(config.blueprints.keys())
 
-def create_calibrations(path_to_pkg_data, path_to_interim):
-    with open(join(path_to_pkg_data, 'calibrations.yaml'), 'r') as ci:
-        calibrations = yaml.load(ci, Loader=yaml.SafeLoader)
-    
-    with open(join(path_to_interim, 'calibrations.yaml'), 'w') as co: 
-        yaml.dump(calibrations, co)
+def get_json_from_url(url):
 
-def get_info(path):
-    info_json = dict()
+    rjson = None
     # Gets a json from an url and returns it as a dict
     try:
-        info = get(path)
+        rget = get(url)
 
-        if info.status_code == 200 or info.status_code == 201:
-            info_json = info.json()
+        if rget.status_code == 200 or rget.status_code == 201:
+            rjson = rget.json()
         else:
-            print (f'Failed info request. Response {info.status_code}')
+            print (f'Failed request. Response {rget.status_code}')
     except:
         print_exc()
-        print ('Failed hardware info request. Probably no connection or invalid json file')
+        print ('Failed request. Probably no connection or invalid json file')
         pass
 
-    return info_json
+    return rjson
 
-def load_calibrations(paths):
+def load_calibrations(urls):
     '''
-        Loads calibrations from yaml file. 
-        The calibrations are meant for alphasense's 4 electrode sensors. The yaml file contains:
-        'SENSOR_ID':
-            sensor_type: ''
-            we_electronic_zero_mv: ''
-            we_sensor_zero_mv: ''
-            we_total_zero_mv: ''
-            ae_electronic_zero_mv: ''
-            ae_sensor_zero_mv: ''
-            ae_total_zero_mv: ''
-            we_sensitivity_na_ppb: ''
-            we_cross_sensitivity_no2_na_ppb: ''
-            pcb_gain: ''
-            we_sensitivity_mv_ppb: ''
-            we_cross_sensitivity_no2_mv_ppb: ''
+        Loads calibrations from urls.
+        The calibrations are meant for alphasense's 4 electrode sensors. The files contains:
+        {
+          "162031254": {
+            "ae_electronic_zero_mv": "",
+            "ae_sensor_zero_mv": "-16.64",
+            "ae_total_zero_mv": "",
+            "pcb_gain_mv_na": "0.8",
+            "we_cross_sensitivity_no2_mv_ppb": "0",
+            "we_cross_sensitivity_no2_na_ppb": "0",
+            "we_electronic_zero_mv": "",
+            "we_sensitivity_mv_ppb": "0.45463999999999993",
+            "we_sensitivity_na_ppb": "0.5682999999999999",
+            "we_sensor_zero_mv": "-27.200000000000003",
+            "we_total_zero_mv": ""
+          },
+        ...
+        }
         Parameters
         ----------
             path: String
-                yaml file path
+                json file path
         Returns
         ---------
             Dictionary containing calibrations otherwise None
     '''
-    try:
-        calspath = join(paths['interim'], 'calibrations.yaml')
-        
-        with open(calspath, 'r') as c:
-            cals = yaml.load(c, Loader = yaml.SafeLoader)
-    except FileNotFoundError:
-        print('Problem loading calibrations file')
-        return None
-    else:   
-        return cals
+
+    calibrations = dict()
+    for url in urls:
+        try:
+            calibrations = dict_fmerge(get_json_from_url(url), calibrations)
+        except:
+            print(f'Problem loading calibrations from {url}')
+            return None
+
+    return calibrations

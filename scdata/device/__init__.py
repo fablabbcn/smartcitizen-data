@@ -3,10 +3,12 @@
 from scdata.utils import std_out, localise_date, dict_fmerge, get_units_convf
 from scdata.io import read_csv_file, export_csv_file
 from scdata.utils import LazyCallable
+from scdata.utils.meta import get_json_from_url
 from scdata._config import config
 from scdata.device.process import *
 
-from os.path import join
+from os.path import join, basename
+from urllib.parse import urlparse
 from pandas import DataFrame
 from traceback import print_exc
 import datetime
@@ -26,9 +28,9 @@ class Device(object):
             Default: 'sck_21'
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
             parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in 
-            blueprints.yaml and accessible via the scdata.utils.load_blueprints function.
+            config.blueprints_urls and accessible via the scdata.utils.load_blueprints(urls) function.
             The blueprint can also be defined from the postprocessing info in SCAPI. The manual
-            parameter passed here is prioritary to that of the API
+            parameter passed here is overriden by that of the API.
 
         descriptor: dict()
             Default: empty dict
@@ -51,8 +53,13 @@ class Device(object):
         if blueprint is not None:
             self.blueprint = blueprint
 
-        # Set attributes
-        for bpitem in config.blueprints[blueprint]: self.__setattr__(bpitem, config.blueprints[blueprint][bpitem])
+            # Set attributes
+            self.set_blueprint_attrs(config.blueprints[blueprint])
+
+            self.blueprint_loaded_from_url = False
+            self.hw_loaded_from_url = False
+
+        # Descriptor attributes
         for ditem in descriptor.keys():
             if type(self.__getattribute__(ditem)) == dict: 
                 self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), descriptor[ditem]))
@@ -65,21 +72,28 @@ class Device(object):
             # Create object
             self.api_device = Hclass(did = self.id)
 
-        std_out(f'Checking postprocessing info from API device')
-        self.load_postprocessing_info()
+            std_out(f'Checking postprocessing info from API device')
+            if self.load_postprocessing_info() is not None:
+                std_out('Postprocessing info loaded successfully', 'SUCCESS')
 
         if self.blueprint is None:
             std_out('Need a blueprint to proceed', 'ERROR')
             return None
         else:
-            std_out(f'Device {self.id} is using {blueprint}')
+            std_out(f'Device {self.id} is using {self.blueprint}')
 
         self.readings = DataFrame()
         self.loaded = False
         self.options = dict()
 
-        self.hw_id = None
+        self.hw_url = None
         self.latest_postprocessing = None
+
+    def set_blueprint_attrs(self, blueprintd):
+
+        # Set attributes
+        for bpitem in blueprintd:
+            self.__setattr__(bpitem, blueprintd[bpitem])
 
     def check_overrides(self, options = {}):
         
@@ -109,19 +123,42 @@ class Device(object):
             return None
 
         # Put it where it goes
-        self.hw_id = self.api_device.postprocessing_info['hardware_id']
+        self.hw_url = self.api_device.postprocessing_info['hardware_url']
         self.hw_updated_at = self.api_device.postprocessing_info['updated_at']
-        self.hw_post_blueprint = self.api_device.postprocessing_info['postprocessing_blueprint']
+        self.blueprint_url = self.api_device.postprocessing_info['blueprint_url']
         self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
 
-        # Use postprocessing info blueprint
-        if self.hw_post_blueprint in config.blueprints.keys():
-            std_out(f'Using hardware postprocessing blueprint: {self.hw_post_blueprint}')
-            self.blueprint = self.hw_post_blueprint
+        # Use postprocessing_info blueprint
+        if self.blueprint_url is not None and self.blueprint_loaded_from_url == False:
+            std_out(f'Loading hardware postprocessing blueprint from:\n{self.blueprint_url}')
+            nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
+            std_out(f'Using hardware postprocessing blueprint: {nblueprint}')
+            if nblueprint in config.blueprints:
+                std_out(f'Blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
+            lblueprint = get_json_from_url(self.blueprint_url)
+            if lblueprint is not None:
+                std_out('Blueprint loaded from url', 'SUCCESS')
+                self.blueprint = nblueprint
+                self.blueprint_loaded_from_url = True
+                self.set_blueprint_attrs(lblueprint)
+            else:
+                std_out('Blueprint in url is not valid', 'ERROR')
+                return None
+
+        if self.hw_url is not None and self.hw_loaded_from_url == False:
+            std_out(f'Loading hardware info from:\n{self.hw_url}')
+            lhw_info = get_json_from_url(self.hw_url)
+            if lhw_info is not None:
+                self.hw_info = lhw_info
+                std_out('Hardware in url is valid', "SUCCESS")
+                self.hw_loaded_from_url = True
+            else:
+                std_out("Hardware in url is not valid", 'ERROR')
+                return None
 
         return self.api_device.postprocessing_info
 
-    def load(self, options = None, path = None, convert_units = True):
+    def load(self, options = None, path = None, convert_units = True, only_unprocessed = False):
         '''
         Loads the device with some options
 
@@ -143,6 +180,9 @@ class Device(object):
         convert_units: bool
             Default: True
             Convert units for channels based on config._channel_lut
+        only_unprocessed: bool
+            Default: False
+            Loads only unprocessed data
 
         Returns
         ----------
@@ -167,12 +207,14 @@ class Device(object):
                 self.location = self.api_device.get_device_location()
 
                 if path is None:
-                    if self.load_postprocessing_info():
+
+                    if self.load_postprocessing_info() and only_unprocessed:
+
                         # Override dates for post-processing
                         if self.latest_postprocessing is not None:
-                            hw_latest_post = localise_date(self.latest_postprocessing, self.location)
-                            # Override min processing date
-                            self.options['min_date'] = hw_latest_post
+                            hw_latest_postprocess = localise_date(self.latest_postprocessing, self.location)
+                            # Override min loading date
+                            self.options['min_date'] = hw_latest_postprocess
 
                     df = self.api_device.get_device_data(self.options['min_date'], self.options['max_date'],
                                                          self.options['frequency'], self.options['clean_na'])
@@ -200,40 +242,36 @@ class Device(object):
             print_exc()
             self.loaded = False
         else:
-            if self.readings is not None: 
+            if self.readings is not None:
                 self.__check_sensors__()
-
-                if self.load_postprocessing_info() is not None:
-                    self.__fill_metrics__()
+                self.__fill_metrics__()
 
                 if not self.readings.empty:
                     self.loaded = True
                     if convert_units: self.__convert_units__()
+
         finally:
             return self.loaded
 
     def __fill_metrics__(self):
+        std_out('Checking if metrics need to be added based on hardware info')
 
-            
-        if self.hw_id in config.hardware_info:
-            std_out('Hardware ID found in history', "SUCCESS")
-            hw_info = config.hardware_info[self.hw_id]
-        else:
-            std_out(f"Hardware id: {self.hw_id} not found in hardware_info", 'ERROR')
-            return False
+        if self.hw_url is None:
+            std_out(f'No hardware url in device {self.id}, ignoring')
+            return None
 
         # Now go through sensor versions and parse them
-        for version in hw_info.keys():
+        for version in self.hw_info.keys():
 
-            from_date = hw_info[version]["from"]
-            to_date = hw_info[version]["to"]
+            from_date = self.hw_info[version]["from"]
+            to_date = self.hw_info[version]["to"]
 
-            for slot in hw_info[version]["ids"]:
+            for slot in self.hw_info[version]["ids"]:
 
                 # Alphasense type
                 if slot.startswith('AS'):
 
-                    sensor_id = hw_info[version]["ids"][slot]
+                    sensor_id = self.hw_info[version]["ids"][slot]
                     as_type = config._as_sensor_codes[sensor_id[0:3]]
                     pollutant = as_type[as_type.index('_')+1:]
                     platform_sensor_id = config._platform_sensor_ids[pollutant]
@@ -243,7 +281,7 @@ class Device(object):
                     wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                     aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                    # metric_name = f'{pollutant}_V{version}_S{list(hw_info[version]["ids"]).index(slot)}'
+                    # metric_name = f'{pollutant}_V{version}_S{list(self.hw_info[version]["ids"]).index(slot)}'
                     metric_name = f'{pollutant}'
 
                     metric = {metric_name:
@@ -256,10 +294,10 @@ class Device(object):
                                             'kwargs':  {
                                                         'from_date': from_date,
                                                         'to_date': to_date,
-                                                        'id': sensor_id,
+                                                        'alphasense_id': sensor_id,
                                                         'we': wen,
                                                         'ae': aen,
-                                                        't': 'EXT_TEMP', # With external temperature?
+                                                        't': 'EXT_TEMP', # TODO With external temperature?
                                                         'location': self.location
                                                         }
                                         }
@@ -275,6 +313,7 @@ class Device(object):
 
         if remove_sensors != []: std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
         for sensor_to_remove in remove_sensors: self.sensors.pop(sensor_to_remove, None)
+
         std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
 
     def __convert_names__(self):
@@ -292,12 +331,12 @@ class Device(object):
         '''
         std_out('Checking if units need to be converted')
         for sensor in self.sensors:
-
             factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
             
             if factor != 1:
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
+        std_out('Units check done', 'SUCCESS')
 
     def process(self, only_new = False, lmetrics = None):
         '''

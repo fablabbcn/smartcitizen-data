@@ -3,7 +3,6 @@ include LICENSE
 include setup.py
 include setup.cfg
 include scdata/test/export/templates/descriptor.html
-include scdata/utils/interim/*.yaml
 include scdata/utils/interim/*.csv
 include scdata/utils/zenodo_templates/*.*
 include scdata/utils/uploads/*.*

@@ -559,7 +559,7 @@ class ScApiDevice:
             # {
             #   "updated_at": "2020-10-29T04:35:23Z",
             #   "postprocessing_blueprint": 'sck_21_gps',
-            #   "hardware_id": "SCS20100",
+            #   "hardware_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/SCAS210001.json",
             #   "latest_postprocessing": "2020-10-29T08:35:23Z"
             # }
         '''

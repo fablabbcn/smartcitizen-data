@@ -6,15 +6,15 @@ import datetime
 import hashlib
 import argparse
 
-def create_post_info(kit_id, hardware_id, blueprint):
+def create_post_info(kit_id, hardware_url, blueprint_url):
     headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
 
     post_info = {
                     "postprocessing_info": 
                     {
                         "updated_at": datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                        "postprocessing_blueprint": blueprint,
-                        "hardware_id": hardware_id.encode(),
+                        "blueprint_url": blueprint_url,
+                        "hardware_url": hardware_url,
                         "latest_postprocessing": None, 
                     }
                 }
@@ -22,8 +22,8 @@ def create_post_info(kit_id, hardware_id, blueprint):
     # Example postprocessing_info:
     # {
     #   "updated_at": "2020-10-29T04:35:23Z",
-    #   "postprocessing_blueprint": 'sck_21_gps',
-    #   "hardware_id": "SCS20100",
+    #   "blueprint_url": "https://github.com/fablabbcn/smartcitizen-data/blob/master/blueprints/sc_21_station_module.json",
+    #   "hardware_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/SCAS210001.json",
     #   "latest_postprocessing": "2020-10-29T08:35:23Z"
     # }             
 
@@ -38,9 +38,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--did", "-d", help="Device ID in SC platform to manage data")
-    # https://github.com/fablabbcn/smartcitizen-data/blob/master/hardware/hardware.json
-    parser.add_argument("--hid", "-hw", help="Hardware ID of the physical device. Must be in hardware.json")
-    parser.add_argument("--blueprint", "-b", help="Post processing blueprint in blueprints.yaml")
+    parser.add_argument("--hardware_url", "-hw", help="Hardware url json description file")
+    parser.add_argument("--blueprint_url", "-b", help="Post processing blueprint url json description_file")
 
     args = parser.parse_args()
-    create_post_info(args.did, args.hid, args.blueprint) 
+    create_post_info(args.did, args.hardware_url, args.blueprint_url)
