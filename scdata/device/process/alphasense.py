@@ -16,7 +16,7 @@ def alphasense_803_04(dataframe, **kwargs):
             Date from which this calibration id is valid from
         to_date: string, datetime object
             Date until which this calibration id is valid to. None if current
-        id: string
+        alphasense_id: string
             Alphasense sensor ID (must be in calibrations.yaml)
         we: string
             Name of working electrode found in dataframe (V)
@@ -69,7 +69,7 @@ def alphasense_803_04(dataframe, **kwargs):
     flag_error = False
     if 'we' not in kwargs: flag_error = True
     if 'ae' not in kwargs: flag_error = True
-    if 'id' not in kwargs: flag_error = True
+    if 'alphasense_id' not in kwargs: flag_error = True
     if 't' not in kwargs: flag_error = True
 
     if flag_error:
@@ -77,8 +77,8 @@ def alphasense_803_04(dataframe, **kwargs):
         return None
 
     # Get Sensor data
-    if kwargs['id'] not in config.calibrations:
-        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
+    if kwargs['alphasense_id'] not in config.calibrations:
+        std_out(f"Sensor {kwargs['alphasense_id']} not in calibration data", 'ERROR')
         return None
 
     # Process input dates
@@ -103,11 +103,11 @@ def alphasense_803_04(dataframe, **kwargs):
     if to_date is not None: df = df[df.index < to_date]
 
     # Get sensor type
-    as_type = config._as_sensor_codes[sensor_id[0:3]]
+    as_type = config._as_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
     if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
-    if use_alternative: algorithm_idx = 1
+    if kwargs['use_alternative']: algorithm_idx = 1
     else: algorithm_idx = 0
 
     # Get algorithm name
@@ -116,8 +116,14 @@ def alphasense_803_04(dataframe, **kwargs):
     comp_lut = config._as_sensor_algs[as_type][algorithm][1]
 
     # Retrieve calibration data - verify its all float
-    cal_data = config.calibrations[kwargs['id']]
-    for item in cal_data: cal_data[item] = float (cal_data[item])
+    cal_data = config.calibrations[kwargs['alphasense_id']]
+    for item in cal_data:
+        try:
+            cal_data[item] = float (cal_data[item])
+        except:
+            std_out(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct", 'ERROR')
+            std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
+            return
 
     # Compensate electronic zero
     df['we_t'] = df[kwargs['we']] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
