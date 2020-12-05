@@ -27,9 +27,9 @@ def get_units_convf(sensor, from_units):
     for channel in config._channel_lut.keys():
         if not (search(channel, sensor)): continue
         # Molecular weight in case of pollutants
-        for pollutant in config.molecular_weights.keys(): 
+        for pollutant in config._molecular_weights.keys():
             if search(channel, pollutant): 
-                molecular_weight = config.molecular_weights[pollutant]
+                molecular_weight = config._molecular_weights[pollutant]
                 break
             else: molecular_weight = 1
         
