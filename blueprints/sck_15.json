@@ -1,0 +1,42 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "location": null,
+  "max_date": null,
+  "min_date": null,
+  "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "56",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "14",
+      "units": "lux"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": null,
+      "index": "Time"
+    }
+  },
+  "version": null
+}

@@ -1,0 +1,125 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "location": null,
+  "max_date": null,
+  "metrics": {
+    "PM_10_CLEAN": {
+      "desc": "PM10 calculated based on both PMS5003 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_10",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_1_CLEAN": {
+      "desc": "PM1 calculated based on both PMS5003 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_1",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_25_CLEAN": {
+      "desc": "PM2.5 calculated based on both PMS5003 PM2.5 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_25",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    }
+  },
+  "min_date": null,
+  "platform_id": 11,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "56",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "14",
+      "units": "lux"
+    },
+    "NOISE_A": {
+      "desc": "A-scale noise SPL",
+      "id": "53",
+      "units": "dBA"
+    },
+    "PM_1": {
+      "desc": "PM1 measurement from PMS5003",
+      "id": "89",
+      "units": "ug/m3"
+    },
+    "PM_10": {
+      "desc": "PM10 measurement from PMS5003",
+      "id": "88",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "desc": "PM2.5 measurement from PMS5003",
+      "id": "87",
+      "units": "ug/m3"
+    },
+    "PRESS": {
+      "desc": "Atmospheric pressure",
+      "id": "58",
+      "units": "kPa"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": [
+        1,
+        2,
+        3
+      ],
+      "index": "TIME"
+    }
+  },
+  "version": null
+}

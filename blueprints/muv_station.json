@@ -1,0 +1,61 @@
+{
+  "clean_na": null,
+  "documentation": "https://github.com/waagsociety/air_quality_sensor_kit/tree/master/MUV%20Kit",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "location": null,
+  "max_date": null,
+  "min_date": null,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "GB_2A": {
+      "id": "no2op2",
+      "units": "mV"
+    },
+    "GB_2W": {
+      "id": "no2op1",
+      "units": "mV"
+    },
+    "GB_3A": {
+      "id": "o3op2",
+      "units": "mV"
+    },
+    "GB_3W": {
+      "id": "o3op1",
+      "units": "mV"
+    },
+    "HUM": {
+      "id": "h",
+      "units": "%rh"
+    },
+    "NOISE_A": {
+      "id": "dB",
+      "units": "dBA"
+    },
+    "PM_10": {
+      "id": "p10",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "id": "p25",
+      "units": "ug/m3"
+    },
+    "TEMP": {
+      "id": "t",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "MuvApiDevice"
+    },
+    "csv": {
+      "header_skip": null,
+      "index": "Time"
+    }
+  },
+  "version": null
+}

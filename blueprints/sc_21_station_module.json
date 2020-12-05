@@ -1,0 +1,318 @@
+{
+  "post_info": null,
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "location": null,
+  "max_date": null,
+  "metrics": {
+    "CCS811_ECO2_CLEAN": {
+      "desc": "eCO2 cleaned data",
+      "kwargs": {
+        "limits": [
+          400,
+          65000
+        ],
+        "name": "CCS811_ECO2",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppm",
+      "post": false,
+      "id": null
+    },
+    "CCS811_VOCS_CLEAN": {
+      "desc": "Volatile Organic Compounds cleaned data",
+      "kwargs": {
+        "limits": [
+          0,
+          65000
+        ],
+        "name": "CCS811_VOCS",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppb",
+      "post": false,
+      "id": null
+    },
+    "EXT_PM_10_CLEAN": {
+      "desc": "PM10 calculated based on both PMS5003 PM10 inputs",
+      "kwargs": {
+        "factor": 0.3,
+        "limits": [
+          0,
+          1000
+        ],
+        "names": [
+          "EXT_PM_A_10",
+          "EXT_PM_B_10"
+        ],
+        "pick": "min",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "merge_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "EXT_PM_1_CLEAN": {
+      "desc": "PM1 calculated based on both PMS5003 PM1 inputs",
+      "kwargs": {
+        "factor": 0.3,
+        "limits": [
+          0,
+          1000
+        ],
+        "names": [
+          "EXT_PM_A_1",
+          "EXT_PM_B_1"
+        ],
+        "pick": "min",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "merge_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "EXT_PM_25_CLEAN": {
+      "desc": "PM2.5 calculated based on both PMS5003 PM2.5 inputs",
+      "kwargs": {
+        "factor": 0.3,
+        "limits": [
+          0,
+          1000
+        ],
+        "names": [
+          "EXT_PM_A_25",
+          "EXT_PM_B_25"
+        ],
+        "pick": "min",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "merge_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    }
+  },
+  "min_date": null,
+  "platform_id": 28,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "ADC_48_0": {
+      "desc": "Channel 0 of ADC 0x48",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_48_1": {
+      "desc": "Channel 1 of ADC 0x48",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_48_2": {
+      "desc": "Channel 2 of ADC 0x48",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_48_3": {
+      "desc": "Channel 3 of ADC 0x48",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_49_0": {
+      "desc": "Channel 0 of ADC 0x49",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_49_1": {
+      "desc": "Channel 1 of ADC 0x49",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_49_2": {
+      "desc": "Channel 2 of ADC 0x49",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_49_3": {
+      "desc": "Channel 3 of ADC 0x49",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4A_0": {
+      "desc": "Channel 0 of ADC 0x4A",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4A_1": {
+      "desc": "Channel 1 of ADC 0x4A",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4A_2": {
+      "desc": "Channel 2 of ADC 0x4A",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4A_3": {
+      "desc": "Channel 3 of ADC 0x4A",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4B_0": {
+      "desc": "Channel 0 of ADC 0x4B",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4B_1": {
+      "desc": "Channel 1 of ADC 0x4B",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4B_2": {
+      "desc": "Channel 2 of ADC 0x4B",
+      "id": null,
+      "units": "V"
+    },
+    "ADC_4B_3": {
+      "desc": "Channel 3 of ADC 0x4B",
+      "id": null,
+      "units": "V"
+    },
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
+    "CCS811_ECO2": {
+      "desc": "Equivalent CO2",
+      "id": "112",
+      "units": "ppm"
+    },
+    "CCS811_VOCS": {
+      "desc": "total Volatile Organics Compounds",
+      "id": "113",
+      "units": "ppm"
+    },
+    "EXT_PM_A_1": {
+      "desc": "PM1 measurement from PMS5003 A",
+      "id": "71",
+      "units": "ug/m3"
+    },
+    "EXT_PM_A_10": {
+      "desc": "PM10 measurement from PMS5003 A",
+      "id": "73",
+      "units": "ug/m3"
+    },
+    "EXT_PM_A_25": {
+      "desc": "PM2.5 measurement from PMS5003 A",
+      "id": "72",
+      "units": "ug/m3"
+    },
+    "EXT_PM_B_1": {
+      "desc": "PM1 measurement from PMS5003 B",
+      "id": "75",
+      "units": "ug/m3"
+    },
+    "EXT_PM_B_10": {
+      "desc": "PM10 measurement from PMS5003 B",
+      "id": "77",
+      "units": "ug/m3"
+    },
+    "EXT_PM_B_25": {
+      "desc": "PM2.5 measurement from PMS5003 B",
+      "id": "76",
+      "units": "ug/m3"
+    },
+    "EXT_SHT31_HUM": {
+      "desc": "External SHT31 humidity",
+      "id": "null",
+      "units": "%rh"
+    },
+    "EXT_SHT31_TEMP": {
+      "desc": "External SHT31 temperature",
+      "id": "null",
+      "units": "\u00baC"
+    },
+    "EXT_TEMP": {
+      "desc": "Dallas External probe Temperature",
+      "id": "96",
+      "units": "degC"
+    },
+    "GPS_LAT": {
+      "desc": "GPS lat",
+      "id": null,
+      "units": null
+    },
+    "GPS_LONG": {
+      "desc": "GPS long",
+      "id": null,
+      "units": null
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "56",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "14",
+      "units": "lux"
+    },
+    "NOISE_A": {
+      "desc": "A-scale noise SPL",
+      "id": "53",
+      "units": "dBA"
+    },
+    "PM_1": {
+      "desc": "PM1 measurement from PMS5003",
+      "id": "89",
+      "units": "ug/m3"
+    },
+    "PM_10": {
+      "desc": "PM10 measurement from PMS5003",
+      "id": "88",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "desc": "PM2.5 measurement from PMS5003",
+      "id": "87",
+      "units": "ug/m3"
+    },
+    "PRESS": {
+      "desc": "Atmospheric pressure",
+      "id": "58",
+      "units": "kPa"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": [
+        1,
+        2,
+        3
+      ],
+      "index": "TIME"
+    }
+  },
+  "version": null
+}
