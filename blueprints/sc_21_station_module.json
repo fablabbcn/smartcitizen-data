@@ -242,7 +242,7 @@
     "EXT_SHT31_TEMP": {
       "desc": "External SHT31 temperature",
       "id": "null",
-      "units": "\u00baC"
+      "units": "degC"
     },
     "EXT_TEMP": {
       "desc": "Dallas External probe Temperature",
@@ -252,12 +252,12 @@
     "GPS_LAT": {
       "desc": "GPS lat",
       "id": null,
-      "units": null
+      "units": "degC"
     },
     "GPS_LONG": {
       "desc": "GPS long",
       "id": null,
-      "units": null
+      "units": "degC"
     },
     "HUM": {
       "desc": "Urban board humidity (SHT31)",
