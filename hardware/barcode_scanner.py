@@ -31,30 +31,20 @@ def read(_device, _endpoint):
               continue
 
 def input_data(json_file, hardware_id, number_sensors = 4):
-    try:
-        with open(join(json_file)) as handle:
-            hardwareinfo = json.loads(handle.read())
-    except:
-        print ('problem finding hardware info')
-        exit()
-    else:
-        print ('Hardware info found')
-    
-    if hardware_id in hardwareinfo:
-        print ("Initialising device")
-        device, endpoint = init_device()
-        
-        devices = list()
-        while True:
-            data = device.read(endpoint.bEndpointAddress, endpoint.wMaxPacketSize)
-            if data is not None: 
-                datac = data.strip('\n')[1:]
-                devices.append(datac)
 
-        print (devices)
-    else:
-        print('hardware id not found')
+    print ("Initialising device")
+    device, endpoint = init_device()
 
+    devices = list()
+    while True:
+        data = device.read(endpoint.bEndpointAddress, endpoint.wMaxPacketSize)
+        if data is not None: 
+            datac = data.strip('\n')[1:]
+            devices.append(datac)
+
+    print (devices)
+
+    # TODO save json
 
 if __name__ == "__main__":
     ldir = dirname(realpath(__file__))
