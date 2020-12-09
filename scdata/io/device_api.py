@@ -554,11 +554,12 @@ class ScApiDevice:
         '''
             POST postprocessing info into the device in the SmartCitizen API
             Updates all the post info. Changes need to be made info the keys of the postprocessing_info outside of here
+            Needs to post the whole json
 
             # Example postprocessing_info:
             # {
             #   "updated_at": "2020-10-29T04:35:23Z",
-            #   "postprocessing_blueprint": 'sck_21_gps',
+            #   "blueprint_url": "https://github.com/fablabbcn/smartcitizen-data/blob/master/blueprints/sc_21_station_module.json",
             #   "hardware_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/SCAS210001.json",
             #   "latest_postprocessing": "2020-10-29T08:35:23Z"
             # }

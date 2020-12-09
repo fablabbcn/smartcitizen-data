@@ -25,7 +25,7 @@ def create_post_info(kit_id, hardware_url, blueprint_url):
     #   "blueprint_url": "https://github.com/fablabbcn/smartcitizen-data/blob/master/blueprints/sc_21_station_module.json",
     #   "hardware_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/SCAS210001.json",
     #   "latest_postprocessing": "2020-10-29T08:35:23Z"
-    # }             
+    # }
 
     post_json = json.dumps(post_info)
     print (f'Posted request info:\n{post_json}')
