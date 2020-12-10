@@ -3,6 +3,7 @@
     "from": "2020-11-30",
     "to": null,
     "description": "2PMS5003-4ELEC-GPS",
+    "MAC": "BE:DD:C2:AC:E2:35",
     "ids": {
       "AS_48_01": "162700908",
       "AS_48_23": "202702017",
