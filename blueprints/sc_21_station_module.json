@@ -58,8 +58,8 @@
       },
       "process": "merge_ts",
       "units": "ug/m3",
-      "post": false,
-      "id": null
+      "post": true,
+      "id": 88
     },
     "EXT_PM_1_CLEAN": {
       "desc": "PM1 calculated based on both PMS5003 PM1 inputs",
@@ -79,8 +79,8 @@
       },
       "process": "merge_ts",
       "units": "ug/m3",
-      "post": false,
-      "id": null
+      "post": true,
+      "id": 89
     },
     "EXT_PM_25_CLEAN": {
       "desc": "PM2.5 calculated based on both PMS5003 PM2.5 inputs",
@@ -100,8 +100,8 @@
       },
       "process": "merge_ts",
       "units": "ug/m3",
-      "post": false,
-      "id": null
+      "post": true,
+      "id": 87
     }
   },
   "min_date": null,
@@ -111,82 +111,82 @@
   "sensors": {
     "ADC_48_0": {
       "desc": "Channel 0 of ADC 0x48",
-      "id": null,
+      "id": 133,
       "units": "V"
     },
     "ADC_48_1": {
       "desc": "Channel 1 of ADC 0x48",
-      "id": null,
+      "id": 134,
       "units": "V"
     },
     "ADC_48_2": {
       "desc": "Channel 2 of ADC 0x48",
-      "id": null,
+      "id": 135,
       "units": "V"
     },
     "ADC_48_3": {
       "desc": "Channel 3 of ADC 0x48",
-      "id": null,
+      "id": 136,
       "units": "V"
     },
     "ADC_49_0": {
       "desc": "Channel 0 of ADC 0x49",
-      "id": null,
+      "id": 138,
       "units": "V"
     },
     "ADC_49_1": {
       "desc": "Channel 1 of ADC 0x49",
-      "id": null,
+      "id": 139,
       "units": "V"
     },
     "ADC_49_2": {
       "desc": "Channel 2 of ADC 0x49",
-      "id": null,
+      "id": 140,
       "units": "V"
     },
     "ADC_49_3": {
       "desc": "Channel 3 of ADC 0x49",
-      "id": null,
+      "id": 141,
       "units": "V"
     },
     "ADC_4A_0": {
       "desc": "Channel 0 of ADC 0x4A",
-      "id": null,
+      "id": 143,
       "units": "V"
     },
     "ADC_4A_1": {
       "desc": "Channel 1 of ADC 0x4A",
-      "id": null,
+      "id": 144,
       "units": "V"
     },
     "ADC_4A_2": {
       "desc": "Channel 2 of ADC 0x4A",
-      "id": null,
+      "id": 145,
       "units": "V"
     },
     "ADC_4A_3": {
       "desc": "Channel 3 of ADC 0x4A",
-      "id": null,
+      "id": 146,
       "units": "V"
     },
     "ADC_4B_0": {
       "desc": "Channel 0 of ADC 0x4B",
-      "id": null,
+      "id": 148,
       "units": "V"
     },
     "ADC_4B_1": {
       "desc": "Channel 1 of ADC 0x4B",
-      "id": null,
+      "id": 149,
       "units": "V"
     },
     "ADC_4B_2": {
       "desc": "Channel 2 of ADC 0x4B",
-      "id": null,
+      "id": 150,
       "units": "V"
     },
     "ADC_4B_3": {
       "desc": "Channel 3 of ADC 0x4B",
-      "id": null,
+      "id": 151,
       "units": "V"
     },
     "BATT": {
@@ -244,7 +244,7 @@
       "id": "null",
       "units": "degC"
     },
-    "EXT_TEMP": {
+    "PM_DALLAS_TEMP": {
       "desc": "Dallas External probe Temperature",
       "id": "96",
       "units": "degC"
@@ -273,21 +273,6 @@
       "desc": "A-scale noise SPL",
       "id": "53",
       "units": "dBA"
-    },
-    "PM_1": {
-      "desc": "PM1 measurement from PMS5003",
-      "id": "89",
-      "units": "ug/m3"
-    },
-    "PM_10": {
-      "desc": "PM10 measurement from PMS5003",
-      "id": "88",
-      "units": "ug/m3"
-    },
-    "PM_25": {
-      "desc": "PM2.5 measurement from PMS5003",
-      "id": "87",
-      "units": "ug/m3"
     },
     "PRESS": {
       "desc": "Atmospheric pressure",

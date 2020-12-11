@@ -107,12 +107,13 @@ class Config(object):
 
     # TODO - DEFINE IF THIS IS NECESSARY
     _platform_sensor_ids = {
-        'CO': None,
-        'NO2': None,
-        'H2S': None,
-        'NO': None,
-        'O3': None,
-        'SO2': None
+        'CO': 152,
+        'NO2': 153,
+        'H2S': 156,
+        'NO': 154,
+        'O3': 157,
+        'SO2': 155,
+        'CO2': 158
     }
     
     ### ---------------------------------------
@@ -233,7 +234,7 @@ class Config(object):
                     "HUM": "%rh",
                     "PRESS": "kPa",
                     "PM_(\d|[A,B]_\d)": "ug/m3",
-                    "CO(\D|$)": "ppm",
+                    "CO(\D|$)": "ppb",
                     "NOISE_A": "dBA",
                     "NO\Z": "ppb",
                     "NO2": "ppb",
@@ -241,7 +242,8 @@ class Config(object):
                     "O3": "ppb",
                     "C6H6": "ppb",
                     "H2S": "ppb",
-                    "SO2": "ppb"
+                    "SO2": "ppb",
+                    "CO2": "ppm"
                 }
 
     # This table is used to convert units
