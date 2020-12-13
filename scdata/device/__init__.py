@@ -128,7 +128,19 @@ class Device(object):
         self.blueprint_url = self.api_device.postprocessing_info['blueprint_url']
         self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
 
-        # Use postprocessing_info blueprint
+        # Load hardware info from url
+        if self.hw_url is not None and self.hw_loaded_from_url == False:
+            std_out(f'Loading hardware info from:\n{self.hw_url}')
+            lhw_info = get_json_from_url(self.hw_url)
+            if lhw_info is not None:
+                self.hw_info = lhw_info
+                std_out('Hardware in url is valid', "SUCCESS")
+                self.hw_loaded_from_url = True
+            else:
+                std_out("Hardware in url is not valid", 'ERROR')
+                return None
+
+        # Use postprocessing_info blueprint (not null case)
         if self.blueprint_url is not None and self.blueprint_loaded_from_url == False:
             std_out(f'Loading hardware postprocessing blueprint from:\n{self.blueprint_url}')
             nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
@@ -144,16 +156,24 @@ class Device(object):
             else:
                 std_out('Blueprint in url is not valid', 'ERROR')
                 return None
-
-        if self.hw_url is not None and self.hw_loaded_from_url == False:
-            std_out(f'Loading hardware info from:\n{self.hw_url}')
-            lhw_info = get_json_from_url(self.hw_url)
-            if lhw_info is not None:
-                self.hw_info = lhw_info
-                std_out('Hardware in url is valid', "SUCCESS")
-                self.hw_loaded_from_url = True
+        # Use postprocessing_info blueprint (null case)
+        elif self.blueprint_url is None and self.blueprint_loaded_from_url == False:
+            if 'default_blueprint_url' in self.hw_info:
+                std_out(f'Loading default hardware postprocessing blueprint from:\n{self.hw_info['default_blueprint_url']}')
+                nblueprint = basename(urlparse(self.hw_info['default_blueprint_url']).path).split('.')[0]
+                if nblueprint in config.blueprints:
+                    std_out(f'Default blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
+                lblueprint = get_json_from_url(self.hw_info['default_blueprint_url'])
+                if lblueprint is not None:
+                    std_out('Default lueprint loaded from url', 'SUCCESS')
+                    self.blueprint = nblueprint
+                    self.blueprint_loaded_from_url = True
+                    self.set_blueprint_attrs(lblueprint)
+                else:
+                    std_out('Blueprint in url is not valid', 'ERROR')
+                    return None
             else:
-                std_out("Hardware in url is not valid", 'ERROR')
+                std_out('Postprocessing not possible without blueprint', 'ERROR')
                 return None
 
         return self.api_device.postprocessing_info
