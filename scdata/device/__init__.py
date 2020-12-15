@@ -159,7 +159,7 @@ class Device(object):
         # Use postprocessing_info blueprint (null case)
         elif self.blueprint_url is None and self.blueprint_loaded_from_url == False:
             if 'default_blueprint_url' in self.hw_info:
-                std_out(f'Loading default hardware postprocessing blueprint from:\n{self.hw_info['default_blueprint_url']}')
+                std_out(f"Loading default hardware postprocessing blueprint from:\n{self.hw_info['default_blueprint_url']}")
                 nblueprint = basename(urlparse(self.hw_info['default_blueprint_url']).path).split('.')[0]
                 if nblueprint in config.blueprints:
                     std_out(f'Default blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
