@@ -203,6 +203,7 @@ class ScApiDevice:
             A list of kit IDs that comply with the requirements, or the full df, depending on full. 
             If no requirements are set, returns all of them
         """
+
         def is_within_circle(x, within):
             if isnan(x['latitude']): return False
             if isnan(x['longitude']): return False
@@ -380,10 +381,10 @@ class ScApiDevice:
                 self.sensors = dict()
                 for sensor in sensors:
                     for key in config.blueprints:
-                        if not search("sc[k|_]",key): continue
+                        if not search("sc[k|_]", key): continue
                         if 'sensors' in config.blueprints[key]:
                             for sensor_name in config.blueprints[key]['sensors'].keys():
-                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor['id']):
+                                if str(config.blueprints[key]['sensors'][sensor_name]['id']) == str(sensor['id']):
                                     # IDs are unique
                                     self.sensors[sensor['id']] = sensor_name
 

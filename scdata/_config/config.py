@@ -105,7 +105,6 @@ class Config(object):
     # Lambdas for baseline ALS algorithm
     _baseline_als_lambdas = [1e5]
 
-    # TODO - DEFINE IF THIS IS NECESSARY
     _platform_sensor_ids = {
         'CO': 152,
         'NO2': 153,

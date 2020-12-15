@@ -55,20 +55,19 @@ class Device(object):
 
             # Set attributes
             self.set_blueprint_attrs(config.blueprints[blueprint])
-
             self.blueprint_loaded_from_url = False
             self.hw_loaded_from_url = False
 
-        # Descriptor attributes
-        for ditem in descriptor.keys():
-            if type(self.__getattribute__(ditem)) == dict: 
-                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), descriptor[ditem]))
-            else: self.__setattr__(ditem, descriptor[ditem])    
+
+        self.descriptor = descriptor
+        self.set_descriptor_attrs()
 
         # Add API handler if needed
         if self.source == 'api':
+
             hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
             Hclass = getattr(hmod, self.sources[self.source]['handler'])
+
             # Create object
             self.api_device = Hclass(did = self.id)
 
@@ -95,6 +94,15 @@ class Device(object):
         for bpitem in blueprintd:
             self.__setattr__(bpitem, blueprintd[bpitem])
 
+    def set_descriptor_attrs(self):
+
+        # Descriptor attributes
+        for ditem in self.descriptor.keys():
+            if ditem not in vars(self): std_out (f'Ignoring {ditem} from input', 'WARNING'); continue
+            if type(self.__getattribute__(ditem)) == dict:
+                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self.descriptor[ditem]))
+            else: self.__setattr__(ditem, self.descriptor[ditem])
+
     def check_overrides(self, options = {}):
         
         if 'min_date' in options.keys(): self.options['min_date'] = options['min_date']
@@ -112,15 +120,12 @@ class Device(object):
 
     def load_postprocessing_info(self):
 
-        if self.source != 'api':
-            return None
+        if self.source != 'api': return None
 
-        if self.sources[self.source]['handler'] != 'ScApiDevice':
-            return None
+        if self.sources[self.source]['handler'] != 'ScApiDevice': return None
 
         # Request to get postprocessing information
-        if self.api_device.get_postprocessing_info() is None:
-            return None
+        if self.api_device.get_postprocessing_info() is None: return None
 
         # Put it where it goes
         self.hw_url = self.api_device.postprocessing_info['hardware_url']
@@ -130,8 +135,10 @@ class Device(object):
 
         # Load hardware info from url
         if self.hw_url is not None and self.hw_loaded_from_url == False:
+
             std_out(f'Loading hardware info from:\n{self.hw_url}')
             lhw_info = get_json_from_url(self.hw_url)
+
             if lhw_info is not None:
                 self.hw_info = lhw_info
                 std_out('Hardware in url is valid', "SUCCESS")
@@ -142,37 +149,60 @@ class Device(object):
 
         # Use postprocessing_info blueprint (not null case)
         if self.blueprint_url is not None and self.blueprint_loaded_from_url == False:
+
             std_out(f'Loading hardware postprocessing blueprint from:\n{self.blueprint_url}')
             nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
             std_out(f'Using hardware postprocessing blueprint: {nblueprint}')
+
             if nblueprint in config.blueprints:
-                std_out(f'Blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
+
+                std_out(f'Blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting')
+                # self.blueprint_loaded_from_url = True
+                # return self.api_device.postprocessing_info
+
             lblueprint = get_json_from_url(self.blueprint_url)
+
             if lblueprint is not None:
+
                 std_out('Blueprint loaded from url', 'SUCCESS')
                 self.blueprint = nblueprint
                 self.blueprint_loaded_from_url = True
                 self.set_blueprint_attrs(lblueprint)
+                self.set_descriptor_attrs()
+
             else:
+
                 std_out('Blueprint in url is not valid', 'ERROR')
                 return None
+
         # Use postprocessing_info blueprint (null case)
         elif self.blueprint_url is None and self.blueprint_loaded_from_url == False:
+
             if 'default_blueprint_url' in self.hw_info:
+
                 std_out(f"Loading default hardware postprocessing blueprint from:\n{self.hw_info['default_blueprint_url']}")
                 nblueprint = basename(urlparse(self.hw_info['default_blueprint_url']).path).split('.')[0]
+
                 if nblueprint in config.blueprints:
                     std_out(f'Default blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
+
                 lblueprint = get_json_from_url(self.hw_info['default_blueprint_url'])
+
                 if lblueprint is not None:
+
                     std_out('Default lueprint loaded from url', 'SUCCESS')
                     self.blueprint = nblueprint
                     self.blueprint_loaded_from_url = True
                     self.set_blueprint_attrs(lblueprint)
+                    self.set_descriptor_attrs()
+
                 else:
+
                     std_out('Blueprint in url is not valid', 'ERROR')
                     return None
+
             else:
+
                 std_out('Postprocessing not possible without blueprint', 'ERROR')
                 return None
 
@@ -261,17 +291,16 @@ class Device(object):
         except:
             print_exc()
             self.loaded = False
-        else:
-            if self.readings is not None:
-                self.__check_sensors__()
-                self.__fill_metrics__()
 
-                if not self.readings.empty:
-                    self.loaded = True
-                    if convert_units: self.__convert_units__()
+        if self.readings is not None:
+            self.__check_sensors__()
+            self.__fill_metrics__()
 
-        finally:
-            return self.loaded
+            if not self.readings.empty:
+                self.loaded = True
+                if convert_units: self.__convert_units__()
+
+        return self.loaded
 
     def __fill_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')
@@ -294,6 +323,7 @@ class Device(object):
                     sensor_id = self.hw_info[version]["ids"][slot]
                     as_type = config._as_sensor_codes[sensor_id[0:3]]
                     pollutant = as_type[as_type.index('_')+1:]
+                    if pollutant == 'OX': pollutant = 'O3'
                     platform_sensor_id = config._platform_sensor_ids[pollutant]
                     # TODO - USE POLLUTANT OR PLATFORM SENSOR ID?
                     process = 'alphasense_803_04'
@@ -314,10 +344,10 @@ class Device(object):
                                             'kwargs':  {
                                                         'from_date': from_date,
                                                         'to_date': to_date,
-                                                        'alphasense_id': sensor_id,
+                                                        'alphasense_id': str(sensor_id),
                                                         'we': wen,
                                                         'ae': aen,
-                                                        't': 'EXT_TEMP', # TODO With external temperature?
+                                                        't': 'PM_DALLAS_TEMP', # TODO With external temperature?
                                                         'location': self.location
                                                         }
                                         }
