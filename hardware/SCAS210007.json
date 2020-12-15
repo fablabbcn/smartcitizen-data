@@ -4,7 +4,6 @@
     "to": null,
     "description": "2PMS5003-4ELEC-GPS",
     "default_blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
-    "MAC": null,    
     "ids": {
       "AS_48_01": "162893647",
       "AS_48_23": "202702031",
