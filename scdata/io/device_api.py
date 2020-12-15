@@ -128,9 +128,10 @@ class ScApiDevice:
         ----------
             key: string
                 ''
-                Query key according to the basic query documentation. Acceptable parameters are:
+                Query key according to the basic query documentation. Some (not all) parameters are:
                 ['id', 'owner_id', 'name', 'description', 'mac_address', 'created_at',
-                'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state']
+                'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state',
+                'postprocessing_info', 'hardware_info']
             value: string
                 None
                 Query to fit
@@ -148,11 +149,6 @@ class ScApiDevice:
         # Value check
         if value is None: std_out(f'Value needs a value, {value} supplied', 'ERROR'); return None
 
-        dkeys = ['id', 'owner_id', 'name', 'description', 'mac_address', 'created_at',
-                'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state',
-                'postprocessing_info', 'hardware_info']
-
-        if key not in dkeys: print (f'Supplied key {key} not available for basic searching', 'ERROR'); return None
 
         if value == 'null' or value == 'not_null':
              query = API_BASE_URL  + f'?q[{key}_{value}]=1'
