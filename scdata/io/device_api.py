@@ -118,6 +118,62 @@ class ScApiDevice:
         std_out(f'Error while creating new device, platform returned {backed_device.status_code}', 'ERROR')
         return False
 
+
+    @staticmethod
+    def search_query(key = '', value = None, full = False):
+        """
+        Gets devices from Smart Citizen API based on ransack parameters
+        Basic query documentation: https://developer.smartcitizen.me/#basic-searching
+        Parameters
+        ----------
+            key: string
+                ''
+                Query key according to the basic query documentation. Acceptable parameters are:
+                ['id', 'owner_id', 'name', 'description', 'mac_address', 'created_at',
+                'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state']
+            value: string
+                None
+                Query to fit
+                For null, not_null values, use 'null' or 'not_null'
+            full: bool
+                False
+                Returns a list with if False, or the whole dataframe if True
+        Returns
+        -------
+            A list of kit IDs that comply with the requirements, or the full df, depending on full.
+        """
+
+        API_BASE_URL = "https://api.smartcitizen.me/v0/devices/"
+
+        # Value check
+        if value is None: std_out(f'Value needs a value, {value} supplied', 'ERROR'); return None
+
+        dkeys = ['id', 'owner_id', 'name', 'description', 'mac_address', 'created_at',
+                'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state',
+                'postprocessing_info', 'hardware_info']
+
+        if key not in dkeys: print (f'Supplied key {key} not available for basic searching', 'ERROR'); return None
+
+        if value == 'null' or value == 'not_null':
+             query = API_BASE_URL  + f'?q[{key}_{value}]=1'
+        else:
+             query = API_BASE_URL  + f'?q[{key}]={value}'
+
+        try:
+            qresp = get(query)
+
+            # If status code OK, retrieve data
+            if qresp.status_code == 200 or qresp.status_code == 201:
+                df = DataFrame(qresp.json()).set_index('id')
+            else:
+                std_out('API reported {}'.format(qresp.status_code), 'ERROR')
+        except:
+            std_out('Failed request. Probably no connection', 'ERROR')
+            pass
+
+        if full: return df
+        else: return list(df.index)
+
     @staticmethod
     def get_world_map(min_date = None, max_date = None, city = None, within = None, tags = None, tag_method = 'any', full = False):
         """
