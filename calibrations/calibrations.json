@@ -2,2601 +2,2201 @@
   "162031254": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.64",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45463999999999993",
     "we_sensitivity_na_ppb": "0.5682999999999999",
-    "we_sensor_zero_mv": "-27.200000000000003",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-27.200000000000003"
   },
   "162031256": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.120000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.48152",
     "we_sensitivity_na_ppb": "0.6019",
-    "we_sensor_zero_mv": "-54.48",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-54.48"
   },
   "162031257": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.880000000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.39448000000000005",
     "we_sensitivity_na_ppb": "0.49310000000000004",
-    "we_sensor_zero_mv": "-55.52000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-55.52000000000001"
   },
   "162581706": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-28.24",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46512000000000003",
     "we_sensitivity_na_ppb": "0.5814",
-    "we_sensor_zero_mv": "-58.24",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-58.24"
   },
   "162581707": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-37.04",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.484",
     "we_sensitivity_na_ppb": "0.605",
-    "we_sensor_zero_mv": "-45.36000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-45.36000000000001"
   },
   "162581708": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-40.88",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47791999999999996",
     "we_sensitivity_na_ppb": "0.5973999999999999",
-    "we_sensor_zero_mv": "-49.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-49.2"
   },
   "162581709": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-34.56",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46232",
     "we_sensitivity_na_ppb": "0.5779",
-    "we_sensor_zero_mv": "-53.44",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.44"
   },
   "162581710": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-26.72",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45599999999999996",
     "we_sensitivity_na_ppb": "0.57",
-    "we_sensor_zero_mv": "-66.32000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-66.32000000000001"
   },
   "162581711": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-29.04",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45143999999999995",
     "we_sensitivity_na_ppb": "0.5642999999999999",
-    "we_sensor_zero_mv": "-58.48",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-58.48"
   },
   "162581712": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-57.52000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47872",
     "we_sensitivity_na_ppb": "0.5983999999999999",
-    "we_sensor_zero_mv": "-72.16000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-72.16000000000001"
   },
   "162581713": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-37.36000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.48440000000000005",
     "we_sensitivity_na_ppb": "0.6055",
-    "we_sensor_zero_mv": "-75.92",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-75.92"
   },
   "162581714": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-41.6",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.48008000000000006",
     "we_sensitivity_na_ppb": "0.6001000000000001",
-    "we_sensor_zero_mv": "-64.32000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-64.32000000000001"
   },
   "162581715": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.200000000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47328000000000003",
     "we_sensitivity_na_ppb": "0.5916",
-    "we_sensor_zero_mv": "-55.760000000000005",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-55.760000000000005"
   },
   "162581716": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-6.08",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.49208",
     "we_sensitivity_na_ppb": "0.6151",
-    "we_sensor_zero_mv": "-53.760000000000005",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.760000000000005"
   },
   "162581717": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-41.36000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45143999999999995",
     "we_sensitivity_na_ppb": "0.5642999999999999",
-    "we_sensor_zero_mv": "-60.56",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-60.56"
   },
   "162581718": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.880000000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45184",
     "we_sensitivity_na_ppb": "0.5648",
-    "we_sensor_zero_mv": "-50.96000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-50.96000000000001"
   },
   "162581720": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-29.52",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47176",
     "we_sensitivity_na_ppb": "0.5897",
-    "we_sensor_zero_mv": "-79.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-79.2"
   },
   "162581721": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.36",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47080000000000005",
     "we_sensitivity_na_ppb": "0.5885",
-    "we_sensor_zero_mv": "-54.720000000000006",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-54.720000000000006"
   },
   "162581722": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-42.64",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.466",
     "we_sensitivity_na_ppb": "0.5825",
-    "we_sensor_zero_mv": "-58.48",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-58.48"
   },
   "162581723": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-24.0",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.48512",
     "we_sensitivity_na_ppb": "0.6063999999999999",
-    "we_sensor_zero_mv": "-63.04",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-63.04"
   },
   "162581724": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-23.44",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.49728000000000006",
     "we_sensitivity_na_ppb": "0.6216",
-    "we_sensor_zero_mv": "-63.28",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-63.28"
   },
   "162581725": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-28.480000000000004",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46184",
     "we_sensitivity_na_ppb": "0.5772999999999999",
-    "we_sensor_zero_mv": "-58.48",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-58.48"
   },
   "162581726": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-24.72",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4512",
     "we_sensitivity_na_ppb": "0.564",
-    "we_sensor_zero_mv": "-53.760000000000005",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.760000000000005"
   },
   "164200206": {
     "ae_electronic_zero_mv": "527",
     "ae_sensor_zero_mv": "2",
-    "ae_total_zero_mv": "529",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "363",
     "we_sensitivity_mv_ppb": "0.301",
     "we_sensitivity_na_ppb": "0.376",
-    "we_sensor_zero_mv": "19",
-    "we_total_zero_mv": "382"
+    "we_sensor_zero_mv": "19"
   },
   "164200207": {
     "ae_electronic_zero_mv": "353.96",
     "ae_sensor_zero_mv": "3",
-    "ae_total_zero_mv": "538",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "349.48",
     "we_sensitivity_mv_ppb": "0.326",
     "we_sensitivity_na_ppb": "0.408",
-    "we_sensor_zero_mv": "-74",
-    "we_total_zero_mv": "288"
+    "we_sensor_zero_mv": "-74"
   },
   "164200208": {
     "ae_electronic_zero_mv": "509",
     "ae_sensor_zero_mv": "-3",
-    "ae_total_zero_mv": "506",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "364",
     "we_sensitivity_mv_ppb": "0.31",
     "we_sensitivity_na_ppb": "0.388",
-    "we_sensor_zero_mv": "16",
-    "we_total_zero_mv": "380"
+    "we_sensor_zero_mv": "16"
   },
   "164200209": {
     "ae_electronic_zero_mv": "345.91",
     "ae_sensor_zero_mv": "5",
-    "ae_total_zero_mv": "529",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "354.71",
     "we_sensitivity_mv_ppb": "0.306",
     "we_sensitivity_na_ppb": "0.383",
-    "we_sensor_zero_mv": "19",
-    "we_total_zero_mv": "386"
+    "we_sensor_zero_mv": "19"
   },
   "164200210": {
     "ae_electronic_zero_mv": "499",
     "ae_sensor_zero_mv": "3",
-    "ae_total_zero_mv": "502",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "359",
     "we_sensitivity_mv_ppb": "0.307",
     "we_sensitivity_na_ppb": "0.384",
-    "we_sensor_zero_mv": "25",
-    "we_total_zero_mv": "384"
+    "we_sensor_zero_mv": "25"
   },
   "164200211": {
     "ae_electronic_zero_mv": "530",
     "ae_sensor_zero_mv": "1",
-    "ae_total_zero_mv": "531",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "349",
     "we_sensitivity_mv_ppb": "0.303",
     "we_sensitivity_na_ppb": "0.379",
-    "we_sensor_zero_mv": "15",
-    "we_total_zero_mv": "364"
+    "we_sensor_zero_mv": "15"
   },
   "164200212": {
     "ae_electronic_zero_mv": "345.77",
     "ae_sensor_zero_mv": "1",
-    "ae_total_zero_mv": "524",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "345.94",
     "we_sensitivity_mv_ppb": "0.302",
     "we_sensitivity_na_ppb": "0.378",
-    "we_sensor_zero_mv": "16",
-    "we_total_zero_mv": "374"
+    "we_sensor_zero_mv": "16"
   },
   "164200213": {
     "ae_electronic_zero_mv": "347.73",
     "ae_sensor_zero_mv": "-2",
-    "ae_total_zero_mv": "524",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "352.59",
     "we_sensitivity_mv_ppb": "0.31",
     "we_sensitivity_na_ppb": "0.388",
-    "we_sensor_zero_mv": "17",
-    "we_total_zero_mv": "383"
+    "we_sensor_zero_mv": "17"
   },
   "164200214": {
     "ae_electronic_zero_mv": "505",
     "ae_sensor_zero_mv": "5",
-    "ae_total_zero_mv": "510",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "353",
     "we_sensitivity_mv_ppb": "0.335",
     "we_sensitivity_na_ppb": "0.419",
-    "we_sensor_zero_mv": "22",
-    "we_total_zero_mv": "375"
+    "we_sensor_zero_mv": "22"
   },
   "164200215": {
     "ae_electronic_zero_mv": "347.03",
     "ae_sensor_zero_mv": "1",
-    "ae_total_zero_mv": "520",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "334.63",
     "we_sensitivity_mv_ppb": "0.335",
     "we_sensitivity_na_ppb": "0.419",
-    "we_sensor_zero_mv": "23",
-    "we_total_zero_mv": "368"
+    "we_sensor_zero_mv": "23"
   },
   "164200216": {
     "ae_electronic_zero_mv": "520",
     "ae_sensor_zero_mv": "-3",
-    "ae_total_zero_mv": "517",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "354",
     "we_sensitivity_mv_ppb": "0.33399999999999996",
     "we_sensitivity_na_ppb": "0.418",
-    "we_sensor_zero_mv": "26",
-    "we_total_zero_mv": "380"
+    "we_sensor_zero_mv": "26"
   },
   "164200217": {
     "ae_electronic_zero_mv": "514",
     "ae_sensor_zero_mv": "4",
-    "ae_total_zero_mv": "518",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "347",
     "we_sensitivity_mv_ppb": "0.29",
     "we_sensitivity_na_ppb": "0.363",
-    "we_sensor_zero_mv": "23",
-    "we_total_zero_mv": "370"
+    "we_sensor_zero_mv": "23"
   },
   "164200218": {
     "ae_electronic_zero_mv": "500",
     "ae_sensor_zero_mv": "6",
-    "ae_total_zero_mv": "506",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "352",
     "we_sensitivity_mv_ppb": "0.292",
     "we_sensitivity_na_ppb": "0.365",
-    "we_sensor_zero_mv": "19",
-    "we_total_zero_mv": "371"
+    "we_sensor_zero_mv": "19"
   },
   "164200205": {
     "ae_electronic_zero_mv": "531",
     "ae_sensor_zero_mv": "3",
-    "ae_total_zero_mv": "534",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "349",
     "we_sensitivity_mv_ppb": "0.294",
     "we_sensitivity_na_ppb": "0.368",
-    "we_sensor_zero_mv": "20",
-    "we_total_zero_mv": "369"
+    "we_sensor_zero_mv": "20"
   },
   "202160404": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.154",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.258931",
     "we_sensitivity_na_ppb": "-0.3547",
-    "we_sensor_zero_mv": "-19.125999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.125999999999998"
   },
   "202160405": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-6.205",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26360300000000003",
     "we_sensitivity_na_ppb": "-0.36110000000000003",
-    "we_sensor_zero_mv": "-7.810999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-7.810999999999999"
   },
   "202160406": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.927999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26469800000000004",
     "we_sensitivity_na_ppb": "-0.36260000000000003",
-    "we_sensor_zero_mv": "-14.527",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-14.527"
   },
   "202160407": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.023",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.25331",
     "we_sensitivity_na_ppb": "-0.347",
-    "we_sensor_zero_mv": "-19.345",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.345"
   },
   "202160408": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "2.336",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26148599999999994",
     "we_sensitivity_na_ppb": "-0.35819999999999996",
-    "we_sensor_zero_mv": "-13.796999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-13.796999999999999"
   },
   "202160409": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-1.387",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.244988",
     "we_sensitivity_na_ppb": "-0.3356",
-    "we_sensor_zero_mv": "-9.198",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-9.198"
   },
   "202160410": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-5.986",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23812599999999998",
     "we_sensitivity_na_ppb": "-0.3262",
-    "we_sensor_zero_mv": "-17.228",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.228"
   },
   "202160411": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-4.161",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.25695999999999997",
     "we_sensitivity_na_ppb": "-0.352",
-    "we_sensor_zero_mv": "-9.417",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-9.417"
   },
   "202160412": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-1.825",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.271925",
     "we_sensitivity_na_ppb": "-0.3725",
-    "we_sensor_zero_mv": "-8.979000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-8.979000000000001"
   },
   "202160413": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.249",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.249368",
     "we_sensitivity_na_ppb": "-0.3416",
-    "we_sensor_zero_mv": "-16.352",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-16.352"
   },
   "202160414": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-4.818",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.240608",
     "we_sensitivity_na_ppb": "-0.3296",
-    "we_sensor_zero_mv": "-9.636",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-9.636"
   },
   "202160415": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-6.205",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23944000000000001",
     "we_sensitivity_na_ppb": "-0.328",
-    "we_sensor_zero_mv": "-13.359",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-13.359"
   },
   "202160416": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.03",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.25331",
     "we_sensitivity_na_ppb": "-0.347",
-    "we_sensor_zero_mv": "-15.621999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-15.621999999999998"
   },
   "202160417": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-5.548",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.24374699999999996",
     "we_sensitivity_na_ppb": "-0.3339",
-    "we_sensor_zero_mv": "-11.023",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-11.023"
   },
   "202160418": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.249",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.253821",
     "we_sensitivity_na_ppb": "-0.3477",
-    "we_sensor_zero_mv": "-12.190999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-12.190999999999999"
   },
   "202160419": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "5.548",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23812599999999998",
     "we_sensitivity_na_ppb": "-0.3262",
-    "we_sensor_zero_mv": "-14.235",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-14.235"
   },
   "202160420": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.372999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26294599999999996",
     "we_sensitivity_na_ppb": "-0.36019999999999996",
-    "we_sensor_zero_mv": "-11.241999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-11.241999999999999"
   },
   "202160421": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-4.818",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26148599999999994",
     "we_sensitivity_na_ppb": "-0.35819999999999996",
-    "we_sensor_zero_mv": "-19.125999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.125999999999998"
   },
   "202160422": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.810999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26053699999999996",
     "we_sensitivity_na_ppb": "-0.3569",
-    "we_sensor_zero_mv": "-7.810999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-7.810999999999999"
   },
   "202160423": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-3.431",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.253529",
     "we_sensitivity_na_ppb": "-0.3473",
-    "we_sensor_zero_mv": "-13.578000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-13.578000000000001"
   },
   "202440338": {
     "ae_electronic_zero_mv": "217.2",
     "ae_sensor_zero_mv": "-18.396",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "232.95",
     "we_sensitivity_mv_ppb": "0.247543",
     "we_sensitivity_na_ppb": "-0.3391",
-    "we_sensor_zero_mv": "-29.491999999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.491999999999997"
   },
   "202440339": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.578000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.257982",
     "we_sensitivity_na_ppb": "-0.3534",
-    "we_sensor_zero_mv": "-22.557",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.557"
   },
   "202440340": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.41",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.27448",
     "we_sensitivity_na_ppb": "-0.376",
-    "we_sensor_zero_mv": "-22.338",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.338"
   },
   "202440341": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.147",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.22776",
     "we_sensitivity_na_ppb": "-0.312",
-    "we_sensor_zero_mv": "-20.002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.002"
   },
   "202440342": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.796999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23425699999999997",
     "we_sensitivity_na_ppb": "-0.32089999999999996",
-    "we_sensor_zero_mv": "-21.608",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.608"
   },
   "202440343": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.584999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.2336",
     "we_sensitivity_na_ppb": "-0.32",
-    "we_sensor_zero_mv": "-19.564",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.564"
   },
   "202440344": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.534",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.249368",
     "we_sensitivity_na_ppb": "-0.3416",
-    "we_sensor_zero_mv": "-19.783",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.783"
   },
   "202440345": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.403",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.27031900000000003",
     "we_sensitivity_na_ppb": "-0.3703",
-    "we_sensor_zero_mv": "-23.944",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-23.944"
   },
   "202440346": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.41",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.24922199999999997",
     "we_sensitivity_na_ppb": "-0.3414",
-    "we_sensor_zero_mv": "-27.593999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-27.593999999999998"
   },
   "202440347": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.927999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.244988",
     "we_sensitivity_na_ppb": "-0.3356",
-    "we_sensor_zero_mv": "-20.221",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.221"
   },
   "202440348": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.629",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.253383",
     "we_sensitivity_na_ppb": "-0.3471",
-    "we_sensor_zero_mv": "-17.52",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.52"
   },
   "202440349": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.636",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.227614",
     "we_sensitivity_na_ppb": "-0.3118",
-    "we_sensor_zero_mv": "-20.002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.002"
   },
   "202440354": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.016",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.242579",
     "we_sensitivity_na_ppb": "-0.3323",
-    "we_sensor_zero_mv": "-22.557",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.557"
   },
   "202560427": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.241999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.280977",
     "we_sensitivity_na_ppb": "-0.38489999999999996",
-    "we_sensor_zero_mv": "-18.907",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-18.907"
   },
   "202560428": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.366",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.281707",
     "we_sensitivity_na_ppb": "-0.38589999999999997",
-    "we_sensor_zero_mv": "-17.52",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.52"
   },
   "202560430": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.921",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0",
     "we_cross_sensitivity_no2_na_ppb": "0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.280101",
     "we_sensitivity_na_ppb": "-0.3837",
-    "we_sensor_zero_mv": "-22.995",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.995"
   },
   "204160142": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-20.023899999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3647883",
     "we_cross_sensitivity_no2_na_ppb": "-0.49971",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3251712",
     "we_sensitivity_na_ppb": "-0.44544",
-    "we_sensor_zero_mv": "-13.8116",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-13.8116"
   },
   "204160143": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-20.2502",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.382739",
     "we_cross_sensitivity_no2_na_ppb": "-0.5243",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.35222499999999995",
     "we_sensitivity_na_ppb": "-0.4825",
-    "we_sensor_zero_mv": "-24.163",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-24.163"
   },
   "204160144": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.4978",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4401608",
     "we_cross_sensitivity_no2_na_ppb": "-0.60296",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3387784",
     "we_sensitivity_na_ppb": "-0.46408",
-    "we_sensor_zero_mv": "-19.7903",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.7903"
   },
   "204160146": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.104100000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3828558",
     "we_cross_sensitivity_no2_na_ppb": "-0.52446",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.33235439999999994",
     "we_sensitivity_na_ppb": "-0.45527999999999996",
-    "we_sensor_zero_mv": "-24.856499999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-24.856499999999997"
   },
   "204160147": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.3374",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4062158",
     "we_cross_sensitivity_no2_na_ppb": "-0.5564600000000001",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3238134",
     "we_sensitivity_na_ppb": "-0.44358",
-    "we_sensor_zero_mv": "-15.8775",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-15.8775"
   },
   "204160148": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.1111",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4075955",
     "we_cross_sensitivity_no2_na_ppb": "-0.55835",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.320105",
     "we_sensitivity_na_ppb": "-0.4385",
-    "we_sensor_zero_mv": "-20.2502",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.2502"
   },
   "204160149": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.5048",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.38492899999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.5273",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.35630569999999995",
     "we_sensitivity_na_ppb": "-0.48808999999999997",
-    "we_sensor_zero_mv": "1.1534",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "1.1534"
   },
   "204160150": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.1843",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.36340859999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.49782",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.33275589999999994",
     "we_sensitivity_na_ppb": "-0.45582999999999996",
-    "we_sensor_zero_mv": "-20.4838",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.4838"
   },
   "204160151": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.264499999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.38757159999999996",
     "we_cross_sensitivity_no2_na_ppb": "-0.53092",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3514001",
     "we_sensitivity_na_ppb": "-0.48137",
-    "we_sensor_zero_mv": "-6.4459",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-6.4459"
   },
   "204160152": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-22.097099999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4156474",
     "we_cross_sensitivity_no2_na_ppb": "-0.56938",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3069212",
     "we_sensitivity_na_ppb": "-0.42044",
-    "we_sensor_zero_mv": "-20.9437",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.9437"
   },
   "204160153": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.104100000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4479864",
     "we_cross_sensitivity_no2_na_ppb": "-0.61368",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3353839",
     "we_sensitivity_na_ppb": "-0.45943",
-    "we_sensor_zero_mv": "-21.8635",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.8635"
   },
   "204160154": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.7973",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.40517919999999996",
     "we_cross_sensitivity_no2_na_ppb": "-0.55504",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3431292",
     "we_sensitivity_na_ppb": "-0.47004",
-    "we_sensor_zero_mv": "-13.578000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-13.578000000000001"
   },
   "204160155": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.0379",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.376753",
     "we_cross_sensitivity_no2_na_ppb": "-0.5161",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3029354",
     "we_sensitivity_na_ppb": "-0.41498",
-    "we_sensor_zero_mv": "-11.0449",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-11.0449"
   },
   "204160156": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.570999999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.39160120000000004",
     "we_cross_sensitivity_no2_na_ppb": "-0.53644",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.29959199999999997",
     "we_sensitivity_na_ppb": "-0.4104",
-    "we_sensor_zero_mv": "-4.3727",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-4.3727"
   },
   "204160157": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.651200000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.38607509999999995",
     "we_cross_sensitivity_no2_na_ppb": "-0.52887",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3574737",
     "we_sensitivity_na_ppb": "-0.48969",
-    "we_sensor_zero_mv": "-21.6372",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.6372"
   },
   "204160158": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.1251",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3936744",
     "we_cross_sensitivity_no2_na_ppb": "-0.53928",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.35708680000000004",
     "we_sensitivity_na_ppb": "-0.48916000000000004",
-    "we_sensor_zero_mv": "-17.4908",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.4908"
   },
   "204160159": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.4176",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4064421",
     "we_cross_sensitivity_no2_na_ppb": "-0.55677",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.34535569999999993",
     "we_sensitivity_na_ppb": "-0.47308999999999996",
-    "we_sensor_zero_mv": "-14.2715",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-14.2715"
   },
   "204160160": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.4908",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3825127",
     "we_cross_sensitivity_no2_na_ppb": "-0.52399",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.30938859999999996",
     "we_sensitivity_na_ppb": "-0.42382",
-    "we_sensor_zero_mv": "-20.023899999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.023899999999998"
   },
   "204160162": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.8116",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.40460250000000003",
     "we_cross_sensitivity_no2_na_ppb": "-0.55425",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.34336279999999997",
     "we_sensitivity_na_ppb": "-0.47036",
-    "we_sensor_zero_mv": "-14.2715",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-14.2715"
   },
   "204160163": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.957699999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.42588929999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.58341",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3357635",
     "we_sensitivity_na_ppb": "-0.45994999999999997",
-    "we_sensor_zero_mv": "-21.8635",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.8635"
   },
   "204560314": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.584999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3700808",
     "we_cross_sensitivity_no2_na_ppb": "-0.50696",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.32584280000000004",
     "we_sensitivity_na_ppb": "-0.44636000000000003",
-    "we_sensor_zero_mv": "-16.7973",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-16.7973"
   },
   "204560315": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.8116",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.34430449999999996",
     "we_cross_sensitivity_no2_na_ppb": "-0.47164999999999996",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3077534",
     "we_sensitivity_na_ppb": "-0.42158",
-    "we_sensor_zero_mv": "-17.264499999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.264499999999998"
   },
   "204560316": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.4978",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3403917",
     "we_cross_sensitivity_no2_na_ppb": "-0.46629000000000004",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3161776",
     "we_sensitivity_na_ppb": "-0.43312",
-    "we_sensor_zero_mv": "-17.0309",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.0309"
   },
   "204702946": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.3656999999999995",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.47503290000000004",
     "we_cross_sensitivity_no2_na_ppb": "-0.65073",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3314857",
     "we_sensitivity_na_ppb": "-0.45409",
-    "we_sensor_zero_mv": "-12.8918",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-12.8918"
   },
   "204702947": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.285499999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.46881330000000004",
     "we_cross_sensitivity_no2_na_ppb": "-0.6422100000000001",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.32582819999999996",
     "we_sensitivity_na_ppb": "-0.44633999999999996",
-    "we_sensor_zero_mv": "-10.584999999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-10.584999999999999"
   },
   "204702948": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.4389",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4601847",
     "we_cross_sensitivity_no2_na_ppb": "-0.63039",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3169368",
     "we_sensitivity_na_ppb": "-0.43416000000000005",
-    "we_sensor_zero_mv": "-8.979000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-8.979000000000001"
   },
   "204702949": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.358699999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.41139149999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.56355",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3402092",
     "we_sensitivity_na_ppb": "-0.46604",
-    "we_sensor_zero_mv": "-17.7244",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.7244"
   },
   "204702950": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.3656999999999995",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.44189090000000003",
     "we_cross_sensitivity_no2_na_ppb": "-0.60533",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.34334089999999995",
     "we_sensitivity_na_ppb": "-0.47032999999999997",
-    "we_sensor_zero_mv": "-14.4978",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-14.4978"
   },
   "204702951": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-6.6722",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4574253",
     "we_cross_sensitivity_no2_na_ppb": "-0.62661",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.34817349999999997",
     "we_sensitivity_na_ppb": "-0.47695",
-    "we_sensor_zero_mv": "-11.0449",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-11.0449"
   },
   "204702952": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.658199999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.41749429999999993",
     "we_cross_sensitivity_no2_na_ppb": "-0.5719099999999999",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3065489",
     "we_sensitivity_na_ppb": "-0.41993",
-    "we_sensor_zero_mv": "-15.651200000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-15.651200000000001"
   },
   "204702953": {
     "ae_electronic_zero_mv": "228.73",
     "ae_sensor_zero_mv": "-11.0449",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4787121",
     "we_cross_sensitivity_no2_na_ppb": "-0.65577",
     "we_electronic_zero_mv": "221.78",
     "we_sensitivity_mv_ppb": "0.3448228",
     "we_sensitivity_na_ppb": "-0.47236",
-    "we_sensor_zero_mv": "-15.191299999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-15.191299999999998"
   },
   "204702954": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.0519",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4634039999999999",
     "we_cross_sensitivity_no2_na_ppb": "-0.6347999999999999",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.33524519999999997",
     "we_sensitivity_na_ppb": "-0.45924",
-    "we_sensor_zero_mv": "-11.0449",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-11.0449"
   },
   "204702955": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.658199999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.45132249999999996",
     "we_cross_sensitivity_no2_na_ppb": "-0.61825",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3290913",
     "we_sensitivity_na_ppb": "-0.45081",
-    "we_sensor_zero_mv": "-16.1111",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-16.1111"
   },
   "204702957": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.7454",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.44557009999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.61037",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.35953959999999996",
     "we_sensitivity_na_ppb": "-0.49251999999999996",
-    "we_sensor_zero_mv": "-19.7903",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.7903"
   },
   "204702959": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.578000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3956308",
     "we_cross_sensitivity_no2_na_ppb": "-0.54196",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3057605",
     "we_sensitivity_na_ppb": "-0.41885",
-    "we_sensor_zero_mv": "-19.104100000000003",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.104100000000003"
   },
   "204702960": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.5191",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4780186",
     "we_cross_sensitivity_no2_na_ppb": "-0.6548200000000001",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3221928",
     "we_sensitivity_na_ppb": "-0.44136000000000003",
-    "we_sensor_zero_mv": "-7.132099999999999",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-7.132099999999999"
   },
   "204702961": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.1251",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4651341",
     "we_cross_sensitivity_no2_na_ppb": "-0.63717",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.31838219999999995",
     "we_sensitivity_na_ppb": "-0.43613999999999997",
-    "we_sensor_zero_mv": "-3.2193",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-3.2193"
   },
   "204702962": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.5191",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4721494",
     "we_cross_sensitivity_no2_na_ppb": "-0.64678",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3422824",
     "we_sensitivity_na_ppb": "-0.46888",
-    "we_sensor_zero_mv": "-12.4246",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-12.4246"
   },
   "202440338\u001b": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.396",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.247543",
     "we_sensitivity_na_ppb": "-0.3391",
-    "we_sensor_zero_mv": "-29.491999999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.491999999999997"
   },
   "162700902": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "15.600000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.40584",
     "we_sensitivity_na_ppb": "0.5073",
-    "we_sensor_zero_mv": "-44.400000000000006",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-44.400000000000006"
   },
   "162700905": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "2.5600000000000005",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46192000000000005",
     "we_sensitivity_na_ppb": "0.5774",
-    "we_sensor_zero_mv": "-38.88",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-38.88"
   },
   "162700906": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-1.7600000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45312",
     "we_sensitivity_na_ppb": "0.5664",
-    "we_sensor_zero_mv": "-28.0",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-28.0"
   },
   "162700907": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.88",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4592",
     "we_sensitivity_na_ppb": "0.574",
-    "we_sensor_zero_mv": "-53.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.2"
   },
   "162700908": {
     "ae_electronic_zero_mv": "253.98",
     "ae_sensor_zero_mv": "-10.56",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "350.21",
     "we_sensitivity_mv_ppb": "0.47303999999999996",
     "we_sensitivity_na_ppb": "0.5912999999999999",
-    "we_sensor_zero_mv": "-41.6",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-41.6"
   },
   "162700909": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-3.7600000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.40456000000000003",
     "we_sensitivity_na_ppb": "0.5057",
-    "we_sensor_zero_mv": "-82.48",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-82.48"
   },
   "162700910": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.16",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.40368000000000004",
     "we_sensitivity_na_ppb": "0.5046",
-    "we_sensor_zero_mv": "-53.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.2"
   },
   "162700911": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.56",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4157600000000001",
     "we_sensitivity_na_ppb": "0.5197",
-    "we_sensor_zero_mv": "-63.84",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-63.84"
   },
   "162700912": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "9.36",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4108800000000001",
     "we_sensitivity_na_ppb": "0.5136000000000001",
-    "we_sensor_zero_mv": "-26.960000000000004",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-26.960000000000004"
   },
   "162700914": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "20.400000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.42432000000000003",
     "we_sensitivity_na_ppb": "0.5304",
-    "we_sensor_zero_mv": "-54.24",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-54.24"
   },
   "162700915": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "22.480000000000004",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46432000000000007",
     "we_sensitivity_na_ppb": "0.5804",
-    "we_sensor_zero_mv": "-73.36",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-73.36"
   },
   "162700916": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "0.7200000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.43448000000000003",
     "we_sensitivity_na_ppb": "0.5431",
-    "we_sensor_zero_mv": "-22.480000000000004",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.480000000000004"
   },
   "162700917": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.880000000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.39208000000000004",
     "we_sensitivity_na_ppb": "0.49010000000000004",
-    "we_sensor_zero_mv": "-53.44",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.44"
   },
   "162700918": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "16.400000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.41",
     "we_sensitivity_na_ppb": "0.5125",
-    "we_sensor_zero_mv": "-26.72",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-26.72"
   },
   "162700919": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "3.28",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.40712000000000004",
     "we_sensitivity_na_ppb": "0.5089",
-    "we_sensor_zero_mv": "-84.24000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-84.24000000000001"
   },
   "202365010": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.241999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.244988",
     "we_sensitivity_na_ppb": "-0.3356",
-    "we_sensor_zero_mv": "-21.9",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.9"
   },
   "202365011": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.41",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.251777",
     "we_sensitivity_na_ppb": "-0.3449",
-    "we_sensor_zero_mv": "-20.732",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-20.732"
   },
   "202365012": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.584999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.265793",
     "we_sensitivity_na_ppb": "-0.36410000000000003",
-    "we_sensor_zero_mv": "-18.177",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-18.177"
   },
   "202365013": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.228",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.280101",
     "we_sensitivity_na_ppb": "-0.3837",
-    "we_sensor_zero_mv": "-17.739",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.739"
   },
   "202365014": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.403",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.258347",
     "we_sensitivity_na_ppb": "-0.3539",
-    "we_sensor_zero_mv": "-28.105",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-28.105"
   },
   "202365015": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.190999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.269954",
     "we_sensitivity_na_ppb": "-0.3698",
-    "we_sensor_zero_mv": "-29.711000000000002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.711000000000002"
   },
   "202365016": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.147",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.27813",
     "we_sensitivity_na_ppb": "-0.381",
-    "we_sensor_zero_mv": "-18.907",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-18.907"
   },
   "202365017": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.927999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.263895",
     "we_sensitivity_na_ppb": "-0.3615",
-    "we_sensor_zero_mv": "-21.169999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.169999999999998"
   },
   "202365018": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.023",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.250171",
     "we_sensitivity_na_ppb": "-0.3427",
-    "we_sensor_zero_mv": "-16.570999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-16.570999999999998"
   },
   "202365019": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.921",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.252142",
     "we_sensitivity_na_ppb": "-0.3454",
-    "we_sensor_zero_mv": "-22.995",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.995"
   },
   "202702011": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.03",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.259004",
     "we_sensitivity_na_ppb": "-0.3548",
-    "we_sensor_zero_mv": "-21.169999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.169999999999998"
   },
   "202702012": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.796999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.27856800000000004",
     "we_sensitivity_na_ppb": "-0.38160000000000005",
-    "we_sensor_zero_mv": "-29.711000000000002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.711000000000002"
   },
   "202702013": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-20.221",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.259369",
     "we_sensitivity_na_ppb": "-0.3553",
-    "we_sensor_zero_mv": "-40.077",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-40.077"
   },
   "202702014": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.745999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.27813",
     "we_sensitivity_na_ppb": "-0.381",
-    "we_sensor_zero_mv": "-29.711000000000002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.711000000000002"
   },
   "202702015": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.359",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.272874",
     "we_sensitivity_na_ppb": "-0.3738",
-    "we_sensor_zero_mv": "-29.711000000000002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.711000000000002"
   },
   "202702016": {
     "ae_electronic_zero_mv": "242.73",
     "ae_sensor_zero_mv": "-16.133",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "240.36",
     "we_sensitivity_mv_ppb": "0.299738",
     "we_sensitivity_na_ppb": "-0.4106",
-    "we_sensor_zero_mv": "-42.339999999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-42.339999999999996"
   },
   "202702017": {
     "ae_electronic_zero_mv": "233.62",
     "ae_sensor_zero_mv": "-19.564",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "229.03",
     "we_sensitivity_mv_ppb": "0.253018",
     "we_sensitivity_na_ppb": "-0.3466",
-    "we_sensor_zero_mv": "-35.696999999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-35.696999999999996"
   },
   "202702018": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.133",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.24615599999999999",
     "we_sensitivity_na_ppb": "-0.3372",
-    "we_sensor_zero_mv": "-34.528999999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-34.528999999999996"
   },
   "202702020": {
     "ae_electronic_zero_mv": "219.2",
     "ae_sensor_zero_mv": "-17.52",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "244.15",
     "we_sensitivity_mv_ppb": "0.297475",
     "we_sensitivity_na_ppb": "-0.4075",
-    "we_sensor_zero_mv": "-40.733999999999995",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-40.733999999999995"
   },
   "202702021": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.52",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.24301699999999998",
     "we_sensitivity_na_ppb": "-0.3329",
-    "we_sensor_zero_mv": "-29.93",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.93"
   },
   "202702024": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.914",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.288058",
     "we_sensitivity_na_ppb": "-0.3946",
-    "we_sensor_zero_mv": "-32.485",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-32.485"
   },
   "202702025": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.739",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.273896",
     "we_sensitivity_na_ppb": "-0.3752",
-    "we_sensor_zero_mv": "-38.178999999999995",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-38.178999999999995"
   },
   "202702026": {
     "ae_electronic_zero_mv": "229.91",
     "ae_sensor_zero_mv": "-12.41",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "218.75",
     "we_sensitivity_mv_ppb": "0.263895",
     "we_sensitivity_na_ppb": "-0.3615",
-    "we_sensor_zero_mv": "-25.331000000000003",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-25.331000000000003"
   },
   "202702027": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.009",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.246813",
     "we_sensitivity_na_ppb": "-0.3381",
-    "we_sensor_zero_mv": "-31.755",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-31.755"
   },
   "202702028": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.753",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.26061",
     "we_sensitivity_na_ppb": "-0.357",
-    "we_sensor_zero_mv": "-35.186",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-35.186"
   },
   "202702029": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.359",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.28265599999999996",
     "we_sensitivity_na_ppb": "-0.3872",
-    "we_sensor_zero_mv": "-31.755",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-31.755"
   },
   "202702030": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-15.184",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.273896",
     "we_sensitivity_na_ppb": "-0.3752",
-    "we_sensor_zero_mv": "-29.491999999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.491999999999997"
   },
   "202702031": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-12.921",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.28185299999999996",
     "we_sensitivity_na_ppb": "-0.3861",
-    "we_sensor_zero_mv": "-28.761999999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-28.761999999999997"
   },
   "202702032": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.615",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.29287599999999997",
     "we_sensitivity_na_ppb": "-0.4012",
-    "we_sensor_zero_mv": "-29.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.2"
   },
   "202702034": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.783",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.25221499999999997",
     "we_sensitivity_na_ppb": "-0.3455",
-    "we_sensor_zero_mv": "-31.316999999999997",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-31.316999999999997"
   },
   "202702035": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-17.52",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.25958800000000004",
     "we_sensitivity_na_ppb": "-0.3556",
-    "we_sensor_zero_mv": "-31.536",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-31.536"
   },
   "202702036": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.527",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.267107",
     "we_sensitivity_na_ppb": "-0.3659",
-    "we_sensor_zero_mv": "-30.587",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-30.587"
   },
   "202702038": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.570999999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.255135",
     "we_sensitivity_na_ppb": "-0.3495",
-    "we_sensor_zero_mv": "-40.077",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-40.077"
   },
   "202702039": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.125999999999998",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.295869",
     "we_sensitivity_na_ppb": "-0.4053",
-    "we_sensor_zero_mv": "-40.733999999999995",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-40.733999999999995"
   },
   "202702040": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-20.513",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.291343",
     "we_sensitivity_na_ppb": "-0.3991",
-    "we_sensor_zero_mv": "-33.141999999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-33.141999999999996"
   },
   "202702041": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-8.979000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.246375",
     "we_sensitivity_na_ppb": "-0.3375",
-    "we_sensor_zero_mv": "-25.331000000000003",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-25.331000000000003"
   },
   "202702042": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-13.796999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.261194",
     "we_sensitivity_na_ppb": "-0.3578",
-    "we_sensor_zero_mv": "-23.506",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-23.506"
   },
   "202702043": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.753",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.262362",
     "we_sensitivity_na_ppb": "-0.3594",
-    "we_sensor_zero_mv": "-34.528999999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-34.528999999999996"
   },
   "202702044": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.366",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.262727",
     "we_sensitivity_na_ppb": "-0.3599",
-    "we_sensor_zero_mv": "-30.587",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-30.587"
   },
   "162892756": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.36",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45208000000000004",
     "we_sensitivity_na_ppb": "0.5651",
-    "we_sensor_zero_mv": "-59.28",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-59.28"
   },
   "162892757": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-21.44",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.43823999999999996",
     "we_sensitivity_na_ppb": "0.5478",
-    "we_sensor_zero_mv": "-66.32000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-66.32000000000001"
   },
   "162892758": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-52.24",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.42056000000000004",
     "we_sensitivity_na_ppb": "0.5257000000000001",
-    "we_sensor_zero_mv": "-61.760000000000005",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-61.760000000000005"
   },
   "162892759": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-19.200000000000003",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.42144",
     "we_sensitivity_na_ppb": "0.5267999999999999",
-    "we_sensor_zero_mv": "-53.2",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-53.2"
   },
   "162892760": {
     "ae_electronic_zero_mv": "346.86",
     "ae_sensor_zero_mv": "-16.400000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "144.59",
     "we_sensitivity_mv_ppb": "0.4581600000000001",
     "we_sensitivity_na_ppb": "0.5727000000000001",
-    "we_sensor_zero_mv": "-81.68",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-81.68"
   },
   "162892761": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-29.04",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4676",
     "we_sensitivity_na_ppb": "0.5845",
-    "we_sensor_zero_mv": "-90.56",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-90.56"
   },
   "162892762": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.28",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.45208000000000004",
     "we_sensitivity_na_ppb": "0.5651",
-    "we_sensor_zero_mv": "-61.760000000000005",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-61.760000000000005"
   },
   "162892763": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-16.400000000000002",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.44960000000000006",
     "we_sensitivity_na_ppb": "0.562",
-    "we_sensor_zero_mv": "-48.400000000000006",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-48.400000000000006"
   },
   "162892764": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.040000000000001",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46776",
     "we_sensitivity_na_ppb": "0.5847",
-    "we_sensor_zero_mv": "-85.76",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-85.76"
   },
   "162893644": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-24.96",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4848",
     "we_sensitivity_na_ppb": "0.606",
-    "we_sensor_zero_mv": "-91.04",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-91.04"
   },
   "162893645": {
     "ae_electronic_zero_mv": "338.54",
     "ae_sensor_zero_mv": "-10.56",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "351.25",
     "we_sensitivity_mv_ppb": "0.50024",
     "we_sensitivity_na_ppb": "0.6253",
-    "we_sensor_zero_mv": "-66.08",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-66.08"
   },
   "162893646": {
     "ae_electronic_zero_mv": "343.65",
     "ae_sensor_zero_mv": "-33.760000000000005",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "341.88",
     "we_sensitivity_mv_ppb": "0.46304",
     "we_sensitivity_na_ppb": "0.5788",
-    "we_sensor_zero_mv": "-74.88",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-74.88"
   },
   "162893647": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.36",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.47480000000000006",
     "we_sensitivity_na_ppb": "0.5935",
-    "we_sensor_zero_mv": "-80.96000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-80.96000000000001"
   },
   "162893648": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-36.800000000000004",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.46343999999999996",
     "we_sensitivity_na_ppb": "0.5792999999999999",
-    "we_sensor_zero_mv": "-131.68",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-131.68"
   },
   "162893650": {
     "ae_electronic_zero_mv": "359.7",
     "ae_sensor_zero_mv": "-12.32",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "0.8",
     "we_cross_sensitivity_no2_mv_ppb": "0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "350.27",
     "we_sensitivity_mv_ppb": "0.44023999999999996",
     "we_sensitivity_na_ppb": "0.5502999999999999",
-    "we_sensor_zero_mv": "-62.32000000000001",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-62.32000000000001"
   },
   "202440350": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.023",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23812599999999998",
     "we_sensitivity_na_ppb": "-0.3262",
-    "we_sensor_zero_mv": "-19.564",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-19.564"
   },
   "202440351": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.366",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.23038800000000004",
     "we_sensitivity_na_ppb": "-0.31560000000000005",
-    "we_sensor_zero_mv": "-17.228",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-17.228"
   },
   "202440352": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-11.241999999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.251777",
     "we_sensitivity_na_ppb": "-0.3449",
-    "we_sensor_zero_mv": "-16.570999999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-16.570999999999998"
   },
   "202440353": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.804",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "-0.0",
     "we_cross_sensitivity_no2_na_ppb": "0.0",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.253164",
     "we_sensitivity_na_ppb": "-0.3468",
-    "we_sensor_zero_mv": "-18.177",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-18.177"
   },
   "204440527": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.4389",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3619413",
     "we_cross_sensitivity_no2_na_ppb": "-0.49581000000000003",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.37284019999999995",
     "we_sensitivity_na_ppb": "-0.51074",
-    "we_sensor_zero_mv": "-23.0169",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-23.0169"
   },
   "204440528": {
     "ae_electronic_zero_mv": "224.25",
     "ae_sensor_zero_mv": "-2.7594",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3644598",
     "we_cross_sensitivity_no2_na_ppb": "-0.49926",
     "we_electronic_zero_mv": "252.81",
     "we_sensitivity_mv_ppb": "0.41116519999999995",
     "we_sensitivity_na_ppb": "-0.56324",
-    "we_sensor_zero_mv": "-24.163",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-24.163"
   },
   "204440529": {
     "ae_electronic_zero_mv": "241.09",
     "ae_sensor_zero_mv": "2.993",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3692048",
     "we_cross_sensitivity_no2_na_ppb": "-0.50576",
     "we_electronic_zero_mv": "237.28",
     "we_sensitivity_mv_ppb": "0.42221010000000003",
     "we_sensitivity_na_ppb": "-0.57837",
-    "we_sensor_zero_mv": "-12.8918",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-12.8918"
   },
   "204440530": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "2.5331",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3577511",
     "we_cross_sensitivity_no2_na_ppb": "-0.49007",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3936744",
     "we_sensitivity_na_ppb": "-0.53928",
-    "we_sensor_zero_mv": "-21.8635",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-21.8635"
   },
   "204440531": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-10.8186",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3504803",
     "we_cross_sensitivity_no2_na_ppb": "-0.48011000000000004",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3901047",
     "we_sensitivity_na_ppb": "-0.53439",
-    "we_sensor_zero_mv": "-26.4698",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-26.4698"
   },
   "204440532": {
     "ae_electronic_zero_mv": "230.09",
     "ae_sensor_zero_mv": "-9.2053",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3609704",
     "we_cross_sensitivity_no2_na_ppb": "-0.49448000000000003",
     "we_electronic_zero_mv": "226.55",
     "we_sensitivity_mv_ppb": "0.4127712",
     "we_sensitivity_na_ppb": "-0.56544",
-    "we_sensor_zero_mv": "-23.0169",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-23.0169"
   },
   "204440533": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-9.8988",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.38400919999999994",
     "we_cross_sensitivity_no2_na_ppb": "-0.52604",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.3684675",
     "we_sensitivity_na_ppb": "-0.50475",
-    "we_sensor_zero_mv": "-28.535700000000002",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-28.535700000000002"
   },
   "204440534": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.731399999999999",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.37708149999999996",
     "we_cross_sensitivity_no2_na_ppb": "-0.51655",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.37916929999999993",
     "we_sensitivity_na_ppb": "-0.5194099999999999",
-    "we_sensor_zero_mv": "-25.55",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-25.55"
   },
   "204440535": {
     "ae_electronic_zero_mv": "216.7",
     "ae_sensor_zero_mv": "-12.4246",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.35520339999999995",
     "we_cross_sensitivity_no2_na_ppb": "-0.48657999999999996",
     "we_electronic_zero_mv": "216.72",
     "we_sensitivity_mv_ppb": "0.3531667",
     "we_sensitivity_na_ppb": "-0.48379",
-    "we_sensor_zero_mv": "-26.4698",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-26.4698"
   },
   "204440536": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-14.0379",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3569773",
     "we_cross_sensitivity_no2_na_ppb": "-0.48901",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.388725",
     "we_sensitivity_na_ppb": "-0.5325",
-    "we_sensor_zero_mv": "-31.0688",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-31.0688"
   },
   "204440537": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-0.2336",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3591454",
     "we_cross_sensitivity_no2_na_ppb": "-0.49198000000000003",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.4125449",
     "we_sensitivity_na_ppb": "-0.56513",
-    "we_sensor_zero_mv": "-27.615899999999996",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-27.615899999999996"
   },
   "204440538": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "11.2785",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.33434",
     "we_cross_sensitivity_no2_na_ppb": "-0.458",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.35132709999999995",
     "we_sensitivity_na_ppb": "-0.48127",
-    "we_sensor_zero_mv": "-27.3896",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-27.3896"
   },
   "204440539": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-1.8396",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.34887429999999997",
     "we_cross_sensitivity_no2_na_ppb": "-0.47791",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.38952800000000004",
     "we_sensitivity_na_ppb": "-0.5336000000000001",
-    "we_sensor_zero_mv": "-23.9367",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-23.9367"
   },
   "204440540": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-7.592",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.3427861",
     "we_cross_sensitivity_no2_na_ppb": "-0.46957",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.39701050000000004",
     "we_sensitivity_na_ppb": "-0.5438500000000001",
-    "we_sensor_zero_mv": "-29.462799999999998",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-29.462799999999998"
   },
   "204440541": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-5.0662",
-    "ae_total_zero_mv": "",
     "pcb_gain_mv_na": "-0.73",
     "we_cross_sensitivity_no2_mv_ppb": "0.4022227",
     "we_cross_sensitivity_no2_na_ppb": "-0.55099",
     "we_electronic_zero_mv": "",
     "we_sensitivity_mv_ppb": "0.38435230000000004",
     "we_sensitivity_na_ppb": "-0.52651",
-    "we_sensor_zero_mv": "-22.3234",
-    "we_total_zero_mv": ""
+    "we_sensor_zero_mv": "-22.3234"
   }
 }
