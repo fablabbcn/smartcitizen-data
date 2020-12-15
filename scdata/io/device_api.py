@@ -317,10 +317,12 @@ class ScApiDevice:
 
         if self.postprocessing_info is None or update:
             try:
-                deviceR = get(self.API_BASE_URL + '{}/postprocessing_info'.format(self.id))
+                deviceR = get(self.API_BASE_URL + '{}'.format(self.id))
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
-                    self.postprocessing_info = deviceR.json()
-                    std_out(postprocessing_info, 'ERROR')
+                    if 'postprocessing_info' in deviceR.json():
+                        self.postprocessing_info = deviceR.json()['postprocessing_info']
+                    else:
+                        std_out('Request OK, but no postprocessing_info', 'ERROR')
                 else:
                     std_out('API reported {} when loading postprocessing information'.format(deviceR.status_code), 'WARNING')
             except:
