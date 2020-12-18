@@ -59,8 +59,10 @@ class Device(object):
             self.hw_loaded_from_url = False
 
 
-        self.descriptor = descriptor
+        self._descriptor = descriptor
         self.set_descriptor_attrs()
+
+        if self.id is not None: self.id = str(self.id)
 
         # Add API handler if needed
         if self.source == 'api':
@@ -97,11 +99,11 @@ class Device(object):
     def set_descriptor_attrs(self):
 
         # Descriptor attributes
-        for ditem in self.descriptor.keys():
+        for ditem in self._descriptor.keys():
             if ditem not in vars(self): std_out (f'Ignoring {ditem} from input', 'WARNING'); continue
             if type(self.__getattribute__(ditem)) == dict:
-                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self.descriptor[ditem]))
-            else: self.__setattr__(ditem, self.descriptor[ditem])
+                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self._descriptor[ditem]))
+            else: self.__setattr__(ditem, self._descriptor[ditem])
 
     def check_overrides(self, options = {}):
         
