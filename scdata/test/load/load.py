@@ -24,7 +24,7 @@ def load(self, options = dict()):
                 Cache or not newly downloaded API data for future test loads
 
                 clean_na: String
-                Default: 'fill_na'
+                Default: None
                 Clean NaN as pandas format. Possibilities: 'fill_na', 'drop_na' or None
 
                 frequency: String (timedelta format: https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags)
@@ -38,8 +38,6 @@ def load(self, options = dict()):
                 max_date: String or datetime
                 Default: None
                 Maximum date to load data to
-
-
         Returns
         ----------
             None

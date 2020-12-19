@@ -35,7 +35,9 @@ class Config(object):
             'store_cached_api': True, 
             # If reloading data from the API, how much gap between the saved data and the
             # latest reading in the API should be ignore
-            'cached_data_margin': 6}
+            'cached_data_margin': 1,
+            # clean_na
+            'clean_na': None}
 
     # If using multiple training datasets, how to call the joint df
     _name_multiple_training_data = 'CDEV'
@@ -273,7 +275,7 @@ class Config(object):
                         'max_date': None,
                         'frequency': None,
                         'resample': 'mean',
-                        'clean_na': 'fill',
+                        'clean_na': None,
                         'show': True
                     }
 
@@ -485,9 +487,10 @@ class Config(object):
                  'options',
                  'loaded',
                  'hw_id',
+                 'blueprint_url',
                  'hw_info',
                  'hw_updated_at',
-                 '_descriptor',
+                 'description',
                  'latest_postprocessing',
                  'blueprint_loaded_from_url',
                  'hw_loaded_from_url',

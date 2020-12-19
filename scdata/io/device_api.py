@@ -429,36 +429,19 @@ class ScApiDevice:
 
         if self.location is None: return None
 
-        # Check start date
-        # if start_date is None and self.added_at is not None:
-        #     start_date = localise_date(to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
-        #     # to_datetime(self.added_at, format = '%Y-%m-%dT%H:%M:%SZ')
-        # elif start_date is not None:
-        #     start_date = to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ')
+        # Check start date and end date
+        # Converting to UTC by passing None
+        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
         if start_date is not None:
-            start_date = localise_date(to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
-        
-        # if start_date.tzinfo is None: start_date = start_date.tz_localize('UTC').tz_convert(self.location)
+            start_date = localise_date(to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ'), 'UTC')
             std_out (f'Min Date: {start_date}')
         
-        # # Check end date
-        # if end_date is None and self.last_reading_at is not None:
-        #     # end_date = to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ')
-        #     end_date = localise_date(to_datetime(self.last_reading_at, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
-        # elif end_date is not None:
-        #     end_date = to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ')
         if end_date is not None:
-            end_date = localise_date(to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ'), self.location)
-        
-        # if end_date.tzinfo is None: end_date = end_date.tz_localize('UTC').tz_convert(self.location)
-        
+            end_date = localise_date(to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ'), 'UTC')
             std_out (f'Max Date: {end_date}')
 
-        # if start_date > end_date: std_out('Ignoring device dates. Probably SD card device', 'WARNING')
-        
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
-        # if start_date < end_date: std_out(f'Dates: from: {start_date}, to: {end_date}')
         std_out(f'Device timezone: {self.location}')
         if not self.sensors.keys(): 
             std_out(f'Device is empty')

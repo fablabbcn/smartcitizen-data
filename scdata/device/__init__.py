@@ -59,7 +59,7 @@ class Device(object):
             self.hw_loaded_from_url = False
 
 
-        self._descriptor = descriptor
+        self.description = descriptor
         self.set_descriptor_attrs()
 
         if self.id is not None: self.id = str(self.id)
@@ -99,11 +99,11 @@ class Device(object):
     def set_descriptor_attrs(self):
 
         # Descriptor attributes
-        for ditem in self._descriptor.keys():
+        for ditem in self.description.keys():
             if ditem not in vars(self): std_out (f'Ignoring {ditem} from input', 'WARNING'); continue
             if type(self.__getattribute__(ditem)) == dict:
-                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self._descriptor[ditem]))
-            else: self.__setattr__(ditem, self._descriptor[ditem])
+                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self.description[ditem]))
+            else: self.__setattr__(ditem, self.description[ditem])
 
     def check_overrides(self, options = {}):
         
@@ -293,16 +293,16 @@ class Device(object):
         except:
             print_exc()
             self.loaded = False
+        else:
+            if self.readings is not None:
+                self.__check_sensors__()
+                self.__fill_metrics__()
 
-        if self.readings is not None:
-            self.__check_sensors__()
-            self.__fill_metrics__()
-
-            if not self.readings.empty:
-                self.loaded = True
-                if convert_units: self.__convert_units__()
-
-        return self.loaded
+                if not self.readings.empty:
+                    self.loaded = True
+                    if convert_units: self.__convert_units__()
+        finally:
+            return self.loaded
 
     def __fill_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')

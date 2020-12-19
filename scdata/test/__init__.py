@@ -30,7 +30,8 @@ class Test(object):
         self.options = {  
                         'cached_data_margin': config.data['cached_data_margin'],
                         'load_cached_api': config.data['load_cached_api'],
-                        'store_cached_api': config.data['store_cached_api']
+                        'store_cached_api': config.data['store_cached_api'],
+                        'clean_na': config.data['clean_na']
                         }
 
         if self.__check_tname__(name): self.__set_tname__(name)
