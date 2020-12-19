@@ -33,7 +33,7 @@ class Device(object):
             parameter passed here is overriden by that of the API.
 
         descriptor: dict()
-            Default: empty dict
+            Default: empty: std_out('Empty dataframe, ignoring', 'WARNING') dict
             A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
             needs to have different data. If not all the data is present, the corresponding blueprint's default will 
             be used
@@ -550,7 +550,33 @@ class Device(object):
             std_out('Not supported format' ,'ERROR')
             return False
 
-    def post(self, with_post_info = True):
+    def post_sensors(self):
+        '''
+        Posts devices sensors. Only available for parent of ScApiDevice
+        Returns
+        ----------
+            boolean
+            True if posted ok, False otherwise
+        '''
+
+        post_ok = True
+        if self.sources[self.source]['handler'] != 'ScApiDevice':
+            std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
+            return False
+
+        for sensor in self.sensors:
+            std_out(f'Posting sensor: {sensor}')
+            # Get single series for post
+            df = DataFrame(self.readings[sensor])
+            if df.empty: 
+                std_out('Empty dataframe, ignoring', 'WARNING')
+                continue
+            sensor_id = self.sensors[sensor]['id']
+            post_ok &= self.api_device.post_device_data(df, sensor_id = sensor_id)
+
+        return post_ok
+        
+    def post_metrics(self, with_post_info = True):
         '''
         Posts devices metrics. Only available for parent of ScApiDevice
         Parameters

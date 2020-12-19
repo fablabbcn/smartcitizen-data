@@ -17,3 +17,5 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Processing data: [notebooks/04_processing_data.ipynb](notebooks/04_processing_data.ipynb)
 - Sensor calibration: [notebooks/05_sensor_calibration_workflows.ipynb](notebooks/05_sensor_calibration_workflows.ipynb)
 - Zenodo uploads: [notebooks/06_upload_to_zenodo.ipynb](notebooks/06_upload_to_zenodo.ipynb)
+- Query the SC API to find devices: [notebooks/08_querying_the_sc_api.ipynb](notebooks/08_querying_the_sc_api.ipynb)
+- Load and post data (concatenating SD card data too): [notebooks/09_load_and_post.ipynb](notebooks/09_load_and_post.ipynb)

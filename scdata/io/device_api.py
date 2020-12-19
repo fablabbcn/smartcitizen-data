@@ -550,11 +550,11 @@ class ScApiDevice:
             -------
                 True if the data was posted succesfully
         '''
-        if 'SC_ADMIN_BEARER' not in environ:
+        if 'SC_BEARER' not in environ:
             std_out('Cannot post without Auth Bearer', 'ERROR')
             return
 
-        headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'], 'Content-type': 'application/json'}
+        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
 
         # Get sensor name
         sensor_name = list(df.columns)[0]
@@ -584,6 +584,7 @@ class ScApiDevice:
 
         response = post(f'https://api.smartcitizen.me/v0/devices/{self.id}/readings', data = payload_json, headers = headers)
         if response.status_code == 200 or response.status_code == 201:
+            std_out('Post OK', 'SUCCESS')
             return True
 
         return False
