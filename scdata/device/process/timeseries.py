@@ -83,7 +83,8 @@ def clean_ts(dataframe, **kwargs):
     if 'window_type' in kwargs: win_type = kwargs['window_type']
     else: win_type = None
 
-    result.rolling(window = window, win_type = win_type).mean()
+    if window is not None:
+        result.rolling(window = window, win_type = win_type).mean()
 
     return result
 
