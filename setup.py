@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.2.1',
+    version= '0.2.2',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -26,12 +26,13 @@ setup(
     url='https://github.com/fablabbcn/smartcitizen-data',
     project_urls=PROJECT_URLS,
     long_description = ("""
-        scdata - Module for analysis of sensors and time series data.
+        ## scdata - Analysis of sensors and time series data
 
-        scdata is a framework built with the purpose of *analysis*, *calibration* 
-        and *post-processing* of sensors data, related to any field, but particularly 
-        focused on air-quality data coming from low-cost sensors in the 
-        `Smart Citizen Project <https://www.smartcitizen.me>`__ .
+        `scdata` is a **sensor data analysis framework** built with the purpose of *analysis*, 
+        *calibration* and *post-processing* of sensor data. It is particularly 
+        focused on sensors for environmental monitoring such as the low-cost sensors in the 
+        [Smart Citizen Project](https://www.smartcitizen.me). As such provides
+        tools for workflow automation and sensor calibration.
 
         It aims to unify several sources of data and to provide tools for analysing data by:
 
@@ -42,9 +43,13 @@ setup(
 
     """),
 
+    long_description_content_type='text/markdown',
+
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
+        'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
