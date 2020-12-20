@@ -101,7 +101,103 @@
       "units": "ug/m3",
       "post": true,
       "id": 87
-    }
+    },
+    "CO": {
+      "desc": "Calculation of CO based on AAN 803-04",
+      "id": 152,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    },
+    "NO2": {
+      "desc": "Calculation of NO2 based on AAN 803-04",
+      "id": 153,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    },    
+    "O3": {
+      "desc": "Calculation of O3 based on AAN 803-04",
+      "id": 157,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    }, 
+    "SO2": {
+      "desc": "Calculation of SO2 based on AAN 803-04",
+      "id": 155,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    }, 
+    "NO": {
+      "desc": "Calculation of NO based on AAN 803-04",
+      "id": 154,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    },
+    "H2S": {
+      "desc": "Calculation of H2S based on AAN 803-04",
+      "id": 156,
+        "kwargs": {
+          "ae": null,
+          "alphasense_id": null,
+          "from_date": null,
+          "location": null,
+          "t": "PM_DALLAS_TEMP",
+          "to_date": null,
+          "we": null
+        },
+        "post": true,
+        "process": "alphasense_803_04",
+        "units": "ppb"
+    }    
   },
   "min_date": null,
   "platform_id": 28,
@@ -282,6 +378,11 @@
       "desc": "Urban board temperature (SHT31)",
       "id": "55",
       "units": "degC"
+    },
+    "CO2": {
+      "desc": "External NDIR CO2 (SDC30)",
+      "id": "158",
+      "units": "ppm"
     }
   },
   "source": null,
