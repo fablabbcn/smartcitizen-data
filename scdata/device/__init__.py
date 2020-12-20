@@ -319,44 +319,30 @@ class Device(object):
 
             for slot in self.hw_info[version]["ids"]:
 
-                # Alphasense type
+                # Alphasense type - AAN 803-04
                 if slot.startswith('AS'):
 
                     sensor_id = self.hw_info[version]["ids"][slot]
                     as_type = config._as_sensor_codes[sensor_id[0:3]]
                     pollutant = as_type[as_type.index('_')+1:]
                     if pollutant == 'OX': pollutant = 'O3'
-                    platform_sensor_id = config._platform_sensor_ids[pollutant]
-                    # TODO - USE POLLUTANT OR PLATFORM SENSOR ID?
-                    process = 'alphasense_803_04'
 
+                    # Get working and auxiliary electrode names
                     wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                     aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                    # metric_name = f'{pollutant}_V{version}_S{list(self.hw_info[version]["ids"]).index(slot)}'
-                    metric_name = f'{pollutant}'
-
-                    metric = {metric_name:
-                                        {
-                                            'process': process,
-                                            'desc': f'Calculation of {pollutant} based on AAN 803-04',
-                                            'units': 'ppb', # always for alphasense sensors,
-                                            'id': platform_sensor_id,
-                                            'post': True,
-                                            'kwargs':  {
-                                                        'from_date': from_date,
-                                                        'to_date': to_date,
-                                                        'alphasense_id': str(sensor_id),
-                                                        'we': wen,
-                                                        'ae': aen,
-                                                        't': 'PM_DALLAS_TEMP', # TODO With external temperature?
-                                                        'location': self.location
-                                                        }
-                                        }
-                    }
-
-                self.add_metric(metric)
-
+                    if pollutant not in self.metrics:
+                        # Create Metric
+                        std_out(f'Metric {pollutant} not in blueprint, ignoring.', 'WARNING')
+                    else:
+                        # Simply fill it up
+                        std_out(f'{pollutant} found in blueprint metrics, filling up with hardware info')
+                        self.metrics[pollutant]['kwargs']['we'] = wen
+                        self.metrics[pollutant]['kwargs']['ae'] = aen
+                        self.metrics[pollutant]['kwargs']['location'] = self.location
+                        self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
+                        self.metrics[pollutant]['kwargs']['from_date'] = from_date
+                        self.metrics[pollutant]['kwargs']['to_date'] = to_date
 
     def __check_sensors__(self):
         remove_sensors = list()

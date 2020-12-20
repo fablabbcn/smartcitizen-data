@@ -1,9 +1,9 @@
 from scdata.utils import std_out, get_units_convf, find_dates, localise_date
 from scdata._config import config
-from scdata.device.process import baseline_calc
+from scdata.device.process import baseline_calc, clean_ts
 from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
-from pandas import date_range, DataFrame, Series
+from pandas import date_range, DataFrame, Series, isnull
 
 def alphasense_803_04(dataframe, **kwargs):
     """
@@ -47,6 +47,8 @@ def alphasense_803_04(dataframe, **kwargs):
         return x['we_t'] - cal_data['we_sensor_zero_mv'] / 1000.0 - x['kpp_t']
 
     def comp_t(x, comp_lut):
+        if isnull(x['t']): return None
+
         # Below min temperature, we saturate
         if x['t'] < config._as_t_comp[0]: return comp_lut[0]
 
@@ -54,7 +56,7 @@ def alphasense_803_04(dataframe, **kwargs):
         if x['t'] > config._as_t_comp[-1]: return comp_lut[-1]
 
         # Otherwise, we calculate
-        idx_2 = next(x[0] for x in enumerate(config._as_t_comp) if x[1] > x['t'])
+        idx_2 = next(axis[0] for axis in enumerate(config._as_t_comp) if axis[1] > x['t'])
         idx_1 = idx_2 - 1
 
         delta_y = comp_lut[idx_2] - comp_lut[idx_1]
@@ -74,6 +76,10 @@ def alphasense_803_04(dataframe, **kwargs):
 
     if flag_error:
         std_out('Problem with input data', 'ERROR')
+        return None
+
+    if kwargs['alphasense_id'] is None:
+        std_out(f"Empty ID. Ignoring", 'WARNING')
         return None
 
     # Get Sensor data
@@ -125,9 +131,18 @@ def alphasense_803_04(dataframe, **kwargs):
             std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
             return
 
+    # Remove spurios voltages (0V < electrode < 5V)
+    for electrode in ['we', 'ae']:
+        subkwargs = {'name': kwargs[electrode], 
+                     'limits': (0, 5), # In V
+                     'window_size': None
+                    }
+
+        df[f'{electrode}_clean'] = clean_ts(df, **subkwargs)
+
     # Compensate electronic zero
-    df['we_t'] = df[kwargs['we']] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
-    df['ae_t'] = df[kwargs['ae']] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+    df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
+    df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 

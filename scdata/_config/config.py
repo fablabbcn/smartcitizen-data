@@ -106,16 +106,6 @@ class Config(object):
     _baseline_deltas = arange(30, 45, 5)
     # Lambdas for baseline ALS algorithm
     _baseline_als_lambdas = [1e5]
-
-    _platform_sensor_ids = {
-        'CO': 152,
-        'NO2': 153,
-        'H2S': 156,
-        'NO': 154,
-        'O3': 157,
-        'SO2': 155,
-        'CO2': 158
-    }
     
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
