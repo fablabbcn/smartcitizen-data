@@ -17,8 +17,8 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.2.0',
-    description='Module for analysis of sensors and time series data',
+    version= '0.2.1',
+    description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
     packages=find_packages(),
