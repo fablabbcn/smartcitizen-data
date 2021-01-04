@@ -160,7 +160,8 @@
           "location": null,
           "t": "PM_DALLAS_TEMP",
           "to_date": null,
-          "we": null
+          "we": null,
+          "use_alternative": true
         },
         "post": true,
         "process": "alphasense_803_04",
