@@ -65,7 +65,7 @@ setup(
                         'geographiclib==1.50',
                         'geopy==1.21.0',
                         'idna==2.9',
-                        'importlib-metadata==1.6.0',
+                        'importlib-metadata~=1.7.0',
                         'Jinja2==2.11.2',
                         'kiwisolver==1.2.0',
                         'MarkupSafe==1.1.1',
