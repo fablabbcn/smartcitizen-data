@@ -111,42 +111,43 @@ class Config(object):
     ### -------------METRICS DATA--------------
     ### ---------------------------------------
     # Molecular weights of certain pollutants for unit convertion
-    _molecular_weights = {
-                            'CO': 28, 
-                            'NO': 30, 
-                            'NO2': 46, 
-                            'O3': 48,
-                            'C6H6': 78,
-                            'SO2': 64,
-                            'H2S': 34
-                        }
+    _molecular_weights =    {
+                                'CO':   28,
+                                'NO':   30,
+                                'NO2':  46,
+                                'O3':   48,
+                                'C6H6': 78,
+                                'SO2':  64,
+                                'H2S':  34
+                            }
+
     # Background concentrations
-    _background_conc = {
-                        'CO': 0, 
-                        'NO2': 8, 
-                        'O3': 40
-                    }
+    _background_conc =      {
+                                'CO':   0,
+                                'NO2':  8,
+                                'O3':   40
+                            }
 
     # Alphasense data
-    _as_sensor_codes = {
-                        '132': 'ASA4_CO',
-                        '133': 'ASA4_H2S',
-                        '130': 'ASA4_NO',
-                        '212': 'ASA4_NO2',
-                        '214': 'ASA4_OX',
-                        '134': 'ASA4_SO2',
-                        '162': 'ASB4_CO',
-                        '133': 'ASB4_H2S',#
-                        '130': 'ASB4_NO', #
-                        '202': 'ASB4_NO2',
-                        '204': 'ASB4_OX',
-                        '164': 'ASB4_SO2'
-    }
+    _as_sensor_codes =      {
+                                '132':  'ASA4_CO',
+                                '133':  'ASA4_H2S',
+                                '130':  'ASA4_NO',
+                                '212':  'ASA4_NO2',
+                                '214':  'ASA4_OX',
+                                '134':  'ASA4_SO2',
+                                '162':  'ASB4_CO',
+                                '133':  'ASB4_H2S',#
+                                '130':  'ASB4_NO', #
+                                '202':  'ASB4_NO2',
+                                '204':  'ASB4_OX',
+                                '164':  'ASB4_SO2'
+                            }
 
     # From Tables 2 and 3 of AAN 803-04
     _as_t_comp = [-30, -20, -10, 0, 10, 20, 30, 40, 50]
 
-    _as_sensor_algs = {
+    _as_sensor_algs =   {
                         'ASA4_CO':  
                                     {
                                         1: ['n_t',      [1.0, 1.0, 1.0, 1.0, -0.2, -0.9, -1.5, -1.5, -1.5]],
@@ -211,7 +212,7 @@ class Config(object):
                                         4: ['kpp_t',    [-4, -4, -4, -4, -4, 0, 20, 140, 450]],
                                         1: ['n_t',      [1.6, 1.6, 1.6, 1.6, 1.6, 1.6, 1.9, 3.0, 5.8]]
                                     },                        
-    }
+                        }
 
     # This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
     # i.e. pollutant data in various units (ppm or ug/m3) from different analysers
