@@ -1,5 +1,5 @@
 '''
-This DAG has the goal to create the SQLite Database and the tables to store
+This DAG has the goal to create the Postgresql Database and the tables to store
 the devices to process data
 '''
 
@@ -15,7 +15,7 @@ from airflow import DAG
 from airflow.models import Variable
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 DEVICES_TABLE = Variable.get("post_devices_table", default_var = "devices") #devices
@@ -48,9 +48,17 @@ def get_devices_dates(**kwargs):
 
     for device in devices:
         apidevice = ScApiDevice(device)
-        location = apidevice.get_device_location()
+
         last_reading = apidevice.get_device_last_reading()
-        devices[device]['last_reading'] = localise_date(last_reading, location).__str__()
+        added_at = apidevice.get_device_added_at()
+
+        # Check last reading
+        if last_reading is None or last_reading == 'null': last_reading = added_at
+        devices[device]['last_reading'] = localise_date(last_reading, 'UTC').__str__()
+
+        #Check latest_postprocessing
+        if devices[device]['latest_postprocessing'] is None or devices[device]['latest_postprocessing'] == 'null':
+            devices[device]['latest_postprocessing'] = localise_date(added_at, 'UTC').__str__()
 
     return devices
 
@@ -60,7 +68,7 @@ def fill_devices_table(**kwargs):
     conn_host = PostgresHook(postgres_conn_id='postgres_default').get_conn()
 
     for device in devices:
-        sql_insert = f"""INSERT OR REPLACE INTO {DEVICES_TABLE}
+        sql_insert = f"""INSERT INTO {DEVICES_TABLE}
                      (device, last_reading, latest_postprocessing, updated_at, blueprint_url, hardware_url, failed)
                      VALUES ({device},
                              '{devices[device]["last_reading"]}',
@@ -70,7 +78,15 @@ def fill_devices_table(**kwargs):
                              '{devices[device]["hardware_url"]}',
                              0
                             )
+                     ON CONFLICT (device) DO UPDATE
+                       SET last_reading = excluded.last_reading,
+                           latest_postprocessing = excluded.latest_postprocessing,
+                           updated_at = excluded.updated_at,
+                           blueprint_url = excluded.blueprint_url,
+                           hardware_url = excluded.hardware_url,
+                           failed = excluded.failed;
                      ;"""
+
         with conn_host.cursor() as cur:
             cur.execute(sql_insert)
         conn_host.commit()
@@ -93,9 +109,9 @@ create_devices_table = PostgresOperator(
     sql=f"""
             CREATE TABLE IF NOT EXISTS {DEVICES_TABLE}(
             device INT,
-            last_reading DATE,
-            latest_postprocessing DATE,
-            updated_at DATE,
+            last_reading TIMESTAMP,
+            latest_postprocessing TIMESTAMP,
+            updated_at TIMESTAMP,
             blueprint_url TEXT,
             hardware_url TEXT,
             failed INT
