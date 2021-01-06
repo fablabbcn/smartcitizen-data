@@ -10,6 +10,7 @@ models/*
 work
 working_tasks
 notebooks/working_*.ipynb
+notebooks/00_done
 wip*.py
 notebooks/wip*.*
 notebooks/src_ipynb
@@ -34,6 +35,9 @@ notebooks/cheatsheet.ipynb
 # MAC stuff
 */.DS_Store
 .DS_Store
+
+# Vscode
+.vscode/*
 
 # Others
 __pycache__/
