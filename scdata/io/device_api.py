@@ -17,6 +17,7 @@ from os import environ, urandom
 from json import dumps
 
 import binascii
+from time import sleep
 
 tz_where = tzwhere.tzwhere()
 
@@ -259,6 +260,13 @@ class ScApiDevice:
         if self.devicejson is None or update:
             try:
                 deviceR = get(self.API_BASE_URL + '{}/'.format(self.id))
+
+                if deviceR.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
+                            'WARNING')
+                    sleep(30)
+                    deviceR = get(self.API_BASE_URL + '{}/'.format(self.id))
+
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.devicejson = deviceR.json()
                 else: 
@@ -318,6 +326,14 @@ class ScApiDevice:
         if self.postprocessing_info is None or update:
             try:
                 deviceR = get(self.API_BASE_URL + '{}'.format(self.id))
+
+                # Retry once
+                if deviceR.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
+                            'WARNING')
+                    sleep(30)
+                    deviceR = get(self.API_BASE_URL + '{}'.format(self.id))
+
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     if 'postprocessing_info' in deviceR.json():
                         self.postprocessing_info = deviceR.json()['postprocessing_info']
@@ -336,7 +352,7 @@ class ScApiDevice:
         if self.location is None or update:
             latitude, longitude = self.get_device_lat_long(update)
             # Localize it
-            
+
             if latitude is not None and longitude is not None:
                 self.location = tz_where.tzNameAt(latitude, longitude)
 
@@ -414,6 +430,14 @@ class ScApiDevice:
 
     def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
 
+        if 'SC_ADMIN_BEARER' in environ:
+            std_out('Admin Bearer found, using it', 'SUCCESS')
+
+            headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER']}
+        else:
+            headers = None
+            std_out('Admin Bearer not found' 'WARNING')
+
         std_out(f'Requesting data from SC API')
         std_out(f'Device ID: {self.id}')
 
@@ -449,7 +473,6 @@ class ScApiDevice:
         else: std_out(f'Sensor IDs: {list(self.sensors.keys())}')
 
         df = DataFrame()
-        
         # Get devices in the sensor first
         for sensor_id in self.sensors.keys(): 
 
@@ -471,13 +494,19 @@ class ScApiDevice:
             #     if end_date > start_date: request += f'&to={end_date}'
             
             # Make request
-            sensor_req = get(request)
+            sensor_req = get(request, headers = headers)
+
+            # Retry once in case of 429 after 30s
+            if sensor_req.status_code == 429:
+                std_out('Too many requests, waiting for 1 more retry', 'WARNING')
+                sleep (30)
+                sensor_req = get(request, headers = headers)
+
             flag_error = False
             try:
                 sensorjson = sensor_req.json()
             except:
-                print_exc()
-                std_out('Problem with json data from API', 'ERROR')
+                std_out(f'Problem with json data from API, {sensor_req.status_code}', 'ERROR')
                 flag_error = True
                 pass
                 continue
