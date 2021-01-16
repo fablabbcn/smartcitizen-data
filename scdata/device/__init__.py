@@ -9,7 +9,7 @@ from scdata.device.process import *
 
 from os.path import join, basename
 from urllib.parse import urlparse
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 from traceback import print_exc
 import datetime
 
@@ -273,7 +273,7 @@ class Device(object):
 
                         # Override dates for post-processing
                         if self.latest_postprocessing is not None:
-                            hw_latest_postprocess = localise_date(self.latest_postprocessing, self.location)
+                            hw_latest_postprocess = localise_date(self.latest_postprocessing, 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                             # Override min loading date
                             self.options['min_date'] = hw_latest_postprocess
 
@@ -456,8 +456,14 @@ class Device(object):
         if process_ok:
             # Latest postprocessing to latest readings
             if self.api_device.get_postprocessing_info() is not None:
-                latest_postprocessing = localise_date(self.readings.index[-1], self.location).strftime('%Y-%m-%dT%H:%M:%S')
+                std_out('Updating postprocessing_info')
+                latest_postprocessing = localise_date(self.readings.index[-1], 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                 self.api_device.postprocessing_info['latest_postprocessing'] = latest_postprocessing
+                self.api_device.postprocessing_info['updated_at'] = to_datetime(datetime.datetime.now(), utc = False)\
+                                                                    .tz_localize(config._location)\
+                                                                    .tz_convert('UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                std_out(f"{self.api_device.postprocessing_info}")
+                std_out(f"Device {self.id} processed", "SUCCESS")
 
         return process_ok
 
@@ -562,7 +568,7 @@ class Device(object):
         for sensor in self.sensors:
             std_out(f'Posting sensor: {sensor}')
             # Get single series for post
-            df = DataFrame(self.readings[sensor])
+            df = DataFrame(self.readings[sensor]).dropna(axis = 0, how='all')
             if df.empty: 
                 std_out('Empty dataframe, ignoring', 'WARNING')
                 continue
@@ -590,18 +596,23 @@ class Device(object):
             std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
             return False
 
+        std_out(f"Posting metrics for device {self.id}")
         for metric in self.metrics:
             if self.metrics[metric]['post'] == True:
+                std_out(f"Posting {metric} for device {self.id}")
                 # Get single series for post
-                df = DataFrame(self.readings[metric])
+                df = DataFrame(self.readings[metric]).dropna(axis = 0, how='all')
+                if df.empty:
+                    std_out('Empty dataframe, ignoring', 'WARNING')
+                    continue
                 sensor_id = self.metrics[metric]['id']
                 post_ok &= self.api_device.post_device_data(df, sensor_id = sensor_id)
+                if post_ok: std_out(f"Metric {metric} posted", "SUCCESS")
+                else: std_out(f"Error while posting {metric}", "WARNING")
 
         # Post info if requested. It should be updated elsewhere
-        if with_post_info: self.api_device.post_postprocessing_info()
+        if with_post_info:
+            post_ok &= self.api_device.post_postprocessing_info()
 
+        if post_ok: std_out(f"Metrics posted for device {self.id}", "SUCCESS")
         return post_ok
-
-    # TODO
-    # def capture(self):
-    #     std_out('Not yet', 'ERROR')

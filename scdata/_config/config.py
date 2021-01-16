@@ -20,6 +20,9 @@ class Config(object):
     # Usage in jupyterlab or script. For renderer plots
     _framework = 'script'
 
+    # Default location for timezones
+    _location = 'Europe/Madrid'
+
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------

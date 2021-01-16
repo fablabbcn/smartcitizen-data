@@ -2,7 +2,8 @@ from pandas import to_datetime
 
 def localise_date(date, location):
     """
-    Localises a date, converted to 'UTC'
+    Localises a date if it's tzinfo is None, otherwise converts it to it.
+    If the timestamp is tz-aware, converts it as well
     Parameters
     ----------
         date: string or datetime

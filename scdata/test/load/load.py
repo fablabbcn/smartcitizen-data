@@ -185,16 +185,7 @@ def load(self, options = dict()):
 
         elif device.source == 'csv':
 
-            device_options = {
-                                'clean_na': self.options['clean_na'],
-                                'min_date': self.options['min_date'],
-                                'max_date': self.options['max_date']
-                             }
-
-            if 'frequency' in self.options:
-                device_options['frequency'] = self.options['frequency']
-
-            device.load(options = device_options, path = self.path)
+            device.load(options = self.options, path = self.path)
             
         if self.options['store_cached_api'] and device.loaded and device.source == 'api' and load_API:
 

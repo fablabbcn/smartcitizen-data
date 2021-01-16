@@ -30,7 +30,7 @@ There should be at minimum the following properties:
 - sensors: dictionary used to convert the names to saf standard (see saf.py and blueprints.yml) {api_name: saf_name}
 - data: pandas dataframe containing the data. Columns = pollutants or sensors; index = localised timestamp
 Methods
-- get_device_data(start_date, end_date, frequency, clean_na): returns clean pandas dataframe (self.data) with start and end date filtering, and rollup
+- get_device_data(min_date, max_date, frequency, clean_na): returns clean pandas dataframe (self.data) with start and end date filtering, and rollup
 - get_device_location: returns timezone for timestamp geolocalisation
 
 The units should not be converted here, as they will be later on converted in device.py
@@ -428,7 +428,7 @@ class ScApiDevice:
         rollup = rollup_value + rollup_unit
         return rollup
 
-    def get_device_data(self, start_date = None, end_date = None, frequency = '1Min', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None):
 
         if 'SC_ADMIN_BEARER' in environ:
             std_out('Admin Bearer found, using it', 'SUCCESS')
@@ -456,13 +456,16 @@ class ScApiDevice:
         # Check start date and end date
         # Converting to UTC by passing None
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.tz_convert.html
-        if start_date is not None:
-            start_date = localise_date(to_datetime(start_date, format = '%Y-%m-%dT%H:%M:%SZ'), 'UTC')
-            std_out (f'Min Date: {start_date}')
+        if min_date is not None:
+            min_date = localise_date(to_datetime(min_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+            std_out (f'Min Date: {min_date}')
+        else:
+            min_date = localise_date(to_datetime('2001-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+            std_out(f"No min_date specified")
         
-        if end_date is not None:
-            end_date = localise_date(to_datetime(end_date, format = '%Y-%m-%dT%H:%M:%SZ'), 'UTC')
-            std_out (f'Max Date: {end_date}')
+        if max_date is not None:
+            max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+            std_out (f'Max Date: {max_date}')
 
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
@@ -478,20 +481,13 @@ class ScApiDevice:
 
             # Request sensor per ID
             request = self.API_BASE_URL + '{}/readings?'.format(self.id)
-            
-            if start_date is None:
-                request += 'from=2001-01-01'
-            elif end_date is not None:
-                if start_date > end_date: request += 'from=2001-01-01'
-                else: 
-                    request += f'from={start_date}'
-                    request += f'&to={end_date}'
+
+            if min_date is not None: request += f'from={min_date}'
+            if max_date is not None: request += f'&to={max_date}'
 
             request += f'&rollup={rollup}'
             request += f'&sensor_id={sensor_id}'
             request += '&function=avg'
-            # if end_date is not None:
-            #     if end_date > start_date: request += f'&to={end_date}'
             
             # Make request
             sensor_req = get(request, headers = headers)
@@ -637,14 +633,20 @@ class ScApiDevice:
             std_out('Cannot post without Auth Bearer', 'ERROR')
             return
 
-        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
+        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'],
+                   'Content-type': 'application/json'}
 
-        post_json = dumps(self.postprocessing_info)
+        post = {"postprocessing_info": self.postprocessing_info}
+        post_json = dumps(post)
         std_out(f'Posting post-processing info:\n {post_json}')
-        response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}/', data = post_json, headers = headers)
+        response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}/',
+                         data = post_json, headers = headers)
 
         if response.status_code == 200 or response.status_code == 201:
+            std_out(f"Postprocessing info posted", "SUCCESS")
             return True
+        else:
+            std_out(f"API responded with {response.status_code}")
 
         return False
 
@@ -673,9 +675,9 @@ class MuvApiDevice:
                         self.sensors[config.blueprints[key]['sensors'][sensor_name]['id']] = sensor_name
         return self.sensors
 
-    def get_device_data(self, start_date = None, end_date = None, frequency = '3Min', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '3Min', clean_na = None):
 
-        if start_date is not None: days_ago = (to_datetime(date.today())-to_datetime(start_date)).days
+        if min_date is not None: days_ago = (to_datetime(date.today())-to_datetime(min_date)).days
         else: days_ago = 365 # One year of data
 
         std_out(f'Requesting data from MUV API')
@@ -902,7 +904,7 @@ class DadesObertesApiDevice:
         
         return (self.lat, self.long)
 
-    def get_device_data(self, start_date = None, end_date = None, frequency = '1H', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1H', clean_na = None):
         '''
         Based on code snippet from Marc Roig:
         # I2CAT RESEARCH CENTER - BARCELONA - MARC ROIG (marcroig@i2cat.net)
@@ -916,13 +918,13 @@ class DadesObertesApiDevice:
         request = self.API_BASE_URL
         request += f'codi_eoi={self.id}'
 
-        if start_date is not None and end_date is not None:
-            request += "&$where=data between " + to_datetime(start_date).strftime("'%Y-%m-%dT%H:%M:%S'") \
-                    + " and " + to_datetime(end_date).strftime("'%Y-%m-%dT%H:%M:%S'")
-        elif start_date is not None:
-            request += "&$where=data >= " + to_datetime(start_date).strftime("'%Y-%m-%dT%H:%M:%S'")
-        elif end_date is not None:
-            request += "&$where=data < " + to_datetime(end_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+        if min_date is not None and max_date is not None:
+            request += "&$where=data between " + to_datetime(min_date).strftime("'%Y-%m-%dT%H:%M:%S'") \
+                    + " and " + to_datetime(max_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+        elif min_date is not None:
+            request += "&$where=data >= " + to_datetime(min_date).strftime("'%Y-%m-%dT%H:%M:%S'")
+        elif max_date is not None:
+            request += "&$where=data < " + to_datetime(max_date).strftime("'%Y-%m-%dT%H:%M:%S'")
 
         try:
             s = get(request)
