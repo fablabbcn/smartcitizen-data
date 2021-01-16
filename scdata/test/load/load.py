@@ -54,7 +54,8 @@ def load(self, options = dict()):
 
     # Add devices
     for key in self.descriptor['devices'].keys():
-        self.devices[key] = Device(self.descriptor['devices'][key]['blueprint'], self.descriptor['devices'][key])
+        self.devices[key] = Device(self.descriptor['devices'][key]['blueprint'],
+                                   self.descriptor['devices'][key])
 
     # Set options
     self.ready_to_model = False
@@ -74,19 +75,24 @@ def load(self, options = dict()):
         # If device comes from API, pre-check dates
         if device.source == 'api':
 
-            if device.location is None: device.location = device.api_device.get_device_location()
+            if device.location is None:
+                device.location = device.api_device.get_device_location()
 
             # Get last reading from API
             if 'get_device_last_reading' in dir(device.api_device): 
-                last_reading_api = localise_date(device.api_device.get_device_last_reading(), device.location)
+                last_reading_api = localise_date(device.api_device.get_device_last_reading(),
+                    device.location)
 
                 if self.options['load_cached_api']:
                     std_out(f'Checking if we can load cached data')
-                    if not device.load(options = self.options, path = join(self.path, 'cached'), convert_units = False):
+                    if not device.load(options = self.options,
+                        path = join(self.path, 'cached'), convert_units = False):
 
                         std_out(f'No valid cached data. Requesting device {device.id} to API', 'WARNING')
-                        min_date_to_load = localise_date(device.options['min_date'], device.location)
-                        max_date_to_load = localise_date(device.options['max_date'], device.location)
+                        min_date_to_load = localise_date(device.options['min_date'],
+                                                         device.location)
+                        max_date_to_load = localise_date(device.options['max_date'],
+                                                         device.location)
                         load_API = True
 
                     else:
@@ -128,10 +134,11 @@ def load(self, options = dict()):
                     max_date_to_load = max_date_device
                     load_API = True
             else:
-                if self.options['load_cached_api']: std_out('Cannot load cached data with an API that does not allow checking when was the last reading available', 'WARNING')
+                if self.options['load_cached_api']:
+                    std_out('Cannot load cached data without last reading available', 'WARNING')
                 min_date_to_load = min_date_device
                 max_date_to_load = max_date_device
-                last_reading_api = None               
+                last_reading_api = None
                 load_API = True
             
             # Load data from API if necessary
@@ -165,13 +172,29 @@ def load(self, options = dict()):
                 #     std_out('Discarding device. No max date available', 'WARNING')
                 #     continue
 
-                self.options['min_date'] = min_date_to_load
-                self.options['max_date'] = max_date_to_load
+                device_options = {
+                                    'clean_na': self.options['clean_na'],
+                                    'min_date': min_date_to_load,
+                                    'max_date': max_date_to_load
+                                 }
 
-                device.load(options = self.options)
+                if 'frequency' in self.options:
+                    device_options['frequency'] = self.options['frequency']
+
+                device.load(options = device_options)
 
         elif device.source == 'csv':
-            device.load(options = self.options, path = self.path)
+
+            device_options = {
+                                'clean_na': self.options['clean_na'],
+                                'min_date': self.options['min_date'],
+                                'max_date': self.options['max_date']
+                             }
+
+            if 'frequency' in self.options:
+                device_options['frequency'] = self.options['frequency']
+
+            device.load(options = device_options, path = self.path)
             
         if self.options['store_cached_api'] and device.loaded and device.source == 'api' and load_API:
 

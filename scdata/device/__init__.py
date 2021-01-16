@@ -106,19 +106,28 @@ class Device(object):
             else: self.__setattr__(ditem, self.description[ditem])
 
     def check_overrides(self, options = {}):
-        
-        if 'min_date' in options.keys(): self.options['min_date'] = options['min_date']
-        else: self.options['min_date'] = self.min_date
 
-        if 'max_date' in options.keys(): self.options['max_date'] = options['max_date']
-        else: self.options['max_date'] = self.max_date
+        if 'min_date' in options.keys():
+            self.options['min_date'] = options['min_date']
+        else:
+            self.options['min_date'] = self.min_date
 
-        if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
-        else: self.options['clean_na'] = self.clean_na
+        if 'max_date' in options.keys():
+            self.options['max_date'] = options['max_date']
+        else:
+            self.options['max_date'] = self.max_date
 
-        if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
-        elif self.frequency is not None: self.options['frequency'] = self.frequency
-        else: self.options['frequency'] = '1Min'
+        if 'clean_na' in options.keys():
+            self.options['clean_na'] = options['clean_na']
+        else:
+            self.options['clean_na'] = self.clean_na
+
+        if 'frequency' in options.keys():
+            self.options['frequency'] = options['frequency']
+        elif self.frequency is not None:
+            self.options['frequency'] = self.frequency
+        else:
+            self.options['frequency'] = '1Min'
 
     def load_postprocessing_info(self):
 

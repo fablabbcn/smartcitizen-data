@@ -181,15 +181,27 @@ class Test(object):
         Calculates only the new metrics in each of the devices
         Returns True if done OK
         '''
-        return self.process(only_new = True)     
+        return self.process(only_new = True)
 
     def __set_options__(self, options):
-        if 'load_cached_api' in options.keys(): self.options['load_cached_api'] = options['load_cached_api']
-        if 'store_cached_api' in options.keys(): self.options['store_cached_api'] = options['store_cached_api']
-        if 'clean_na' in options.keys(): self.options['clean_na'] = options['clean_na']
-        if 'frequency' in options.keys(): self.options['frequency'] = options['frequency']
-        if 'min_date' in options.keys(): self.options['min_date'] = options['min_date'] 
-        if 'max_date' in options.keys(): self.options['max_date'] = options['max_date']
+
+        if 'load_cached_api' in options.keys():
+            self.options['load_cached_api'] = options['load_cached_api']
+
+        if 'store_cached_api' in options.keys():
+            self.options['store_cached_api'] = options['store_cached_api']
+
+        if 'clean_na' in options.keys():
+            self.options['clean_na'] = options['clean_na']
+
+        if 'frequency' in options.keys():
+            self.options['frequency'] = options['frequency']
+
+        if 'min_date' in options.keys():
+            self.options['min_date'] = options['min_date']
+
+        if 'max_date' in options.keys():
+            self.options['max_date'] = options['max_date']
 
     def __preprocess__(self):
         '''
