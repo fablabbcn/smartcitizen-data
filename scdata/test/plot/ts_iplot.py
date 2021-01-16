@@ -35,7 +35,7 @@ def ts_iplot(self, **kwargs):
 
     if config._framework == 'jupyterlab': renderers.default = config._framework
 
-    if 'traces' not in kwargs: 
+    if 'traces' not in kwargs:
         std_out('No traces defined', 'ERROR')
         return None
     else:
@@ -58,18 +58,19 @@ def ts_iplot(self, **kwargs):
     n_subplots = len(subplots)
 
     # Size sanity check
-    if formatting['width'] < 100: 
+    if formatting['width'] < 100:
         std_out('Setting width to 800')
         formatting['width'] = 800
-    if formatting['height'] < 100: 
+    if formatting['height'] < 100:
         std_out('Reducing height to 600')
-        formatting['height'] = 600             
-    
+        formatting['height'] = 600
+
     figure = make_subplots(rows = n_subplots, cols=1, 
                            shared_xaxes = formatting['sharex'])
+
     # Add traces
     for isbplt in range(n_subplots):
-        
+
         for trace in subplots[isbplt]:
             
             figure.append_trace({'x': df.index, 
@@ -78,31 +79,33 @@ def ts_iplot(self, **kwargs):
                                  'mode': 'lines+markers',
                                  'name': trace}, 
                                 isbplt + 1, 1)
+
         # Name the axis
         if formatting['ylabel'] is not None:
             figure['layout']['yaxis' + str(isbplt+1)]['title']['text'] = formatting['ylabel'][isbplt+1]
-        
+
         if formatting['yrange'] is not None:
             figure['layout']['yaxis' + str(isbplt+1)]['range'] = formatting['yrange'][isbplt+1]
 
     # Add axis labels
     if formatting['xlabel'] is not None:
         figure['layout']['xaxis' + str(n_subplots)]['title']['text'] = formatting['xlabel']
-    
+
     # Add layout
-    figure['layout'].update(height = formatting['height'],
-                            legend = dict(x=0.2, y=-0.3, 
-                                        traceorder='normal',
-                                        font = dict(family='sans-serif',
-                                                    size=10,
-                                                    color='#000'),
-                                        xanchor = 'center',
-                                        orientation = 'h',
-                                        itemsizing = 'trace',
-                                        yanchor = 'bottom',
-                                        bgcolor ='rgba(0,0,0,0)',
-                                        bordercolor = 'rgba(0,0,0,0)',
-                                        borderwidth = 0),
+    figure['layout'].update(width = formatting['width'],
+                            height = formatting['height'],
+                            # legend = dict(
+                            #             traceorder='normal',
+                            #             font = dict(family='sans-serif',
+                            #                         size=10,
+                            #                         color='#000'),
+                            #             xanchor = 'center',
+                            #             orientation = 'h',
+                            #             itemsizing = 'trace',
+                            #             yanchor = 'bottom',
+                            #             bgcolor ='rgba(0,0,0,0)',
+                            #             bordercolor = 'rgba(0,0,0,0)',
+                            #             borderwidth = 0),
                             title=dict(text=formatting['title'])
                            )
     

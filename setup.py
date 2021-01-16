@@ -57,7 +57,7 @@ setup(
 
     install_requires=[  'attrs~=20.3.0',
                         'branca==0.4.0',
-                        'certifi==2020.4.5.1',
+                        'certifi~=2020.4.5.1',
                         'chardet==3.0.4',
                         'cycler==0.10.0',
                         'Flask~=1.1.2',
@@ -74,7 +74,7 @@ setup(
                         'pandas~=1.0.3',
                         'pdfrw==0.4',
                         'PDPbox==0.2.0',
-                        'plotly==4.6.0',
+                        'plotly~=4.14.3',
                         'pyparsing==2.4.7',
                         'python-dateutil==2.8.1',
                         'pytz==2020.1',
