@@ -611,7 +611,7 @@ class Device(object):
                 else: std_out(f"Error while posting {metric}", "WARNING")
 
         # Post info if requested. It should be updated elsewhere
-        if with_post_info:
+        if with_post_info and post_ok:
             post_ok &= self.api_device.post_postprocessing_info()
 
         if post_ok: std_out(f"Metrics posted for device {self.id}", "SUCCESS")
