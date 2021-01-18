@@ -19,7 +19,7 @@ from json import dumps
 import binascii
 from time import sleep
 
-tz_where = tzwhere.tzwhere()
+tz_where = tzwhere.tzwhere(forceTZ=True)
 
 '''
 About the classes in this file:
@@ -354,7 +354,7 @@ class ScApiDevice:
             # Localize it
 
             if latitude is not None and longitude is not None:
-                self.location = tz_where.tzNameAt(latitude, longitude)
+                self.location = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
 
         std_out ('Device {} timezone is {}'.format(self.id, self.location))
 
@@ -451,7 +451,9 @@ class ScApiDevice:
         self.get_device_added_at()
         self.get_kit_ID()
 
-        if self.location is None: return None
+        if self.location is None: 
+            std_out('Device does not have location, skipping', 'WARNING')
+            return None
 
         # Check start date and end date
         # Converting to UTC by passing None

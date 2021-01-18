@@ -31,7 +31,8 @@ class Config(object):
     _combined_devices_name = 'COMBINED_DEVICES'
 
     
-    data = {# Whether or not to reload smartcitizen firmware names from git repo
+    data = {
+            # Whether or not to reload smartcitizen firmware names from git repo
             'reload_firmware_names': True, 
             # Whether or not to load or store cached data (saves time when requesting a lot of data)
             'load_cached_api': True, 
@@ -40,7 +41,8 @@ class Config(object):
             # latest reading in the API should be ignore
             'cached_data_margin': 1,
             # clean_na
-            'clean_na': None}
+            'clean_na': None
+            }
 
     # If using multiple training datasets, how to call the joint df
     _name_multiple_training_data = 'CDEV'
