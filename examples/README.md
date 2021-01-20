@@ -19,3 +19,4 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Zenodo uploads: [notebooks/06_upload_to_zenodo.ipynb](notebooks/06_upload_to_zenodo.ipynb)
 - Query the SC API to find devices: [notebooks/08_querying_the_sc_api.ipynb](notebooks/08_querying_the_sc_api.ipynb)
 - Load and post data (concatenating SD card data too): [notebooks/09_load_and_post.ipynb](notebooks/09_load_and_post.ipynb)
+- Basic analysis workflow: [notebooks/10_basic_workflow.ipynb](notebooks/10_basic_workflow.ipynb)
