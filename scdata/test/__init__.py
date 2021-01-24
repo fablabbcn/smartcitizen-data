@@ -8,11 +8,13 @@ from datetime import datetime
 import yaml
 import json
 import folium
+from re import sub
 
 from scdata.utils import std_out, get_tests_log
 from scdata.io import read_csv_file
 from scdata._config import config
 from scdata.device import Device
+from scdata.test.plot.plot_tools import to_png_b64
 
 class Test(object):
 
@@ -21,7 +23,7 @@ class Test(object):
                         heatmap_plot, heatmap_iplot,
                         box_plot, ts_dendrogram)
                         #, report_plot, cat_plot, violin_plot)
-    from .export import to_csv, desc_to_html
+    from .export import to_csv, to_html
     from .load import load
     from .utils import combine, prepare
 
@@ -56,6 +58,9 @@ class Test(object):
                                 'report': '',
                                 'type_test': ''
                                 }
+
+        # Dict for report
+        self.content = dict()
 
     def __str__(self):
         return self.full_name
@@ -161,6 +166,29 @@ class Test(object):
         '''
         if device.id not in self.devices.keys(): self.devices[device.id] = device
         else: std_out(f'Device {device.id} is duplicated', 'WARNING')
+
+    def add_content(self, title = None, figure = None, text = None):
+        '''
+            Adds content for the rendered flask template of the test
+        '''
+
+        title_cor = sub('\W|^(?=\d)','_', title)
+
+        if title_cor not in self.content:
+            self.content[title_cor] = dict()
+
+            if title is not None:
+                self.content[title_cor]['title'] = title
+            if figure is not None:
+                self.content[title_cor]['image'] = to_png_b64(figure)
+            if text is not None:
+                self.content[title_cor]['text'] = text
+
+            return True
+
+        else:
+
+            return False
 
     def process(self, only_new = False):
         ''' 

@@ -1,6 +1,7 @@
 ''' Implementation of csv and html export for devices in test '''
 
-from os.path import join, dirname
+from os.path import join, dirname, exists
+from os import makedirs
 from scdata.utils import std_out
 import flask
 
@@ -33,24 +34,34 @@ def to_csv(self, path = None, forced_overwrite = False):
 
     return export_ok
 
-def desc_to_html(self, title = 'Test description', path = None, show_logo = True, full = True):
+def to_html(self, title = 'Your title here', path = None, logo = True, 
+            details = True, devices_summary = True, full = True, header = True):
     '''
     Generates an html description for the test
     Inspired by the code of rbardaji in: https://github.com/rbardaji/mooda
     Parameters
     ----------
         title: String
-            None
+            Your title here
             Document title
         path: String
             None
             Directory to export it to. If None, writes it to default test folder
-        show_logo: bool
+        logo: bool
             True
             Show logo or not
+        details: bool
+            True
+            Show test details (author, date, comments, etc.)
+        devices_summary: bool
+            True
+            Show devices summary
         full: bool
             True
-            Whether to return a full html
+            Whether to return a full html or not
+        header: bool
+            True
+            Whether to include a header or not
     Returns
     ----------
         rendered: 
@@ -60,22 +71,32 @@ def desc_to_html(self, title = 'Test description', path = None, show_logo = True
     # Find the path to the html templates directory
     template_folder = join(dirname(__file__), 'templates')
 
-    if path is None: path = self.path
-    filename = join(path, 'test_description.html')
+    if path is None: path = join(self.path, 'export')
+
+    if not exists(path): 
+        std_out('Creating folder for test export')
+        makedirs(path)
+
+    filename = join(path, f'{self.full_name}.html')
     
-    app = flask.Flask('test descriptor', template_folder = template_folder)
+    app = flask.Flask(self.full_name, template_folder = template_folder)
 
     with app.app_context():
         rendered = flask.render_template(
-            'descriptor.html',
+            'sc_template.html',
             title = title,
             descriptor = self.descriptor,
-            show_logo = show_logo, 
-            full = full
+            content = self.content,
+            logo = logo,
+            details = details,
+            devices_summary = devices_summary,
+            full = full,
+            header = header
         )
 
     with open(filename, 'w') as handle:
         handle.write(rendered)
         
     std_out (f'File saved to: {filename}', 'SUCCESS')
+
     return rendered

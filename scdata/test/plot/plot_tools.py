@@ -1,6 +1,8 @@
 from scdata.utils import std_out
 from numpy import arange
 from pandas import cut, DataFrame, to_datetime, option_context, to_numeric
+import io
+import base64
 
 '''
 Available styles
@@ -41,42 +43,27 @@ YlOrBr_r, YlOrRd, YlOrRd_r, afmhot, afmhot_r, autumn, autumn_r, binary, binary_r
   viridis, viridis_r, vlag, vlag_r, winter, winter_r
 '''
 
-# TODO Remove
-def export(figure, path, filename = 'plot', library = 'mpl'):
-    '''
-    Exports a figure to the local filesystem
-    Parameters
-    ----------
-        figure: matplotlib figure or plotly
-        path: 'string'
-            Path to export it to
-        filename: string
-            'plot'
-            Name for the file to export
-        library: string
-            'mpl'
-            'mpl' (matplotlib) or plotly
-    Returns
-    ----------
-        None
-
-    '''
+def to_png_b64(fig, dpi = 150):
+    """
+        Renders a plot to a png Image in base64
+        Parameters
+        ----------
+            fig: matplotlib figure object
+            dpi:
+                150
+                Image dpi
+        Returns
+        -------
+            A string object in base64 of the png rendered figure
+    """
+    output = io.BytesIO()
+    fig.savefig(output, dpi = dpi, bbox_inches = 'tight')
     
-    try:
-        std_out('Exporting {} to {}'.format(filename, path))
+    # Encode PNG image to base64 string
+    pngImageB64String = "data:image/png;base64,"
+    pngImageB64String += base64.b64encode(output.getvalue()).decode('utf8')
     
-        if library == 'mpl': 
-            figure.savefig(join(path, filename + '.png'), dpi = 300, 
-                            transparent=False, bbox_inches='tight')
-        elif library == 'plotly': 
-            pio.write_json(figure, join(path, filename + '.plotly'))
-    
-    except:
-        std_out('Error while exporting, review path', 'ERROR')
-        pass
-        return
-    else:
-        std_out('Saved plot', 'SUCCESS')
+    return pngImageB64String
 
 def prepare_data(test, traces, options):
 
