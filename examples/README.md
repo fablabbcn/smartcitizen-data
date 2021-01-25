@@ -20,3 +20,4 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Query the SC API to find devices: [notebooks/08_querying_the_sc_api.ipynb](notebooks/08_querying_the_sc_api.ipynb)
 - Load and post data (concatenating SD card data too): [notebooks/09_load_and_post.ipynb](notebooks/09_load_and_post.ipynb)
 - Basic analysis workflow: [notebooks/10_basic_workflow.ipynb](notebooks/10_basic_workflow.ipynb)
+- Making HTML-PDF reports: [notebooks/11_making_html-pdf_reports.ipynb](notebooks/11_making_html-pdf_reports.ipynb)

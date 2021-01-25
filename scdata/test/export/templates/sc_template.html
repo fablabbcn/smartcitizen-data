@@ -18,19 +18,15 @@
 
 {% endif %}
 
-{% if header %}
-
-        <div id="report-header">
-            <h1 id="top">{{ title }}</h1>
+        <div {% if header %} id="report-header" {% else %} id="normal-header" {% endif %}>
+            <h1 {% if header %} id="top" {% endif %}>{{ title }}</h1>
             
-            {% if logo %}  
+            {% if header %}
                 <div style="text-align: right">
                     <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=50px height=50px>
                 </div>
             {% endif %}
         </div>
-
-{% endif %}
 
         <div id="container">
 
@@ -57,7 +53,7 @@
                 </div>
             
                 <table>
-                    <tr>
+                    <tr class="first">
                         <th style="width: 15vh;"> Device </th>
                         <th class='table-center' style="width: 35vh;"> Blueprint </th>
                         <th class='table-center' style="width: 20vh;"> Documentation </th>
@@ -88,8 +84,8 @@
                             <p style="margin-left: 2rem;">Device empty. No data to show</p>
                         {% else %}
                             <table>
-                                <tr>
-                                    <th style="width: 20vh;"> Channel </th>
+                                <tr class="first">
+                                    <th class='table-center' style="width: 20vh;"> Channel </th>
                                     <th class='table-center' style="width: 10vh;"> Units </th>
                                     <th class='table-center' style="width: 20vh;"> Type (raw/processed) </th>
                                     <th class='table-center' style="width: 20vh;"> Algorithm </th>
@@ -137,6 +133,8 @@
 
             {% if content %}
 
+                <h2> Analysis </h2>
+
                 {% for item, value in content.items() %}
                     <h3>{{ value.title }}</h3>
 
@@ -147,7 +145,9 @@
                     {% endif %}
 
                     {% if 'image' in value %}
+                    <div class="img-container">
                         <img src="{{ value.image }}" style="width:80%;">
+                    </div>
                     {% endif %}
 
                 {% endfor %}
@@ -176,7 +176,13 @@
     }
 
     div#container{
-        padding: 20px 40px;
+        padding-left: 40px;
+        padding-right: 30px;
+        {% if header %}
+            padding-top: 40px;
+        {% else %}
+            padding-top: 20px;
+        {% endif %}
     }
 
     h1#top {
@@ -187,7 +193,7 @@
     }
 
     h2{
-        font-size: 17px;
+        font-size: 21px;
         font-weight: 1.1em;
     }
 
@@ -202,8 +208,29 @@
     }
 
     table {
-        font-size: 1rem;
-        margin-left: 2rem;
+        font-size: 0.8rem;
+        margin: auto;
+        padding: 20px;
+        text-align: center;
+
+    }
+
+    summary{
+        background: grey;
+        color: white;
+        text-emphasis: 2em;
+        padding: 3px 20px;
+        margin-bottom: 5px;
+        border-radius: 20px;
+    }
+
+    div.img-container {
+        text-align: center;
+        padding: 20px;
+    }
+
+    div#normal-header {
+        padding-left: 40px;
     }
 
     div#report-header {
@@ -232,6 +259,12 @@
 
     th.table-center{
         text-align: center;
+    }
+
+    tr.first{
+        background: black;
+        color: white;
+        border-color: black;
     }
 
     @page  

@@ -4,6 +4,7 @@ from os.path import join, dirname, exists
 from os import makedirs
 from scdata.utils import std_out
 import flask
+from re import sub
 
 def to_csv(self, path = None, forced_overwrite = False):
     """
@@ -34,7 +35,7 @@ def to_csv(self, path = None, forced_overwrite = False):
 
     return export_ok
 
-def to_html(self, title = 'Your title here', path = None, logo = True, 
+def to_html(self, title = 'Your title here', path = None,
             details = True, devices_summary = True, full = True, header = True):
     '''
     Generates an html description for the test
@@ -47,9 +48,6 @@ def to_html(self, title = 'Your title here', path = None, logo = True,
         path: String
             None
             Directory to export it to. If None, writes it to default test folder
-        logo: bool
-            True
-            Show logo or not
         details: bool
             True
             Show test details (author, date, comments, etc.)
@@ -79,7 +77,8 @@ def to_html(self, title = 'Your title here', path = None, logo = True,
 
     filename = join(path, f'{self.full_name}.html')
     
-    app = flask.Flask(self.full_name, template_folder = template_folder)
+    docname = sub('.','_', self.full_name)
+    app = flask.Flask(docname, template_folder = template_folder)
 
     with app.app_context():
         rendered = flask.render_template(
@@ -87,7 +86,6 @@ def to_html(self, title = 'Your title here', path = None, logo = True,
             title = title,
             descriptor = self.descriptor,
             content = self.content,
-            logo = logo,
             details = details,
             devices_summary = devices_summary,
             full = full,
