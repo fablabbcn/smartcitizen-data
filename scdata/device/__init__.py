@@ -139,10 +139,18 @@ class Device(object):
         if self.api_device.get_postprocessing_info() is None: return None
 
         # Put it where it goes
-        self.hw_url = self.api_device.postprocessing_info['hardware_url']
-        self.hw_updated_at = self.api_device.postprocessing_info['updated_at']
-        self.blueprint_url = self.api_device.postprocessing_info['blueprint_url']
-        self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
+        try:
+            self.hw_url = self.api_device.postprocessing_info['hardware_url']
+            self.hw_updated_at = self.api_device.postprocessing_info['updated_at']
+            self.blueprint_url = self.api_device.postprocessing_info['blueprint_url']
+            self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
+            inc_postprocessing_info = False
+        except KeyError:
+            std_out('Ignoring postprocessing info as its incomplete', 'WARNING')
+            inc_postprocessing_info = True
+            pass
+
+        if inc_postprocessing_info: return None
 
         # Load hardware info from url
         if self.hw_url is not None and self.hw_loaded_from_url == False:
