@@ -325,7 +325,18 @@ class Config(object):
                             'palette': None,
                             'decorators': None,
                             'legend': True
-                            }
+                            },
+                        'uplot': {
+                            'width': 800,
+                            'height': 400,
+                            'ylabel': None,
+                            'size': 3,
+                            'xlabel': 'Date (-)',
+                            'title': None,
+                            'padding-right': 50,
+                            'padding-bottom': 200,
+                            'fontsize': 15
+                        }
                       }
 
     _scatter_plot_def_fmt = {

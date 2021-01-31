@@ -208,7 +208,7 @@ def prepare_data(test, traces, options):
         if options['clean_na'] == 'fill':
             df = df.fillna(method='ffill')
         if options['clean_na'] == 'drop':              
-            df.dropna(axis = 0, how='any', inplace = True)
+            df.dropna(axis = 0, how='any')
 
     if df.empty: std_out('Dataframe for selected options is empty', 'WARNING')
 
