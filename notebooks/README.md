@@ -2,7 +2,7 @@
 
 You can use this folder to put your working notebooks. Some examples are also found in the `/examples` folder.
 
-## Notebooks export
+## [DEPRECATED] Notebooks export
 
 Tools are provided to generate test or analysis reports, with a custom template. These are generated with the `jupyter nbconvert` using the preprocessor and tools in the `notebooks` and `template` folder. To generate a report, follow the steps:
 
@@ -22,5 +22,3 @@ Where:
 - `./templates/full_sc` is the default template we have created
 - `../reports` is the directory where we will put the `html` report
 - `OUTPUT_NAME` is the name for the export
-
-This generates an html export containing only the mkdown or code cell outputs, without any code. An example can be seen in `reports/example.html`.
