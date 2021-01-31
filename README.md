@@ -5,42 +5,19 @@ Smart Citizen Data
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
 [![PyPI version](https://badge.fury.io/py/scdata.svg)](https://badge.fury.io/py/scdata)
 
-Welcome to **SmartCitizen Data**. This is a data analysis framework built with many purposes, such as:
-
- - *Analysis*, *calibration* and *post-processing* of sensor data for development or performance assessment
- - *Unify* several sources of data and to *provide tools* for analysis in a standard way
- - *Tidy up* sensor data and allow for **traceability** of results and conclusions, and **reproducibility**
- - *Create visualisations* and reports in html format or print them as pdf
-
-![](assets/images/saf_schema.png)
-
-## Features
-
-![](assets/images/covid-noise.png)
-
-Some examples in this repository include:
+Welcome to **SmartCitizen Data**. This is a data analysis framework for working with sensor data in different ways:
 
 - Interacting with several sensors APIs
 - Clean data, export and calculate metrics
 - Model sensor data and calibrate sensors
-- Generate data visualisations
-- Generate analysis reports and upload them to [Zenodo](http://zenodo.org)
+- Generate data visualisations - matplotlib, [plotly](https://plotly.com/) or [uplot](https://leeoniya.github.io/uPlot)
+- Generate analysis reports in html or pdf and upload them to [Zenodo](http://zenodo.org)
 
-![](assets/images/Workflow.png)
-
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data%20Analysis/). 
-
-## Funding
-
-This work has received funding from the European Union's Horizon 2020 research and innovation program under the grant agreement [No. 689954](https://cordis.europa.eu/project/rcn/202639_en.html)
-
-## Compatibility
-
-Works with `Python 3.*`.
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data/Data%20Analysis/). 
 
 ## Installation
 
-You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want.
+You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with `Python 3.*`.
 
 You can just run:
 
@@ -97,7 +74,7 @@ zenodo_real_base_url: https://zenodo.org
 zenodo_sandbox_base_url: http://sandbox.zenodo.org
 ```
 
-### Using with Jupyterlab (optional)
+### Using with jupyter lab (optional)
 
 It can also be used with `jupyterlab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
 
@@ -113,8 +90,10 @@ pip install jupyter_nbextensions_configurator
 jupyter labextension install jupyterlab-plotly
 ```
 
-If using this option, examples on how to generate automatic reports from `jupyter notebooks` are also given in the examples folder.
-
 ## Contribute
 
 Issues and PR more than welcome!
+
+## Funding
+
+This work has received funding from the European Union's Horizon 2020 research and innovation program under the grant agreement [No. 689954](https://cordis.europa.eu/project/rcn/202639_en.html)
