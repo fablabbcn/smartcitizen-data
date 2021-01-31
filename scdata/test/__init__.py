@@ -167,7 +167,7 @@ class Test(object):
         if device.id not in self.devices.keys(): self.devices[device.id] = device
         else: std_out(f'Device {device.id} is duplicated', 'WARNING')
 
-    def add_content(self, title = None, figure = None, text = None):
+    def add_content(self, title = None, figure = None, text = None, iframe = None):
         '''
             Adds content for the rendered flask template of the test
         '''
@@ -183,6 +183,8 @@ class Test(object):
                 self.content[title_cor]['image'] = to_png_b64(figure)
             if text is not None:
                 self.content[title_cor]['text'] = text
+            if iframe is not None:
+                self.content[title_cor]['iframe'] = iframe
 
             return True
 

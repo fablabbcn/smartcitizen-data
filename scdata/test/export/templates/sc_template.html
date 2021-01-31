@@ -145,9 +145,15 @@
                     {% endif %}
 
                     {% if 'image' in value %}
-                    <div class="img-container">
-                        <img src="{{ value.image }}" style="width:80%;">
-                    </div>
+                        <div class="img-container">
+                            <img src="{{ value.image }}" style="width:80%;">
+                        </div>
+                    {% endif %}
+
+                    {% if 'iframe' in value %}
+                        <div class="iframe-container">
+                            {{ value.iframe }}
+                        </div>
                     {% endif %}
 
                 {% endfor %}
@@ -227,6 +233,10 @@
     div.img-container {
         text-align: center;
         padding: 20px;
+    }
+
+    div.iframe-container {
+        text-align: center;
     }
 
     div#normal-header {
