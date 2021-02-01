@@ -110,38 +110,38 @@
     },
     "GPS_ALT": {
       "desc": "GPS Altitude",
-      "id": null,
-      "units": null
+      "id": "127",
+      "units": "m"
     },
     "GPS_DIL": {
       "desc": "GPS Horizontal Dilution of Position",
-      "id": null,
-      "units": null
+      "id": "131",
+      "units": "#"
     },
     "GPS_FIX_QUALITY": {
       "desc": "GPS Fix Quality",
-      "id": null,
-      "units": null
+      "id": "128",
+      "units": "#"
     },
     "GPS_LAT": {
       "desc": "GPS Latitude",
-      "id": null,
-      "units": null
+      "id": "125",
+      "units": "deg"
     },
     "GPS_LONG": {
       "desc": "GPS Longitude",
-      "id": null,
-      "units": null
+      "id": "126",
+      "units": "deg"
     },
     "GPS_SAT_N": {
       "desc": "GPS Traked Satellites",
-      "id": null,
-      "units": null
+      "id": "130",
+      "units": "#"
     },
     "GPS_SPEED": {
       "desc": "GPS Speed",
-      "id": null,
-      "units": null
+      "id": "129",
+      "units": "m/s"
     },
     "HUM": {
       "desc": "Urban board humidity (SHT31)",
