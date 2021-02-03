@@ -121,7 +121,49 @@ class ScApiDevice:
 
 
     @staticmethod
-    def search_query(key = '', value = None, full = False):
+    def global_search(value = None, full = False):
+        """
+        Gets devices from Smart Citizen API based on basic search query values,
+        searching both Users and Devices at the same time.
+        Global search documentation: https://developer.smartcitizen.me/#global-search
+        Parameters
+        ----------
+            value: string
+                None
+                Query to fit
+                For null, not_null values, use 'null' or 'not_null'
+            full: bool
+                False
+                Returns a list with if False, or the whole dataframe if True
+        Returns
+        -------
+            A list of kit IDs that comply with the requirements, or the full df, depending on full.
+        """
+
+        API_BASE_URL = "https://api.smartcitizen.me/v0/search?q="
+
+        # Value check
+        if value is None: std_out(f'Value needs a value, {value} supplied', 'ERROR'); return None
+
+        query = API_BASE_URL  + f'{value}'
+
+        try:
+            qresp = get(query)
+
+            # If status code OK, retrieve data
+            if qresp.status_code == 200 or qresp.status_code == 201:
+                df = DataFrame(qresp.json()).set_index('id')
+            else:
+                std_out('API reported {}'.format(qresp.status_code), 'ERROR')
+        except:
+            std_out('Failed request. Probably no connection', 'ERROR')
+            pass
+
+        if full: return df
+        else: return list(df.index)
+
+    @staticmethod
+    def search_by_query(key = '', value = None, full = False):
         """
         Gets devices from Smart Citizen API based on ransack parameters
         Basic query documentation: https://developer.smartcitizen.me/#basic-searching
@@ -149,7 +191,6 @@ class ScApiDevice:
 
         # Value check
         if value is None: std_out(f'Value needs a value, {value} supplied', 'ERROR'); return None
-
 
         if value == 'null' or value == 'not_null':
              query = API_BASE_URL  + f'?q[{key}_{value}]=1'
