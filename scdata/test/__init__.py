@@ -18,11 +18,13 @@ from scdata.test.plot.plot_tools import to_png_b64
 
 class Test(object):
 
-    from .plot import (ts_plot, ts_iplot, ts_uplot, device_metric_map,
+    from .plot import (ts_plot, ts_iplot, device_metric_map,
                         scatter_plot, scatter_iplot, ts_scatter,
                         heatmap_plot, heatmap_iplot,
                         box_plot, ts_dendrogram)
                         #, report_plot, cat_plot, violin_plot)
+
+    if config._ipython_avail: from .plot import ts_uplot
     from .export import to_csv, to_html
     from .load import load
     from .utils import combine, prepare

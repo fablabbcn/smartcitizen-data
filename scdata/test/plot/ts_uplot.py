@@ -3,12 +3,7 @@ from scdata._config import config
 from .plot_tools import prepare_data, colors
 
 # uPlot
-try:
-    from IPython.display import IFrame, HTML
-except ModuleNotFoundError:
-    std_out('IPython not found, uplot will not work', 'WARNING')
-    pass
-
+from IPython.display import HTML
 import json
 from jinja2 import Template
 import io

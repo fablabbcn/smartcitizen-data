@@ -1,4 +1,3 @@
-from os.path import join
 import yaml
 import json
 
@@ -8,6 +7,7 @@ from scdata.utils.meta import (get_paths, load_blueprints,
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
+import sys
 
 from numpy import arange
 
@@ -19,6 +19,9 @@ class Config(object):
 
     # Usage in jupyterlab or script. For renderer plots
     _framework = 'script'
+
+    if 'IPython' in sys.modules: _ipython_avail = True
+    else: _ipython_avail = False
 
     # Default location for timezones
     _location = 'Europe/Madrid'
