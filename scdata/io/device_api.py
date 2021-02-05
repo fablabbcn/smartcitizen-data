@@ -54,7 +54,17 @@ class ScApiDevice:
         self.data = None
         self.sensors = None
         self.devicejson = None
-        self.postprocessing_info = None
+        self.postprocessing = None
+        self._url = f'https://smartcitizen.me/kits/{self.id}'
+        self._api_url = f'https://api.smartcitizen.me/v0/devices/{self.id}'
+
+    @property
+    def url(self):
+        return self._url
+
+    @property
+    def api_url(self):
+        return self._api_url
 
     @staticmethod
     def new_device(name, kit_id = 26, latitude = 41.396867,  longitude = 2.194351, exposure = 'indoor', user_tags = 'Lab, Research, Experimental'):
@@ -174,7 +184,7 @@ class ScApiDevice:
                 Query key according to the basic query documentation. Some (not all) parameters are:
                 ['id', 'owner_id', 'name', 'description', 'mac_address', 'created_at',
                 'updated_at', 'kit_id', 'geohash', 'last_recorded_at', 'uuid', 'state',
-                'postprocessing_info', 'hardware_info']
+                'postprocessing_id', 'hardware_info']
             value: string
                 None
                 Query to fit
@@ -362,31 +372,16 @@ class ScApiDevice:
 
         return self.last_reading_at
 
-    def get_postprocessing_info(self, update = False):
+    def get_device_postprocessing(self, update = False):
 
-        if self.postprocessing_info is None or update:
-            try:
-                deviceR = get(self.API_BASE_URL + '{}'.format(self.id))
+        if self.postprocessing is None or update:
 
-                # Retry once
-                if deviceR.status_code == 429:
-                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
-                            'WARNING')
-                    sleep(30)
-                    deviceR = get(self.API_BASE_URL + '{}'.format(self.id))
+            if self.get_device_json(update) is not None:
+                self.postprocessing = self.devicejson['postprocessing']
 
-                if deviceR.status_code == 200 or deviceR.status_code == 201:
-                    if 'postprocessing_info' in deviceR.json():
-                        self.postprocessing_info = deviceR.json()['postprocessing_info']
-                    else:
-                        std_out('Request OK, but no postprocessing_info', 'ERROR')
-                else:
-                    std_out('API reported {} when loading postprocessing information'.format(deviceR.status_code), 'WARNING')
-            except:
-                std_out('Failed request. Probably no connection', 'ERROR')
-                pass
+            std_out ('Device {} has postprocessing information:\n{}'.format(self.id, self.postprocessing))
 
-        return self.postprocessing_info
+        return self.postprocessing
 
     def get_device_location(self, update = False):
 
@@ -657,15 +652,13 @@ class ScApiDevice:
 
         return False
 
-    def post_postprocessing_info(self):
+    def patch_postprocessing(self):
         '''
             POST postprocessing info into the device in the SmartCitizen API
-            Updates all the post info. Changes need to be made info the keys of the postprocessing_info outside of here
-            Needs to post the whole json
+            Updates all the post info. Changes need to be made info the keys of the postprocessing outside of here
 
-            # Example postprocessing_info:
+            # Example postprocessing:
             # {
-            #   "updated_at": "2020-10-29T04:35:23Z",
             #   "blueprint_url": "https://github.com/fablabbcn/smartcitizen-data/blob/master/blueprints/sc_21_station_module.json",
             #   "hardware_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/hardware/SCAS210001.json",
             #   "latest_postprocessing": "2020-10-29T08:35:23Z"
@@ -679,14 +672,14 @@ class ScApiDevice:
         headers = {'Authorization':'Bearer ' + environ['SC_BEARER'],
                    'Content-type': 'application/json'}
 
-        post = {"postprocessing_info": self.postprocessing_info}
+        post = {"postprocessing_attributes": self.postprocessing}
         post_json = dumps(post)
-        std_out(f'Posting post-processing info:\n {post_json}')
+        std_out(f'Posting postprocessing_attributes:\n {post_json}')
         response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}/',
                          data = post_json, headers = headers)
 
         if response.status_code == 200 or response.status_code == 201:
-            std_out(f"Postprocessing info posted", "SUCCESS")
+            std_out(f"Postprocessing posted", "SUCCESS")
             return True
         else:
             std_out(f"API responded with {response.status_code}")

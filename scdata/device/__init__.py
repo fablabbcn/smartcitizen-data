@@ -9,7 +9,7 @@ from scdata.device.process import *
 
 from os.path import join, basename
 from urllib.parse import urlparse
-from pandas import DataFrame, to_datetime
+from pandas import DataFrame, to_datetime, to_timedelta
 from traceback import print_exc
 import datetime
 
@@ -74,7 +74,7 @@ class Device(object):
             self.api_device = Hclass(did = self.id)
 
             std_out(f'Checking postprocessing info from API device')
-            if self.load_postprocessing_info() is not None:
+            if self.load_postprocessing() is not None:
                 std_out('Postprocessing info loaded successfully', 'SUCCESS')
 
         if self.blueprint is None:
@@ -129,28 +129,27 @@ class Device(object):
         else:
             self.options['frequency'] = '1Min'
 
-    def load_postprocessing_info(self):
+    def load_postprocessing(self):
 
         if self.source != 'api': return None
 
         if self.sources[self.source]['handler'] != 'ScApiDevice': return None
 
         # Request to get postprocessing information
-        if self.api_device.get_postprocessing_info() is None: return None
+        if self.api_device.get_device_postprocessing() is None: return None
 
         # Put it where it goes
         try:
-            self.hw_url = self.api_device.postprocessing_info['hardware_url']
-            self.hw_updated_at = self.api_device.postprocessing_info['updated_at']
-            self.blueprint_url = self.api_device.postprocessing_info['blueprint_url']
-            self.latest_postprocessing = self.api_device.postprocessing_info['latest_postprocessing']
-            inc_postprocessing_info = False
+            self.hw_url = self.api_device.postprocessing['hardware_url']
+            self.blueprint_url = self.api_device.postprocessing['blueprint_url']
+            self.latest_postprocessing = self.api_device.postprocessing['latest_postprocessing']
+            inc_postprocessing = False
         except KeyError:
             std_out('Ignoring postprocessing info as its incomplete', 'WARNING')
-            inc_postprocessing_info = True
+            inc_postprocessing = True
             pass
 
-        if inc_postprocessing_info: return None
+        if inc_postprocessing: return None
 
         # Load hardware info from url
         if self.hw_url is not None and self.hw_loaded_from_url == False:
@@ -166,7 +165,7 @@ class Device(object):
                 std_out("Hardware in url is not valid", 'ERROR')
                 return None
 
-        # Use postprocessing_info blueprint (not null case)
+        # Use postprocessing blueprint (not null case)
         if self.blueprint_url is not None and self.blueprint_loaded_from_url == False:
 
             std_out(f'Loading hardware postprocessing blueprint from:\n{self.blueprint_url}')
@@ -177,7 +176,7 @@ class Device(object):
 
                 std_out(f'Blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting')
                 # self.blueprint_loaded_from_url = True
-                # return self.api_device.postprocessing_info
+                # return self.api_device.postprocessing
 
             lblueprint = get_json_from_url(self.blueprint_url)
 
@@ -194,7 +193,7 @@ class Device(object):
                 std_out('Blueprint in url is not valid', 'ERROR')
                 return None
 
-        # Use postprocessing_info blueprint (null case)
+        # Use postprocessing blueprint (null case)
         elif self.blueprint_url is None and self.blueprint_loaded_from_url == False:
 
             if 'default_blueprint_url' in self.hw_info:
@@ -225,7 +224,7 @@ class Device(object):
                 std_out('Postprocessing not possible without blueprint', 'ERROR')
                 return None
 
-        return self.api_device.postprocessing_info
+        return self.api_device.postprocessing
 
     def load(self, options = None, path = None, convert_units = True, only_unprocessed = False):
         '''
@@ -277,7 +276,7 @@ class Device(object):
 
                 if path is None:
 
-                    if self.load_postprocessing_info() and only_unprocessed:
+                    if self.load_postprocessing() and only_unprocessed:
 
                         # Override dates for post-processing
                         if self.latest_postprocessing is not None:
@@ -313,11 +312,15 @@ class Device(object):
         else:
             if self.readings is not None:
                 self.__check_sensors__()
-                self.__fill_metrics__()
 
                 if not self.readings.empty:
+                    # Only add metrics if there is something that can be potentially processed
+                    self.__fill_metrics__()
                     self.loaded = True
                     if convert_units: self.__convert_units__()
+                else:
+                    std_out('Empty dataframe in readings', 'WARNING')
+
         finally:
             return self.loaded
 
@@ -333,6 +336,12 @@ class Device(object):
 
             from_date = self.hw_info[version]["from"]
             to_date = self.hw_info[version]["to"]
+
+            # Do not add any metric if the from_date of the calibration is after the last_reading_at 
+            # as there would be nothing to process
+            if from_date > self.api_device.last_reading_at:
+                std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
+                return None
 
             for slot in self.hw_info[version]["ids"]:
 
@@ -463,14 +472,14 @@ class Device(object):
 
         if process_ok:
             # Latest postprocessing to latest readings
-            if self.api_device.get_postprocessing_info() is not None:
-                std_out('Updating postprocessing_info')
-                latest_postprocessing = localise_date(self.readings.index[-1], 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                self.api_device.postprocessing_info['latest_postprocessing'] = latest_postprocessing
-                self.api_device.postprocessing_info['updated_at'] = to_datetime(datetime.datetime.now(), utc = False)\
-                                                                    .tz_localize(config._location)\
-                                                                    .tz_convert('UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                std_out(f"{self.api_device.postprocessing_info}")
+            if self.api_device.get_device_postprocessing() is not None:
+                std_out('Updating postprocessing')
+                # Add latest postprocessing rounded up with frequency so that we don't end up in
+                # and endless loop processing only the latest data line (minute vs. second precission of the readings)
+                latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                self.api_device.postprocessing['latest_postprocessing'] = latest_postprocessing
+
+                std_out(f"{self.api_device.postprocessing}")
                 std_out(f"Device {self.id} processed", "SUCCESS")
 
         return process_ok
@@ -585,14 +594,14 @@ class Device(object):
 
         return post_ok
         
-    def post_metrics(self, with_post_info = True):
+    def post_metrics(self, with_postprocessing = True):
         '''
         Posts devices metrics. Only available for parent of ScApiDevice
         Parameters
         ----------
-            with_post_info: boolean
+            with_postprocessing: boolean
                 Default True
-                Add the post info to the package
+                Post the postprocessing_attributes too
         Returns
         ----------
             boolean
@@ -619,8 +628,8 @@ class Device(object):
                 else: std_out(f"Error while posting {metric}", "WARNING")
 
         # Post info if requested. It should be updated elsewhere
-        if with_post_info and post_ok:
-            post_ok &= self.api_device.post_postprocessing_info()
+        if with_postprocessing and post_ok:
+            post_ok &= self.api_device.patch_postprocessing()
 
         if post_ok: std_out(f"Metrics posted for device {self.id}", "SUCCESS")
         return post_ok
