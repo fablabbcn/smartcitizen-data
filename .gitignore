@@ -22,6 +22,7 @@ references
 
 TODO.md
 secrets.py
+hardware-destinations.txt
 
 # Data types
 *.xls*
