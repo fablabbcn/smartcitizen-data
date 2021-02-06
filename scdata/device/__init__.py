@@ -584,13 +584,18 @@ class Device(object):
 
         for sensor in self.sensors:
             std_out(f'Posting sensor: {sensor}')
+
             # Get single series for post
             df = DataFrame(self.readings[sensor]).dropna(axis = 0, how='all')
             if df.empty: 
                 std_out('Empty dataframe, ignoring', 'WARNING')
                 continue
             sensor_id = self.sensors[sensor]['id']
-            post_ok &= self.api_device.post_device_data(df, sensor_id = sensor_id)
+            sensor_ok = self.api_device.post_device_data(df, sensor_id = sensor_id)
+            if sensor_ok: std_out(f'Posted sensor {sensor}', 'SUCCESS')
+            else: std_out(f'Error posting sensor {sensor}', 'ERROR')
+
+            post_ok &= sensor_ok
 
         return post_ok
         

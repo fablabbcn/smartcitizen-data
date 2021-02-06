@@ -19,6 +19,9 @@ from json import dumps
 import binascii
 from time import sleep
 
+import sys
+from tqdm import trange
+
 tz_where = tzwhere.tzwhere(forceTZ=True)
 
 '''
@@ -311,7 +314,6 @@ class ScApiDevice:
         if self.devicejson is None or update:
             try:
                 deviceR = get(self.API_BASE_URL + '{}/'.format(self.id))
-
                 if deviceR.status_code == 429:
                     std_out('API reported {}. Retrying once'.format(deviceR.status_code),
                             'WARNING')
@@ -320,7 +322,7 @@ class ScApiDevice:
 
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.devicejson = deviceR.json()
-                else: 
+                else:
                     std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
             except:
                 std_out('Failed request. Probably no connection', 'ERROR')  
@@ -375,7 +377,6 @@ class ScApiDevice:
     def get_device_postprocessing(self, update = False):
 
         if self.postprocessing is None or update:
-
             if self.get_device_json(update) is not None:
                 self.postprocessing = self.devicejson['postprocessing']
 
@@ -593,7 +594,7 @@ class ScApiDevice:
         if flag_error == False: std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-    def post_device_data(self, df, sensor_id, clean_na = 'drop'):
+    def post_device_data(self, df, sensor_id, clean_na = 'drop', chunk_size = 500):
         '''
             POST data in the SmartCitizen API
             Parameters
@@ -609,48 +610,68 @@ class ScApiDevice:
                 clean_na: string, optional
                     'drop'
                     'drop', 'fill'
+                chunk_size: integer
+                    chunk size to split resulting pandas DataFrame for posting readings
             Returns
             -------
                 True if the data was posted succesfully
         '''
         if 'SC_BEARER' not in environ:
             std_out('Cannot post without Auth Bearer', 'ERROR')
-            return
+            return False
 
-        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'], 'Content-type': 'application/json'}
+        if 'SC_ADMIN_BEARER' in environ:
+            std_out('Using admin Bearer')
+            bearer = environ['SC_ADMIN_BEARER']
+        else:
+            bearer = environ['SC_BEARER']
+
+        headers = {'Authorization':'Bearer ' + bearer, 'Content-type': 'application/json'}
 
         # Get sensor name
         sensor_name = list(df.columns)[0]
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
 
-        # Process dataframe
-        df['id'] = sensor_id
-        df.index.name = 'recorded_at'
-        df.rename(columns = {sensor_name: 'value'}, inplace = True)
-        df.columns = MultiIndex.from_product([['sensors'], df.columns])
-        j = (df.groupby('recorded_at', as_index = True)
-                .apply(lambda x: x['sensors'][['value', 'id']].to_dict('r'))
-        )
+        # Split the dataframe in chunks
+        std_out(f'Splitting post in chunks of size {chunk_size}')
+        chunked_dfs = [df[i:i+chunk_size] for i in range(0, df.shape[0], chunk_size)]
 
-        # Prepare json post
-        payload = {"data":[]}
-        for item in j.index:
-            payload["data"].append(
-                {
-                    "recorded_at": localise_date(item, 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    "sensors": j[item]
-                }
+        for i in trange(len(chunked_dfs), file=sys.stdout, 
+                        desc=f"Posting data for {sensor_name}..."):
+
+            chunk = chunked_dfs[i].copy()
+            # Process dataframe
+            chunk['id'] = sensor_id
+            chunk.index.name = 'recorded_at'
+            chunk.rename(columns = {sensor_name: 'value'}, inplace = True)
+            chunk.columns = MultiIndex.from_product([['sensors'], chunk.columns])
+
+            j = (chunk.groupby('recorded_at', as_index = True)
+                    .apply(lambda x: x['sensors'][['value', 'id']].to_dict('r'))
             )
 
-        payload_json = dumps(payload)
+            # Prepare json post
+            payload = {"data":[]}
+            for item in j.index:
+                payload["data"].append(
+                    {
+                        "recorded_at": localise_date(item, 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "sensors": j[item]
+                    }
+                )
 
-        response = post(f'https://api.smartcitizen.me/v0/devices/{self.id}/readings', data = payload_json, headers = headers)
-        if response.status_code == 200 or response.status_code == 201:
-            std_out('Post OK', 'SUCCESS')
-            return True
+            payload_json = dumps(payload)
+            response = post(f'https://api.smartcitizen.me/v0/devices/{self.id}/readings', 
+                            data = payload_json, headers = headers)
 
-        return False
+            if not(response.status_code == 200 or response.status_code == 201):
+
+                std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
+                           API responded {response.status_code}', 'ERROR')
+                return False
+
+        return True
 
     def patch_postprocessing(self):
         '''
