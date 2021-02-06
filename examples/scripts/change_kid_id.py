@@ -2,7 +2,6 @@
 
 import scdata as sc
 from scdata._config import config
-from scdata.utils.meta import load_env
 
 config._out_level = 'DEBUG'
 
