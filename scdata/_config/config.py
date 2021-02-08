@@ -3,7 +3,8 @@ import json
 
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
-                                load_calibrations, load_env)
+                                load_calibrations, load_connectors,
+                                load_env)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -92,6 +93,10 @@ class Config(object):
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_20.json',
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json',
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21_gps.json'
+    ]
+
+    connectors_urls = [
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/connectors/connectors.json'
     ]
 
     # Convertion table from API SC to Pandas
@@ -498,6 +503,10 @@ class Config(object):
                  'loaded',
                  'hw_id',
                  'blueprint_url',
+                 'processed',
+                 'forwarding_params',
+                 'meta',
+                 'processed',
                  'hw_info',
                  'hw_updated_at',
                  'description',
@@ -534,9 +543,11 @@ class Config(object):
         # Blueprints and calibrations
         blueprints = load_blueprints(self.blueprints_urls)
         calibrations = load_calibrations(self.calibrations_urls)
+        connectors = load_connectors(self.connectors_urls)
 
         if calibrations is not None: self.calibrations = calibrations
         if blueprints is not None: self.blueprints = blueprints
+        if connectors is not None: self.connectors = connectors
 
         # Find environment file in root or in scdata/ for clones
         if exists('.env'): env_file = '.env'

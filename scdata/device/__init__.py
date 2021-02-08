@@ -87,8 +87,14 @@ class Device(object):
         self.loaded = False
         self.options = dict()
 
+        # Postprocessing and forwarding
         self.hw_url = None
+        self.blueprint_url = None
+        self.forwarding_params = None
+        self.meta = None
         self.latest_postprocessing = None
+
+        self.processed = False
 
     def set_blueprint_attrs(self, blueprintd):
 
@@ -143,6 +149,9 @@ class Device(object):
             self.hw_url = self.api_device.postprocessing['hardware_url']
             self.blueprint_url = self.api_device.postprocessing['blueprint_url']
             self.latest_postprocessing = self.api_device.postprocessing['latest_postprocessing']
+            self.forwarding_params = self.api_device.postprocessing['forwarding_params']
+            self.meta = self.api_device.postprocessing['meta']
+
             inc_postprocessing = False
         except KeyError:
             std_out('Ignoring postprocessing info as its incomplete', 'WARNING')
@@ -322,6 +331,7 @@ class Device(object):
                     std_out('Empty dataframe in readings', 'WARNING')
 
         finally:
+            self.processed = False
             return self.loaded
 
     def __fill_metrics__(self):
@@ -481,6 +491,8 @@ class Device(object):
 
                 std_out(f"{self.api_device.postprocessing}")
                 std_out(f"Device {self.id} processed", "SUCCESS")
+
+        self.processed = process_ok
 
         return process_ok
 

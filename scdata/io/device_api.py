@@ -1,4 +1,4 @@
-from pandas import (DataFrame, to_datetime, to_numeric, 
+from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta
                     to_numeric, read_csv, DateOffset, MultiIndex)
 
 from math import isnan
@@ -59,7 +59,7 @@ class ScApiDevice:
         self.devicejson = None
         self.postprocessing = None
         self._url = f'https://smartcitizen.me/kits/{self.id}'
-        self._api_url = f'https://api.smartcitizen.me/v0/devices/{self.id}'
+        self._api_url = f'{self.API_BASE_URL}{self.id}'
 
     @property
     def url(self):
@@ -76,7 +76,7 @@ class ScApiDevice:
             Parameters
             ----------
                 name: string
-                    Minimum date to filter out the devices. Device started posted before min_date
+                    Device name
                 kit_id: int, optional
                     26 (SCK 2.1)
                     Kit ID - related to blueprint
@@ -131,7 +131,6 @@ class ScApiDevice:
 
         std_out(f'Error while creating new device, platform returned {backed_device.status_code}', 'ERROR')
         return False
-
 
     @staticmethod
     def global_search(value = None, full = False):
@@ -353,7 +352,7 @@ class ScApiDevice:
             payload = {'kit_id': self.kit_id}
 
             payload_json = dumps(payload)
-            response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}', 
+            response = patch(f'{self.API_BASE_URL}{self.id}', 
                         data = payload_json, headers = headers)
 
             if response.status_code == 200 or response.status_code == 201:
@@ -662,7 +661,7 @@ class ScApiDevice:
                 )
 
             payload_json = dumps(payload)
-            response = post(f'https://api.smartcitizen.me/v0/devices/{self.id}/readings', 
+            response = post(f'{self.API_BASE_URL}{self.id}/readings', 
                             data = payload_json, headers = headers)
 
             if not(response.status_code == 200 or response.status_code == 201):
@@ -696,7 +695,7 @@ class ScApiDevice:
         post = {"postprocessing_attributes": self.postprocessing}
         post_json = dumps(post)
         std_out(f'Posting postprocessing_attributes:\n {post_json}')
-        response = patch(f'https://api.smartcitizen.me/v0/devices/{self.id}/',
+        response = patch(f'{self.API_BASE_URL}{self.id}/',
                          data = post_json, headers = headers)
 
         if response.status_code == 200 or response.status_code == 201:
@@ -1081,3 +1080,196 @@ class DadesObertesApiDevice:
 
         std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
+
+class IflinkApiDevice(object):
+    """docstring for IflinkDevice"""
+    API_BASE_URL='https://sensors.nilu.no/api/'
+    API_CONNECTOR='iflink'
+
+    # Docs
+    # https://sensors.nilu.no/api/doc#configure-sensor-schema
+    # https://sensors.nilu.no/api/doc#push--sensor-data-by-id
+
+    def __init__ (self, did):
+
+        self.id = did
+        self.location = None
+        self.lat = None
+        self.long = None
+        self.alt = None
+        self.data = None
+        self.sensors = None
+        self.devicejson = None
+        self._api_url = self.API_BASE_URL + f'sensors/{self.id}'
+
+    @property
+    def api_url(self):
+        return self._api_url
+
+    @staticmethod
+    def configure(name, description = '', resolution = '1Min', epsg = 4326, enabled = True, location = None, sensors = None):
+        '''
+            Configures the device as a new sensor schema.
+            This is a one-time configuration and shouldn't be necessary in a recursive way.
+            More information at: https://sensors.nilu.no/api/doc#configure-sensor-schema
+
+            Parameters
+            ----------
+                name: string
+                    Device name
+                description: string, optional
+                    ''
+                    sensor description
+                resolution: string, optional
+                    '1Min'
+                    pandas formatted resolution
+                epsg: int, optional
+                    4326
+                    SRS EPSG code. Defaults to 4326 (WGS84). More info https://spatialreference.org/
+                enabled: boolean, optional
+                    True
+                    flag indicating if sensor is enabled for data transfer
+                location: dict
+                    None
+                    sensor location. If sensor is moving (i.e. position is not fixed), 
+                    then location must explicitly be set to an empty object: {} when configured. Also see this section.
+                    location = {
+                                'longitude': longitude (double) – sensor east-west position,
+                                'latitude': latitude (double) – sensor north-south position,
+                                'altitude': altitude (double) – sensor height above sea level
+                                }
+                sensors: dict()
+                    Dictionary containing necessary information of the sensors to be stored. scdata format:
+                    {
+                        'SHORT_NAME': {
+                                        'desc': 'Channel description',
+                                        'id': 'sensor SC platform id', 
+                                        'units': 'sensor_recording_units'
+                                    },
+                        ...
+                    }
+            Returns
+            -------
+                Dictionary containing:
+                    sensorid (int) – sensor identifier
+                    message (string) – HTTP status text
+                    http-status-code (int) – HTTP status code
+                    atom (string) – atom URL to sensor
+        '''
+
+        if self.API_CONNECTOR not in config.connectors:
+            std_out(f'No connector for this {self.API_CONNECTOR} in config', 'ERROR')
+            return False
+
+        if 'IFLINK_BEARER' not in environ:
+            std_out('Cannot configure without Auth Bearer', 'ERROR')
+            return False
+
+        headers = {'Authorization':'Bearer ' + environ['IFLINK_BEARER'], 'Content-type': 'application/json'}
+
+        if name is None:
+            std_out('Need a name to create a new sensor', 'ERROR')
+            return False
+
+        # Verify inputs
+        flag_error = False
+        # EPSG int type
+        try:
+            int(epsg)
+        except:
+            std_out('Could not convert epsg to int', 'ERROR')
+            flag_error = True
+            pass
+
+        # Resolution in seconds
+        if not flag_error:
+            try:
+                resolution_seconds = to_timedelta(resolution).seconds
+            except:
+                std_out('Could not convert resolution to seconds', 'ERROR')
+                flag_error = True
+                pass
+
+        # Location
+        if not flag_error:
+            try:
+                location['longitude']
+                location['latitude']
+                location['altitude']
+            except KeyError:
+                std_out('Need latitude, longitude and altitude in location dict', 'ERROR')
+                flag_error = True
+                pass
+
+        if flag_error: return False
+
+        # Construct payload
+        payload = {
+            "name": name,
+            "description": description,
+            "resolution": resolution_seconds,
+            "srs": {
+                "epsg": int(epsg)
+            },
+            "enabled": enabled
+        }
+
+        payload['location'] = location
+
+        parameters = []
+        components = []
+
+        # Construct
+        for sensor in sensors.keys():
+            # Check if it's in the configured connectors
+            if str(sensors[sensor]['id']) not in config.connectors: 
+                std_out(f"Connector for {sensor} not found", "WARNING")
+                continue
+
+            name = config.connectors[sensors[sensor]['id']]['name']
+            units = sensors[sensor]['units']
+
+            _pjson = {
+                "name": name,
+                "type": "double",
+                "doc": f"{name} in {units}"
+            }
+
+            _cjson = {
+                "componentid": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['id'],
+                "unitid": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['unitid'],
+                "binding-path": f"/{name}"
+                "level": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['level']
+            }
+
+            parameters.append(_pjson)
+            components.appends(_cjson)
+
+        print ('--------')
+        print (parameters)
+        print (components)
+
+        return True
+
+        payload_json = dumps(payload)
+        response = post(f'{self.API_BASE_URL}/sensors/configure', 
+                        data = payload_json, headers = headers)
+
+        if response.status_code == 200 or response.status_code == 201:
+            std_out('Post successful', 'SUCCESS')
+            return response.json
+        else:
+            std_out('IFLINK reported {}'.format(response.status_code), 'ERROR')
+            return False
+
+    def get_device_data(self):
+
+        return None
+
+    def post_device_data(self, df):
+
+        if 'IFLINK_BEARER' not in environ:
+            std_out('Cannot post without Auth Bearer', 'ERROR')
+            return False
+
+        return None

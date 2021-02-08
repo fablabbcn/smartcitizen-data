@@ -185,3 +185,15 @@ def load_calibrations(urls):
             return None
 
     return calibrations
+
+def load_connectors(urls):
+
+    connectors = dict()
+    for url in urls:
+        try:
+            connectors = dict_fmerge(get_json_from_url(url), connectors)
+        except:
+            print(f'Problem loading connectors from {url}')
+            return None
+
+    return connectors

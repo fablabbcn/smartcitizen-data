@@ -1,0 +1,530 @@
+{
+  "1": {
+    "name": "air temperature",
+    "iflink": {
+    	"id": 15,
+    	"unitid": 2,
+    	"level": 1
+    }
+  },
+  "3": {
+    "name": "light",
+    "iflink": {
+    	"id": "null",
+    	"unitid": "null",
+    	"level": "null"
+    }
+  },
+  "7": {
+    "name": "battery",
+    "iflink": {
+    	"id": "null",
+    	"unitid": "null",
+    	"level": "null"
+    }
+  },
+  "9": {
+    "name": "nets",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "4": {
+    "name": "noise",
+    "iflink": {
+    	"id": "null",
+    	"unitid": "null",
+    	"level": 1
+    }
+  },
+  "8": {
+    "name": "pv panel",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "21": {
+    "name": "dissolved oxygen",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "20": {
+    "name": "specific gravity",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "5": {
+    "name": "co",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "6": {
+    "name": "no2",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "22": {
+    "name": "oxygen saturation",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "30": {
+    "name": "Decreasing time",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "12": {
+    "name": "PM",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "13": {
+    "name": "PM 10",
+    "iflink": {
+    	"id": 12,
+    	"unitid": 3,
+    	"level": 1
+    }
+  },
+  "14": {
+    "name": "PM 2.5",
+    "iflink": {
+    	"id": 13,
+    	"unitid": 3,
+    	"level": 1
+    }
+  },
+  "2": {
+    "name": "humidity",
+    "iflink": {
+    	"id": 5,
+    	"unitid": 1,
+    	"level": 1
+    }
+  },
+  "27": {
+    "name": "PM 1",
+    "iflink": {
+    	"id": 11,
+    	"unitid": 3,
+    	"level": 1
+    }
+  },
+  "19": {
+    "name": "electrical conductivity",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "15": {
+    "name": "electrode ref",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "10": {
+    "name": "street activity",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "16": {
+    "name": "ionising radiation",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "17": {
+    "name": "water temperature",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "18": {
+    "name": "pH",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "23": {
+    "name": "soil moisture",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "24": {
+    "name": "soil temperature",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "25": {
+    "name": "barometric pressure",
+    "iflink": {
+    	"id": 1,
+    	"unitid": 9,
+    	"level": 1
+    }
+  },
+  "38": {
+    "name": "mA",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "31": {
+    "name": "Stagnating time",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "26": {
+    "name": "o3",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "40": {
+    "name": "PM Bucket PN0.3",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "41": {
+    "name": "PM Bucket PN0.5",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "42": {
+    "name": "PM Bucket PN1.0",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "43": {
+    "name": "PM Bucket PN2.5",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "44": {
+    "name": "PM Bucket PN5.0",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "45": {
+    "name": "PM Bucket PN10.0",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "28": {
+    "name": "Water level",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "29": {
+    "name": "Rising time",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "39": {
+    "name": "cm",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "11": {
+    "name": "ADC in V",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "46": {
+    "name": "eCO2",
+    "iflink": {
+    	"id": "null",
+    	"unitid": 17,
+    	"level": 1
+    }
+  },
+  "47": {
+    "name": "TVOC",
+    "iflink": {
+    	"id": 16,
+    	"unitid": 16,
+    	"level": 1
+    }
+  },
+  "34": {
+    "name": "external air temperature",
+    "iflink": {
+    	"id": null,
+    	"unitid": 2,
+    	"level": 1
+    }
+  },
+  "35": {
+    "name": "o3 aux electrode",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "36": {
+    "name": "no2 aux electrode",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "37": {
+    "name": "co aux electrode",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "32": {
+    "name": "gases board temp",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "33": {
+    "name": "gases board humidity",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "48": {
+    "name": "formaldehydes",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "49": {
+    "name": "counts",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "50": {
+    "name": "TDS",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "51": {
+    "name": "Salinity",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "54": {
+    "name": "Altitude",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "59": {
+    "name": "CO",
+    "iflink": {
+    	"id": 2,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "60": {
+    "name": "NO2",
+    "iflink": {
+    	"id": 8,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "61": {
+    "name": "NO",
+    "iflink": {
+    	"id": 7,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "55": {
+    "name": "Fix Quality",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "56": {
+    "name": "Ground Speed",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "57": {
+    "name": "Satellites",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "58": {
+    "name": "Horizontal dilution",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  },
+  "53": {
+    "name": "Latitude",
+    "iflink": {
+    	"id": null,
+    	"unitid": 6,
+    	"level": null
+    }
+  },
+  "62": {
+    "name": "SO2",
+    "iflink": {
+    	"id": null,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "52": {
+    "name": "Longitude",
+    "iflink": {
+    	"id": null,
+    	"unitid": 6,
+    	"level": null
+    }
+  },
+  "63": {
+    "name": "H2S",
+    "iflink": {
+    	"id": null,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "64": {
+    "name": "O3",
+    "iflink": {
+    	"id": 10,
+    	"unitid": 16,
+    	"level": 2
+    }
+  },
+  "65": {
+    "name": "CO2",
+    "iflink": {
+    	"id": 3,
+    	"unitid": 17,
+    	"level": 1
+    }
+  },
+  "66": {
+    "name": "UVA",
+    "iflink": {
+    	"id": null,
+    	"unitid": null,
+    	"level": null
+    }
+  }
+}
