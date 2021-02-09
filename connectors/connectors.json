@@ -9,15 +9,13 @@
       "name": "humidity",
       "description": "Relative humidity is a measure of the amount of moisture in the air relative to the total amount of moisture the air can hold. For instance, if the relative humidity was 50%, then the air is only half saturated with moisture."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 12,
@@ -29,15 +27,13 @@
       "name": "air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 21,
@@ -49,15 +45,13 @@
       "name": "nets",
       "description": "The amount of Wi-Fi networks visible by the SCK."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 14,
@@ -69,15 +63,13 @@
       "name": "light",
       "description": "Lux is a measure of how much light is spread over a given area. A full moon clear night is around 1 lux, inside an office building you usually have 400 lux and a bright day can be more than 20000 lux."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 56,
           "unitid": 28,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 97,
@@ -89,15 +81,13 @@
       "name": "mA",
       "description": "Current"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 27,
@@ -109,15 +99,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 4,
@@ -129,15 +117,13 @@
       "name": "air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 7,
@@ -149,15 +135,13 @@
       "name": "noise",
       "description": "dB's measure sound pressure difference between the average local pressure and the pressure in the sound wave.  A quiet library is below 40dB, your house is around 50dB and a diesel truck in your street 90dB."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 5,
@@ -169,15 +153,13 @@
       "name": "humidity",
       "description": "Relative humidity is a measure of the amount of moisture in the air relative to the total amount of moisture the air can hold. For instance, if the relative humidity was 50%, then the air is only half saturated with moisture."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 6,
@@ -189,15 +171,13 @@
       "name": "light",
       "description": "Lux is a measure of how much light is spread over a given area. A full moon clear night is around 1 lux, inside an office building you usually have 400 lux and a bright day can be more than 20000 lux."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 25,
@@ -209,15 +189,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 11,
@@ -229,15 +207,13 @@
       "name": "pv panel",
       "description": "The SCK's solar panel energy voltage (when connected)."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 18,
@@ -249,15 +225,13 @@
       "name": "pv panel",
       "description": "The SCK's solar panel energy voltage (when connected)."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 22,
@@ -269,15 +243,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 24,
@@ -289,15 +261,13 @@
       "name": "street activity",
       "description": "Calculated based on Open CV countours. (For research purpose only)"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 33,
@@ -309,15 +279,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 29,
@@ -329,15 +297,13 @@
       "name": "noise",
       "description": "dB's measure sound pressure difference between the average local pressure and the pressure in the sound wave.  A quiet library is below 40dB, your house is around 50dB and a diesel truck in your street 90dB."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 26,
@@ -349,15 +315,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 28,
@@ -369,15 +333,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 32,
@@ -389,15 +351,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 35,
@@ -409,15 +369,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 34,
@@ -429,15 +387,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 30,
@@ -449,15 +405,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 36,
@@ -469,15 +423,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 23,
@@ -489,15 +441,13 @@
       "name": "noise",
       "description": "dB's measure sound pressure difference between the average local pressure and the pressure in the sound wave.  A quiet library is below 40dB, your house is around 50dB and a diesel truck in your street 90dB."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 37,
@@ -509,15 +459,13 @@
       "name": "ionising radiation",
       "description": "Ionising radiation (ionizing radiation) is radiation that carries enough energy to free electrons from atoms or molecules, thereby ionizing them. Gamma rays, X-rays, and the higher ultraviolet part of the electromagnetic spectrum are ionizing."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 38,
@@ -529,15 +477,13 @@
       "name": "ionising radiation",
       "description": "Ionising radiation (ionizing radiation) is radiation that carries enough energy to free electrons from atoms or molecules, thereby ionizing them. Gamma rays, X-rays, and the higher ultraviolet part of the electromagnetic spectrum are ionizing."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 41,
@@ -549,15 +495,13 @@
       "name": "ionising radiation",
       "description": "Ionising radiation (ionizing radiation) is radiation that carries enough energy to free electrons from atoms or molecules, thereby ionizing them. Gamma rays, X-rays, and the higher ultraviolet part of the electromagnetic spectrum are ionizing."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 39,
@@ -569,15 +513,13 @@
       "name": "ionising radiation",
       "description": "Ionising radiation (ionizing radiation) is radiation that carries enough energy to free electrons from atoms or molecules, thereby ionizing them. Gamma rays, X-rays, and the higher ultraviolet part of the electromagnetic spectrum are ionizing."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 40,
@@ -589,15 +531,13 @@
       "name": "ionising radiation",
       "description": "Ionising radiation (ionizing radiation) is radiation that carries enough energy to free electrons from atoms or molecules, thereby ionizing them. Gamma rays, X-rays, and the higher ultraviolet part of the electromagnetic spectrum are ionizing."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 31,
@@ -609,15 +549,13 @@
       "name": "electrode ref",
       "description": "Electrode Ref value for Electrochemical and Metal Oxide gas sensors"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 42,
@@ -629,15 +567,13 @@
       "name": "water temperature",
       "description": "Water temperature is a measure of how hot or cold the water is."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 46,
@@ -649,15 +585,13 @@
       "name": "specific gravity",
       "description": "The density of a substance to the density of a reference substance."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 49,
@@ -669,15 +603,13 @@
       "name": "oxygen saturation",
       "description": "Relative measure of the concentration of oxygen that is dissolved in Water "
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 43,
@@ -689,15 +621,13 @@
       "name": "pH",
       "description": "pH is a numeric scale used to specify the acidity or basicity of an aqueous solution."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 48,
@@ -709,15 +639,13 @@
       "name": "dissolved oxygen",
       "description": "Absolute measure of the concentration of oxygen that is dissolved in Water "
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 45,
@@ -729,15 +657,13 @@
       "name": "electrical conductivity",
       "description": "How strongly a given material opposes the flow of electric current."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 51,
@@ -749,15 +675,13 @@
       "name": "soil temperature",
       "description": "Soil temperature is a measure of how hot or cold soil is."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 17,
@@ -769,15 +693,13 @@
       "name": "battery",
       "description": "The SCK remaining battery level in percentage."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 8,
@@ -789,15 +711,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 9,
@@ -809,15 +729,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 15,
@@ -829,15 +747,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 16,
@@ -849,15 +765,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 53,
@@ -869,15 +783,13 @@
       "name": "noise",
       "description": "dB's measure sound pressure difference between the average local pressure and the pressure in the sound wave.  A quiet library is below 40dB, your house is around 50dB and a diesel truck in your street 90dB."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 57,
           "unitid": 30,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 52,
@@ -889,15 +801,13 @@
       "name": "noise",
       "description": "dB's measure sound pressure difference between the average local pressure and the pressure in the sound wave.  A quiet library is below 40dB, your house is around 50dB and a diesel truck in your street 90dB."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 55,
@@ -909,15 +819,13 @@
       "name": "air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 15,
           "unitid": 2,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 56,
@@ -929,15 +837,13 @@
       "name": "humidity",
       "description": "Relative humidity is a measure of the amount of moisture in the air relative to the total amount of moisture the air can hold. For instance, if the relative humidity was 50%, then the air is only half saturated with moisture."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 5,
           "unitid": 1,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 58,
@@ -949,15 +855,13 @@
       "name": "barometric pressure",
       "description": "Barometric pressure is the pressure within the atmosphere of Earth. In most circumstances atmospheric pressure is closely approximated by the hydrostatic pressure caused by the weight of air above the measurement point."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 1,
           "unitid": 9,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 60,
@@ -969,15 +873,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 98,
@@ -989,15 +891,13 @@
       "name": "cm",
       "description": "Distance"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 10,
@@ -1009,15 +909,13 @@
       "name": "battery",
       "description": "The SCK remaining battery level in percentage."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 60,
           "unitid": 32,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 63,
@@ -1029,15 +927,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 66,
@@ -1049,15 +945,13 @@
       "name": "o3",
       "description": "Ozone is found naturally in small concentrations in the stratosphere, a layer of Earth's upper atmosphere. However it can also be found in the lowest layer of the atmosphere. Tropospheric ozone (often termed \"bad\" ozone) is man-made, a result of air pollution from internal combustion engines and power plants."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 69,
@@ -1069,15 +963,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 70,
@@ -1089,15 +981,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 74,
@@ -1109,15 +999,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 86,
@@ -1129,15 +1017,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 73,
@@ -1149,15 +1035,13 @@
       "name": "PM 1",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 75,
@@ -1169,15 +1053,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 76,
@@ -1189,15 +1071,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 72,
@@ -1209,15 +1089,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 77,
@@ -1229,15 +1107,13 @@
       "name": "PM 1",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 71,
@@ -1249,15 +1125,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 64,
@@ -1269,15 +1143,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 61,
@@ -1289,15 +1161,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 67,
@@ -1309,15 +1179,13 @@
       "name": "o3",
       "description": "Ozone is found naturally in small concentrations in the stratosphere, a layer of Earth's upper atmosphere. However it can also be found in the lowest layer of the atmosphere. Tropospheric ozone (often termed \"bad\" ozone) is man-made, a result of air pollution from internal combustion engines and power plants."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 84,
@@ -1329,15 +1197,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 85,
@@ -1349,15 +1215,13 @@
       "name": "o3",
       "description": "Ozone is found naturally in small concentrations in the stratosphere, a layer of Earth's upper atmosphere. However it can also be found in the lowest layer of the atmosphere. Tropospheric ozone (often termed \"bad\" ozone) is man-made, a result of air pollution from internal combustion engines and power plants."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 87,
@@ -1369,15 +1233,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 89,
@@ -1389,15 +1251,13 @@
       "name": "PM 1",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 88,
@@ -1409,15 +1269,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 82,
@@ -1429,15 +1287,13 @@
       "name": "co",
       "description": "Carbon monoxide is a colorless, odorless, and tasteless gas. It is a pollutant in some urban areas coming from the exhaust of internal combustion engines  (cars, trucks, ships...)  and incomplete combustion of various other fuels. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance), we approximate R0 at 75kOhm."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 93,
@@ -1449,15 +1305,13 @@
       "name": "Decreasing time",
       "description": "Relative time in minutes a water tank has been emptying"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 83,
@@ -1469,15 +1323,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 81,
@@ -1489,15 +1341,13 @@
       "name": "no2",
       "description": "Nitrogen dioxide is a toxic gas. It is a pollutant in some urban areas due the excess air required for complete combustion of fuels introduces nitrogen into the combustion of internal combustion engines (cars, trucks, ships...) and power stations. ⚠ Note: values are offered in RS (sensor resistance in kOhm) as a relative measurement from the R0 (sensor zero resistance). Due to sensor intra-model variability we recommend using this as a relative measurement within the same kit readings."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 105,
@@ -1509,15 +1359,13 @@
       "name": "PM Bucket PN0.3",
       "description": "Particulate Matter Bucket PN0.3"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 103,
@@ -1529,15 +1377,13 @@
       "name": "PM Bucket PN5.0",
       "description": "Particulate Matter Bucket PN5.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 92,
@@ -1549,15 +1395,13 @@
       "name": "Rising time",
       "description": "Relative time in minutes a water tank has been filling up"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 94,
@@ -1569,15 +1413,13 @@
       "name": "Stagnating time",
       "description": "Relative time in minutes a water tank has been with no flow"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 90,
@@ -1589,15 +1431,13 @@
       "name": "air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 91,
@@ -1609,15 +1449,13 @@
       "name": "Water level",
       "description": "Water level on a tank in cm from a relative point"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 95,
@@ -1629,15 +1467,13 @@
       "name": "light",
       "description": "Lux is a measure of how much light is spread over a given area. A full moon clear night is around 1 lux, inside an office building you usually have 400 lux and a bright day can be more than 20000 lux."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 101,
@@ -1649,15 +1485,13 @@
       "name": "PM Bucket PN1.0",
       "description": "Particulate Matter Bucket PN1.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 79,
@@ -1669,15 +1503,13 @@
       "name": "gases board temp",
       "description": "Air temperature near the Alphasense Gas sensors"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 104,
@@ -1689,15 +1521,13 @@
       "name": "PM Bucket PN10.0",
       "description": "Particulate Matter Bucket PN10.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 102,
@@ -1709,15 +1539,13 @@
       "name": "PM Bucket PN2.5",
       "description": "Particulate Matter Bucket PN2.5"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 96,
@@ -1729,15 +1557,13 @@
       "name": "external air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 80,
@@ -1749,15 +1575,13 @@
       "name": "gases board humidity",
       "description": "Relative humidity near the Alphasense Gas sensors"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 65,
@@ -1769,15 +1593,13 @@
       "name": "co aux electrode",
       "description": "In Alphasense Series B Electrochemical Sensors, the auxiliary electrode is an electrode of the same characteristics to those of the working electrode, but it is buried inside an electrolite and, hence, it is not in contact with the target gas. Since it is isolated from external conditions that could affect the working electrode, it serves as a reference to the measurements provided by the latter."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 68,
@@ -1789,15 +1611,13 @@
       "name": "o3 aux electrode",
       "description": "In Alphasense Series B Electrochemical Sensors, the auxiliary electrode is an electrode of the same characteristics to those of the working electrode, but it is buried inside an electrolite and, hence, it is not in contact with the target gas. Since it is isolated from external conditions that could affect the working electrode, it serves as a reference to the measurements provided by the latter."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 62,
@@ -1809,15 +1629,13 @@
       "name": "no2 aux electrode",
       "description": "In Alphasense Series B Electrochemical Sensors, the auxiliary electrode is an electrode of the same characteristics to those of the working electrode, but it is buried inside an electrolite and, hence, it is not in contact with the target gas. Since it is isolated from external conditions that could affect the working electrode, it serves as a reference to the measurements provided by the latter."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 99,
@@ -1829,15 +1647,13 @@
       "name": "PM Bucket PN0.3",
       "description": "Particulate Matter Bucket PN0.3"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 100,
@@ -1849,15 +1665,13 @@
       "name": "PM Bucket PN0.5",
       "description": "Particulate Matter Bucket PN0.5"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 109,
@@ -1869,15 +1683,13 @@
       "name": "PM Bucket PN5.0",
       "description": "Particulate Matter Bucket PN5.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 107,
@@ -1889,15 +1701,13 @@
       "name": "PM Bucket PN1.0",
       "description": "Particulate Matter Bucket PN1.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 110,
@@ -1909,15 +1719,13 @@
       "name": "PM Bucket PN10.0",
       "description": "Particulate Matter Bucket PN10.0"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 108,
@@ -1929,15 +1737,13 @@
       "name": "PM Bucket PN2.5",
       "description": "Particulate Matter Bucket PN2.5"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 106,
@@ -1949,15 +1755,13 @@
       "name": "PM Bucket PN0.5",
       "description": "Particulate Matter Bucket PN0.5"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 111,
@@ -1969,15 +1773,13 @@
       "name": "PM Bucket PN2.5",
       "description": "Particulate Matter Bucket PN2.5"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 112,
@@ -1989,15 +1791,13 @@
       "name": "eCO2",
       "description": "Equivalent CO2 is the concentration of CO2 that would cause the same level of radiative forcing as a given type and concentration of greenhouse gas. Examples of such greenhouse gases are methane, perfluorocarbons, and nitrous oxide. CO2 is primarily a by-product of human metabolism and is constantly being emitted into the indoor environment by building occupants. CO2 may come from combustion sources as well. Associations of higher indoor carbon dioxide concentrations with impaired work performance and increased health symptoms have been attributed to correlation of indoor CO2 with concentrations of other indoor air pollutants that are also influenced by rates of outdoor-air ventilation."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 55,
           "unitid": 17,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 113,
@@ -2009,15 +1809,13 @@
       "name": "TVOC",
       "description": "Total volatile organic compounds is a grouping of a wide range of organic chemical compounds to simplify reporting when these are present in ambient air or emissions. Many substances, such as natural gas, could be classified as volatile organic compounds (VOCs)."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 54,
           "unitid": 16,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 114,
@@ -2029,15 +1827,13 @@
       "name": "PM",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 115,
@@ -2049,15 +1845,13 @@
       "name": "PM 2.5",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 13,
           "unitid": 3,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 116,
@@ -2069,15 +1863,13 @@
       "name": "PM 10",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 12,
           "unitid": 3,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 117,
@@ -2089,15 +1881,13 @@
       "name": "PM 1",
       "description": "PM stands for particulate matter: the term for a mixture of solid particles and liquid droplets found in the air. Some particles, such as dust, dirt, soot, or smoke, are large or dark enough to be seen with the naked eye."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 11,
           "unitid": 3,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 50,
@@ -2109,15 +1899,13 @@
       "name": "soil moisture",
       "description": "Relative measure of the concentration of water that is dissolved in soil."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 118,
@@ -2129,15 +1917,13 @@
       "name": "air temperature",
       "description": "Air temperature is a measure of how hot or cold the air is. It is the most commonly measured weather parameter. Air temperature is dependent on the amount and strength of the sunlight hitting the earth, and atmospheric conditions, such as cloud cover and humidity, which trap heat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 119,
@@ -2149,15 +1935,13 @@
       "name": "humidity",
       "description": "Relative humidity is a measure of the amount of moisture in the air relative to the total amount of moisture the air can hold. For instance, if the relative humidity was 50%, then the air is only half saturated with moisture."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 120,
@@ -2169,15 +1953,13 @@
       "name": "formaldehydes",
       "description": "Formaldehyde is an important chemical used widely by industry to manufacture building materials and numerous household products. It is also a by-product of combustion and certain other natural processes. Thus, it may be present in substantial concentrations both indoors and outdoors. It can cause irritation of the skin, eyes, nose and throat."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 121,
@@ -2189,15 +1971,13 @@
       "name": "counts",
       "description": "Counts pulses for buttons and other counters"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 123,
@@ -2209,15 +1989,13 @@
       "name": "Salinity",
       "description": "Salinity is the saltiness or amount of salt dissolved in a body of water, is an important factor in determining many aspects of the chemistry of natural waters and of biological processes within it, and is a thermodynamic state variable that, along with temperature and pressure, governs physical characteristics like the density and heat capacity of the water."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 122,
@@ -2229,15 +2007,13 @@
       "name": "TDS",
       "description": "Total Dissolved Solids is a measure of the dissolved combined content of all inorganic and organic substances present in a liquid in molecular, ionized, or micro-granular suspended form."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 125,
@@ -2249,15 +2025,13 @@
       "name": "Latitude",
       "description": "In geography, latitude is a geographic coordinate that specifies the north&ndash;south position of a point on the Earth's surface. Latitude is an angle which ranges from 0&deg; at the Equator to 90&deg; at the poles"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 126,
@@ -2269,15 +2043,13 @@
       "name": "Longitude",
       "description": "In geography, longitude is a geographic coordinate that specifies the east&ndash;west position of a point on the Earth's surface. Longitude is an angle which ranges from 0&deg; at the Prime meridian (Greenwich) to 90&deg; at the 180th meridian or antimeridian"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 127,
@@ -2289,15 +2061,13 @@
       "name": "Altitude",
       "description": "Height above mean sea level (AMSL) is a measure of the vertical distance (height, elevation or altitude) of a location in reference to a historic mean sea level taken as a vertical datum."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 128,
@@ -2309,15 +2079,13 @@
       "name": "Fix Quality",
       "description": "See codes: 0 = invalid, 1 = GPS fix (SPS), 2 = DGPS fix, 3 = PPS fix, 4 = Real Time Kinematic, 5 = Float RTK, 6 = estimated (dead reckoning) (2.3 feature), 7 = Manual input mode, 8 = Simulation mode"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 129,
@@ -2329,15 +2097,13 @@
       "name": "Ground Speed",
       "description": "Speed over the ground in knots"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 130,
@@ -2349,15 +2115,13 @@
       "name": "Satellites",
       "description": "Number of satellites being tracked"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 131,
@@ -2369,15 +2133,13 @@
       "name": "Horizontal dilution",
       "description": "Horizontal dilution of position. Dilution of precision, or geometric dilution of precision, is a term used in satellite navigation and geomatics engineering to specify the Error propagation as a mathematical effect of navigation satellite geometry on positional measurement precision."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 151,
@@ -2389,15 +2151,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 132,
@@ -2409,15 +2169,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 133,
@@ -2429,15 +2187,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 134,
@@ -2449,15 +2205,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 135,
@@ -2469,15 +2223,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 136,
@@ -2489,15 +2241,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 137,
@@ -2509,15 +2259,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 138,
@@ -2529,15 +2277,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 139,
@@ -2549,15 +2295,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 140,
@@ -2569,15 +2313,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 141,
@@ -2589,15 +2331,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 142,
@@ -2609,15 +2349,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 143,
@@ -2629,15 +2367,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 144,
@@ -2649,15 +2385,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 145,
@@ -2669,15 +2403,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 146,
@@ -2689,15 +2421,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 147,
@@ -2709,15 +2439,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 148,
@@ -2729,15 +2457,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 149,
@@ -2749,15 +2475,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 150,
@@ -2769,15 +2493,13 @@
       "name": "ADC in V",
       "description": "Analog Digital Converter result in Volts"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   },
   {
     "id": 152,
@@ -2789,15 +2511,13 @@
       "name": "CO",
       "description": "Carbon Monoxide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 2,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 153,
@@ -2809,15 +2529,13 @@
       "name": "NO2",
       "description": "Nitrogen Dioxide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 8,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 154,
@@ -2829,15 +2547,13 @@
       "name": "NO",
       "description": "Nitrogen Oxide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 7,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 155,
@@ -2849,15 +2565,13 @@
       "name": "SO2",
       "description": "Sulfur Dioxide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 58,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 156,
@@ -2869,15 +2583,13 @@
       "name": "H2S",
       "description": "Hydrogen Sulfide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 59,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 157,
@@ -2889,15 +2601,13 @@
       "name": "O3",
       "description": "Ozone"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 10,
           "unitid": 16,
           "level": 2
         }
       }
-    ]
   },
   {
     "id": 158,
@@ -2909,15 +2619,13 @@
       "name": "CO2",
       "description": "Carbon Dioxide"
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": 3,
           "unitid": 17,
           "level": 1
         }
       }
-    ]
   },
   {
     "id": 159,
@@ -2929,14 +2637,12 @@
       "name": "UVA",
       "description": "Ultraviolet A is a long-wave, black light, not absorbed by the ozone layer: soft UV."
     },
-    "connectors": [
-      {
+    "connectors": {
         "sensors.nilu.no": {
           "id": null,
           "unitid": null,
           "level": null
         }
       }
-    ]
   }
 ]
