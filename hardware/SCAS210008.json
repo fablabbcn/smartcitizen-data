@@ -1,14 +1,16 @@
 {
-  "1": {
-    "from": "2020-11-30",
-    "to": null,
-    "description": "2PMS5003-4ELEC-GPS",
-    "default_blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
-    "ids": {
-      "AS_48_01": "162700908",
-      "AS_48_23": "202702017",
-      "AS_4A_01": "164200213",
-      "AS_4A_23": "204440532"
+  "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
+  "description": "2PMS5003-4ELEC-GPS",
+  "versions": [
+    {
+      "ids": {
+        "AS_48_01": "162700908",
+        "AS_48_23": "202702017",
+        "AS_4A_01": "164200213",
+        "AS_4A_23": "204440532"
+      },
+      "from": "2020-11-30",
+      "to": null
     }
-  }
+  ]
 }
