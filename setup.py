@@ -87,7 +87,7 @@ setup(
                         'Shapely==1.7.0',
                         'six==1.14.0',
                         'termcolor==1.1.0',
-                        'tqdm~=4.50.2'
+                        'tqdm~=4.50.2',
                         'tzwhere==3.0.3',
                         'urllib3==1.25.9',
                         'webencodings==0.5.1',
