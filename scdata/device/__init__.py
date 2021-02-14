@@ -2,8 +2,7 @@
 
 from scdata.utils import std_out, localise_date, dict_fmerge, get_units_convf
 from scdata.io import read_csv_file, export_csv_file
-from scdata.utils import LazyCallable
-from scdata.utils.meta import get_json_from_url
+from scdata.utils import LazyCallable, url_checker, get_json_from_url
 from scdata._config import config
 from scdata.device.process import *
 
@@ -16,7 +15,7 @@ import datetime
 class Device(object):
     ''' Main implementation of the device class '''
 
-    def __init__(self, blueprint = 'sck_21', descriptor = {}):
+    def __init__(self, blueprint = None, descriptor = {}):
 
         '''
         Creates an instance of device. Devices are objects that contain sensors readings, metrics 
@@ -50,14 +49,21 @@ class Device(object):
             Device object
         '''
 
+        self.skip_blueprint = False
+
         if blueprint is not None:
             self.blueprint = blueprint
+            self.skip_blueprint = True
+        else:
+            self.blueprint = 'sck_21'
 
-            # Set attributes
-            self.set_blueprint_attrs(config.blueprints[blueprint])
-            self.blueprint_loaded_from_url = False
-            self.hw_loaded_from_url = False
+        # Set attributes
+        if self.blueprint not in config.blueprints:
+            raise ValueError(f'Specified blueprint {self.blueprint} is not in config')
 
+        self.set_blueprint_attrs(config.blueprints[self.blueprint])
+        self.blueprint_loaded_from_url = False
+        self.hardware_loaded_from_url = False
 
         self.description = descriptor
         self.set_descriptor_attrs()
@@ -74,27 +80,29 @@ class Device(object):
             self.api_device = Hclass(did = self.id)
 
             std_out(f'Checking postprocessing info from API device')
-            if self.load_postprocessing() is not None:
-                std_out('Postprocessing info loaded successfully', 'SUCCESS')
+
+            # Postprocessing and forwarding
+            self.hardware_url = None
+            self.blueprint_url = None
+            self.forwarding_params = None
+            self.meta = None
+            self.latest_postprocessing = None
+            self.processed = False
+
+            if self.load_postprocessing() and (self.hardware_url is None or self.blueprint_url is None):
+                if config._strict:
+                    raise ValueError('Postprocessing could not be loaded as is incomplete and strict mode is enabled')
+                std_out(f'Postprocessing loaded but with problems (hardware_url: {self.hardware_url} // blueprint_url: {self.blueprint_url}', 'WARNING')
 
         if self.blueprint is None:
             std_out('Need a blueprint to proceed', 'ERROR')
             return None
         else:
-            std_out(f'Device {self.id} is using {self.blueprint}')
+            std_out(f'Device {self.id} is using {self.blueprint} blueprint')
 
         self.readings = DataFrame()
         self.loaded = False
         self.options = dict()
-
-        # Postprocessing and forwarding
-        self.hw_url = None
-        self.blueprint_url = None
-        self.forwarding_params = None
-        self.meta = None
-        self.latest_postprocessing = None
-
-        self.processed = False
 
     def set_blueprint_attrs(self, blueprintd):
 
@@ -146,12 +154,11 @@ class Device(object):
 
         # Put it where it goes
         try:
-            self.hw_url = self.api_device.postprocessing['hardware_url']
+            self.hardware_url = self.api_device.postprocessing['hardware_url']
             self.blueprint_url = self.api_device.postprocessing['blueprint_url']
             self.latest_postprocessing = self.api_device.postprocessing['latest_postprocessing']
             self.forwarding_params = self.api_device.postprocessing['forwarding_params']
             self.meta = self.api_device.postprocessing['meta']
-
             inc_postprocessing = False
         except KeyError:
             std_out('Ignoring postprocessing info as its incomplete', 'WARNING')
@@ -160,77 +167,58 @@ class Device(object):
 
         if inc_postprocessing: return None
 
-        # Load hardware info from url
-        if self.hw_url is not None and self.hw_loaded_from_url == False:
+        # Load postprocessing info from url
+        if url_checker(self.hardware_url) and self.hardware_loaded_from_url == False:
 
-            std_out(f'Loading hardware info from:\n{self.hw_url}')
-            lhw_info = get_json_from_url(self.hw_url)
+            std_out(f'Loading hardware information from:\n{self.hardware_url}')
+            hardware_description = get_json_from_url(self.hardware_url)
 
-            if lhw_info is not None:
-                self.hw_info = lhw_info
-                std_out('Hardware in url is valid', "SUCCESS")
-                self.hw_loaded_from_url = True
+            # TODO
+            # Add additional checks to hardware_description
+
+            if hardware_description is not None:
+                self.hardware_description = hardware_description
+                std_out('Hardware described in url is valid', "SUCCESS")
+                self.hardware_loaded_from_url = True
             else:
                 std_out("Hardware in url is not valid", 'ERROR')
-                return None
+                self.hardware_description = None
 
-        # Use postprocessing blueprint (not null case)
-        if self.blueprint_url is not None and self.blueprint_loaded_from_url == False:
+        # Find postprocessing blueprint
+        if self.skip_blueprint: std_out('Skipping blueprint as it was defined in device constructor', 'WARNING')
+        if self.blueprint_loaded_from_url == False and not self.skip_blueprint:
 
-            std_out(f'Loading hardware postprocessing blueprint from:\n{self.blueprint_url}')
-            nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
+            # Case when there is no info stored
+            if url_checker(self.blueprint_url):
+                std_out(f'blueprint_url in platform is not empty. Loading postprocessing blueprint from:\n{self.blueprint_url}')
+                nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
+            else:
+                std_out(f'blueprint_url in platform is not valid', 'WARNING')
+                std_out(f'Checking if there is a blueprint_url in hardware_description')
+                if 'blueprint_url' in self.hardware_description:
+                    std_out(f"Trying postprocessing blueprint from:\n{self.hardware_description['blueprint_url']}")
+                    nblueprint = basename(urlparse(self.hardware_description['blueprint_url']).path).split('.')[0]
+                    tentative_urls = url_checker(self.hardware_description['blueprint_url'])
+                    if len(tentative_urls)>0:
+                        self.blueprint_url = tentative_urls[0]
+                    else:
+                        std_out('Invalid blueprint', 'ERROR')
+                        return None
+                else:
+                    std_out('Postprocessing not possible without blueprint', 'ERROR')
+                    return None
+
             std_out(f'Using hardware postprocessing blueprint: {nblueprint}')
-
-            if nblueprint in config.blueprints:
-
-                std_out(f'Blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting')
-                # self.blueprint_loaded_from_url = True
-                # return self.api_device.postprocessing
-
             lblueprint = get_json_from_url(self.blueprint_url)
 
             if lblueprint is not None:
-
-                std_out('Blueprint loaded from url', 'SUCCESS')
                 self.blueprint = nblueprint
                 self.blueprint_loaded_from_url = True
                 self.set_blueprint_attrs(lblueprint)
                 self.set_descriptor_attrs()
-
+                std_out('Blueprint loaded from url', 'SUCCESS')
             else:
-
                 std_out('Blueprint in url is not valid', 'ERROR')
-                return None
-
-        # Use postprocessing blueprint (null case)
-        elif self.blueprint_url is None and self.blueprint_loaded_from_url == False:
-
-            if 'default_blueprint_url' in self.hw_info:
-
-                std_out(f"Loading default hardware postprocessing blueprint from:\n{self.hw_info['default_blueprint_url']}")
-                nblueprint = basename(urlparse(self.hw_info['default_blueprint_url']).path).split('.')[0]
-
-                if nblueprint in config.blueprints:
-                    std_out(f'Default blueprint from hardware info ({nblueprint}) already in config.blueprints. Overwritting', 'WARNING')
-
-                lblueprint = get_json_from_url(self.hw_info['default_blueprint_url'])
-
-                if lblueprint is not None:
-
-                    std_out('Default lueprint loaded from url', 'SUCCESS')
-                    self.blueprint = nblueprint
-                    self.blueprint_loaded_from_url = True
-                    self.set_blueprint_attrs(lblueprint)
-                    self.set_descriptor_attrs()
-
-                else:
-
-                    std_out('Blueprint in url is not valid', 'ERROR')
-                    return None
-
-            else:
-
-                std_out('Postprocessing not possible without blueprint', 'ERROR')
                 return None
 
         return self.api_device.postprocessing
@@ -337,15 +325,15 @@ class Device(object):
     def __fill_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')
 
-        if self.hw_url is None:
+        if self.hardware_description is None:
             std_out(f'No hardware url in device {self.id}, ignoring')
             return None
 
-        # Now go through sensor versions and parse them
-        for version in self.hw_info.keys():
+        # Now go through sensor versions and add them to the metrics
+        for version in self.hardware_description['versions']:
 
-            from_date = self.hw_info[version]["from"]
-            to_date = self.hw_info[version]["to"]
+            from_date = version["from"]
+            to_date = version["to"]
 
             # Do not add any metric if the from_date of the calibration is after the last_reading_at 
             # as there would be nothing to process
@@ -353,12 +341,12 @@ class Device(object):
                 std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
                 return None
 
-            for slot in self.hw_info[version]["ids"]:
+            for slot in version["ids"]:
 
                 # Alphasense type - AAN 803-04
                 if slot.startswith('AS'):
 
-                    sensor_id = self.hw_info[version]["ids"][slot]
+                    sensor_id = version["ids"][slot]
                     as_type = config._as_sensor_codes[sensor_id[0:3]]
                     pollutant = as_type[as_type.index('_')+1:]
                     if pollutant == 'OX': pollutant = 'O3'
@@ -379,6 +367,8 @@ class Device(object):
                         self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
                         self.metrics[pollutant]['kwargs']['from_date'] = from_date
                         self.metrics[pollutant]['kwargs']['to_date'] = to_date
+
+                # Other metric types will go here
 
     def __check_sensors__(self):
         remove_sensors = list()
@@ -495,6 +485,23 @@ class Device(object):
         self.processed = process_ok
 
         return process_ok
+
+    def forward(self, process = False):
+        '''
+        Forward device
+        '''
+
+        if self.forwarding_params is None:
+            std_out('Empty forwarding information', 'ERROR')
+            return False
+
+        # Process
+        if process:
+            if not self.processed: self.process()
+
+        ## TODO - ADD FORWARDING HERE
+
+        return None
 
     def add_metric(self, metric = dict()):
         '''

@@ -9,7 +9,7 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.utils import std_out, localise_date, clean
+from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker
 from tzwhere import tzwhere
 
 from datetime import date
@@ -54,6 +54,7 @@ class ScApiDevice:
         self.location = None
         self.lat = None
         self.long = None
+        self.alt = None
         self.data = None
         self.sensors = None
         self.devicejson = None
@@ -379,7 +380,22 @@ class ScApiDevice:
             if self.get_device_json(update) is not None:
                 self.postprocessing = self.devicejson['postprocessing']
 
-            std_out ('Device {} has postprocessing information:\n{}'.format(self.id, self.postprocessing))
+                if self.postprocessing is not None:
+                    # Check the url in hardware
+                    if 'hardware_url' in self.postprocessing:
+                        urls = url_checker(self.postprocessing['hardware_url'])
+                        # If URL is empty, try prepending base url from config
+                        if not urls:
+                            tentative_url = f"{config._base_postprocessing_url}hardware/{self.postprocessing['hardware_url']}.{config._default_file_type}"
+                        else:
+                            if len(urls)>1: std_out('URLs for postprocessing recipe are more than one, trying first', 'WARNING')
+                            tentative_url = urls[0]
+
+                        self.postprocessing['hardware_url'] = tentative_url
+
+                    std_out ('Device {} has postprocessing information:\n{}'.format(self.id, self.postprocessing))
+                else:
+                    std_out (f'Device {self.id} has no postprocessing information', 'WARNING')
 
         return self.postprocessing
 
@@ -410,10 +426,22 @@ class ScApiDevice:
                 self.lat = latitude
                 self.long = longitude
 
-        std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))        
+        std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))
 
         return (self.lat, self.long)
     
+    def get_device_alt(self, update = False):
+
+        if self.lat is None or self.long is None:
+            self.get_device_lat_long(update)
+
+        if self.alt is None or update:
+            self.alt = get_elevation(_lat = self.lat, _long = self.long)
+
+        std_out ('Device {} altitude is {}m'.format(self.id, self.alt))
+
+        return self.alt
+
     def get_device_added_at(self, update = False):
 
         if self.added_at is None or update:

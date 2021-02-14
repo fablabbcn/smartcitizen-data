@@ -26,6 +26,10 @@ class Config(object):
 
     # Default location for timezones
     _location = 'Europe/Madrid'
+    _epsg = 4326
+
+    # Returns when iterables cannot be fully processed
+    _strict = False
 
     ### ---------------------------------------
     ### -----------------DATA------------------
@@ -75,28 +79,31 @@ class Config(object):
     # # Urls
     # sensor_names_url_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
     # sensor_names_url_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
+    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
+    _default_file_type = 'json'
+
     calibrations_urls = [
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/calibrations/calibrations.json'
+        f'{_base_postprocessing_url}calibrations/calibrations.{_default_file_type}'
     ]
 
     blueprints_urls = [
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/base.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/csic_station.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/muv_station.json',
-        # 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/parrot_soil.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_20_station_iscape.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_iscape.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_15.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_20.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21_gps.json'
+        f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/base.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/csic_station.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/muv_station.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/parrot_soil.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_20_station_iscape.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_21_station_iscape.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_21_station_module.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}'
     ]
 
     connectors_urls = [
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/connectors/connectors.json'
+        f'{_base_postprocessing_url}connectors/connectors.{_default_file_type}'
     ]
 
     # Convertion table from API SC to Pandas
@@ -503,17 +510,17 @@ class Config(object):
                  'loaded',
                  'hw_id',
                  'blueprint_url',
+                 'hardware_url',
                  'processed',
                  'forwarding_params',
                  'meta',
                  'processed',
-                 'hw_info',
+                 'postprocessing_info',
                  'hw_updated_at',
                  'description',
                  'latest_postprocessing',
                  'blueprint_loaded_from_url',
-                 'hw_loaded_from_url',
-                 'hw_url']
+                 'hardware_loaded_from_url']
 
     def __init__(self):
         self._env_file = False

@@ -8,5 +8,7 @@ from .meta import get_current_blueprints, load_blueprints, get_json_from_url
 from .report import include_footer
 from .stats import spearman, get_metrics
 from .cleaning import clean
+from .location import get_elevation
+from .url_check import url_checker
 # from .other.manage_post_info import create_post_info
 # from .zenodo import zenodo_upload
