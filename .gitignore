@@ -18,6 +18,8 @@ reports/*.html
 reports/*.pdf
 scr.egg-info/*
 scr.egg-info
+connectors/clean.py
+connectors/sensors.py
 references
 
 TODO.md
