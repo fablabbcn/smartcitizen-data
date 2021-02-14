@@ -1,4 +1,4 @@
-from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta
+from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta,
                     to_numeric, read_csv, DateOffset, MultiIndex)
 
 from math import isnan
@@ -1084,7 +1084,7 @@ class DadesObertesApiDevice:
 class IflinkApiDevice(object):
     """docstring for IflinkDevice"""
     API_BASE_URL='https://sensors.nilu.no/api/'
-    API_CONNECTOR='iflink'
+    API_CONNECTOR='sensors.nilu.no'
 
     # Docs
     # https://sensors.nilu.no/api/doc#configure-sensor-schema
@@ -1107,7 +1107,7 @@ class IflinkApiDevice(object):
         return self._api_url
 
     @staticmethod
-    def configure(name, description = '', resolution = '1Min', epsg = 4326, enabled = True, location = None, sensors = None):
+    def configure(name, description = '', resolution = '1Min', epsg = config._epsg, enabled = True, location = None, sensors = None, dry_run = False):
         '''
             Configures the device as a new sensor schema.
             This is a one-time configuration and shouldn't be necessary in a recursive way.
@@ -1148,18 +1148,23 @@ class IflinkApiDevice(object):
                                     },
                         ...
                     }
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
+
             Returns
             -------
-                Dictionary containing:
+                If dry_run, a dict containing the payload
+                If not, either False in case of error or a
+                dictionary containing:
                     sensorid (int) – sensor identifier
                     message (string) – HTTP status text
                     http-status-code (int) – HTTP status code
                     atom (string) – atom URL to sensor
         '''
 
-        if self.API_CONNECTOR not in config.connectors:
-            std_out(f'No connector for this {self.API_CONNECTOR} in config', 'ERROR')
-            return False
+        API_BASE_URL='https://sensors.nilu.no/api/'
+        API_CONNECTOR='sensors.nilu.no'
 
         if 'IFLINK_BEARER' not in environ:
             std_out('Cannot configure without Auth Bearer', 'ERROR')
@@ -1170,6 +1175,8 @@ class IflinkApiDevice(object):
         if name is None:
             std_out('Need a name to create a new sensor', 'ERROR')
             return False
+
+        std_out (f'Configuring IFLINK device named {name}')
 
         # Verify inputs
         flag_error = False
@@ -1222,44 +1229,89 @@ class IflinkApiDevice(object):
         # Construct
         for sensor in sensors.keys():
             # Check if it's in the configured connectors
-            if str(sensors[sensor]['id']) not in config.connectors: 
-                std_out(f"Connector for {sensor} not found", "WARNING")
+            _sid = str(sensors[sensor]['id'])
+
+            if _sid not in config.connectors:
+                if config._strict:
+                    std_out(f"Sensor {sensor} not found in connectors list", "ERROR")
+                    return False
+                std_out(f"Sensor {sensor} not found in connectors list", "WARNING")
                 continue
 
-            name = config.connectors[sensors[sensor]['id']]['name']
+            if API_CONNECTOR not in config.connectors[_sid]['connectors']:
+                if config._strict:
+                    std_out(f'No connector for {API_CONNECTOR} in this sensor', 'ERROR')
+                    return False
+                std_out(f'No connector for {API_CONNECTOR} in this sensor', 'WARNING')
+                continue
+
+            if config.connectors[_sid]['connectors'][API_CONNECTOR]['id'] is None:
+                if config._strict:
+                    std_out(f'Sensor {sensor} has no connector for {API_CONNECTOR}', 'ERROR')
+                    return False
+                std_out(f'Sensor {sensor} has no connector for {API_CONNECTOR}', 'WARNING')
+                continue
+
+            sname = config.connectors[_sid]['name']
+            name = config.connectors[_sid]['measurement']['name']
             units = sensors[sensor]['units']
 
             _pjson = {
-                "name": name,
+                "name": sensor,
                 "type": "double",
-                "doc": f"{name} in {units}"
+                "doc": f"{sensors[sensor]['desc']} in {units}"
             }
 
             _cjson = {
-                "componentid": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['id'],
-                "unitid": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['unitid'],
-                "binding-path": f"/{name}"
-                "level": config.connectors[sensors[sensor]['id']][self.API_CONNECTOR]['level']
+                "componentid": config.connectors[_sid]['connectors'][API_CONNECTOR]['id'],
+                "unitid": config.connectors[_sid]['connectors'][API_CONNECTOR]['unitid'],
+                "binding-path": f"/{sensor}".lower(),
+                "level": config.connectors[_sid]['connectors'][API_CONNECTOR]['level']
             }
 
             parameters.append(_pjson)
-            components.appends(_cjson)
+            components.append(_cjson)
 
-        print ('--------')
-        print (parameters)
-        print (components)
+        # Add timestamp as long
+        parameters.append({
+            'name': 'TIME',
+            'type': 'long',
+            'doc': 'Date of measurement'
+            })
 
-        return True
+        # Add the converter (we need to push as input-format)
+        converters = [{
+            "input-type": "string",
+            "output-type": "StringEpochTime",
+            "target-path": "/time",
+            "input-args": {
+                "input-format": "yyyy-MM-ddTHH:mm:ssZ"
+            }
+        }]
 
-        payload_json = dumps(payload)
-        response = post(f'{self.API_BASE_URL}/sensors/configure', 
+        mapping = [{
+            "name": "Timestamp",
+            "target-path": "/time"
+        }]
+
+        payload['parameters'] = parameters
+        payload['components'] = components
+        payload['converters'] = converters
+        payload['mapping'] = mapping
+
+        payload_json = dumps(payload, indent = 2)
+
+        if dry_run:
+            return payload_json
+
+        response = post(f'{API_BASE_URL}/sensors/configure',
                         data = payload_json, headers = headers)
 
         if response.status_code == 200 or response.status_code == 201:
             std_out('Post successful', 'SUCCESS')
             return response.json
         else:
-            std_out('IFLINK reported {}'.format(response.status_code), 'ERROR')
+            std_out(f'{API_BASE_URL} reported {response.status_code}', 'ERROR')
             return False
 
     def get_device_data(self):

@@ -141,7 +141,6 @@ def get_json_from_url(url):
         else:
             print (f'Failed request. Response {rget.status_code}')
     except:
-        print_exc()
         print ('Failed request. Probably no connection or invalid json file')
         pass
 
@@ -190,10 +189,17 @@ def load_connectors(urls):
 
     connectors = dict()
     for url in urls:
+        _connectors = dict()
         try:
-            connectors = dict_fmerge(get_json_from_url(url), connectors)
+            c = get_json_from_url(url)
+            for i in range(len(c)):
+                _id = str(c[i]['id'])
+                c[i].pop('id')
+                _connectors[_id] = c[i]
+            connectors = dict_fmerge(_connectors, connectors)
         except:
             print(f'Problem loading connectors from {url}')
+            print_exc()
             return None
 
     return connectors
