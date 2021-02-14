@@ -1,6 +1,7 @@
 from .ts_plot import ts_plot
 from .ts_iplot import ts_iplot
-from .ts_uplot import ts_uplot
+from scdata._config import config
+if config._ipython_avail: from .ts_uplot import ts_uplot
 from .scatter_plot import scatter_plot
 from .scatter_iplot import scatter_iplot
 from .ts_scatter import ts_scatter
