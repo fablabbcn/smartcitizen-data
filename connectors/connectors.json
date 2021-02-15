@@ -1235,9 +1235,9 @@
     },
     "connectors": {
         "sensors.nilu.no": {
-          "id": null,
-          "unitid": null,
-          "level": null
+          "id": 13,
+          "unitid": 3,
+          "level": 1
         }
       }
   },
@@ -1253,9 +1253,9 @@
     },
     "connectors": {
         "sensors.nilu.no": {
-          "id": null,
-          "unitid": null,
-          "level": null
+          "id": 11,
+          "unitid": 3,
+          "level": 1
         }
       }
   },
@@ -1271,9 +1271,9 @@
     },
     "connectors": {
         "sensors.nilu.no": {
-          "id": null,
-          "unitid": null,
-          "level": null
+          "id": 12,
+          "unitid": 3,
+          "level": 1
         }
       }
   },
