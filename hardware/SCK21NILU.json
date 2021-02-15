@@ -1,4 +1,6 @@
 {
   "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sck_21.json",
+  "description": "2PMS5003-4ELEC-GPS",
+  "versions": [],
   "forwarding": "sensors.nilu.no"
 }
