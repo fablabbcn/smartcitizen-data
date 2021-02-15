@@ -1225,7 +1225,7 @@
   },
   {
     "id": 87,
-    "name": "PMS5003_AVG-PM2.5",
+    "name": "PM_25",
     "description": "Particle Matter PM 2.5",
     "unit": "ug/m3",
     "measurement": {
@@ -1243,7 +1243,7 @@
   },
   {
     "id": 89,
-    "name": "PMS5003_AVG-PM1",
+    "name": "PM_1",
     "description": "Particle Matter PM 1",
     "unit": "ug/m3",
     "measurement": {
@@ -1261,7 +1261,7 @@
   },
   {
     "id": 88,
-    "name": "PMS5003_AVG-PM10",
+    "name": "PM_10",
     "description": "Particle Matter PM 10",
     "unit": "ug/m3",
     "measurement": {
