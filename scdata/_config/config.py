@@ -87,7 +87,6 @@ class Config(object):
     ]
 
     blueprints_urls = [
-        f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/base.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/csic_station.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/muv_station.{_default_file_type}',
