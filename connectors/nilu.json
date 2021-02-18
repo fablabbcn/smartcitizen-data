@@ -1,737 +1,110 @@
 {
-  "13": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "12": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "21": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "14": {
-    "id": 56,
-    "unitid": 28,
-    "level": 56
-  },
-  "97": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "27": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "4": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "7": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "5": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "6": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "25": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "11": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "18": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "22": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "24": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "33": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "29": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "26": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "28": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "32": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "35": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "34": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "30": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "36": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "23": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "37": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "38": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "41": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "39": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "40": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "31": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "42": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "46": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "49": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "43": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "48": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "45": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "51": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "17": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "8": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "9": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "15": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "16": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "53": {
-    "id": 57,
-    "unitid": 30,
-    "level": 57
-  },
-  "52": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "55": {
-    "id": 15,
-    "unitid": 2,
-    "level": 15
-  },
-  "56": {
-    "id": 5,
-    "unitid": 1,
-    "level": 5
-  },
-  "58": {
-    "id": 1,
-    "unitid": 9,
-    "level": 1
-  },
-  "60": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "98": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "10": {
-    "id": 60,
-    "unitid": 32,
-    "level": 60
-  },
-  "63": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "66": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "69": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "70": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "74": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "86": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "73": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "75": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "76": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "72": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "77": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "71": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "64": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "61": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "67": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "84": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "85": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "87": {
-    "id": 13,
-    "unitid": 3,
-    "level": 13
-  },
-  "89": {
-    "id": 11,
-    "unitid": 3,
-    "level": 11
-  },
-  "88": {
-    "id": 12,
-    "unitid": 3,
-    "level": 12
-  },
-  "82": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "93": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "83": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "81": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "105": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "103": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "92": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "94": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "90": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "91": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "95": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "101": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "79": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "104": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "102": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "96": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "80": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "65": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "68": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "62": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "99": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "100": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "109": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "107": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "110": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "108": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "106": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "111": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "112": {
-    "id": 55,
-    "unitid": 17,
-    "level": 55
-  },
-  "113": {
-    "id": 54,
-    "unitid": 16,
-    "level": 54
-  },
-  "114": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "115": {
-    "id": 13,
-    "unitid": 3,
-    "level": 13
-  },
-  "116": {
-    "id": 12,
-    "unitid": 3,
-    "level": 12
-  },
-  "117": {
-    "id": 11,
-    "unitid": 3,
-    "level": 11
-  },
-  "50": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "118": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "119": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "120": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "121": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "123": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "122": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "125": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "126": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "127": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "128": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "129": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "130": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "131": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "151": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "132": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "133": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "134": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "135": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "136": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "137": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "138": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "139": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "140": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "141": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "142": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "143": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "144": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "145": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "146": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "147": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "148": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "149": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "150": {
-    "id": null,
-    "unitid": null,
-    "level": null
-  },
-  "152": {
-    "id": 2,
-    "unitid": 16,
-    "level": 2
-  },
-  "153": {
-    "id": 8,
-    "unitid": 16,
-    "level": 8
-  },
-  "154": {
-    "id": 7,
-    "unitid": 16,
-    "level": 7
-  },
-  "155": {
-    "id": 58,
-    "unitid": 16,
-    "level": 58
-  },
-  "156": {
-    "id": 59,
-    "unitid": 16,
-    "level": 59
-  },
-  "157": {
-    "id": 10,
-    "unitid": 16,
-    "level": 10
-  },
-  "158": {
-    "id": 3,
-    "unitid": 17,
-    "level": 3
-  },
-  "159": {
-    "id": null,
-    "unitid": null,
-    "level": null
+  "handler": "NiluApiDevice",
+  "sensors": {
+    "14": {
+      "id": 56,
+      "unitid": 28,
+      "level": 56
+    },
+    "53": {
+      "id": 57,
+      "unitid": 30,
+      "level": 57
+    },
+    "55": {
+      "id": 15,
+      "unitid": 2,
+      "level": 15
+    },
+    "56": {
+      "id": 5,
+      "unitid": 1,
+      "level": 5
+    },
+    "58": {
+      "id": 1,
+      "unitid": 9,
+      "level": 1
+    },
+    "10": {
+      "id": 60,
+      "unitid": 32,
+      "level": 60
+    },
+    "87": {
+      "id": 13,
+      "unitid": 3,
+      "level": 13
+    },
+    "89": {
+      "id": 11,
+      "unitid": 3,
+      "level": 11
+    },
+    "88": {
+      "id": 12,
+      "unitid": 3,
+      "level": 12
+    },
+    "112": {
+      "id": 55,
+      "unitid": 17,
+      "level": 55
+    },
+    "113": {
+      "id": 54,
+      "unitid": 16,
+      "level": 54
+    },
+    "115": {
+      "id": 13,
+      "unitid": 3,
+      "level": 13
+    },
+    "116": {
+      "id": 12,
+      "unitid": 3,
+      "level": 12
+    },
+    "117": {
+      "id": 11,
+      "unitid": 3,
+      "level": 11
+    },
+    "152": {
+      "id": 2,
+      "unitid": 16,
+      "level": 2
+    },
+    "153": {
+      "id": 8,
+      "unitid": 16,
+      "level": 8
+    },
+    "154": {
+      "id": 7,
+      "unitid": 16,
+      "level": 7
+    },
+    "155": {
+      "id": 58,
+      "unitid": 16,
+      "level": 58
+    },
+    "156": {
+      "id": 59,
+      "unitid": 16,
+      "level": 59
+    },
+    "157": {
+      "id": 10,
+      "unitid": 16,
+      "level": 10
+    },
+    "158": {
+      "id": 3,
+      "unitid": 17,
+      "level": 3
+    }
   }
 }
