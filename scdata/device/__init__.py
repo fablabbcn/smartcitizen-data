@@ -85,6 +85,7 @@ class Device(object):
             self.hardware_url = None
             self.blueprint_url = None
             self.forwarding_params = None
+            self.forwarding_request = None
             self.meta = None
             self.latest_postprocessing = None
             self.processed = False
@@ -95,14 +96,14 @@ class Device(object):
                 std_out(f'Postprocessing loaded but with problems (hardware_url: {self.hardware_url} // blueprint_url: {self.blueprint_url}', 'WARNING')
 
         if self.blueprint is None:
-            std_out('Need a blueprint to proceed', 'ERROR')
-            return None
+            raise ValueError(f'Device {self.id} cannot be init without blueprint. Need a blueprint to proceed')
         else:
             std_out(f'Device {self.id} is using {self.blueprint} blueprint')
 
         self.readings = DataFrame()
         self.loaded = False
         self.options = dict()
+        std_out(f'Device {self.id} initialised correctly', 'SUCCESS')
 
     def set_blueprint_attrs(self, blueprintd):
 
@@ -184,6 +185,19 @@ class Device(object):
                 std_out("Hardware in url is not valid", 'ERROR')
                 self.hardware_description = None
 
+        # Find forwarding request
+        if self.hardware_description is not None:
+            if 'forwarding' in self.hardware_description:
+                if self.hardware_description['forwarding'] in config.connectors:
+                    self.forwarding_request = self.hardware_description['forwarding']
+                    std_out(f"Requested a {self.hardware_description['forwarding']} connector for {self.id}")
+                    if self.forwarding_params is None:
+                        std_out('Assuming device has never been posted. Forwarding parameters are empty', 'WARNING')
+                    else:
+                        std_out(f'Connector parameters are not empty: {self.forwarding_params}')
+                else:
+                    std_out(f"Requested a {self.hardware_description['forwarding']} connector that is not available. Ignoring", 'WARNING')
+
         # Find postprocessing blueprint
         if self.skip_blueprint: std_out('Skipping blueprint as it was defined in device constructor', 'WARNING')
         if self.blueprint_loaded_from_url == False and not self.skip_blueprint:
@@ -195,6 +209,9 @@ class Device(object):
             else:
                 std_out(f'blueprint_url in platform is not valid', 'WARNING')
                 std_out(f'Checking if there is a blueprint_url in hardware_description')
+                if self.hardware_description is None:
+                    std_out("Hardware description is not useful for blueprint", 'ERROR')
+                    return None
                 if 'blueprint_url' in self.hardware_description:
                     std_out(f"Trying postprocessing blueprint from:\n{self.hardware_description['blueprint_url']}")
                     nblueprint = basename(urlparse(self.hardware_description['blueprint_url']).path).split('.')[0]
@@ -269,11 +286,11 @@ class Device(object):
             elif 'api' in self.source:
 
                 # Get device location
-                self.location = self.api_device.get_device_location()
+                self.location = self.api_device.get_device_timezone()
 
                 if path is None:
 
-                    if self.load_postprocessing() and only_unprocessed:
+                    if only_unprocessed:
 
                         # Override dates for post-processing
                         if self.latest_postprocessing is not None:
@@ -330,45 +347,48 @@ class Device(object):
             return None
 
         # Now go through sensor versions and add them to the metrics
-        for version in self.hardware_description['versions']:
+        if 'versions' in self.hardware_description:
+            for version in self.hardware_description['versions']:
 
-            from_date = version["from"]
-            to_date = version["to"]
+                from_date = version["from"]
+                to_date = version["to"]
 
-            # Do not add any metric if the from_date of the calibration is after the last_reading_at 
-            # as there would be nothing to process
-            if from_date > self.api_device.last_reading_at:
-                std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
-                return None
+                # Do not add any metric if the from_date of the calibration is after the last_reading_at
+                # as there would be nothing to process
+                if from_date > self.api_device.last_reading_at:
+                    std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
+                    return None
 
-            for slot in version["ids"]:
+                for slot in version["ids"]:
 
-                # Alphasense type - AAN 803-04
-                if slot.startswith('AS'):
+                    # Alphasense type - AAN 803-04
+                    if slot.startswith('AS'):
 
-                    sensor_id = version["ids"][slot]
-                    as_type = config._as_sensor_codes[sensor_id[0:3]]
-                    pollutant = as_type[as_type.index('_')+1:]
-                    if pollutant == 'OX': pollutant = 'O3'
+                        sensor_id = version["ids"][slot]
+                        as_type = config._as_sensor_codes[sensor_id[0:3]]
+                        pollutant = as_type[as_type.index('_')+1:]
+                        if pollutant == 'OX': pollutant = 'O3'
 
-                    # Get working and auxiliary electrode names
-                    wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
-                    aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
+                        # Get working and auxiliary electrode names
+                        wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
+                        aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
 
-                    if pollutant not in self.metrics:
-                        # Create Metric
-                        std_out(f'Metric {pollutant} not in blueprint, ignoring.', 'WARNING')
-                    else:
-                        # Simply fill it up
-                        std_out(f'{pollutant} found in blueprint metrics, filling up with hardware info')
-                        self.metrics[pollutant]['kwargs']['we'] = wen
-                        self.metrics[pollutant]['kwargs']['ae'] = aen
-                        self.metrics[pollutant]['kwargs']['location'] = self.location
-                        self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
-                        self.metrics[pollutant]['kwargs']['from_date'] = from_date
-                        self.metrics[pollutant]['kwargs']['to_date'] = to_date
+                        if pollutant not in self.metrics:
+                            # Create Metric
+                            std_out(f'Metric {pollutant} not in blueprint, ignoring.', 'WARNING')
+                        else:
+                            # Simply fill it up
+                            std_out(f'{pollutant} found in blueprint metrics, filling up with hardware info')
+                            self.metrics[pollutant]['kwargs']['we'] = wen
+                            self.metrics[pollutant]['kwargs']['ae'] = aen
+                            self.metrics[pollutant]['kwargs']['location'] = self.location
+                            self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
+                            self.metrics[pollutant]['kwargs']['from_date'] = from_date
+                            self.metrics[pollutant]['kwargs']['to_date'] = to_date
 
-                # Other metric types will go here
+                    # Other metric types will go here
+            else:
+                std_out('No hardware versions found, ignoring additional metrics', 'WARNING')
 
     def __check_sensors__(self):
         remove_sensors = list()
@@ -486,22 +506,47 @@ class Device(object):
 
         return process_ok
 
-    def forward(self, process = False):
+    def forward(self, chunk_size = 500, dry_run = False):
         '''
-        Forward device
+            Forwards data to another api
+                Parameters
+                ----------
+                chunk_size: int
+                    500
+                    Chunk size to be sent to device.post_data_to_device in question
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
+            Returns
+            ----------
+                boolean
+                True if posted ok, False otherwise
         '''
 
         if self.forwarding_params is None:
             std_out('Empty forwarding information', 'ERROR')
             return False
 
-        # Process
-        if process:
-            if not self.processed: self.process()
+        rd = dict()
+        df = self.readings.copy().dropna(axis = 0, how='all')
 
-        ## TODO - ADD FORWARDING HERE
+        df.rename(columns=rd, inplace=True)
 
-        return None
+        if df.empty:
+            std_out('Empty dataframe, ignoring', 'WARNING')
+            return False
+
+        # Import requested handler
+        hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
+        Hclass = getattr(hmod, config.connectors[self.forwarding_request]['handler'])
+
+        # Create object
+        device = Hclass(did = self.forwarding_params)
+        post_ok = device.post_data_to_device(df, chunk_size = chunk_size, dry_run = dry_run)
+        if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
+        else: std_out(f'Error posting data for {self.id}', 'ERROR')
+
+        return post_ok
 
     def add_metric(self, metric = dict()):
         '''
@@ -587,9 +632,14 @@ class Device(object):
             std_out('Not supported format' ,'ERROR')
             return False
 
-    def post_sensors(self):
+    def post_sensors(self, dry_run = False):
         '''
         Posts devices sensors. Only available for parent of ScApiDevice
+            Parameters
+            ----------
+            dry_run: boolean
+                False
+                Post the payload to the API or just return it
         Returns
         ----------
             boolean
@@ -601,20 +651,19 @@ class Device(object):
             std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
             return False
 
-        for sensor in self.sensors:
-            std_out(f'Posting sensor: {sensor}')
+        rd = dict()
+        df = self.readings.copy().dropna(axis = 0, how='all')
+        for col in self.readings: rd[col] = self.sensors[col]['id']
 
-            # Get single series for post
-            df = DataFrame(self.readings[sensor]).dropna(axis = 0, how='all')
-            if df.empty: 
-                std_out('Empty dataframe, ignoring', 'WARNING')
-                continue
-            sensor_id = self.sensors[sensor]['id']
-            sensor_ok = self.api_device.post_device_data(df, sensor_id = sensor_id)
-            if sensor_ok: std_out(f'Posted sensor {sensor}', 'SUCCESS')
-            else: std_out(f'Error posting sensor {sensor}', 'ERROR')
+        df.rename(columns=rd, inplace=True)
 
-            post_ok &= sensor_ok
+        if df.empty:
+            std_out('Empty dataframe, ignoring', 'WARNING')
+            return False
+
+        post_ok = self.api_device.post_data_to_device(df, dry_run = dry_run)
+        if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
+        else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
         return post_ok
         

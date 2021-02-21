@@ -12,7 +12,7 @@ from scdata._config import config
 from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker
 from tzwhere import tzwhere
 
-from datetime import date
+from datetime import date, datetime
 from os import environ, urandom
 from json import dumps
 
@@ -29,12 +29,12 @@ About the classes in this file:
 Each of the object interacts with a separate API.
 There should be at minimum the following properties:
 - id: identifier against the API
-- location: timezone
+- timezone: timezone
 - sensors: dictionary used to convert the names to saf standard (see saf.py and blueprints.yml) {api_name: saf_name}
 - data: pandas dataframe containing the data. Columns = pollutants or sensors; index = localised timestamp
 Methods
 - get_device_data(min_date, max_date, frequency, clean_na): returns clean pandas dataframe (self.data) with start and end date filtering, and rollup
-- get_device_location: returns timezone for timestamp geolocalisation
+- get_device_timezone: returns timezone for timestamp geolocalisation
 
 The units should not be converted here, as they will be later on converted in device.py
 If you want to support caching, see get_device_data in ScApiDevice
@@ -51,7 +51,7 @@ class ScApiDevice:
         self.mac = None
         self.last_reading_at = None
         self.added_at = None
-        self.location = None
+        self.timezone = None
         self.lat = None
         self.long = None
         self.alt = None
@@ -303,7 +303,7 @@ class ScApiDevice:
                     if 'hardware_info' in deviceR.json().keys(): self.mac = deviceR.json()['hardware_info']['mac']
                     std_out ('Device {} is has this MAC {}'.format(self.id, self.mac))
                 else:
-                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
+                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')
             except:
                 std_out('Failed request. Probably no connection', 'ERROR')
                 pass
@@ -323,9 +323,9 @@ class ScApiDevice:
                 if deviceR.status_code == 200 or deviceR.status_code == 201:
                     self.devicejson = deviceR.json()
                 else:
-                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')  
+                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')
             except:
-                std_out('Failed request. Probably no connection', 'ERROR')  
+                std_out('Failed request. Probably no connection', 'ERROR')
                 pass                
         return self.devicejson
 
@@ -399,18 +399,18 @@ class ScApiDevice:
 
         return self.postprocessing
 
-    def get_device_location(self, update = False):
+    def get_device_timezone(self, update = False):
 
-        if self.location is None or update:
+        if self.timezone is None or update:
             latitude, longitude = self.get_device_lat_long(update)
             # Localize it
 
             if latitude is not None and longitude is not None:
-                self.location = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
+                self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
 
-        std_out ('Device {} timezone is {}'.format(self.id, self.location))
+        std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
 
-        return self.location
+        return self.timezone
 
     def get_device_lat_long(self, update = False):
 
@@ -434,6 +434,7 @@ class ScApiDevice:
 
         if self.lat is None or self.long is None:
             self.get_device_lat_long(update)
+
 
         if self.alt is None or update:
             self.alt = get_elevation(_lat = self.lat, _long = self.long)
@@ -462,13 +463,10 @@ class ScApiDevice:
                 # Put the ids and the names in lists
                 self.sensors = dict()
                 for sensor in sensors:
-                    for key in config.blueprints:
-                        if not search("sc[k|_]", key): continue
-                        if 'sensors' in config.blueprints[key]:
-                            for sensor_name in config.blueprints[key]['sensors'].keys():
-                                if str(config.blueprints[key]['sensors'][sensor_name]['id']) == str(sensor['id']):
-                                    # IDs are unique
-                                    self.sensors[sensor['id']] = sensor_name
+                    for key in config.sc_sensor_names:
+                        if str(config.sc_sensor_names[key]['id']) == str(sensor['id']):
+                            # IDs are unique
+                            self.sensors[sensor['id']] = key
 
         return self.sensors
 
@@ -510,13 +508,13 @@ class ScApiDevice:
 
         # Make sure we have the everything we need beforehand
         self.get_device_sensors()
-        self.get_device_location()
+        self.get_device_timezone()
         self.get_device_last_reading()
         self.get_device_added_at()
         self.get_kit_ID()
 
-        if self.location is None: 
-            std_out('Device does not have location, skipping', 'WARNING')
+        if self.timezone is None:
+            std_out('Device does not have timezone set, skipping', 'WARNING')
             return None
 
         # Check start date and end date
@@ -535,7 +533,7 @@ class ScApiDevice:
 
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
-        std_out(f'Device timezone: {self.location}')
+        std_out(f'Device timezone: {self.timezone}')
         if not self.sensors.keys(): 
             std_out(f'Device is empty')
             return None
@@ -588,8 +586,8 @@ class ScApiDevice:
             try:
                 dfsensor = DataFrame(sensorjson['readings']).set_index(0)
                 dfsensor.columns = [self.sensors[sensor_id]]
-                # dfsensor.index = to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.location)
-                dfsensor.index = localise_date(dfsensor.index, self.location)
+                # dfsensor.index = to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.timezone)
+                dfsensor.index = localise_date(dfsensor.index, self.timezone)
                 dfsensor.sort_index(inplace=True)
                 dfsensor = dfsensor[~dfsensor.index.duplicated(keep='first')]
                 
@@ -609,8 +607,8 @@ class ScApiDevice:
                 continue
                 
             try:
-                df = df.reindex(df.index.rename('Time'))
-                df = clean(df, clean_na, how = 'all')                
+                df = df.reindex(df.index.rename('TIME'))
+                df = clean(df, clean_na, how = 'all')
                 self.data = df
                 
             except:
@@ -621,24 +619,61 @@ class ScApiDevice:
         if flag_error == False: std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-    def post_device_data(self, df, sensor_id, clean_na = 'drop', chunk_size = 500):
+    def post_device_data(self, clean_na = 'drop', chunk_size = 500):
         '''
-            POST data in the SmartCitizen API
+            POST self.data in the SmartCitizen API
             Parameters
             ----------
-                df: pandas DataFrame
-                    Contains data in a DataFrame format. 
-                    Data is posted regardless the name of the dataframe
-                    It uses the sensor id provided, not the name
-                    Data is posted in UTC TZ so dataframe needs to have located 
-                    timestamp
-                sensor_id: int
-                    The sensor id
                 clean_na: string, optional
                     'drop'
                     'drop', 'fill'
                 chunk_size: integer
                     chunk size to split resulting pandas DataFrame for posting readings
+            Returns
+            -------
+                True if the data was posted succesfully
+        '''
+        if self.data is None:
+            std_out('No data to post, ignoring', 'ERROR')
+            return False
+
+        if 'SC_BEARER' not in environ:
+            std_out('Cannot post without Auth Bearer', 'ERROR')
+            return False
+
+        if 'SC_ADMIN_BEARER' in environ:
+            std_out('Using admin Bearer')
+            bearer = environ['SC_ADMIN_BEARER']
+        else:
+            bearer = environ['SC_BEARER']
+
+        headers = {'Authorization':'Bearer ' + bearer, 'Content-type': 'application/json'}
+        post_ok = True
+
+        for sensor_id in self.sensors:
+            df = DataFrame(self.data[self.sensors[sensor]]).copy()
+            post_ok &= self.post_data_to_device(df, clean_na = clean_na, chunk_size = chunk_size)
+
+        return post_ok
+
+    def post_data_to_device(self, df, clean_na = 'drop', chunk_size = 500, dry_run = False):
+        '''
+            POST external pandas.DataFrame to the SmartCitizen API
+            Parameters
+            ----------
+                df: pandas DataFrame
+                    Contains data in a DataFrame format. 
+                    Data is posted using the column names of the dataframe
+                    Data is posted in UTC TZ so dataframe needs to have located 
+                    timestamp
+                clean_na: string, optional
+                    'drop'
+                    'drop', 'fill'
+                chunk_size: integer
+                    chunk size to split resulting pandas DataFrame for posting readings
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
             Returns
             -------
                 True if the data was posted succesfully
@@ -655,42 +690,38 @@ class ScApiDevice:
 
         headers = {'Authorization':'Bearer ' + bearer, 'Content-type': 'application/json'}
 
-        # Get sensor name
-        sensor_name = list(df.columns)[0]
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
+        df.index.name = 'recorded_at'
 
         # Split the dataframe in chunks
         std_out(f'Splitting post in chunks of size {chunk_size}')
         chunked_dfs = [df[i:i+chunk_size] for i in range(0, df.shape[0], chunk_size)]
 
         for i in trange(len(chunked_dfs), file=sys.stdout, 
-                        desc=f"Posting data for {sensor_name}..."):
+                        desc=f"Posting data for {self.id}..."):
 
             chunk = chunked_dfs[i].copy()
-            # Process dataframe
-            chunk['id'] = sensor_id
-            chunk.index.name = 'recorded_at'
-            chunk.rename(columns = {sensor_name: 'value'}, inplace = True)
-            chunk.columns = MultiIndex.from_product([['sensors'], chunk.columns])
-
-            j = (chunk.groupby('recorded_at', as_index = True)
-                    .apply(lambda x: x['sensors'][['value', 'id']].to_dict('r'))
-            )
 
             # Prepare json post
             payload = {"data":[]}
-            for item in j.index:
+            for item in chunk.index:
                 payload["data"].append(
                     {
                         "recorded_at": localise_date(item, 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ'),
-                        "sensors": j[item]
+                        "sensors": [{
+                            "id": column,
+                            "value": chunk.loc[item, column]
+                        } for column in chunk.columns if not isnan(chunk.loc[item, column])]
                     }
                 )
 
-            payload_json = dumps(payload)
+            if dry_run:
+                std_out(f'Dry run request to: {self.API_BASE_URL}{self.id}/readings for chunk ({i+1}/{len(chunked_dfs)})')
+                return dumps(payload, indent = 2)
+
             response = post(f'{self.API_BASE_URL}{self.id}/readings', 
-                            data = payload_json, headers = headers)
+                            data = dumps(payload), headers = headers)
 
             if not(response.status_code == 200 or response.status_code == 201):
 
@@ -740,13 +771,13 @@ class MuvApiDevice:
 
     def __init__ (self, did):
         self.id = did
-        self.location = None
+        self.timezone = None
         self.data = None
         self.sensors = None
 
-    def get_device_location(self):
-        self.location = 'Europe/Madrid'
-        return self.location
+    def get_device_timezone(self):
+        self.timezone = 'Europe/Madrid'
+        return self.timezone
 
     def get_device_sensors(self):
         if self.sensors is None:
@@ -766,7 +797,7 @@ class MuvApiDevice:
 
         std_out(f'Requesting data from MUV API')
         std_out(f'Device ID: {self.id}')
-        self.get_device_location()
+        self.get_device_timezone()
         self.get_device_sensors()        
         
         # Get devices
@@ -785,7 +816,7 @@ class MuvApiDevice:
             df.rename(columns = self.sensors, inplace = True)
             df = df.set_index('time')
 
-            df.index = localise_date(df.index, self.location)
+            df.index = localise_date(df.index, self.timezone)
             df = df[~df.index.duplicated(keep='first')]
             # Drop unnecessary columns
             df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
@@ -794,7 +825,7 @@ class MuvApiDevice:
             df = df.apply(to_numeric, errors='coerce')
             # # Resample
             df = df.resample(frequency).mean()
-            df = df.reindex(df.index.rename('Time'))
+            df = df.reindex(df.index.rename('TIME'))
 
             df = clean(df, clean_na, how = 'all')
                 
@@ -821,13 +852,13 @@ class DadesObertesApiDevice:
         if did is not None: self.id = did
         if within is not None: self.id = self.get_id_from_within(within)
 
-        self.location = None
+        self.timezone = None
         self.data = None
         self.sensors = None
         self.devicejson = None
         self.lat = None
         self.long = None
-        self.location = None
+        self.timezone = None
     
     @staticmethod
     def get_world_map(city = None, within = None, station_type = None, area_type = None):
@@ -954,23 +985,23 @@ class DadesObertesApiDevice:
                 if s.status_code == 200 or s.status_code == 201:
                     self.devicejson = read_csv(StringIO(s.content.decode('utf-8')))
                 else: 
-                    std_out('API reported {}'.format(s.status_code), 'ERROR')  
+                    std_out('API reported {}'.format(s.status_code), 'ERROR')
             except:
-                std_out('Failed request. Probably no connection', 'ERROR')  
+                std_out('Failed request. Probably no connection', 'ERROR')
                 pass
         
         return self.devicejson
 
-    def get_device_location(self):
+    def get_device_timezone(self):
 
-        if self.location is None:
+        if self.timezone is None:
             latitude, longitude = self.get_device_lat_long()
             # Localize it
-            self.location = tz_where.tzNameAt(latitude, longitude)
+            self.timezone = tz_where.tzNameAt(latitude, longitude)
             
-        std_out ('Device {} timezone is {}'.format(self.id, self.location))               
+        std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
         
-        return self.location
+        return self.timezone
 
     def get_device_lat_long(self):
 
@@ -997,7 +1028,7 @@ class DadesObertesApiDevice:
         std_out(f'Requesting data from Dades Obertes API')
         std_out(f'Device ID: {self.id}')
         self.get_device_sensors()
-        self.get_device_location()
+        self.get_device_timezone()
 
         request = self.API_BASE_URL
         request += f'codi_eoi={self.id}'
@@ -1065,7 +1096,7 @@ class DadesObertesApiDevice:
         else:
             std_out('Successful pivoting', 'SUCCESS')
 
-        df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(self.location)
+        df.index = to_datetime(df.index).tz_localize('UTC').tz_convert(self.timezone)
         df.sort_index(inplace=True)
 
         # Rename
@@ -1089,18 +1120,9 @@ class DadesObertesApiDevice:
         df = df.resample(frequency).mean()
 
         try:
-            df = df.reindex(df.index.rename('Time'))
-            
+            df = df.reindex(df.index.rename('TIME'))
             df = clean(df, clean_na, how = 'all')
-            # if clean_na is not None:
-            #     if clean_na == 'drop':
-            #         # std_out('Cleaning na with drop')
-            #         df.dropna(axis = 0, how='all', inplace=True)
-            #     elif clean_na == 'fill':
-            #         df = df.fillna(method='bfill').fillna(method='ffill')
-            #         # std_out('Cleaning na with fill')
             self.data = df
-            
         except:
             std_out('Problem closing up the API dataframe', 'ERROR')
             pass
@@ -1109,7 +1131,7 @@ class DadesObertesApiDevice:
         std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-class IflinkApiDevice(object):
+class NiluApiDevice(object):
     """docstring for IflinkDevice"""
     API_BASE_URL='https://sensors.nilu.no/api/'
     API_CONNECTOR='sensors.nilu.no'
@@ -1121,13 +1143,14 @@ class IflinkApiDevice(object):
     def __init__ (self, did):
 
         self.id = did
-        self.location = None
+        self.timezone = None
         self.lat = None
         self.long = None
         self.alt = None
         self.data = None
         self.sensors = None
         self.devicejson = None
+        self.last_reading_at = None
         self._api_url = self.API_BASE_URL + f'sensors/{self.id}'
 
     @property
@@ -1135,7 +1158,7 @@ class IflinkApiDevice(object):
         return self._api_url
 
     @staticmethod
-    def configure(name, description = '', resolution = '1Min', epsg = config._epsg, enabled = True, location = None, sensors = None, dry_run = False):
+    def new_device(name, description = '', resolution = '1Min', epsg = config._epsg, enabled = True, location = None, sensors = None, dry_run = False):
         '''
             Configures the device as a new sensor schema.
             This is a one-time configuration and shouldn't be necessary in a recursive way.
@@ -1192,13 +1215,17 @@ class IflinkApiDevice(object):
         '''
 
         API_BASE_URL='https://sensors.nilu.no/api/'
-        API_CONNECTOR='sensors.nilu.no'
+        API_CONNECTOR='nilu'
 
-        if 'IFLINK_BEARER' not in environ:
+        if API_CONNECTOR not in config.connectors:
+            std_out(f'No connector for {API_CONNECTOR}', 'ERROR')
+            return False
+
+        if 'NILU_BEARER' not in environ:
             std_out('Cannot configure without Auth Bearer', 'ERROR')
             return False
 
-        headers = {'Authorization':'Bearer ' + environ['IFLINK_BEARER'], 'Content-type': 'application/json'}
+        headers = {'Authorization':'Bearer ' + environ['NILU_BEARER'], 'Content-type': 'application/json'}
 
         if name is None:
             std_out('Need a name to create a new sensor', 'ERROR')
@@ -1208,6 +1235,7 @@ class IflinkApiDevice(object):
 
         # Verify inputs
         flag_error = False
+
         # EPSG int type
         try:
             int(epsg)
@@ -1259,29 +1287,13 @@ class IflinkApiDevice(object):
             # Check if it's in the configured connectors
             _sid = str(sensors[sensor]['id'])
 
-            if _sid not in config.connectors:
+            if _sid not in config.connectors[API_CONNECTOR]['sensors']:
                 if config._strict:
                     std_out(f"Sensor {sensor} not found in connectors list", "ERROR")
                     return False
                 std_out(f"Sensor {sensor} not found in connectors list", "WARNING")
                 continue
 
-            if API_CONNECTOR not in config.connectors[_sid]['connectors']:
-                if config._strict:
-                    std_out(f'No connector for {API_CONNECTOR} in this sensor', 'ERROR')
-                    return False
-                std_out(f'No connector for {API_CONNECTOR} in this sensor', 'WARNING')
-                continue
-
-            if config.connectors[_sid]['connectors'][API_CONNECTOR]['id'] is None:
-                if config._strict:
-                    std_out(f'Sensor {sensor} has no connector for {API_CONNECTOR}', 'ERROR')
-                    return False
-                std_out(f'Sensor {sensor} has no connector for {API_CONNECTOR}', 'WARNING')
-                continue
-
-            sname = config.connectors[_sid]['name']
-            name = config.connectors[_sid]['measurement']['name']
             units = sensors[sensor]['units']
 
             _pjson = {
@@ -1291,10 +1303,10 @@ class IflinkApiDevice(object):
             }
 
             _cjson = {
-                "componentid": config.connectors[_sid]['connectors'][API_CONNECTOR]['id'],
-                "unitid": config.connectors[_sid]['connectors'][API_CONNECTOR]['unitid'],
-                "binding-path": f"/{sensor}".lower(),
-                "level": config.connectors[_sid]['connectors'][API_CONNECTOR]['level']
+                "componentid": config.connectors[API_CONNECTOR]['sensors'][_sid]['id'],
+                "unitid": config.connectors[API_CONNECTOR]['sensors'][_sid]['unitid'],
+                "binding-path": f"/{sensor}",
+                "level": config.connectors[API_CONNECTOR]['sensors'][_sid]['level']
             }
 
             parameters.append(_pjson)
@@ -1302,7 +1314,7 @@ class IflinkApiDevice(object):
 
         # Add timestamp as long
         parameters.append({
-            'name': 'TIME',
+            'name': 'date',
             'type': 'long',
             'doc': 'Date of measurement'
             })
@@ -1311,7 +1323,7 @@ class IflinkApiDevice(object):
         converters = [{
             "input-type": "string",
             "output-type": "StringEpochTime",
-            "target-path": "/time",
+            "target-path": "/date",
             "input-args": {
                 "input-format": "yyyy-MM-ddTHH:mm:ssZ"
             }
@@ -1319,7 +1331,7 @@ class IflinkApiDevice(object):
 
         mapping = [{
             "name": "Timestamp",
-            "target-path": "/time"
+            "target-path": "/date"
         }]
 
         payload['parameters'] = parameters
@@ -1327,29 +1339,273 @@ class IflinkApiDevice(object):
         payload['converters'] = converters
         payload['mapping'] = mapping
 
-        payload_json = dumps(payload, indent = 2)
-
         if dry_run:
-            return payload_json
+            std_out(f'Dry run request to: {API_BASE_URL}sensors/configure')
+            return dumps(payload, indent = 2)
 
-        response = post(f'{API_BASE_URL}/sensors/configure',
-                        data = payload_json, headers = headers)
+        response = post(f'{API_BASE_URL}sensors/configure',
+                        data = dumps(payload), headers = headers)
 
         if response.status_code == 200 or response.status_code == 201:
             std_out('Post successful', 'SUCCESS')
-            return response.json
+            return response.json()
         else:
-            std_out(f'{API_BASE_URL} reported {response.status_code}', 'ERROR')
+            std_out(f'{API_BASE_URL} reported {response.status_code}:\n{response.json()}', 'ERROR')
             return False
 
-    def get_device_data(self):
+    def get_device_json(self, update = False):
+        '''
+            https://sensors.nilu.no/api/doc#get--sensor-by-id
+        '''
+        if 'NILU_BEARER' in environ:
+            std_out('Auth Bearer found, using it', 'SUCCESS')
+            headers = {'Authorization':'Bearer ' + environ['NILU_BEARER']}
+        else:
+            std_out('Cannot request without bearer', 'ERROR')
+            return None
 
-        return None
+        if self.devicejson is None or update:
+            try:
+                deviceR = get(f'{self.API_BASE_URL}sensors/{self.id}')
+                if deviceR.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
+                            'WARNING')
+                    sleep(30)
+                    deviceR = get(f'{self.API_BASE_URL}sensors/{self.id}', headers = headers)
 
-    def post_device_data(self, df):
+                if deviceR.status_code == 200 or deviceR.status_code == 201:
+                    self.devicejson = deviceR.json()
+                else:
+                    std_out('API reported {}'.format(deviceR.status_code), 'ERROR')
+            except:
+                std_out('Failed request. Probably no connection', 'ERROR')
+                pass
+        return self.devicejson
 
-        if 'IFLINK_BEARER' not in environ:
+    def get_device_lat_long(self, update = False):
+
+        if self.lat is None or self.long is None or update:
+            if self.get_device_json(update) is not None:
+                latidude = longitude = None
+                if 'location' in self.devicejson.keys():
+                    latitude, longitude = self.devicejson['location']['latitude'], self.devicejson['location']['longitude']
+
+                self.lat = latitude
+                self.long = longitude
+
+        std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))
+
+        return (self.lat, self.long)
+
+    def get_device_last_reading(self, update = False):
+        if 'NILU_BEARER' in environ:
+            std_out('Auth Bearer found, using it', 'SUCCESS')
+            headers = {'Authorization':'Bearer ' + environ['NILU_BEARER']}
+        else:
+            std_out('Cannot request without bearer', 'ERROR')
+            return None
+
+        if self.last_reading_at is None or update:
+            try:
+                deviceR = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
+                if deviceR.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
+                            'WARNING')
+                    sleep(30)
+                    deviceR = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
+
+                if deviceR.status_code == 200 or deviceR.status_code == 201:
+                    last_json = deviceR.json()
+                    last_readings = []
+                    for item in last_json:
+                        if 'timestamp_from_epoch' in item: last_readings.append(item['timestamp_from_epoch'])
+
+                    self.last_reading_at = localise_date(datetime.fromtimestamp(max(list(set(last_readings)))), 'UTC')
+                else:
+                    std_out(f'API reported {deviceR.status_code}: {deviceR.json()}', 'ERROR')
+            except:
+                print_exc()
+                std_out('Failed request. Probably no connection', 'ERROR')
+                pass
+
+        std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
+
+        return self.last_reading_at
+
+    def get_device_timezone(self, update = False):
+
+        if self.timezone is None or update:
+            latitude, longitude = self.get_device_lat_long(update)
+            # Localize it
+            if latitude is not None and longitude is not None:
+                self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
+
+        std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
+
+        return self.timezone
+
+    def get_device_sensors(self, update = False):
+
+        if self.sensors is None or update:
+            if self.get_device_json(update) is not None:
+                # Get available sensors
+                sensors = self.devicejson['components']
+                # Put the ids and the names in lists
+                self.sensors = dict()
+                for sensor in sensors:
+                    self.sensors[sensor['id']] = sensor['binding-path'][1:]
+
+        return self.sensors
+
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None):
+        '''
+            From
+            https://sensors.nilu.no/api/doc#get--data-from-utc-timestamp-by-id
+            From-to
+            https://sensors.nilu.no/api/doc#get--data-from-utc-timestamp-range-by-id
+        '''
+
+        if 'NILU_BEARER' in environ:
+            std_out('Auth Bearer found, using it', 'SUCCESS')
+            headers = {'Authorization':'Bearer ' + environ['NILU_BEARER']}
+        else:
+            std_out('Cannot request without bearer', 'ERROR')
+            return None
+
+        std_out(f'Requesting data from {self.API_BASE_URL}')
+        std_out(f'Device ID: {self.id}')
+
+        # Make sure we have the everything we need beforehand
+        self.get_device_sensors()
+        self.get_device_timezone()
+        self.get_device_last_reading()
+
+        if self.timezone is None:
+            std_out('Device does not have timezone set, skipping', 'WARNING')
+            return None
+
+        # Check start date and end date
+        if min_date is not None:
+            min_date = localise_date(to_datetime(min_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+            std_out (f'Min Date: {min_date}')
+        else:
+            std_out(f"No min_date specified, requesting all", 'WARNING')
+            min_date = localise_date(to_datetime('2015-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        if max_date is not None:
+            max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+            std_out (f'Max Date: {max_date}')
+        else:
+            std_out(f"No max_date specified")
+
+        # Print stuff
+        std_out(f'Device timezone: {self.timezone}')
+        if not self.sensors.keys():
+            std_out(f'Device is empty')
+            return None
+        else: std_out(f'Sensor IDs: {list(self.sensors.keys())}')
+
+        df = DataFrame()
+
+        # Request sensor per ID
+        request = f'{self.API_BASE_URL}/data/id/{self.id}/'
+
+        if min_date is not None: request += f'fromutc/{min_date}/'
+        if max_date is not None: request += f'toutc/{max_date}'
+
+        # Make request
+        sensor_req = get(request, headers = headers)
+
+        # Retry once in case of 429 after 30s
+        if sensor_req.status_code == 429:
+            std_out('Too many requests, waiting for 1 more retry', 'WARNING')
+            sleep (30)
+            sensor_req = get(request, headers = headers)
+
+        df = DataFrame(sensor_req.json()).pivot(index='timestamp_from_epoch', columns='component', values='value')
+        df.columns.name = None
+        df.index = localise_date(to_datetime(df.index, unit='s'), self.timezone)
+        df = df.reindex(df.index.rename('TIME'))
+
+        # Drop unnecessary columns
+        df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
+        # Check for weird things in the data
+        df = df.apply(to_numeric, errors='coerce')
+        # Resample
+        df = df.resample(frequency).mean()
+        df = clean(df, clean_na, how = 'all')
+
+        # Rename columns
+        d = {}
+        for component in self.devicejson['components']:
+            if 'name' in component: d[component['name']]=self.sensors[component['id']]
+        df = df.rename(columns=d)
+
+        self.data = df
+
+        std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
+        return self.data
+
+    def post_data_to_device(self, df, clean_na = 'drop', chunk_size = None, dry_run = False):
+        '''
+            POST external data in the IFLINK API, following
+            https://sensors.nilu.no/api/doc#push--sensor-data-by-id
+            Parameters
+            ----------
+                df: pandas DataFrame
+                    Contains data in a DataFrame format.
+                    Data is posted using the column name of the dataframe
+                    Data is posted in UTC TZ so dataframe needs to have located
+                    timestamp
+                clean_na: string, optional
+                    'drop'
+                    'drop', 'fill'
+                chunk_size: None (not used?)
+                    chunk size to split resulting pandas DataFrame for posting readings
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
+            Returns
+            -------
+                True if the data was posted succesfully
+        '''
+
+        if 'NILU_BEARER' not in environ:
             std_out('Cannot post without Auth Bearer', 'ERROR')
             return False
 
-        return None
+        headers = {'Authorization':'Bearer ' + environ['NILU_BEARER'], 'Content-type': 'application/json'}
+
+        # Clean df of nans
+        df = clean(df, clean_na, how = 'all')
+
+        # Split the dataframe in chunks
+        std_out(f'Splitting post in chunks of size {chunk_size}')
+        # chunked_dfs = [df[i:i+chunk_size] for i in range(0, df.shape[0], chunk_size)]
+
+        for i in trange(len(df.index), file=sys.stdout,
+                        desc=f"Posting data for {self.id}..."):
+
+            # chunk = chunked_dfs[i].copy()
+            row = DataFrame(df.loc[df.index[i],:]).T
+            # Prepare json post
+            payload = {}
+            payload['date'] = localise_date(df.index[i], 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+
+            for column in row.columns:
+                payload[column] = row.loc[df.index[i], column]
+
+            if dry_run:
+                std_out(f'Dry run request to: {self.API_BASE_URL}sensors/{self.id}/inbound')
+                return dumps(payload, indent = 2)
+
+            response = post(f'{self.API_BASE_URL}sensors/{self.id}/inbound',
+                            data = dumps(payload), headers = headers)
+
+            if not(response.status_code == 200 or response.status_code == 201):
+
+                std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
+                           API responded {response.status_code}:\n{response.json()}', 'ERROR')
+                return False
+
+        return True

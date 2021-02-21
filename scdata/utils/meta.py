@@ -79,6 +79,10 @@ def get_paths():
     _paths['reports'] = join(_paths['data'], 'reports')
     makedirs(_paths['reports'], exist_ok=True)
 
+    # - Tasks
+    _paths['tasks'] = join(_paths['data'], 'tasks')
+    makedirs(_paths['tasks'], exist_ok=True)
+
     # - Uploads
     _paths['uploads'] = join(_paths['data'], 'uploads')
     makedirs(_paths['uploads'], exist_ok=True)
@@ -244,14 +248,10 @@ def load_connectors(urls):
 
     connectors = dict()
     for url in urls:
-        _connectors = dict()
         try:
             c = get_json_from_url(url)
-            for i in range(len(c)):
-                _id = str(c[i]['id'])
-                c[i].pop('id')
-                _connectors[_id] = c[i]
-            connectors = dict_fmerge(_connectors, connectors)
+            _nc = basename(urlparse(str(url)).path).split('.')[0]
+            connectors[_nc] = c
         except:
             print(f'Problem loading connectors from {url}')
             print_exc()

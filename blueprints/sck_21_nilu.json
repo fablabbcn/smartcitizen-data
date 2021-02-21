@@ -1,0 +1,76 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "location": null,
+  "max_date": null,
+  "metrics": null,
+  "min_date": null,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "60",
+      "units": "%"
+    },
+    "CCS811_ECO2": {
+      "desc": "Equivalent CO2",
+      "id": "55",
+      "units": "ppm"
+    },
+    "CCS811_VOCS": {
+      "desc": "total Volatile Organics Compounds",
+      "id": "54",
+      "units": "ppb"
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "5",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "56",
+      "units": "lux"
+    },
+    "NOISE_A": {
+      "desc": "A-scale noise SPL",
+      "id": "57",
+      "units": "dBA"
+    },
+    "PM_1": {
+      "desc": "PM1 measurement from PMS5003",
+      "id": "11",
+      "units": "ug/m3"
+    },
+    "PM_10": {
+      "desc": "PM10 measurement from PMS5003",
+      "id": "12",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "desc": "PM2.5 measurement from PMS5003",
+      "id": "13",
+      "units": "ug/m3"
+    },
+    "PRESS": {
+      "desc": "Atmospheric pressure",
+      "id": "1",
+      "units": "kPa"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "15",
+      "units": "degC"
+    }
+  },
+  "source": "api",
+  "sources": {
+    "api": {
+      "handler": "NiluApiDevice"
+    },
+  },
+  "version": null
+}

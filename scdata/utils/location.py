@@ -13,8 +13,12 @@ def get_elevation(_lat = None, _long = None):
     
     query = ('https://api.open-elevation.com/api/v1/lookup'
              f'?locations={_lat},{_long}')
+    # Request with a timeout for slow responses
+    r = get(query, timeout = 20)
 
-    r = get(query).json()
-
-    elevation = json_normalize(r, 'results')['elevation'].values[0]
+    # Only get the json response in case of 200 or 201
+    if r.status_code == 200 or r.status_code == 201:
+        elevation = json_normalize(r.json(), 'results')['elevation'].values[0]
+    else:
+        elevation = None
     return elevation

@@ -57,7 +57,7 @@ setup(
 
     install_requires=[  'attrs~=20.3.0',
                         'branca==0.4.0',
-                        'certifi~=2020.4.5.1',
+                        'certifi~=2020.12.5',
                         'chardet==3.0.4',
                         'cycler==0.10.0',
                         'Flask~=1.1.2',

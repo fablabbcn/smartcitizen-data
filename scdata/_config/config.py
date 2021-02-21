@@ -101,7 +101,7 @@ class Config(object):
     ]
 
     connectors_urls = [
-        f'{_base_postprocessing_url}connectors/connectors.{_default_file_type}'
+        f'{_base_postprocessing_url}connectors/nilu.{_default_file_type}'
     ]
 
     # Convertion table from API SC to Pandas
