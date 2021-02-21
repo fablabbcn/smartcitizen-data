@@ -498,7 +498,7 @@ class ScApiDevice:
             headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER']}
         else:
             headers = None
-            std_out('Admin Bearer not found' 'WARNING')
+            std_out('Admin Bearer not found', 'WARNING')
 
         std_out(f'Requesting data from SC API')
         std_out(f'Device ID: {self.id}')
