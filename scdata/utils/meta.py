@@ -1,4 +1,3 @@
-import yaml
 from .dictmerge import dict_fmerge
 from os import pardir, environ, name, makedirs
 from os.path import join, dirname, expanduser, exists, basename
@@ -7,6 +6,8 @@ import os
 from shutil import copyfile
 from requests import get
 from traceback import print_exc
+import json
+from re import sub
 
 def get_paths():
 
@@ -146,6 +147,59 @@ def get_json_from_url(url):
         pass
 
     return rjson
+
+def get_firmware_names(sensorsh):
+    '''
+        Loads sensor names from Sensors.h of firmware repo
+        Parameters
+        ----------
+            sensorsh: String
+                Sensors.h url
+        Returns
+        ---------
+            Dictionary containing sensor names with descriptions
+    '''
+    try:
+        sensor_names = dict()
+        # Read only 20000 chars
+        data = get(sensorsh).text
+        # split it into lines
+        data = data.split('\n')
+        line_sensors = len(data)
+        for line in data:
+            if 'class AllSensors' in line:
+                line_sensors = data.index(line)
+            if data.index(line) > line_sensors:
+                if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
+                    # Split commas
+                    line_tokenized =  line.strip('').split(',')
+                    # Elimminate unnecessary elements
+                    line_tokenized_sublist = list()
+                    for item in line_tokenized:
+                            item = sub('\t', '', item)
+                            item = sub('OneSensor', '', item)
+                            item = sub('{', '', item)
+                            item = sub('}', '', item)
+                            item = sub('"', '', item)
+                            if item != '' and item != ' ':
+                                while item[0] == ' ' and len(item)>0: item = item[1:]
+                            line_tokenized_sublist.append(item)
+                    line_tokenized_sublist = line_tokenized_sublist[:-1]
+                    if len(line_tokenized_sublist) > 2:
+                            shortTitle = sub(' ', '', line_tokenized_sublist[3])
+                            if len(line_tokenized_sublist)>9:
+                                sensor_names[shortTitle] = dict()
+                                sensor_names[shortTitle]['SensorLocation'] = sub(' ', '', line_tokenized_sublist[0])
+                                sensor_names[shortTitle]['id'] = sub(' ','', line_tokenized_sublist[5])
+                                sensor_names[shortTitle]['title'] = line_tokenized_sublist[4]
+                                sensor_names[shortTitle]['unit'] = line_tokenized_sublist[-1]
+    except:
+        print ('Problem while loading Sensors.h file')
+        print_exc()
+        sensor_names = None
+        pass
+
+    return sensor_names
 
 def load_calibrations(urls):
     '''

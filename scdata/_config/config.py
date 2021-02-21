@@ -4,7 +4,7 @@ import json
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints, 
                                 load_calibrations, load_connectors,
-                                load_env)
+                                load_env, get_firmware_names)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -38,7 +38,6 @@ class Config(object):
     ## Place here options for data load and handling
     _combined_devices_name = 'COMBINED_DEVICES'
 
-    
     data = {
             # Whether or not to reload smartcitizen firmware names from git repo
             'reload_firmware_names': True, 
@@ -77,7 +76,7 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    # sensor_names_url_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
+    sensor_names_url_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
     # sensor_names_url_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
     _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
     _default_file_type = 'json'
@@ -543,17 +542,19 @@ class Config(object):
 
     def __iter__(self):
         return (i for i in dir(self))
-    
+
     def get_meta_data(self):
         """ Get meta data from blueprints and _calibrations """
         # Blueprints and calibrations
         blueprints = load_blueprints(self.blueprints_urls)
         calibrations = load_calibrations(self.calibrations_urls)
         connectors = load_connectors(self.connectors_urls)
+        sc_sensor_names = get_firmware_names(self.sensor_names_url_21)
 
         if calibrations is not None: self.calibrations = calibrations
         if blueprints is not None: self.blueprints = blueprints
         if connectors is not None: self.connectors = connectors
+        if sc_sensor_names is not None: self.sc_sensor_names = sc_sensor_names
 
         # Find environment file in root or in scdata/ for clones
         if exists('.env'): env_file = '.env'
