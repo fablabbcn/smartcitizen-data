@@ -106,7 +106,7 @@
     "CCS811_VOCS": {
       "desc": "total Volatile Organics Compounds",
       "id": "113",
-      "units": "ppm"
+      "units": "ppb"
     },
     "HUM": {
       "desc": "Urban board humidity (SHT31)",
