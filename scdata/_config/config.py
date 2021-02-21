@@ -18,6 +18,9 @@ class Config(object):
     # 'DEBUG': info, warn, err
     _out_level = 'NORMAL'
 
+    # Timestamp for log output
+    _timestamp = True
+
     # Usage in jupyterlab or script. For renderer plots
     _framework = 'script'
 
@@ -98,6 +101,7 @@ class Config(object):
         f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}'
+        f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}'
     ]
 
     connectors_urls = [
