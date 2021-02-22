@@ -290,7 +290,7 @@ class ScApiDevice:
         
         if full: return df
         else: return list(df.index)
-    
+
     def get_mac(self, update = False):
         if self.mac is None or update:
             std_out(f'Requesting MAC from API for device {self.id}')

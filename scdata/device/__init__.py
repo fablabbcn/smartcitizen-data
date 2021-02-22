@@ -240,6 +240,10 @@ class Device(object):
 
         return self.api_device.postprocessing
 
+    def validate(self):
+        if self.hardware_description is not None: return True
+        else: return False
+
     def load(self, options = None, path = None, convert_units = True, only_unprocessed = False):
         '''
         Loads the device with some options
