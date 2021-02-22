@@ -103,7 +103,7 @@ class Device(object):
         self.readings = DataFrame()
         self.loaded = False
         self.options = dict()
-        std_out(f'Device {self.id} initialised correctly', 'SUCCESS')
+        std_out(f'Device {self.id} initialised', 'SUCCESS')
 
     def set_blueprint_attrs(self, blueprintd):
 
