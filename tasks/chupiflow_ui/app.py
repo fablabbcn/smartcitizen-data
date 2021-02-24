@@ -2,8 +2,8 @@
 
 from flask import Flask, request, render_template, redirect, url_for
 import json
-from .cron import parsetabfiles, validate, savetabfiles
-from .extras import get_dpath
+from cron import parsetabfiles, validate, savetabfiles
+from extras import get_dpath
 
 app = Flask(__name__)
 
