@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+	<div id="main-container">
+		{% if file_type == 'task' %}
+			<h1>Taskfile for: {{ cron }}</h1>
+		{% elif file_type == 'log'%}
+			<h1>Logfile for: {{ cron }}</h1>
+		{% elif file_type == 'tabfile'%}
+			<h1>Tabfile view</h1>
+		{% endif %}
+		<code>
+			<ol>
+				{% for line in file %}
+					<li> {{ line|safe }}</li>					
+				{% endfor %}
+			</ol>
+		</code>
+	</div>
+{% endblock %}

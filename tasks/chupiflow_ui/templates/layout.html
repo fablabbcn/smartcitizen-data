@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Smart Citizen ChupiFlow</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="{{url_for('.static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet" media="screen">
+      <link rel="stylesheet" href="{{url_for('.static', filename='style.css')}}">
+      <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i%7CMontserrat:400,700"rel="stylesheet">
+      <script src="{{url_for('.static', filename='js/jquery.js')}}"></script>
+      <link rel="shortcut icon" href="{{url_for('.static', filename='favicon.ico')}}">      
+      <!-- <script src="{{url_for('.static', filename='js/tether/tether.min.js')}}"></script> -->
+  </head>
+  <body>
+    <header class="header">
+        <img class="logo" src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=50px height=50px>
+        <ul class="nav">
+            <li><a href={{ url_for('default') }} method='GET'>Current Jobs</a></li>
+        </ul>
+      </header>
+    {% block content %}{% endblock %}
+    {% block footer %}
+      <script src="{{url_for('.static', filename='bootstrap/js/bootstrap.min.js')}}"></script>
+      <!-- <script src="{{url_for('.static', filename='js/custom.js')}}"></script> -->
+    {% endblock %}
+  </body>
+</html>
+

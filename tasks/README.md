@@ -1,6 +1,6 @@
 # Tasks
 
-Tasks are managed by `chupiflow.py` script and ultimately by `scheduler.py` and CronTab, thanks to `python-crontab`
+Tasks are managed by `chupiflow.py` script and ultimately by `scheduler.py` and CronTab, thanks to `python-crontab` (full doc [here](https://gitlab.com/doctormo/python-crontab))
 
 ## Start scheduling
 

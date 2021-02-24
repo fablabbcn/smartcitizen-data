@@ -10,9 +10,12 @@ config._timestamp = True
 
 class Scheduler(object):
     """Wrapper class for CronTab Task Scheduling"""
-    def __init__(self):
+    def __init__(self, tabfile = None):
         self.cron = CronTab(user=True)
-        self.tabfile = join(config.paths['tasks'], f'{config._tabfile}.tab')
+        if tabfile is None:
+            self.tabfile = join(config.paths['tasks'], f'{config._tabfile}.tab')
+        else:
+            self.tabfile = tabfile
 
     def schedule_task(self, task, log, interval, force_first_run = False, overwrite = False, dry_run = False):
         std_out(f'Setting up {task}...')
@@ -42,8 +45,8 @@ class Scheduler(object):
 
         # Workaround for parsing interval
         if interval.endswith('D'): job.every(int(interval[:-1])).days()
-        if interval.endswith('H'): job.every(int(interval[:-1])).hours()
-        if interval.endswith('M'): job.every(int(interval[:-1])).minutes()
+        elif interval.endswith('H'): job.every(int(interval[:-1])).hours()
+        elif interval.endswith('M'): job.every(int(interval[:-1])).minutes()
         self.cron.write(self.tabfile)
 
         # Workaround for macos?
