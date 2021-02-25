@@ -32,7 +32,7 @@
   var clockElement = document.getElementById( "clock" );
 
   function updateClock ( clock ) {
-    clock.innerHTML = new Date().toLocaleTimeString();
+    clock.innerHTML = new Date().toLocaleString("en-GB", {timeZone: "UTC"});;
   }
 
   setInterval(function () {
