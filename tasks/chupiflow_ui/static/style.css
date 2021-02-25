@@ -5,9 +5,10 @@ body{
 .header, .nav {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding-right: 10px;
 }
 
 .header {
@@ -135,9 +136,9 @@ code
 	color: dimgray;
 	border: 1px solid #cccccc;
 	list-style-type: none;
-	height: 80vh;
+	height: 70vh;
 	margin: 0px;
-	padding: 0px;
+	padding: 10px;
 	overflow: auto;
 }
 
