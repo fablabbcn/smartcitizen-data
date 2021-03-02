@@ -27,20 +27,34 @@
 </html>
 
 <script type="text/javascript">
-(function () {
+  (function () {
 
-  var clockElement = document.getElementById( "clock" );
+    var clockElement = document.getElementById( "clock" );
 
-  function updateClock ( clock ) {
-    clock.innerHTML = new Date().toLocaleString("en-GB", {timeZone: "UTC"});;
-  }
+    function updateClock ( clock ) {
+      clock.innerHTML = new Date().toLocaleString("en-GB", {timeZone: "UTC"});;
+    }
 
-  setInterval(function () {
-      updateClock( clockElement );
-  }, 1000);
+    setInterval(function () {
+        updateClock( clockElement );
+    }, 1000);
 
-}());
+  }());
+
 </script>
 
+<script>
 
+  var scrolled = false;
+  (function updateScroll(){
+      if(!scrolled){
+          var element = document.getElementById("code-viewer");
+          element.scrollTop = element.scrollHeight;
+      }
+  });
 
+  $("#code-viewer").on('scroll', function(){
+      scrolled=true;
+  });
+
+</script>
