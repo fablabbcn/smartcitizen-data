@@ -11,6 +11,20 @@ body{
   padding-right: 10px;
 }
 
+#file-header{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+#cron-status{
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
 .header {
   background: black;
   color: lightgray;
@@ -61,6 +75,7 @@ body{
 
 div#box-container{
 	margin-top: 20px;
+  width: 100%;
 }
 
 div#main-container{
@@ -69,17 +84,16 @@ div#main-container{
 	border-color: gray;
 	border-radius: 5px;
 	margin: auto;
-	margin-top: 20px;
+	margin-top: 30px;
 }
 
-.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+/*.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
     margin-bottom: 2rem;
-}
+}*/
 
 h1 {
 	font-size: 20px;
 	font-weight: bold;
-	margin-top:10px;
 }
 
 h2 {
@@ -94,10 +108,13 @@ h3 {
 
 table{
 	font-size: 13px;
+  margin-top:10px;
+  width: 100%;
 }
 
 thead{
 	background: black;
+  width: 100%;
 }
 
 td{
@@ -147,6 +164,12 @@ code
     background-color: #2196F3;
     border-color: #2196F3;
     border-radius: 5px;
+    margin: 2px;
+}
+
+.btn-warning{
+    border-radius: 5px;
+    margin: 2px;
 }
 
 .btn-info:hover {
