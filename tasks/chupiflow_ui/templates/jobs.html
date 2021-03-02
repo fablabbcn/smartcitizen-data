@@ -5,6 +5,9 @@
             <input type="text" name="path-tab-file" id="text-path-input" value={{ defaultpath }}>
             <button class="btn btn-info btn-sm add-entry-btn">Reload tabfiles</button>
         </form>
+        {% if error %}
+            <span style="color:#B22222">Path doesn't exist</span>
+        {% endif %}
         <div class="container-fluid">
             <div class="row">
                 <div id="box-container">
