@@ -4,6 +4,18 @@ import traceback
 import sys
 import subprocess
 from crontab import CronTab
+import threading
+
+class CronThread(threading.Thread):
+    def __init__(self, job):
+        self.job = job
+        super().__init__()
+        self.status = 'init'
+
+    def run(self):
+        self.status = 'running'
+        self.job.run()
+        self.status = 'done'
 
 def parsetabfiles(path):
     tabfiles = {}
@@ -21,7 +33,7 @@ def parsetabfiles(path):
                     tabfiles[tname][job.comment]['valid']=job.is_valid()
                     cl = job.command.split(' ')
                     tabfiles[tname][job.comment]['who']=cl[0]
-                    tabfiles[tname][job.comment]['task']=cl[1: cl.index('>>')][0]
+                    tabfiles[tname][job.comment]['task']=' '.join(cl[1: cl.index('>>')])
                     tabfiles[tname][job.comment]['logfile']=cl[cl.index('>>')+1:-1][0]
         return tabfiles
     except IOError:
@@ -44,6 +56,19 @@ def validate(schedule, who, task, log):
         return 'Time slice error'
 
     return None
+
+def triggercrontab(path,tabfile,cron):
+    print (f'Triggering {cron} from {tabfile}')
+    jobs=CronTab(tabfile=join(path, tabfile+'.tab'))
+
+    for job in jobs:
+        if job.comment==cron:
+            if job.is_valid:
+                ct = CronThread(job)
+                ct.start()
+                return ct
+            else:
+                return False
 
 def savetabfiles(tabfiles, path):
     for tabfile in tabfiles:

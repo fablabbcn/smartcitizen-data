@@ -1,5 +1,5 @@
 from os import environ, name
-from os.path import expanduser, join
+from os.path import expanduser, join, isdir
 
 def get_dpath():
 
@@ -19,3 +19,6 @@ def get_dpath():
     dpath = join(_ddir, 'scdata', 'tasks')
 
     return dpath
+
+def check_path(path):
+    return isdir(path)

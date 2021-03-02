@@ -44,7 +44,10 @@
                                                 <td><a href = {{ url_for('logfile', tabfile=tabfilename, cron=cron) }}> {{ crondict['logfile'] }}</a></td>
                                                 <td>
                                                     <form action = "{{ url_for('editjob', tabfile=tabfilename, cron=cron) }}" method = "GET">
-                                                        <button class="btn btn-info btn-sm add-entry-btn">Edit job</button>
+                                                        <button class="btn btn-info btn-sm add-entry-btn">Edit</button>
+                                                    </form>
+                                                    <form action = "{{ url_for('triggerjob', tabfile=tabfilename, cron=cron) }}" method = "POST">
+                                                        <button class="btn btn-warning btn-sm add-entry-btn">Run</button>
                                                     </form>
                                                 </td>
                                         </tr>
