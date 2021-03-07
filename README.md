@@ -30,8 +30,8 @@ pip install scdata
 Simply clone the repository with:
 
 ```
-git clone https://github.com/fablabbcn/smartcitizen-data-framework.git
-cd smartcitizen-data-framework
+git clone https://github.com/fablabbcn/smartcitizen-data.git
+cd smartcitizen-data
 ```
 
 Install `scdata` package with requirements:
@@ -74,21 +74,11 @@ zenodo_real_base_url: https://zenodo.org
 zenodo_sandbox_base_url: http://sandbox.zenodo.org
 ```
 
+Also, `.env` files will be picked from `~/.cache/scdata/data`.
+
 ### Using with jupyter lab (optional)
 
-It can also be used with `jupyterlab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab) and (optionally), these extensions:
-
-1. Notebook extensions configurator:
-
-```
-pip install jupyter_nbextensions_configurator
-```
-
-2. Plotly in jupyter lab (interactive plots):
-
-```
-jupyter labextension install jupyterlab-plotly
-```
+It can also be used with `jupyterlab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab).
 
 ## Contribute
 
