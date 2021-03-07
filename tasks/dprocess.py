@@ -17,16 +17,16 @@ def dprocess(device, dryrun = False):
     d = Device(descriptor = {'source': 'api', 'id': f'{device}'})
     if d.validate(): 
         # Load only unprocessed
-        if d.load(only_unprocessed=True):
+        if d.load(only_unprocessed=True, max_amount=config._max_load_amount):
             # Process it
             d.process()
             # Post results if not dry run
-            if not dry_run:
-                d.post_metrics(with_postprocessing=True)
-                # Forward it if requested
-                if d.forwarding_request is not None:
-                    std_out(f'Forwarding {device}')
-                    d.forward()
+            d.post_metrics(dry_run=dry_run)
+            # Forward it if requested
+            if d.forwarding_request is not None:
+                std_out(f'Forwarding {device}')
+                d.forward(dry_run=dry_run)
+            d.update_postprocessing(dry_run=dry_run)
     else:
         std_out(f'Device {device} not valid', 'ERROR')
     std_out(f'Concluded job for {device}')
