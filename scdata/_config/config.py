@@ -71,6 +71,7 @@ class Config(object):
     # If using multiple training datasets, how to call the joint df
     _name_multiple_training_data = 'CDEV'
 
+    _max_load_amount = 500
     ### ---------------------------------------
     ### --------------ALGORITHMS---------------
     ### --------------------------------------- 

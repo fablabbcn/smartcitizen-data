@@ -244,7 +244,7 @@ class Device(object):
         if self.hardware_description is not None: return True
         else: return False
 
-    def load(self, options = None, path = None, convert_units = True, only_unprocessed = False):
+    def load(self, options = None, path = None, convert_units = True, only_unprocessed = False, max_amount = None):
         '''
         Loads the device with some options
 
@@ -269,7 +269,9 @@ class Device(object):
         only_unprocessed: bool
             Default: False
             Loads only unprocessed data
-
+        max_amount: int
+            Default: None
+            Trim dataframe to this amount for processing and forwarding purposes
         Returns
         ----------
             True if loaded correctly
@@ -293,7 +295,7 @@ class Device(object):
                 self.location = self.api_device.get_device_timezone()
 
                 if path is None:
-
+                    # Not chached case
                     if only_unprocessed:
 
                         # Override dates for post-processing
@@ -330,6 +332,8 @@ class Device(object):
         else:
             if self.readings is not None:
                 self.__check_sensors__()
+                if max_amount is not None:
+                    self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
 
                 if not self.readings.empty:
                     # Only add metrics if there is something that can be potentially processed
