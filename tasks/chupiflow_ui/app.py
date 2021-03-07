@@ -2,8 +2,8 @@
 
 from flask import Flask, request, render_template, redirect, url_for
 import json
-from .cron import parsetabfiles, validate, savetabfiles, triggercrontab
-from .extras import get_dpath
+from cron import parsetabfiles, validate, savetabfiles, triggercrontab
+from extras import get_dpath
 
 app = Flask(__name__)
 
@@ -106,7 +106,7 @@ def logfile(tabfile, cron):
 @app.route('/jobfiles/<tabfile>-<cron>')
 def taskfile(tabfile, cron):
     tabfiles = parsetabfiles(path=dpath)
-    taskfile = tabfiles[tabfile][cron]['task']
+    taskfile = tabfiles[tabfile][cron]['task'].split(' ')[0]
     task = []
     with open(taskfile, 'r') as file:
         _task = file.readlines()
