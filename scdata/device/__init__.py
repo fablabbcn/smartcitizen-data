@@ -492,8 +492,9 @@ class Device(object):
             try:
                 self.readings[metric] = funct(self.readings, *args, **kwargs)
             except KeyError:
-                print_exc()
+                # print_exc()
                 std_out('Metric args not in dataframe', 'ERROR')
+                process_ok=False
                 pass
 
             if metric in self.readings: process_ok &= True
@@ -573,7 +574,6 @@ class Device(object):
                                             'from_list': <module to load function from>
                             }
                 }
-            
             The 'from_list' parameter is optional, and onle needed if the process is not 
             already available in scdata.device.process.
 
@@ -674,15 +674,37 @@ class Device(object):
         else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
         return post_ok
-        
-    def post_metrics(self, with_postprocessing = True):
+
+    def update_postprocessing(self, dry_run = False):
+        '''
+        Posts device postprocessing. Only available for parent of ScApiDevice
+            Parameters
+            ----------
+            dry_run: boolean
+                False
+                Post the payload to the API or just return it
+        Returns
+        ----------
+            boolean
+            True if posted ok, False otherwise
+        '''
+
+        post_ok = self.api_device.patch_postprocessing(dry_run=dry_run)
+
+        if post_ok: std_out(f"Postprocessing posted for device {self.id}", "SUCCESS")
+        return post_ok
+
+    def post_metrics(self, with_postprocessing = False, dry_run = False):
         '''
         Posts devices metrics. Only available for parent of ScApiDevice
         Parameters
         ----------
             with_postprocessing: boolean
-                Default True
+                False
                 Post the postprocessing_attributes too
+            dry_run: boolean
+                False
+                Post the payload to the API or just return it
         Returns
         ----------
             boolean
@@ -694,23 +716,32 @@ class Device(object):
             std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
             return False
 
+        rd = dict()
         std_out(f"Posting metrics for device {self.id}")
+        # Make a copy of df
+        df = self.readings.copy().dropna(axis = 0, how='all')
+        # Get metrics to post, only the ones that have True in 'post' field and a valid ID
         for metric in self.metrics:
             if self.metrics[metric]['post'] == True:
-                std_out(f"Posting {metric} for device {self.id}")
-                # Get single series for post
-                df = DataFrame(self.readings[metric]).dropna(axis = 0, how='all')
-                if df.empty:
-                    std_out('Empty dataframe, ignoring', 'WARNING')
-                    continue
-                sensor_id = self.metrics[metric]['id']
-                post_ok &= self.api_device.post_device_data(df, sensor_id = sensor_id)
-                if post_ok: std_out(f"Metric {metric} posted", "SUCCESS")
-                else: std_out(f"Error while posting {metric}", "WARNING")
+                std_out(f"Adding {metric} for device {self.id}")
+                rd[col] = self.metrics[metric]['id']
+
+        # Keep only metrics in df
+        df = df[df.columns.intersection(list(rd.keys()))]
+        df.rename(columns=rd, inplace=True)
+
+        # If empty, avoid
+        if df.empty:
+            std_out('Empty dataframe, ignoring', 'WARNING')
+            return False
+
+        post_ok = self.api_device.post_data_to_device(df, dry_run = dry_run)
+        if post_ok: std_out(f'Posted metrics for {self.id}', 'SUCCESS')
+        else: std_out(f'Error posting metrics for {self.id}', 'ERROR')
 
         # Post info if requested. It should be updated elsewhere
         if with_postprocessing and post_ok:
-            post_ok &= self.api_device.patch_postprocessing()
+            post_ok &= self.update_postprocessing(dry_run=dry_run)
 
         if post_ok: std_out(f"Metrics posted for device {self.id}", "SUCCESS")
         return post_ok

@@ -731,7 +731,7 @@ class ScApiDevice:
 
         return True
 
-    def patch_postprocessing(self):
+    def patch_postprocessing(self, dry_run = False):
         '''
             POST postprocessing info into the device in the SmartCitizen API
             Updates all the post info. Changes need to be made info the keys of the postprocessing outside of here
@@ -753,6 +753,11 @@ class ScApiDevice:
 
         post = {"postprocessing_attributes": self.postprocessing}
         post_json = dumps(post)
+
+        if dry_run:
+            std_out(f'Dry run request to: {self.API_BASE_URL}{self.id}/')
+            return dumps(post_json, indent = 2)
+
         std_out(f'Posting postprocessing_attributes:\n {post_json}')
         response = patch(f'{self.API_BASE_URL}{self.id}/',
                          data = post_json, headers = headers)
