@@ -581,9 +581,11 @@ class Config(object):
         if sc_sensor_names is not None: self.sc_sensor_names = sc_sensor_names
 
         # Find environment file in root or in scdata/ for clones
-        if exists('.env'): env_file = '.env'
-        elif exists('../.env'): env_file = '../.env'
-        else: env_file = None
+        if exists(join(self.paths['data'],'.env')): env_file = join(self.paths['data'],'.env')
+        else: 
+            print (f'No environment file found. If you had an environment file (.env) before, make sure its now here:')
+            print(join(self.paths['data'],'.env'))
+            env_file = None
 
         # Load .env for tokens and stuff if found 
         if env_file is not None and not self._env_file: 
