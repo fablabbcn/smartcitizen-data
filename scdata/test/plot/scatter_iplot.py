@@ -28,7 +28,7 @@ def scatter_iplot(self, **kwargs):
     """
     std_out ('Not yet working', 'ERROR')
     return None
-    if config._framework == 'jupyterlab': renderers.default = config._framework
+    if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs: 
         std_out('No traces defined', 'ERROR')

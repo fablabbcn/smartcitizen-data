@@ -21,8 +21,13 @@ class Config(object):
     # Timestamp for log output
     _timestamp = True
 
-    # Usage in jupyterlab or script. For renderer plots
-    _framework = 'script'
+    # Framework option
+    # For renderer plots and config files
+    # Options:
+    # - 'script': no plots in jupyter, updates config
+    # - 'jupyterlab': for plots, updates config
+    # - 'chupiflow': no plots in jupyter, does not update config
+    framework = 'script'
 
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
@@ -601,8 +606,8 @@ class Config(object):
 
                 except KeyError:  # Ignore unrecognised data in config
                     print ("Unrecognised config item: %s", k)
-
-        self.save() 
+        if self.framework != 'chupiflow':
+            self.save()
 
     def save(self):
         """ Save current config to file. """
@@ -614,7 +619,6 @@ class Config(object):
         _sccpath = join(self.paths['config'], 'config.yaml')
         with open(_sccpath, "w") as cf:
             yaml.dump(c, cf)
-        # print ("Saved config: " + _sccpath)
 
     def set_testing(self, env_file = None):
         '''
@@ -630,7 +634,7 @@ class Config(object):
 
         print ('Setting test mode')
         self._out_level = 'DEBUG'
-        self._framework = 'jupyterlab'
+        self.framework = 'jupyterlab'
         self._intermediate_plots = True
         self._plot_out_level = 'DEBUG'
         

@@ -37,8 +37,6 @@ def ts_uplot(self, **kwargs):
         uPlot figure
     """
 
-    # if config._framework == 'jupyterlab': renderers.default = config._framework
-
     head_template = '''
         <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
         <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
