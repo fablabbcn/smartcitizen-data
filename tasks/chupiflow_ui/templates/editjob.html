@@ -14,19 +14,19 @@
 				<div class="field">
 					<label for="task" class="label">Who</label>
 	      			<div class="control">
-	            		<input type="text" name="who-input" value={{ crondict['who'] }} required>
+	            		<input type="text" name="who-input" value={{ crondict['who']|tojson }} required>
 		        	</div>
 		      	</div>
 				<div class="field">
 					<label for="task" class="label">Task</label>
 	      			<div class="control">
-	            		<input type="text" name="task-input" value={{ crondict['task'] }} required>
+	            		<input type="text" name="task-input" value={{ crondict['task']|tojson }} required>
 		        	</div>
 		      	</div>            		
 				<div class="field">
 					<label for="logfile" class="label">Logfile</label>
 	      			<div class="control">
-	            		<input type="text" name="logfile-input" value={{ crondict['logfile'] }} required>
+	            		<input type="text" name="logfile-input" value={{ crondict['logfile']|tojson }} required>
 		        	</div>
 		      	</div>
 				<div class="field">

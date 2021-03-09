@@ -26,7 +26,6 @@ def default():
 @app.route('/editjob/<tabfile>-<cron>', methods = ['POST', 'GET'])
 def editjob(tabfile,cron,error=None):
     tabfiles=parsetabfiles(path=dpath)
-
     if request.method == 'POST':
         request.get_data()
         # Form input
