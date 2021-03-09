@@ -70,6 +70,10 @@
   "sources": {
     "api": {
       "handler": "NiluApiDevice"
+    },
+    "csv": {
+      "header_skip": null,
+      "index": "TIME"
     }
   },
   "version": null
