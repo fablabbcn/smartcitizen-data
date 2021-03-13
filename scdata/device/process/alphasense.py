@@ -34,18 +34,6 @@ def alphasense_803_04(dataframe, **kwargs):
         calculation of pollutant in ppb
     """
 
-    def alg_1(x, cal_data):
-        return x['we_t'] - x['n_t'] * x['ae_t']
-
-    def alg_2(x, cal_data):
-        return x['we_t'] - x['k_t'] * (cal_data['we_sensor_zero_mv'] / cal_data['ae_sensor_zero_mv'] ) * x['ae_t']
-
-    def alg_3(x, cal_data):
-        return x['we_t'] - (cal_data['we_sensor_zero_mv'] - cal_data['ae_sensor_zero_mv']) / 1000.0 - x['kp_t'] * x['ae_t']
-
-    def alg_4(x, cal_data):
-        return x['we_t'] - cal_data['we_sensor_zero_mv'] / 1000.0 - x['kpp_t']
-
     def comp_t(x, comp_lut):
         if isnull(x['t']): return None
 
@@ -63,9 +51,6 @@ def alphasense_803_04(dataframe, **kwargs):
         delta_x = config._as_t_comp[idx_2] - config._as_t_comp[idx_1]
 
         return comp_lut[idx_1] + (x['t'] - config._as_t_comp[idx_1]) * delta_y / delta_x
-
-    def reverse_no2(x, cal_data):
-        return x['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
 
     # Check inputs
     flag_error = False
@@ -146,22 +131,22 @@ def alphasense_803_04(dataframe, **kwargs):
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 
-    # Temperature compensation
+    # Temperature compensation - done line by line as it has special conditions
     df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
 
-    # Algorithm selection
+    # Algorithm selection (result in V)
     if algorithm == 1:
-        df['we_c'] = df.apply(lambda x: alg_1(x, cal_data), axis = 1) # in V
+        df['we_c'] = df['we_t'] - df['n_t'] * df['ae_t']
     elif algorithm == 2:
-        df['we_c'] = df.apply(lambda x: alg_2(x, cal_data), axis = 1) # in V
+        df['we_c'] = df['we_t'] - df['k_t'] * (cal_data['we_sensor_zero_mv'] / cal_data['ae_sensor_zero_mv'] ) * df['ae_t']
     elif algorithm == 3:
-        df['we_c'] = df.apply(lambda x: alg_3(x, cal_data), axis = 1) # in V
+        df['we_c'] = df['we_t'] - (cal_data['we_sensor_zero_mv'] - cal_data['ae_sensor_zero_mv']) / 1000.0 - df['kp_t'] * df['ae_t']
     elif algorithm == 4:
-        df['we_c'] = df.apply(lambda x: alg_4(x, cal_data), axis = 1) # in V
+        df['we_c'] = df['we_t'] - cal_data['we_sensor_zero_mv'] / 1000.0 - df['kpp_t']
 
-    # Verify if it has NO2 cross-sensitivity
+    # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0):
-        df['we_no2_eq'] = df.apply(lambda x: reverse_no2(x, cal_data), axis = 1) # in V
+        df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
         df['we_c'] -= df['we_no2_eq'] # in V
 
     # Calculate sensor concentration

@@ -93,8 +93,9 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
     
     # Check for weird things in the data
-    df = df.apply(to_numeric, errors='coerce')   
-    
+    # df = df.apply(to_numeric, errors='coerce')
+    df = df.astype(float, errors='ignore')
+
     # Resample
     df = df.resample(frequency).mean()
 

@@ -594,10 +594,10 @@ class ScApiDevice:
                 # Drop unnecessary columns
                 dfsensor.drop([i for i in dfsensor.columns if 'Unnamed' in i], axis=1, inplace=True)
                 # Check for weird things in the data
-                dfsensor = dfsensor.apply(to_numeric, errors='coerce')
+                dfsensor = dfsensor.astype(float, errors='ignore')
+                # dfsensor = dfsensor.apply(to_numeric, errors='coerce')
                 # Resample
                 dfsensor = dfsensor.resample(frequency).mean()
-
                 df = df.combine_first(dfsensor)
             except:
                 print_exc()

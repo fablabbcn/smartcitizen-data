@@ -60,7 +60,7 @@ def pivot_data(df_subset, contaminants):
         """
         timestamp_lambda = lambda x: x['date'] + pd.DateOffset(hours=int(x['hours']))
 
-        df_temp['date'] = df_temp.apply( timestamp_lambda, axis=1)
+        df_temp['date'] = df_temp.apply(timestamp_lambda, axis=1)
         df_temp = df_temp.set_index('date')
         df_pivot[contaminant] = df_temp[contaminant]
         

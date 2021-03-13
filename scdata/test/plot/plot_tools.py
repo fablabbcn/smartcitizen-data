@@ -188,7 +188,8 @@ def prepare_data(test, traces, options):
 
     # Make sure everything is numeric before resampling
     # https://stackoverflow.com/questions/34257069/resampling-pandas-dataframe-is-deleting-column#34270422
-    df = df.apply(to_numeric, errors='coerce')
+    # df = df.apply(to_numeric, errors='coerce')
+    df = df.astype(float, errors='ignore')
 
     # Resample it
     if options['frequency'] is not None: 
