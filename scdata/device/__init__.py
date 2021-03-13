@@ -70,6 +70,16 @@ class Device(object):
 
         if self.id is not None: self.id = str(self.id)
 
+        # Postprocessing and forwarding
+        self.hardware_url = None
+        self.blueprint_url = None
+        self.forwarding_params = None
+        self.forwarding_request = None
+        self.meta = None
+        self.latest_postprocessing = None
+        self.processed = False
+        self.hardware_description = None
+
         # Add API handler if needed
         if self.source == 'api':
 
@@ -81,16 +91,7 @@ class Device(object):
 
             std_out(f'Checking postprocessing info from API device')
 
-            # Postprocessing and forwarding
-            self.hardware_url = None
-            self.blueprint_url = None
-            self.forwarding_params = None
-            self.forwarding_request = None
-            self.meta = None
-            self.latest_postprocessing = None
-            self.processed = False
-
-            if self.load_postprocessing() and (self.hardware_url is None or self.blueprint_url is None):
+            if self.load_postprocessing() and (self.hardware_url is None):# or self.blueprint_url is None):
                 if config._strict:
                     raise ValueError('Postprocessing could not be loaded as is incomplete and strict mode is enabled')
                 std_out(f'Postprocessing loaded but with problems (hardware_url: {self.hardware_url} // blueprint_url: {self.blueprint_url}', 'WARNING')
@@ -334,7 +335,6 @@ class Device(object):
                 self.__check_sensors__()
                 if max_amount is not None:
                     self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
-
                 if not self.readings.empty:
                     # Only add metrics if there is something that can be potentially processed
                     self.__fill_metrics__()
