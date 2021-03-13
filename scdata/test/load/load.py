@@ -76,7 +76,7 @@ def load(self, options = dict()):
         if device.source == 'api':
 
             if device.location is None:
-                device.location = device.api_device.get_device_location()
+                device.location = device.api_device.get_device_timezone()
 
             # Get last reading from API
             if 'get_device_last_reading' in dir(device.api_device): 
