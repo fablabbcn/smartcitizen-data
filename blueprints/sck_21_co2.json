@@ -153,7 +153,7 @@
       "id": "80",
       "units": "%rh"
     },
-    "CO2": {
+    "SCD30_CO2": {
       "desc": "CO2 (SCD30)",
       "id": "158",
       "units": "ppm"
