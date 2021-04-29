@@ -395,7 +395,7 @@ class ScApiDevice:
 
                     std_out ('Device {} has postprocessing information:\n{}'.format(self.id, self.postprocessing))
                 else:
-                    std_out (f'Device {self.id} has no postprocessing information', 'WARNING')
+                    std_out (f'Device {self.id} has no postprocessing information')
 
         return self.postprocessing
 
