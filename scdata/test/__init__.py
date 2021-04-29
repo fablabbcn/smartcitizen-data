@@ -2,7 +2,7 @@
 
 from os import makedirs
 from os.path import join, exists
-from shutil import copyfile
+from shutil import copyfile, rmtree
 from traceback import print_exc
 from datetime import datetime
 import yaml
@@ -126,6 +126,22 @@ class Test(object):
         std_out (f'Test creation finished. Name: {self.full_name}', 'SUCCESS')
         return self.full_name
 
+    def purge(self):
+        # Check if the folder structure exists
+        if not exists(self.path):
+            std_out('Test folder doesnt exist', 'ERROR')
+        else:
+            std_out (f'Purging cached directory in: {self.path}')
+            try:
+                rmtree(join(self.path, 'cached'))
+            except:
+                std_out('Error while purging directory', 'ERROR')
+                pass
+            else:
+                std_out (f'Purged cached folder', 'SUCCESS')
+                return True
+        return False
+
     def add_details(self, details):
         '''
             details: a dict containing the information about the test. Minimum of:
@@ -207,13 +223,6 @@ class Test(object):
         else: std_out(f'Test {self.full_name} not processed', 'ERROR')
         
         return process_ok
-
-    def reprocess(self):
-        ''' 
-        Calculates only the new metrics in each of the devices
-        Returns True if done OK
-        '''
-        return self.process(only_new = True)
 
     def __set_options__(self, options):
 
