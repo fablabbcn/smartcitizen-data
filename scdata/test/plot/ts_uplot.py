@@ -9,7 +9,7 @@ from jinja2 import Template
 import io
 import re
 
-''' 
+'''
 This code is heavily inspired by https://github.com/saewoonam/uplot_lib
 '''
 
@@ -27,8 +27,8 @@ def ts_uplot(self, **kwargs):
                         "2": {"devices": "all",
                              "channel" : "TEMP",
                              "subplot": 2}
-                        }     
-        options: dict 
+                        }
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
@@ -40,13 +40,13 @@ def ts_uplot(self, **kwargs):
     head_template = '''
         <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
         <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
-        
+
         <div style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
         </div>
 
         '''
-    
+
     uplot_template = '''
         <div id="plot{{subplot}}"></div>
         <script>
@@ -74,13 +74,13 @@ def ts_uplot(self, **kwargs):
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options', 'WARNING')
+        std_out('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting', 'WARNING')
+        std_out('Using default formatting')
         formatting = config._ts_plot_def_fmt['uplot']
     else:
         formatting = dict_fmerge(config._ts_plot_def_fmt['uplot'], kwargs['formatting'])
@@ -91,7 +91,7 @@ def ts_uplot(self, **kwargs):
         formatting['width'] = 800
     if formatting['height'] < 100:
         std_out('Reducing height to 600')
-        formatting['height'] = 600   
+        formatting['height'] = 600
 
     if 'html' not in options:
         options['html'] = False
@@ -106,7 +106,7 @@ def ts_uplot(self, **kwargs):
     # Get data in uplot expected format
     udf = df.copy()
     udf.index = udf.index.astype(int)/10**9
-    
+
     for isbplt in range(n_subplots):
 
         sdf = udf.loc[:, subplots[isbplt]]
@@ -116,7 +116,7 @@ def ts_uplot(self, **kwargs):
         labels = sdf.columns
         useries = [{'label': labels[0]}]
 
-        if formatting['ylabel'] is None: 
+        if formatting['ylabel'] is None:
             ylabel = None
         else:
             ylabel = formatting['ylabel'][isbplt+1]
@@ -139,7 +139,7 @@ def ts_uplot(self, **kwargs):
             if color_idx+1>len(colors): color_idx=0
 
             nser = {
-                    'label': label, 
+                    'label': label,
                     'stroke': colors[color_idx],
                     'points': {'space': 0, 'size': formatting['size']}
                     }
@@ -150,7 +150,8 @@ def ts_uplot(self, **kwargs):
         u_options = {
                         'width': formatting['width'],
                         'height': formatting['height'],
-                        'cursor': { 
+                        'legend': {'isolate': True},
+                        'cursor': {
                                     'lock': True,
                                     'focus': {
                                                 'prox': 16,
@@ -160,21 +161,21 @@ def ts_uplot(self, **kwargs):
                                                 'setSeries': True,
                                     },
                                     'drag': {
-                                                'x': True, 
-                                                'y': True, 
+                                                'x': True,
+                                                'y': True,
                                                 'uni': 50,
                                                 'dist': 10,
                                             }
                                     },
                         'scales': {
-                                    'x': {'time': True}, 
+                                    'x': {'time': True},
                                     'y': {'auto': True},
                                   },
                         'series': useries,
                         'axes': uaxes
                     }
 
-        h2 = Template(uplot_template).render(data=json.dumps(data), 
+        h2 = Template(uplot_template).render(data=json.dumps(data),
                                  options=json.dumps(u_options),
                                  subplot=isbplt)
 
@@ -187,10 +188,10 @@ def ts_uplot(self, **kwargs):
     if options['html']:
         return h
     else:
-        iframe = f'''<iframe srcdoc="{h}" src="" 
+        iframe = f'''<iframe srcdoc="{h}" src=""
             frameborder="0" width={formatting['width'] + formatting['padding-right']}
             height={formatting['height'] + formatting['padding-bottom']}
             sandbox="allow-scripts">
             </iframe>'''
-        
+
         return HTML(iframe)

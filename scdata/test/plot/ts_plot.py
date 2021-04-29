@@ -24,7 +24,7 @@ def ts_plot(self, **kwargs):
                         "2": {"devices": "all",
                              "channel" : "TEMP",
                              "subplot": 2}
-                        }     
+                        }
         options: dict 
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
@@ -58,10 +58,10 @@ def ts_plot(self, **kwargs):
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config._plot_style)
-    
+
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
-    
+
     # Font size
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
@@ -72,15 +72,12 @@ def ts_plot(self, **kwargs):
 
     # Size sanity check
     if formatting['width'] > 50: 
-
         std_out('Reducing width to 12')
         formatting['width'] = 12
-    
-    if formatting['height'] > 50: 
-
+    if formatting['height'] > 50:
         std_out('Reducing height to 10')
         formatting['height'] = 10
-    
+
     # Plot
     figure, axes = plt.subplots(n_subplots, 1,
                                 sharex = formatting['sharex'],
@@ -88,7 +85,7 @@ def ts_plot(self, **kwargs):
                                            formatting['height'])
                                 );
 
-    if n_subplots == 1: 
+    if n_subplots == 1:
         axes = array(axes)
         axes.shape = (1)
 
@@ -105,12 +102,10 @@ def ts_plot(self, **kwargs):
         for trace in subplots[isbplt]:
 
             if has_hl:
-                
                 if '-MEAN' in trace: alpha = formatting['alpha_highlight']
                 elif '-MAX' in trace: alpha = formatting['alpha_highlight']
                 elif '-MIN' in trace: alpha = formatting['alpha_highlight']
                 else: alpha = formatting['alpha_other']
-            
             else: alpha = 1
 
             ax.plot(df.index, df[trace], label = trace, alpha = alpha);
@@ -118,23 +113,18 @@ def ts_plot(self, **kwargs):
         # TODO make this to compare to not None, so that we can send location
         if formatting['legend']: 
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5));
-        
         if formatting['ylabel'] is not None: 
             ax.set_ylabel(formatting['ylabel'][isbplt+1]);
-        
         if formatting['xlabel'] is not None: 
             ax.set_xlabel(formatting['xlabel']);
-        
         if formatting['yrange'] is not None: 
             ax.set_ylim(formatting['yrange'][isbplt+1]);
-        
         if formatting['xrange'] is not None:
             if formatting['sharex']: ax.set_xlim(to_datetime(formatting['xrange'][1]));
             else: ax.set_xlim(to_datetime(formatting['xrange'][isbplt+1]));
 
         if formatting['grid'] is not None:
             ax.grid(formatting['grid']);
-
 
         if formatting["decorators"] is not None:
 
