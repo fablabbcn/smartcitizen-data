@@ -35,7 +35,7 @@ def to_csv(self, path = None, forced_overwrite = False):
 
     return export_ok
 
-def to_html(self, title = 'Your title here', path = None,
+def to_html(self, title = 'Your title here', template = 'sc_template.html', path = None,
             details = True, devices_summary = True, full = True, header = True):
     '''
     Generates an html description for the test
@@ -45,6 +45,9 @@ def to_html(self, title = 'Your title here', path = None,
         title: String
             Your title here
             Document title
+        template: String
+            sc_template.html
+            Template to fill out (in templates/)
         path: String
             None
             Directory to export it to. If None, writes it to default test folder
@@ -82,7 +85,7 @@ def to_html(self, title = 'Your title here', path = None,
 
     with app.app_context():
         rendered = flask.render_template(
-            'sc_template.html',
+            template,
             title = title,
             descriptor = self.descriptor,
             content = self.content,
