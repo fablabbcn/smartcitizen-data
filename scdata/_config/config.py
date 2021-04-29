@@ -61,22 +61,23 @@ class Config(object):
     _combined_devices_name = 'COMBINED_DEVICES'
 
     data = {
-            # Whether or not to reload smartcitizen firmware names from git repo
-            'reload_firmware_names': True, 
-            # Whether or not to load or store cached data (saves time when requesting a lot of data)
-            'load_cached_api': True, 
-            'store_cached_api': True, 
-            # If reloading data from the API, how much gap between the saved data and the
-            # latest reading in the API should be ignore
-            'cached_data_margin': 1,
-            # clean_na
-            'clean_na': None
-            }
+        # Whether or not to reload smartcitizen firmware names from git repo
+        'reload_firmware_names': True,
+        # Whether or not to load or store cached data (saves time when requesting a lot of data)
+        'load_cached_api': True,
+        'store_cached_api': True,
+        # If reloading data from the API, how much gap between the saved data and the
+        # latest reading in the API should be ignore
+        'cached_data_margin': 1,
+        # clean_na
+        'clean_na': None
+    }
 
     # If using multiple training datasets, how to call the joint df
     _name_multiple_training_data = 'CDEV'
 
     _max_load_amount = 500
+
     ### ---------------------------------------
     ### --------------ALGORITHMS---------------
     ### --------------------------------------- 
@@ -120,8 +121,9 @@ class Config(object):
         f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}'
-        f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}'
+        f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sck_21_co2.{_default_file_type}'
     ]
 
     connectors_urls = [
@@ -132,15 +134,15 @@ class Config(object):
     # https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
     # https://developer.smartcitizen.me/#get-historical-readings
     _freq_conv_lut = (
-                        ['y','A'],
-                        ['M','M'],
-                        ['w','W'],
-                        ['d','D'],
-                        ['h','H'],
-                        ['m','Min'],
-                        ['s','S'],
-                        ['ms','ms']
-                    )
+        ['y','A'],
+        ['M','M'],
+        ['w','W'],
+        ['d','D'],
+        ['h','H'],
+        ['m','Min'],
+        ['s','S'],
+        ['ms','ms']
+    )
     
     # AlphaDelta PCB factor (converstion from mV to nA)
     _alphadelta_pcb = 6.36
@@ -153,108 +155,104 @@ class Config(object):
     ### -------------METRICS DATA--------------
     ### ---------------------------------------
     # Molecular weights of certain pollutants for unit convertion
-    _molecular_weights =    {
-                                'CO':   28,
-                                'NO':   30,
-                                'NO2':  46,
-                                'O3':   48,
-                                'C6H6': 78,
-                                'SO2':  64,
-                                'H2S':  34
-                            }
+    _molecular_weights = {
+        'CO':   28,
+        'NO':   30,
+        'NO2':  46,
+        'O3':   48,
+        'C6H6': 78,
+        'SO2':  64,
+        'H2S':  34
+    }
 
     # Background concentrations
-    _background_conc =      {
-                                'CO':   0,
-                                'NO2':  8,
-                                'O3':   40
-                            }
+    _background_conc = {
+        'CO':   0,
+        'NO2':  8,
+        'O3':   40
+    }
 
     # Alphasense data
-    _as_sensor_codes =      {
-                                '132':  'ASA4_CO',
-                                '133':  'ASA4_H2S',
-                                '130':  'ASA4_NO',
-                                '212':  'ASA4_NO2',
-                                '214':  'ASA4_OX',
-                                '134':  'ASA4_SO2',
-                                '162':  'ASB4_CO',
-                                '133':  'ASB4_H2S',#
-                                '130':  'ASB4_NO', #
-                                '202':  'ASB4_NO2',
-                                '204':  'ASB4_OX',
-                                '164':  'ASB4_SO2'
-                            }
+    _as_sensor_codes =  {
+        '132':  'ASA4_CO',
+        '133':  'ASA4_H2S',
+        '130':  'ASA4_NO',
+        '212':  'ASA4_NO2',
+        '214':  'ASA4_OX',
+        '134':  'ASA4_SO2',
+        '162':  'ASB4_CO',
+        '133':  'ASB4_H2S',#
+        '130':  'ASB4_NO', #
+        '202':  'ASB4_NO2',
+        '204':  'ASB4_OX',
+        '164':  'ASB4_SO2'
+    }
 
     # From Tables 2 and 3 of AAN 803-04
     _as_t_comp = [-30, -20, -10, 0, 10, 20, 30, 40, 50]
 
-    _as_sensor_algs =   {
-                        'ASA4_CO':  
-                                    {
-                                        1: ['n_t',      [1.0, 1.0, 1.0, 1.0, -0.2, -0.9, -1.5, -1.5, -1.5]],
-                                        4: ['kpp_t',    [13, 12, 16, 11, 4, 0, -15, -18, -36]],
-                                    },
-
-                        'ASA4_H2S': 
-                                    {
-                                        2: ['k_t',      [-1.5, -1.5, -1.5, -0.5, 0.5, 1.0, 0.8, 0.5, 0.3]],
-                                        1: ['n_t',      [3.0, 3.0, 3.0, 1.0, -1.0, -2.0, -1.5, -1.0, -0.5]]                                        
-                                    },
-
-                        'ASA4_NO': 
-                                    {
-                                        3: ['kp_t',     [0.7, 0.7, 0.7, 0.7, 0.8, 1.0, 1.2, 1.4, 1.6]],
-                                        4: ['kpp_t',    [-25, -25, -25, -25, -16, 0, 56, 200, 615]]                                        
-                                    },
-
-                        'ASA4_NO2': 
-                                    {
-                                        1: ['n_t',      [0.8, 0.8, 1.0, 1.2, 1.6, 1.8, 1.9, 2.5, 3.6]],
-                                        3: ['kp_t',     [0.2, 0.2, 0.2, 0.2, 0.7, 1.0, 1.3, 2.1, 3.5]]
-                                    },
-
-                        'ASA4_OX':  
-                                    {
-                                        3: ['kp_t',     [0.1, 0.1, 0.2, 0.3, 0.7, 1.0, 1.7, 3.0, 4.0]],
-                                        1: ['n_t',      [1.0, 1.2, 1.2, 1.6, 1.7, 2.0, 2.1, 3.4, 4.6]]
-                                    },
-                        'ASA4_SO2': 
-                                    {
-                                        4: ['kpp_t',    [0, 0, 0, 0, 0, 0, 5, 25, 45]],
-                                        1: ['n_t',      [1.3, 1.3, 1.3, 1.2, 0.9, 0.4, 0.4, 0.4, 0.4]]
-                                    },
-                        'ASB4_CO':
-                                    {
-                                        1: ['n_t',      [0.7, 0.7, 0.7, 0.7, 1.0, 3.0, 3.5, 4.0, 4.5]],
-                                        2: ['k_t',      [0.2, 0.2, 0.2, 0.2, 0.3, 1.0, 1.2, 1.3, 1.5]]
-                                    },                        
-                        'ASB4_H2S': 
-                                    {
-                                        1: ['n_t',      [-0.6, -0.6, 0.1, 0.8, -0.7, -2.5, -2.5, -2.2, -1.8]],
-                                        2: ['k_t',      [0.2, 0.2, 0.0, -0.3, 0.3, 1.0, 1.0, 0.9, 0.7]]
-                                    },     
-                        'ASB4_NO':  
-                                    {
-                                        2: ['k_t',      [1.8, 1.8, 1.4, 1.1, 1.1, 1.0, 0.9, 0.9, 0.8]],
-                                        3: ['kp_t',     [0.8, 0.8, 0.8, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3]]                                        
-                                    },
-                        'ASB4_NO2': 
-                                    {
-                                        1: ['n_t',      [1.3, 1.3, 1.3, 1.3, 1.0, 0.6, 0.4, 0.2, -1.5]],
-                                        3: ['kp_t',     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.4, -0.1, -4.0]]
-                                    },                           
-                        'ASB4_OX':
-                                    {
-                                        1: ['n_t',      [0.9, 0.9, 1.0, 1.3, 1.5, 1.7, 2.0, 2.5, 3.7]],
-                                        3: ['kp_t',     [0.5, 0.5, 0.5, 0.6, 0.6, 1.0, 2.8, 5.0, 5.3]]
-                                    },                         
-                        'ASB4_SO2':
-                                    {
-                                        4: ['kpp_t',    [-4, -4, -4, -4, -4, 0, 20, 140, 450]],
-                                        1: ['n_t',      [1.6, 1.6, 1.6, 1.6, 1.6, 1.6, 1.9, 3.0, 5.8]]
-                                    },                        
-                        }
+    _as_sensor_algs = {
+        'ASA4_CO':
+                    {
+                        1: ['n_t',      [1.0, 1.0, 1.0, 1.0, -0.2, -0.9, -1.5, -1.5, -1.5]],
+                        4: ['kpp_t',    [13, 12, 16, 11, 4, 0, -15, -18, -36]],
+                    },
+        'ASA4_H2S':
+                    {
+                        2: ['k_t',      [-1.5, -1.5, -1.5, -0.5, 0.5, 1.0, 0.8, 0.5, 0.3]],
+                        1: ['n_t',      [3.0, 3.0, 3.0, 1.0, -1.0, -2.0, -1.5, -1.0, -0.5]]
+                    },
+        'ASA4_NO':
+                    {
+                        3: ['kp_t',     [0.7, 0.7, 0.7, 0.7, 0.8, 1.0, 1.2, 1.4, 1.6]],
+                        4: ['kpp_t',    [-25, -25, -25, -25, -16, 0, 56, 200, 615]]
+                    },
+        'ASA4_NO2':
+                    {
+                        1: ['n_t',      [0.8, 0.8, 1.0, 1.2, 1.6, 1.8, 1.9, 2.5, 3.6]],
+                        3: ['kp_t',     [0.2, 0.2, 0.2, 0.2, 0.7, 1.0, 1.3, 2.1, 3.5]]
+                    },
+        'ASA4_OX':
+                    {
+                        3: ['kp_t',     [0.1, 0.1, 0.2, 0.3, 0.7, 1.0, 1.7, 3.0, 4.0]],
+                        1: ['n_t',      [1.0, 1.2, 1.2, 1.6, 1.7, 2.0, 2.1, 3.4, 4.6]]
+                    },
+        'ASA4_SO2':
+                    {
+                        4: ['kpp_t',    [0, 0, 0, 0, 0, 0, 5, 25, 45]],
+                        1: ['n_t',      [1.3, 1.3, 1.3, 1.2, 0.9, 0.4, 0.4, 0.4, 0.4]]
+                    },
+        'ASB4_CO':
+                    {
+                        1: ['n_t',      [0.7, 0.7, 0.7, 0.7, 1.0, 3.0, 3.5, 4.0, 4.5]],
+                        2: ['k_t',      [0.2, 0.2, 0.2, 0.2, 0.3, 1.0, 1.2, 1.3, 1.5]]
+                    },
+        'ASB4_H2S':
+                    {
+                        1: ['n_t',      [-0.6, -0.6, 0.1, 0.8, -0.7, -2.5, -2.5, -2.2, -1.8]],
+                        2: ['k_t',      [0.2, 0.2, 0.0, -0.3, 0.3, 1.0, 1.0, 0.9, 0.7]]
+                    },
+        'ASB4_NO':
+                    {
+                        2: ['k_t',      [1.8, 1.8, 1.4, 1.1, 1.1, 1.0, 0.9, 0.9, 0.8]],
+                        3: ['kp_t',     [0.8, 0.8, 0.8, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3]]
+                    },
+        'ASB4_NO2':
+                    {
+                        1: ['n_t',      [1.3, 1.3, 1.3, 1.3, 1.0, 0.6, 0.4, 0.2, -1.5]],
+                        3: ['kp_t',     [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.4, -0.1, -4.0]]
+                    },
+        'ASB4_OX':
+                    {
+                        1: ['n_t',      [0.9, 0.9, 1.0, 1.3, 1.5, 1.7, 2.0, 2.5, 3.7]],
+                        3: ['kp_t',     [0.5, 0.5, 0.5, 0.6, 0.6, 1.0, 2.8, 5.0, 5.3]]
+                    },
+        'ASB4_SO2':
+                    {
+                        4: ['kpp_t',    [-4, -4, -4, -4, -4, 0, 20, 140, 450]],
+                        1: ['n_t',      [1.6, 1.6, 1.6, 1.6, 1.6, 1.6, 1.9, 3.0, 5.8]]
+                    }
+        }
 
     # This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
     # i.e. pollutant data in various units (ppm or ug/m3) from different analysers
@@ -264,21 +262,21 @@ class Config(object):
     # - target_unit is the unit you want this channel to be and that will be converted in case of it being found in the channels list of your source
     
     _channel_lut = {
-                    "TEMP": "degC",
-                    "HUM": "%rh",
-                    "PRESS": "kPa",
-                    "PM_(\d|[A,B]_\d)": "ug/m3",
-                    "CO(\D|$)": "ppb",
-                    "NOISE_A": "dBA",
-                    "NO\Z": "ppb",
-                    "NO2": "ppb",
-                    "NOX": "ppb",
-                    "O3": "ppb",
-                    "C6H6": "ppb",
-                    "H2S": "ppb",
-                    "SO2": "ppb",
-                    "CO2": "ppm"
-                }
+        "TEMP": "degC",
+        "HUM": "%rh",
+        "PRESS": "kPa",
+        "PM_(\d|[A,B]_\d)": "ug/m3",
+        "CO(\D|$)": "ppb",
+        "NOISE_A": "dBA",
+        "NO\Z": "ppb",
+        "NO2": "ppb",
+        "NOX": "ppb",
+        "O3": "ppb",
+        "C6H6": "ppb",
+        "H2S": "ppb",
+        "SO2": "ppb",
+        "CO2": "ppm"
+    }
 
     # This table is used to convert units
     # ['from_unit', 'to_unit', 'multiplicative_factor', 'requires_M']
@@ -287,262 +285,290 @@ class Config(object):
     # It accepts reverse operations - you don't need to put them twice but in reverse
     
     _unit_convertion_lut = (
-                            ['ppm', 'ppb', 1000, False],
-                            ['mg/m3', 'ug/m3', 1000, False],
-                            ['mgm3', 'ugm3', 1000, False],
-                            ['mg/m3', 'ppm', 24.45, True],
-                            ['mgm3', 'ppm', 24.45, True],
-                            ['ug/m3', 'ppb', 24.45, True],
-                            ['ugm3', 'ppb', 24.45, True],
-                            ['mg/m3', 'ppb', 1000*24.45, True],
-                            ['mgm3', 'ppb', 1000*24.45, True],
-                            ['ug/m3', 'ppm', 1./1000*24.45, True],
-                            ['ugm3', 'ppm', 1./1000*24.45, True]
-                        )
+        ['ppm', 'ppb', 1000, False],
+        ['mg/m3', 'ug/m3', 1000, False],
+        ['mgm3', 'ugm3', 1000, False],
+        ['mg/m3', 'ppm', 24.45, True],
+        ['mgm3', 'ppm', 24.45, True],
+        ['ug/m3', 'ppb', 24.45, True],
+        ['ugm3', 'ppb', 24.45, True],
+        ['mg/m3', 'ppb', 1000*24.45, True],
+        ['mgm3', 'ppb', 1000*24.45, True],
+        ['ug/m3', 'ppm', 1./1000*24.45, True],
+        ['ugm3', 'ppm', 1./1000*24.45, True]
+    )
 
     ### ---------------------------------------
     ### ----------------PLOTS------------------
     ### --------------------------------------- 
     _plot_def_opt = {
-                        'min_date': None,
-                        'max_date': None,
-                        'frequency': None,
-                        'resample': 'mean',
-                        'clean_na': None,
-                        'show': True
-                    }
+        'min_date': None,
+        'max_date': None,
+        'frequency': None,
+        'resample': 'mean',
+        'clean_na': None,
+        'show': True
+    }
 
     _map_def_opt = {
-                    'location': [41.400818, 2.1825157],
-                    'tiles': 'Stamen Toner',
-                    'zoom': 2.5,
-                    'period': '1W',
-                    'radius': 10,
-                    'fillOpacity': 1,
-                    'stroke': 'false',
-                    'icon': 'circle'
-                    }
+        'location': [41.400818, 2.1825157],
+        'tiles': 'Stamen Toner',
+        'zoom': 2.5,
+        'period': '1W',
+        'radius': 10,
+        'fillOpacity': 1,
+        'stroke': 'false',
+        'icon': 'circle'
+    }
 
     _plot_style = "seaborn-whitegrid"
 
     _ts_plot_def_fmt = {
-                        'mpl': {
-                            'width': 12,
-                            'height': 8,
-                            'sharex': True,
-                            'ylabel': None,
-                            'xlabel': 'Date (-)',
-                            'yrange': None,
-                            'xrange': None,
-                            'title': None,
-                            'suptitle_factor': 0.92,
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            'alpha_highlight': 0.8,
-                            'alpha_other': 0.1,
-                            'palette': None,
-                            'decorators': None,
-                            'legend': True,
-                            'style': _plot_style
-                            },
-                        'plotly': {
-                            'width': 800,
-                            'height': 600,
-                            'sharex': True,
-                            'ylabel': None,
-                            'yrange': None,
-                            'xlabel': 'Date (-)',
-                            'title': None,
-                            'suptitle_factor': 0.92,
-                            'grid': True,
-                            'fontsize': 13,
-                            'alpha_highlight': 0.8,
-                            'alpha_other': 0.1,
-                            'palette': None,
-                            'decorators': None,
-                            'legend': True
-                            },
-                        'uplot': {
-                            'width': 800,
-                            'height': 400,
-                            'ylabel': None,
-                            'size': 3,
-                            'xlabel': 'Date (-)',
-                            'title': None,
-                            'padding-right': 50,
-                            'padding-bottom': 200,
-                            'fontsize': 15
-                        }
-                      }
+        'mpl': {
+            'width': 12,
+            'height': 8,
+            'sharex': True,
+            'ylabel': None,
+            'xlabel': 'Date (-)',
+            'yrange': None,
+            'xrange': None,
+            'title': None,
+            'suptitle_factor': 0.92,
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            'alpha_highlight': 0.8,
+            'alpha_other': 0.1,
+            'palette': None,
+            'decorators': None,
+            'legend': True,
+            'style': _plot_style
+        },
+        'plotly': {
+            'width': 800,
+            'height': 600,
+            'sharex': True,
+            'ylabel': None,
+            'yrange': None,
+            'xlabel': 'Date (-)',
+            'title': None,
+            'suptitle_factor': 0.92,
+            'grid': True,
+            'fontsize': 13,
+            'alpha_highlight': 0.8,
+            'alpha_other': 0.1,
+            'palette': None,
+            'decorators': None,
+            'legend': True
+        },
+        'uplot': {
+            'width': 800,
+            'height': 400,
+            'ylabel': None,
+            'size': 3,
+            'xlabel': 'Date (-)',
+            'title': None,
+            'padding-right': 50,
+            'padding-bottom': 200,
+            'fontsize': 15,
+            'legend_isolate': True
+        }
+    }
 
     _scatter_plot_def_fmt = {
-                        'mpl': {
-                            'height': 10,
-                            'width': 12,
-                            'ylabel': None,
-                            'xlabel': None,
-                            'yrange': None,
-                            'xrange': None,
-                            'title': None,
-                            'suptitle_factor': 0.92,
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            'palette': None,
-                            'legend': True,
-                            'style': _plot_style,
-                            'kind': 'reg',
-                            'sharex': False,
-                            'sharey': False,
-                            'nrows': 1
-                            },
-                        'plotly': {
-                            'height': 600,
-                            # 'ylabel': None, TODO Not yet
-                            # 'xlabel': None, TODO Not yet
-                            'title': None,
-                            # 'suptitle_factor': 0.92, TODO Not yet
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            # 'decorators': None, TODO Not yet
-                            'legend': True,
-                            'kind': 'scatter'
-                            }
-                      } 
+        'mpl': {
+            'height': 10,
+            'width': 12,
+            'ylabel': None,
+            'xlabel': None,
+            'yrange': None,
+            'xrange': None,
+            'title': None,
+            'suptitle_factor': 0.92,
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            'palette': None,
+            'legend': True,
+            'style': _plot_style,
+            'kind': 'reg',
+            'sharex': False,
+            'sharey': False,
+            'nrows': 1
+        },
+        'plotly': {
+            'height': 600,
+            # 'ylabel': None, TODO Not yet
+            # 'xlabel': None, TODO Not yet
+            'title': None,
+            # 'suptitle_factor': 0.92, TODO Not yet
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            # 'decorators': None, TODO Not yet
+            'legend': True,
+            'kind': 'scatter'
+        }
+    }
 
     _ts_scatter_def_fmt = {
-                        'mpl': {
-                            'width': 24,
-                            'height': 8,
-                            'ylabel': None,
-                            'xlabel': 'Date (-)',
-                            'yrange': None,
-                            'xrange': None,
-                            'title': None,
-                            # 'suptitle_factor': 0.92, TODO Not yet
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            # 'decorators': None, TODO Not yet
-                            'legend': True,
-                            'style': _plot_style                         
-                        }   
-                    }
+        'mpl': {
+            'width': 24,
+            'height': 8,
+            'ylabel': None,
+            'xlabel': 'Date (-)',
+            'yrange': None,
+            'xrange': None,
+            'title': None,
+            # 'suptitle_factor': 0.92, TODO Not yet
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            # 'decorators': None, TODO Not yet
+            'legend': True,
+            'style': _plot_style
+        }
+    }
 
     _heatmap_def_fmt = {
-                        'mpl': {
-                            'height': 10,
-                            'width': 20,                            
-                            'xlabel': 'Date (-)',
-                            'yrange': None,
-                            'xrange': None,
-                            'title': None,
-                            'suptitle_factor': 0.92,
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            'cmap': 'RdBu_r',
-                            'legend': True,
-                            'style': _plot_style,
-                            'robust': True,
-                            'vmin': None, 
-                            'vmax': None,
-                            'frequency_hours': 2,
-                            'session': '1D'
-                            },
-                        'plotly': {
-                            'height': 600,
-                            'width': 800,
-                            'xlabel': 'Date (-)',
-                            'yrange': None,
-                            'xrange': None,
-                            'title': None,
-                            'grid': True,
-                            # 'fontsize': 10,
-                            # 'title_fontsize': 14,
-                            # 'cmap': 'RdBu_r',
-                            'legend': True,
-                            # 'robust': True,
-                            # 'vmin': None, 
-                            # 'vmax': None,
-                            'frequency_hours': 2,
-                            'session': '1D'
-                            }
-                      }
+        'mpl': {
+            'height': 10,
+            'width': 20,
+            'xlabel': 'Date (-)',
+            'yrange': None,
+            'xrange': None,
+            'title': None,
+            'suptitle_factor': 0.92,
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            'cmap': 'RdBu_r',
+            'legend': True,
+            'style': _plot_style,
+            'robust': True,
+            'vmin': None,
+            'vmax': None,
+            'frequency_hours': 2,
+            'session': '1D'
+        },
+        'plotly': {
+            'height': 600,
+            'width': 800,
+            'xlabel': 'Date (-)',
+            'yrange': None,
+            'xrange': None,
+            'title': None,
+            'grid': True,
+            # 'fontsize': 10,
+            # 'title_fontsize': 14,
+            # 'cmap': 'RdBu_r',
+            'legend': True,
+            # 'robust': True,
+            # 'vmin': None,
+            # 'vmax': None,
+            'frequency_hours': 2,
+            'session': '1D'
+        }
+    }
     
     _boxplot_def_fmt = {
-                        'mpl': {
-                            'height': 10,
-                            'width': 20,
-                            'ylabel': None,
-                            'yrange': None,
-                            'title': None,
-                            'suptitle_factor': 0.92,
-                            'grid': True,
-                            'fontsize': 10,
-                            'title_fontsize': 14,
-                            'cmap': 'RdBu_r',
-                            'style': _plot_style,
-                            'frequency_hours': 2,
-                            'session': '1D',
-                            'palette': None, 
-                            'periods': None
-                            }
-                      }
+        'mpl': {
+            'height': 10,
+            'width': 20,
+            'ylabel': None,
+            'yrange': None,
+            'title': None,
+            'suptitle_factor': 0.92,
+            'grid': True,
+            'fontsize': 10,
+            'title_fontsize': 14,
+            'cmap': 'RdBu_r',
+            'style': _plot_style,
+            'frequency_hours': 2,
+            'session': '1D',
+            'palette': None,
+            'periods': None
+        }
+    }
 
     _dendrogram_def_fmt = {
-                          'mpl': {
-                                    'height': 10,
-                                    'width': 25,
-                                    'ylabel': 'Name', 
-                                    'xlabel': 'Distance',
-                                    'title': 'Hierarchical Clustering dendrogram',
-                                    'fontsize': 8.,
-                                    'orientation': 'left',
-                                    'title_fontsize': 14,
-                                    'suptitle_factor': 0.92
-
-                            }
-                        }
+        'mpl': {
+            'height': 10,
+            'width': 25,
+            'ylabel': 'Name',
+            'xlabel': 'Distance',
+            'title': 'Hierarchical Clustering dendrogram',
+            'fontsize': 8.,
+            'orientation': 'left',
+            'title_fontsize': 14,
+            'suptitle_factor': 0.92
+        }
+    }
 
     ### ---------------------------------------
     ### ----------------MODELS-----------------
     ### --------------------------------------- 
+
     _model_def_opt = {
-                        'test_size': 0.2, 
-                        'shuffle': False,
-                        'clean_na': 'drop',
-                        'common_avg': False
-                    }
+        'test_size': 0.2,
+        'shuffle': False,
+        'clean_na': 'drop',
+        'common_avg': False
+    }
 
     _model_hyperparameters = {
-                                'rf': {
-                                    'n_estimators': 100,
-                                    'min_samples_leaf': 2,
-                                    'max_features': None,
-                                    'oob_score': True                         
-                            }
-                    }
+        'rf': {
+            'n_estimators': 100,
+            'min_samples_leaf': 2,
+            'max_features': None,
+            'oob_score': True
+        }
+    }
 
-    _discvars = ['readings',
-                 'api_device',
-                 'options',
-                 'loaded',
-                 'hw_id',
-                 'blueprint_url',
-                 'hardware_url',
-                 'processed',
-                 'forwarding_params',
-                 'meta',
-                 'processed',
-                 'postprocessing_info',
-                 'hw_updated_at',
-                 'description',
-                 'latest_postprocessing',
-                 'blueprint_loaded_from_url',
-                 'hardware_loaded_from_url']
+    ### ---------------------------------------
+    ### --------------DISPERSION---------------
+    ### ---------------------------------------
+
+    _dispersion = {
+        # Use average dispersion or instantaneous
+        'instantatenous_dispersion': False,
+        # Percentage of points to be considered NG sensor
+        'limit_errors': 3,
+        # Multiplier for std_dev (sigma) - Normal distribution (99.73%)
+        'limit_confidence_sigma': 3,
+        # t-student confidence level (%)
+        't_confidence_level': 99,
+        # In case there is a device with lower amount of channels, ignore the missing channels and keep going
+        'ignore_missing_channels': True,
+        # Do not perform dispersion analysis on these channels
+        'ignore_channels': ['BATT'],
+        # Normal or t-student distribution threshold
+        'nt_threshold': 30
+    }
+
+    ### ---------------------------------------
+    ### ----------------DISCARD----------------
+    ### ---------------------------------------
+
+    _discvars = [
+        'readings',
+        'api_device',
+        'options',
+        'loaded',
+        'hw_id',
+        'blueprint_url',
+        'hardware_url',
+        'processed',
+        'forwarding_params',
+        'meta',
+        'processed',
+        'postprocessing_info',
+        'hw_updated_at',
+        'description',
+        'latest_postprocessing',
+        'blueprint_loaded_from_url',
+        'hardware_loaded_from_url'
+    ]
 
     def __init__(self):
         self._env_file = False
