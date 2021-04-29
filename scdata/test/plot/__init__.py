@@ -10,4 +10,8 @@ from .heatmap_iplot import heatmap_iplot
 from .box_plot import box_plot
 from .ts_dendrogram import ts_dendrogram
 from .maps import device_metric_map
+from .ts_dispersion_plot import ts_dispersion_plot
+from .ts_dispersion_uplot import ts_dispersion_uplot
+from .ts_dispersion_grid import ts_dispersion_grid
+from .scatter_dispersion_grid import scatter_dispersion_grid
 # from .tools import (target_diagram, scatter_diagram)

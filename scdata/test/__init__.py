@@ -21,13 +21,16 @@ class Test(object):
     from .plot import (ts_plot, ts_iplot, device_metric_map,
                         scatter_plot, scatter_iplot, ts_scatter,
                         heatmap_plot, heatmap_iplot,
-                        box_plot, ts_dendrogram)
+                        box_plot, ts_dendrogram,
+                        ts_dispersion_plot, ts_dispersion_uplot,
+                        ts_dispersion_grid, scatter_dispersion_grid)
                         #, report_plot, cat_plot, violin_plot)
 
     if config._ipython_avail: from .plot import ts_uplot
     from .export import to_csv, to_html
     from .load import load
-    from .utils import combine, prepare
+    from .utils import (combine, prepare, dispersion_analysis,
+                        dispersion_summary, get_common_channels)
 
     def __init__(self, name):
         
@@ -63,6 +66,11 @@ class Test(object):
 
         # Dict for report
         self.content = dict()
+
+        # Dispersion analysis
+        self.dispersion_df = None
+        self._dispersion_summary = None
+        self.common_channels = None
 
     def __str__(self):
         return self.full_name

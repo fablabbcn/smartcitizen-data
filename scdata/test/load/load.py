@@ -203,3 +203,4 @@ def load(self, options = dict()):
 
     self.__update_descriptor__()
     std_out('Test load done', 'SUCCESS')
+    self.loaded = True
