@@ -202,7 +202,6 @@ def get_firmware_names(sensorsh):
         print_exc()
         sensor_names = None
         pass
-
     return sensor_names
 
 def load_calibrations(urls):
