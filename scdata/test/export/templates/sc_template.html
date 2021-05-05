@@ -1,41 +1,27 @@
 {% if full %}
 <!doctype html>
-
 <html>
-
     <head>
         <meta charset="utf-8"/>
-
         <title>{{ descriptor['id'] }}</title>
-        
         <!-- Web Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i%7CMontserrat:400,700"
-            rel="stylesheet">     
-
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i%7CMontserrat:400,700" rel="stylesheet">
     </head>
-
     <body>
-
 {% endif %}
-
         <div {% if header %} id="report-header" {% else %} id="normal-header" {% endif %}>
             <h1 {% if header %} id="top" {% endif %}>{{ title }}</h1>
-            
             {% if header %}
                 <div style="text-align: right">
                     <img src="https://smartcitizen.me/assets/images/smartcitizen_logo.svg" alt="Smart Citizen Logo" width=50px height=50px>
                 </div>
             {% endif %}
         </div>
-
         <div id="container">
-
-            {% if details %}
-
+            {% if details%}
                 <div class="header">
                     <h2>Test details</h2>
                 </div>
-
                 <ul>
                     <li><strong>Author:</strong> {{ descriptor.author }}</li>
                     <li><strong>Date:</strong> {{ descriptor.id[0:7].replace("_", "-") }}</li>
@@ -43,15 +29,11 @@
                     <li><strong>Conditions:</strong> {{ descriptor.type_test }}</li>
                     <li><strong>Project:</strong> {{ descriptor.project }}</li>
                 </ul>
-
             {% endif %}
-
             {% if devices_summary %}
-
                 <div class="header">
                     <h2>Devices summary</h2>
                 </div>
-            
                 <table>
                     <tr class="first">
                         <th style="width: 15vh;"> Device </th>
@@ -60,7 +42,6 @@
                         <th class='table-center' style="width: 20vh;"> Timezone </th>
                         <th class='table-center' style="width: 20vh;"> Source </th>                       
                     </tr>
-
                     {% for key, value in descriptor.devices.items() %}
                         <tr>
                             <td>{{ key }}</td>
@@ -71,15 +52,12 @@
                         </tr>
                     {% endfor %}
                 </table>
-
                 <div class="header">
                     <h2>Device information</h2>
                 </div>
-
                 {% for device, _ in descriptor.devices.items() %}
                     <details>
                         <summary>Device {{ device }}</summary>
-  
                         {% if descriptor.devices[device]['sensors'].items().__len__() == 0 %}
                             <p style="margin-left: 2rem;">Device empty. No data to show</p>
                         {% else %}
@@ -91,7 +69,6 @@
                                     <th class='table-center' style="width: 20vh;"> Algorithm </th>
                                     <th class='table-center' style="width: 60vh;"> Description </th>
                                 </tr>
-
                                 {% for metric, value in descriptor.devices[device]['sensors'].items() %}
                                     <tr>
                                         <td>{{ metric }}</td>
@@ -105,7 +82,6 @@
                                         {% endif %}
                                     </tr>
                                 {% endfor %}
-                                
                                 {% if 'metrics' in descriptor.devices[device] %}
                                     {% for metric, value in descriptor.devices[device]['metrics'].items() %}
                                         <tr>
@@ -128,46 +104,34 @@
                     </details>
                     {% endif %}
                 {% endfor %}
-
             {% endif %}
-
             {% if content %}
-
                 <h2> Analysis </h2>
-
                 {% for item, value in content.items() %}
+                    <div class="analysis-block">
                     <h3>{{ value.title }}</h3>
-
                     {% if 'text' in value %}
                         <p>
                             {{ value.text }}
                         </p>
                     {% endif %}
-
                     {% if 'image' in value %}
                         <div class="img-container">
                             <img src="{{ value.image }}" style="width:80%; max-width: 1000px">
                         </div>
                     {% endif %}
-
                     {% if 'iframe' in value %}
                         <div class="iframe-container">
                             {{ value.iframe }}
                         </div>
                     {% endif %}
-
+                    </div>
                 {% endfor %}
-
             {% endif %}
-
         </div>
-
 {% if full %}
-
     </body>
-
 </html>
-
 {% endif %} 
 
 <style type="text/css">
@@ -179,6 +143,7 @@
         font-family: Roboto, sans-serif; 
         margin: 15px;
         overflow: visible;
+        margin-bottom: 50px;
     }
 
     div#container{
@@ -189,6 +154,10 @@
         {% else %}
             padding-top: 20px;
         {% endif %}
+    }
+
+    div#analysis-block{
+        page-break-inside: avoid;
     }
 
     h1#top {
@@ -207,6 +176,12 @@
         font-size: 15px;
         font-weight: 1.1em;
     }
+
+    h4{
+        font-size: 14px;
+        font-weight: 1em;
+    }
+
 
     ul {
         list-style: none;
@@ -277,13 +252,13 @@
         border-color: black;
     }
 
-    @page  
-      { 
-        size: auto;   /* auto is the initial value */ 
-
-        /* this affects the margin in the printer settings */ 
-        margin: 0mm;  
-    } 
+    @page
+    {
+        size: auto;   /* auto is the initial value */
+        /* this affects the margin in the printer settings */
+        margin-top: 15mm;
+        margin-bottom: 15mm;
+    }
 
     @media print {
         body{
