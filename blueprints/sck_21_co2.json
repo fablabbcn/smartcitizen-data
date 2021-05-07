@@ -143,14 +143,14 @@
       "id": "58",
       "units": "kPa"
     },
-    "EXT_TEMP": {
+    "SCD30_TEMP": {
       "desc": "External temperature (SCD30)",
-      "id": "79",
+      "id": "160",
       "units": "degC"
     },
-    "EXT_HUM": {
+    "SCD30_HUM": {
       "desc": "External humidity (SCD30)",
-      "id": "80",
+      "id": "161",
       "units": "%rh"
     },
     "SCD30_CO2": {
