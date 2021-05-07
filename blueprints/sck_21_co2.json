@@ -157,6 +157,11 @@
       "desc": "CO2 (SCD30)",
       "id": "158",
       "units": "ppm"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
     }        
   },
   "source": null,
