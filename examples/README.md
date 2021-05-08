@@ -12,7 +12,7 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 ## Notebooks
 
 - Understanding data structure and getting from different sources: [notebooks/01_getting_started.ipynb](notebooks/01_getting_started.ipynb)
-- More on data from different sources: [notebooks/02_access_the_power_of_data.ipynb](notebooks/02_access_the_power_of_data.ipynb)
+- Getting even more data from different sources: [notebooks/02_access_data.ipynb](notebooks/02_access_data.ipynb)
 - Plotting data: [notebooks/03_plotting_in_no_time.ipynb](notebooks/03_plotting_in_no_time.ipynb)
 - Processing data: [notebooks/04_processing_data.ipynb](notebooks/04_processing_data.ipynb)
 - Sensor calibration: [notebooks/05_sensor_calibration_workflows.ipynb](notebooks/05_sensor_calibration_workflows.ipynb)

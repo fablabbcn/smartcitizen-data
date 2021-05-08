@@ -18,7 +18,7 @@ class Device(object):
     def __init__(self, blueprint = None, descriptor = {}):
 
         '''
-        Creates an instance of device. Devices are objects that contain sensors readings, metrics 
+        Creates an instance of device. Devices are objects that contain sensors readings, metrics
         (calculations based on sensors readings), and metadata such as units, dates, frequency and source
 
         Parameters:
@@ -26,7 +26,7 @@ class Device(object):
         blueprint: String
             Default: 'sck_21'
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
-            parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in 
+            parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in
             config.blueprints_urls and accessible via the scdata.utils.load_blueprints(urls) function.
             The blueprint can also be defined from the postprocessing info in SCAPI. The manual
             parameter passed here is overriden by that of the API.
@@ -34,7 +34,7 @@ class Device(object):
         descriptor: dict()
             Default: empty: std_out('Empty dataframe, ignoring', 'WARNING') dict
             A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
-            needs to have different data. If not all the data is present, the corresponding blueprint's default will 
+            needs to have different data. If not all the data is present, the corresponding blueprint's default will
             be used
 
         Examples:
@@ -325,7 +325,7 @@ class Device(object):
             # Handle error
             if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
             elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {path}', 'ERROR')
-            
+
             self.loaded = False
         except:
             print_exc()
@@ -400,6 +400,7 @@ class Device(object):
 
     def __check_sensors__(self):
         remove_sensors = list()
+        # Remove sensor from the list if it's not in self.readings.columns
         for sensor in self.sensors:
             if sensor not in self.readings.columns: remove_sensors.append(sensor)
 
@@ -410,7 +411,7 @@ class Device(object):
 
     def __convert_names__(self):
         rename = dict()
-        for sensor in self.sensors: 
+        for sensor in self.sensors:
             if 'id' in self.sensors[sensor] and sensor in self.readings.columns: rename[self.sensors[sensor]['id']] = sensor
         self.readings.rename(columns=rename, inplace=True)
 
@@ -424,7 +425,7 @@ class Device(object):
         std_out('Checking if units need to be converted')
         for sensor in self.sensors:
             factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
-            
+
             if factor != 1:
                 self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
                 self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
@@ -466,7 +467,7 @@ class Device(object):
         for metric in metrics:
             std_out(f'Processing {metric}')
 
-            if only_new and metric in self.readings: 
+            if only_new and metric in self.readings:
                 std_out(f'Skipping. Already in device')
                 continue
 
@@ -565,7 +566,7 @@ class Device(object):
             metric: dict
             Empty dict
             Description of the metric to be added. It only adds it to
-            Device.metrics, but does not calculate anything yet. The metric dict needs 
+            Device.metrics, but does not calculate anything yet. The metric dict needs
             to follow the format:
                 metric = {
                             'metric_name': {'process': <function_name>
@@ -574,7 +575,7 @@ class Device(object):
                                             'from_list': <module to load function from>
                             }
                 }
-            The 'from_list' parameter is optional, and onle needed if the process is not 
+            The 'from_list' parameter is optional, and onle needed if the process is not
             already available in scdata.device.process.
 
             For a list of available processes call help(scdata.device.process)
@@ -591,7 +592,7 @@ class Device(object):
         True if added metric
         '''
 
-        if 'metrics' not in vars(self): 
+        if 'metrics' not in vars(self):
             std_out(f'Device {self.id} has no metrics yet. Adding')
             self.metrics = dict()
 
@@ -609,11 +610,11 @@ class Device(object):
         if 'metrics' not in vars(self): return
         if metricn in self.metrics: self.metrics.pop(metricn, None)
         if metricn in self.readings.columns: self.readings.__delitem__(metricn)
-        
+
         if metricn not in self.readings and metricn not in self.metrics:
             std_out(f'Metric {metricn} removed from metrics', 'SUCCESS')
             return True
-        return False        
+        return False
 
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
         '''

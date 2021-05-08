@@ -124,7 +124,7 @@ class ScApiDevice:
         backed_device = post('https://api.smartcitizen.me/v0/devices', data=device_json, headers=headers)
 
         if backed_device.status_code == 200 or backed_device.status_code == 201:
-            
+
             platform_id = str(backed_device.json()['id'])
             platform_url = "https://smartcitizen.me/kits/" + platform_id
             std_out(f'Device created with: \n{platform_url}', 'SUCCESS')
@@ -255,39 +255,39 @@ class ScApiDevice:
                 Returns a list with if False, or the whole dataframe if True
         Returns
         -------
-            A list of kit IDs that comply with the requirements, or the full df, depending on full. 
+            A list of kit IDs that comply with the requirements, or the full df, depending on full.
             If no requirements are set, returns all of them
         """
 
         def is_within_circle(x, within):
             if isnan(x['latitude']): return False
             if isnan(x['longitude']): return False
-        
+
             return distance((within[0], within[1]), (x['latitude'], x['longitude'])).m<within[2]
-    
+
         world_map = get('https://api.smartcitizen.me/v0/devices/world_map')
-        
+
         df = DataFrame(world_map.json()).set_index('id')
-        
+
         # Filter out dates
         if min_date is not None: df=df[(min_date > df['added_at'])]
         if max_date is not None: df=df[(max_date < df['last_reading_at'])]
-            
+
         # Location
         if city is not None: df=df[(df['city']==city)]
         if within is not None:
 
             df['within'] = df.apply(lambda x: is_within_circle(x, within), axis=1)
             df=df[(df['within']==True)]
-        
+
         # Tags
-        if tags is not None: 
+        if tags is not None:
             if tag_method == 'any':
                 df['has_tags'] = df.apply(lambda x: any(tag in x['system_tags']+x['user_tags'] for tag in tags), axis=1)
             elif tag_method == 'all':
                 df['has_tags'] = df.apply(lambda x: all(tag in x['system_tags']+x['user_tags'] for tag in tags), axis=1)
             df=df[(df['has_tags']==True)]
-        
+
         if full: return df
         else: return list(df.index)
 
@@ -326,7 +326,7 @@ class ScApiDevice:
                     std_out('API reported {}'.format(deviceR.status_code), 'ERROR')
             except:
                 std_out('Failed request. Probably no connection', 'ERROR')
-                pass                
+                pass
         return self.devicejson
 
     def get_kit_ID(self, update = False):
@@ -334,7 +334,7 @@ class ScApiDevice:
         if self.kit_id is None or update:
             if self.get_device_json(update) is not None:
                 self.kit_id = self.devicejson['kit']['id']
-        
+
         return self.kit_id
 
     def post_kit_ID(self):
@@ -353,7 +353,7 @@ class ScApiDevice:
             payload = {'kit_id': self.kit_id}
 
             payload_json = dumps(payload)
-            response = patch(f'{self.API_BASE_URL}{self.id}', 
+            response = patch(f'{self.API_BASE_URL}{self.id}',
                         data = payload_json, headers = headers)
 
             if response.status_code == 200 or response.status_code == 201:
@@ -419,17 +419,17 @@ class ScApiDevice:
                 latidude = longitude = None
                 if 'location' in self.devicejson.keys():
                     latitude, longitude = self.devicejson['location']['latitude'], self.devicejson['location']['longitude']
-                elif 'data' in self.devicejson.keys(): 
+                elif 'data' in self.devicejson.keys():
                     if 'location' in self.devicejson['data'].keys():
                         latitude, longitude = self.devicejson['data']['location']['latitude'], self.devicejson['data']['location']['longitude']
-                
+
                 self.lat = latitude
                 self.long = longitude
 
         std_out ('Device {} is located at {}, {}'.format(self.id, self.lat, self.long))
 
         return (self.lat, self.long)
-    
+
     def get_device_alt(self, update = False):
 
         if self.lat is None or self.long is None:
@@ -448,7 +448,7 @@ class ScApiDevice:
         if self.added_at is None or update:
             if self.get_device_json(update) is not None:
                 self.added_at = self.devicejson['added_at']
-        
+
         std_out ('Device {} was added at {}'.format(self.id, self.added_at))
 
         return self.added_at
@@ -457,7 +457,7 @@ class ScApiDevice:
 
         if self.sensors is None or update:
             if self.get_device_json(update) is not None:
-                # Get available sensors
+                # Get available sensors in platform
                 sensors = self.devicejson['data']['sensors']
 
                 # Put the ids and the names in lists
@@ -526,7 +526,7 @@ class ScApiDevice:
         else:
             min_date = localise_date(to_datetime('2001-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
             std_out(f"No min_date specified")
-        
+
         if max_date is not None:
             max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
             std_out (f'Max Date: {max_date}')
@@ -534,14 +534,15 @@ class ScApiDevice:
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
         std_out(f'Device timezone: {self.timezone}')
-        if not self.sensors.keys(): 
+        if not self.sensors.keys():
             std_out(f'Device is empty')
             return None
         else: std_out(f'Sensor IDs: {list(self.sensors.keys())}')
 
         df = DataFrame()
+
         # Get devices in the sensor first
-        for sensor_id in self.sensors.keys(): 
+        for sensor_id in self.sensors.keys():
 
             # Request sensor per ID
             request = self.API_BASE_URL + '{}/readings?'.format(self.id)
@@ -552,7 +553,7 @@ class ScApiDevice:
             request += f'&rollup={rollup}'
             request += f'&sensor_id={sensor_id}'
             request += '&function=avg'
-            
+
             # Make request
             sensor_req = get(request, headers = headers)
 
@@ -570,13 +571,13 @@ class ScApiDevice:
                 flag_error = True
                 pass
                 continue
-            
-            if 'readings' not in sensorjson.keys(): 
+
+            if 'readings' not in sensorjson.keys():
                 std_out(f'No readings key in request for sensor: {sensor_id}', 'ERROR')
                 flag_error = True
                 continue
-            
-            elif sensorjson['readings'] == []: 
+
+            elif sensorjson['readings'] == []:
                 std_out(f'No data in request for sensor: {sensor_id}', 'WARNING')
                 flag_error = True
                 continue
@@ -590,7 +591,7 @@ class ScApiDevice:
                 dfsensor.index = localise_date(dfsensor.index, self.timezone)
                 dfsensor.sort_index(inplace=True)
                 dfsensor = dfsensor[~dfsensor.index.duplicated(keep='first')]
-                
+
                 # Drop unnecessary columns
                 dfsensor.drop([i for i in dfsensor.columns if 'Unnamed' in i], axis=1, inplace=True)
                 # Check for weird things in the data
@@ -605,12 +606,12 @@ class ScApiDevice:
                 flag_error = True
                 pass
                 continue
-                
+
             try:
                 df = df.reindex(df.index.rename('TIME'))
                 df = clean(df, clean_na, how = 'all')
                 self.data = df
-                
+
             except:
                 std_out('Problem closing up the API dataframe', 'ERROR')
                 pass
@@ -662,9 +663,9 @@ class ScApiDevice:
             Parameters
             ----------
                 df: pandas DataFrame
-                    Contains data in a DataFrame format. 
+                    Contains data in a DataFrame format.
                     Data is posted using the column names of the dataframe
-                    Data is posted in UTC TZ so dataframe needs to have located 
+                    Data is posted in UTC TZ so dataframe needs to have located
                     timestamp
                 clean_na: string, optional
                     'drop'
@@ -698,7 +699,7 @@ class ScApiDevice:
         std_out(f'Splitting post in chunks of size {chunk_size}')
         chunked_dfs = [df[i:i+chunk_size] for i in range(0, df.shape[0], chunk_size)]
 
-        for i in trange(len(chunked_dfs), file=sys.stdout, 
+        for i in trange(len(chunked_dfs), file=sys.stdout,
                         desc=f"Posting data for {self.id}..."):
 
             chunk = chunked_dfs[i].copy()
@@ -720,7 +721,7 @@ class ScApiDevice:
                 std_out(f'Dry run request to: {self.API_BASE_URL}{self.id}/readings for chunk ({i+1}/{len(chunked_dfs)})')
                 return dumps(payload, indent = 2)
 
-            response = post(f'{self.API_BASE_URL}{self.id}/readings', 
+            response = post(f'{self.API_BASE_URL}{self.id}/readings',
                             data = dumps(payload), headers = headers)
 
             if not(response.status_code == 200 or response.status_code == 201):
@@ -803,11 +804,11 @@ class MuvApiDevice:
         std_out(f'Requesting data from MUV API')
         std_out(f'Device ID: {self.id}')
         self.get_device_timezone()
-        self.get_device_sensors()        
-        
+        self.get_device_sensors()
+
         # Get devices
         try:
-            if days_ago == -1: url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}'            
+            if days_ago == -1: url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}'
             else: url = f'{self.API_BASE_URL}getSensorData?sensor_id={self.id}&days={days_ago}'
             df = DataFrame(get(url).json())
         except:
@@ -833,9 +834,9 @@ class MuvApiDevice:
             df = df.reindex(df.index.rename('TIME'))
 
             df = clean(df, clean_na, how = 'all')
-                
+
             self.data = df
-                
+
         except:
             print_exc()
             std_out('Problem closing up the API dataframe', 'ERROR')
@@ -864,7 +865,7 @@ class DadesObertesApiDevice:
         self.lat = None
         self.long = None
         self.timezone = None
-    
+
     @staticmethod
     def get_world_map(city = None, within = None, station_type = None, area_type = None):
         """
@@ -893,22 +894,22 @@ class DadesObertesApiDevice:
             if isnan(x['longitud']): return False
 
             return distance(location_A=(within[0], within[1]), location_B=(x['latitude'], x['longitude'])).m < within[2]
-            
+
         world_map = get("https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?")
         df = read_csv(StringIO(world_map.content.decode('utf-8'))).set_index('codi_eoi')
-        
+
         # Location
         if city is not None: df=df[(df['municipi']==city)]
         if within is not None:
 
             df['within'] = df.apply(lambda x: is_within_circle(x, within), axis=1)
             df=df[(df['within']==True)]
-            
+
         # Station type
-        if station_type is not None: df=df[(df['tipus_est']==station_type)] 
+        if station_type is not None: df=df[(df['tipus_est']==station_type)]
         # Area type
         if area_type is not None: df=df[(df['rea_urb']==area_type)]
-        
+
         return list(set(list(df.index)))
 
     def get_id_from_within(self, within):
@@ -931,18 +932,18 @@ class DadesObertesApiDevice:
             std_out('API reported {}'.format(s.status_code), 'ERROR')
             return None
 
-        if 'codi_eoi' in df.columns: 
+        if 'codi_eoi' in df.columns:
             ids = list(set(df.codi_eoi.values))
             if ids == []: std_out('No stations within range', 'ERROR')
             elif len(ids) > 1:
-                for ptid in ids: 
+                for ptid in ids:
                     municipi = next(iter(set(df[df.codi_eoi==ptid].municipi.values)))
                     nom_estaci = next(iter(set(df[df.codi_eoi==ptid].nom_estaci.values)))
                     rea_urb = next(iter(set(df[df.codi_eoi==ptid].rea_urb.values)))
                     tipus_est = next(iter(set(df[df.codi_eoi==ptid].tipus_est.values)))
-                    
+
                     std_out(f'{ids.index(ptid)+1} /- {ptid} --- {municipi} - {nom_estaci} - Type: {rea_urb} - {tipus_est}')
-                
+
                 wptid = int(input('Multiple stations found, please select one: ')) - 1
 
                 devid = ids[wptid]
@@ -952,13 +953,13 @@ class DadesObertesApiDevice:
                 municipi = next(iter(set(df[df.codi_eoi==devid].municipi.values)))
                 nom_estaci = next(iter(set(df[df.codi_eoi==devid].nom_estaci.values)))
                 rea_urb = next(iter(set(df[df.codi_eoi==devid].rea_urb.values)))
-                tipus_est = next(iter(set(df[df.codi_eoi==devid].tipus_est.values)))        
+                tipus_est = next(iter(set(df[df.codi_eoi==devid].tipus_est.values)))
                 std_out(f'Found station in {next(iter(set(df[df.codi_eoi==devid].municipi.values)))} with codi_eoi={devid}')
                 std_out(f'Found station in {municipi} - {nom_estaci} - {devid} - Type: {rea_urb} - {tipus_est}')
 
         else:
             std_out('Data is empty', 'ERROR')
-            return None            
+            return None
 
         return devid
 
@@ -968,20 +969,20 @@ class DadesObertesApiDevice:
             if self.get_device_json() is not None:
                 # Get available sensors
                 sensors = list(set(self.devicejson.contaminant))
-            
+
                 # Put the ids and the names in lists
                 self.sensors = dict()
-                for sensor in sensors: 
+                for sensor in sensors:
                     for key in config.blueprints:
                         if not search("csic_station",key): continue
                         if 'sensors' in config.blueprints[key]:
-                            for sensor_name in config.blueprints[key]['sensors'].keys(): 
-                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor): 
+                            for sensor_name in config.blueprints[key]['sensors'].keys():
+                                if config.blueprints[key]['sensors'][sensor_name]['id'] == str(sensor):
                                     # IDs are unique
                                     self.sensors[sensor] = sensor_name
-        
-        return self.sensors        
-    
+
+        return self.sensors
+
     def get_device_json(self):
 
         if self.devicejson is None:
@@ -989,12 +990,12 @@ class DadesObertesApiDevice:
                 s = get(self.API_BASE_URL + f'codi_eoi={self.id}')
                 if s.status_code == 200 or s.status_code == 201:
                     self.devicejson = read_csv(StringIO(s.content.decode('utf-8')))
-                else: 
+                else:
                     std_out('API reported {}'.format(s.status_code), 'ERROR')
             except:
                 std_out('Failed request. Probably no connection', 'ERROR')
                 pass
-        
+
         return self.devicejson
 
     def get_device_timezone(self):
@@ -1003,9 +1004,9 @@ class DadesObertesApiDevice:
             latitude, longitude = self.get_device_lat_long()
             # Localize it
             self.timezone = tz_where.tzNameAt(latitude, longitude)
-            
+
         std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
-        
+
         return self.timezone
 
     def get_device_lat_long(self):
@@ -1013,15 +1014,15 @@ class DadesObertesApiDevice:
         if self.lat is None or self.long is None:
             if self.get_device_json() is not None:
                 latitude = longitude = None
-                if 'latitud' in self.devicejson.columns: 
+                if 'latitud' in self.devicejson.columns:
                     latitude = next(iter(set(self.devicejson.latitud)))
                     longitude = next(iter(set(self.devicejson.longitud)))
-                
+
                 self.lat = latitude
                 self.long = longitude
-        
-            std_out ('Device {} is located at {}, {}'.format(self.id, latitude, longitude))        
-        
+
+            std_out ('Device {} is located at {}, {}'.format(self.id, latitude, longitude))
+
         return (self.lat, self.long)
 
     def get_device_data(self, min_date = None, max_date = None, frequency = '1H', clean_na = None):
@@ -1083,7 +1084,7 @@ class DadesObertesApiDevice:
         try:
             df = DataFrame([])
             for contaminant in self.sensors.keys():
-                if contaminant not in df_subset['contaminant'].values: 
+                if contaminant not in df_subset['contaminant'].values:
                     std_out(f'{contaminant} not in columns. Skipping', 'WARNING')
                     continue
                 df_temp= df_subset.loc[df_subset['contaminant']==contaminant].drop('contaminant', 1).set_index('date').unstack().reset_index()
@@ -1114,7 +1115,7 @@ class DadesObertesApiDevice:
             return None
         else:
             std_out('Successful renaming', 'SUCCESS')
-        
+
         # Clean
         df = df[~df.index.duplicated(keep='first')]
         # Drop unnecessary columns
@@ -1187,7 +1188,7 @@ class NiluApiDevice(object):
                     flag indicating if sensor is enabled for data transfer
                 location: dict
                     None
-                    sensor location. If sensor is moving (i.e. position is not fixed), 
+                    sensor location. If sensor is moving (i.e. position is not fixed),
                     then location must explicitly be set to an empty object: {} when configured. Also see this section.
                     location = {
                                 'longitude': longitude (double) – sensor east-west position,
@@ -1199,7 +1200,7 @@ class NiluApiDevice(object):
                     {
                         'SHORT_NAME': {
                                         'desc': 'Channel description',
-                                        'id': 'sensor SC platform id', 
+                                        'id': 'sensor SC platform id',
                                         'units': 'sensor_recording_units'
                                     },
                         ...
@@ -1495,7 +1496,7 @@ class NiluApiDevice(object):
             std_out (f'Min Date: {min_date}')
         else:
             std_out(f"No min_date specified, requesting all", 'WARNING')
-            min_date = localise_date(to_datetime('2015-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+            min_date = localise_date(to_datetime('2021-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
 
         if max_date is not None:
             max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -1513,7 +1514,7 @@ class NiluApiDevice(object):
         df = DataFrame()
 
         # Request sensor per ID
-        request = f'{self.API_BASE_URL}/data/id/{self.id}/'
+        request = f'{self.API_BASE_URL}data/id/{self.id}/'
 
         if min_date is not None: request += f'fromutc/{min_date}/'
         if max_date is not None: request += f'toutc/{max_date}'
