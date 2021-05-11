@@ -63,7 +63,7 @@ setup(
                         'chardet==3.0.4',
                         'cycler==0.10.0',
                         'Flask~=1.1.2',
-                        'folium==0.11.0',
+                        'folium==0.12.1',
                         'geographiclib==1.50',
                         'geopy==1.21.0',
                         'idna==2.9',
