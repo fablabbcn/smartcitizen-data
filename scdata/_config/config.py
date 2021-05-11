@@ -2,7 +2,7 @@ import yaml
 import json
 
 from scdata.utils.dictmerge import dict_fmerge
-from scdata.utils.meta import (get_paths, load_blueprints, 
+from scdata.utils.meta import (get_paths, load_blueprints,
                                 load_calibrations, load_connectors,
                                 load_env, get_firmware_names)
 
@@ -10,11 +10,12 @@ from os import pardir, environ
 from os.path import join, abspath, dirname, exists
 import sys
 
-from numpy import arange
+from math import inf
+from numpy import arange, array
 
 class Config(object):
 
-    # Output level. 'QUIET': nothing, 'NORMAL': warn, err, 
+    # Output level. 'QUIET': nothing, 'NORMAL': warn, err,
     # 'DEBUG': info, warn, err
     _out_level = 'NORMAL'
 
@@ -80,14 +81,14 @@ class Config(object):
 
     ### ---------------------------------------
     ### --------------ALGORITHMS---------------
-    ### --------------------------------------- 
+    ### ---------------------------------------
 
     # Whether or not to plot intermediate debugging visualisations in the algorithms
     _intermediate_plots = False
 
     # Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
     _plot_out_level = 'DEBUG'
-    
+
     ### ---------------------------------------
     ### ----------------ZENODO-----------------
     ### ---------------------------------------
@@ -143,17 +144,25 @@ class Config(object):
         ['s','S'],
         ['ms','ms']
     )
-    
+
     # AlphaDelta PCB factor (converstion from mV to nA)
     _alphadelta_pcb = 6.36
     # Deltas for baseline deltas algorithm
     _baseline_deltas = arange(30, 45, 5)
     # Lambdas for baseline ALS algorithm
     _baseline_als_lambdas = [1e5]
-    
+
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
     ### ---------------------------------------
+    # Metrics levels
+    _channel_bins = {
+        'NOISE': [-inf, 52, 54, 56, 58, 60, 62, 64, 66, 68, inf],
+        'PM': [-inf, 10, 20, 30, 40, 50, 75, 100, 150, 200, inf]
+    }
+
+    _channel_bin_n = 11
+
     # Molecular weights of certain pollutants for unit convertion
     _molecular_weights = {
         'CO':   28,
@@ -260,7 +269,7 @@ class Config(object):
     # 'key': 'units',
     # - 'key' is the channel that will lately be used in the analysis. It supports regex
     # - target_unit is the unit you want this channel to be and that will be converted in case of it being found in the channels list of your source
-    
+
     _channel_lut = {
         "TEMP": "degC",
         "HUM": "%rh",
@@ -281,9 +290,9 @@ class Config(object):
     # This table is used to convert units
     # ['from_unit', 'to_unit', 'multiplicative_factor', 'requires_M']
     # - 'from_unit'/'to_unit' = 'multiplicative_factor'
-    # - 'requires_M' = whether it  
+    # - 'requires_M' = whether it
     # It accepts reverse operations - you don't need to put them twice but in reverse
-    
+
     _unit_convertion_lut = (
         ['ppm', 'ppb', 1000, False],
         ['mg/m3', 'ug/m3', 1000, False],
@@ -300,7 +309,7 @@ class Config(object):
 
     ### ---------------------------------------
     ### ----------------PLOTS------------------
-    ### --------------------------------------- 
+    ### ---------------------------------------
     _plot_def_opt = {
         'min_date': None,
         'max_date': None,
@@ -312,14 +321,24 @@ class Config(object):
 
     _map_def_opt = {
         'location': [41.400818, 2.1825157],
-        'tiles': 'Stamen Toner',
+        'tiles': 'cartodbpositron',
         'zoom': 2.5,
         'period': '1W',
         'radius': 10,
         'fillOpacity': 1,
         'stroke': 'false',
-        'icon': 'circle'
+        'icon': 'circle',
+        'minmax': False,
+        'max_speed': 10,
+        'minimap': True,
+        'legend': True,
+        'markers': True
     }
+
+    _map_colors_palette = array(['#053061','#2166ac','#4393c3','#92c5de',
+                                 '#d1e5f0','#fddbc7','#f4a582','#d6604d',
+                                 '#b2182b','#67001f'])
+
 
     _plot_style = "seaborn-whitegrid"
 
@@ -470,7 +489,7 @@ class Config(object):
             'session': '1D'
         }
     }
-    
+
     _boxplot_def_fmt = {
         'mpl': {
             'height': 10,
@@ -507,7 +526,7 @@ class Config(object):
 
     ### ---------------------------------------
     ### ----------------MODELS-----------------
-    ### --------------------------------------- 
+    ### ---------------------------------------
 
     _model_def_opt = {
         'test_size': 0.2,
@@ -587,7 +606,7 @@ class Config(object):
             val = self.__getattribute__(key)
         except KeyError:
             raise KeyError
-        else: 
+        else:
             return val
 
     def __iter__(self):
@@ -608,13 +627,13 @@ class Config(object):
 
         # Find environment file in root or in scdata/ for clones
         if exists(join(self.paths['data'],'.env')): env_file = join(self.paths['data'],'.env')
-        else: 
+        else:
             print (f'No environment file found. If you had an environment file (.env) before, make sure its now here:')
             print(join(self.paths['data'],'.env'))
             env_file = None
 
-        # Load .env for tokens and stuff if found 
-        if env_file is not None and not self._env_file: 
+        # Load .env for tokens and stuff if found
+        if env_file is not None and not self._env_file:
             print(f'Found Environment file at: {env_file}')
             if load_env(env_file): self._env_file = True
 
@@ -650,7 +669,7 @@ class Config(object):
 
     def set_testing(self, env_file = None):
         '''
-        Convenience method for setting variables as development 
+        Convenience method for setting variables as development
         in jupyterlab
         Parameters
         ----------
@@ -665,7 +684,7 @@ class Config(object):
         self.framework = 'jupyterlab'
         self._intermediate_plots = True
         self._plot_out_level = 'DEBUG'
-        
+
         # Load Environment
-        if env_file is not None and not self._env_file: 
+        if env_file is not None and not self._env_file:
             if load_env(env_file): self._env_file = True

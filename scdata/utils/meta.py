@@ -70,10 +70,12 @@ def get_paths():
     # - Raw
     _paths['raw'] = join(_paths['data'], 'raw')
     makedirs(_paths['raw'], exist_ok=True)
-    _ename = 'example.csv'
-    s = join(_idir, _ename)
-    d = join(_paths['raw'], _ename)
-    if not exists(join(_paths['raw'], _ename)): copyfile(s, d)
+    # Copy example csvs
+    _enames = ['example.csv', 'geodata.csv']
+    for _ename in _enames:
+        s = join(_idir, _ename)
+        d = join(_paths['raw'], _ename)
+        if not exists(join(_paths['raw'], _ename)): copyfile(s, d)
 
     # - Reports
     _paths['reports'] = join(_paths['data'], 'reports')
