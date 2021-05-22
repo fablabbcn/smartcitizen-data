@@ -22,11 +22,12 @@ class Test(object):
                         scatter_plot, scatter_iplot, ts_scatter,
                         heatmap_plot, heatmap_iplot,
                         box_plot, ts_dendrogram,
-                        ts_dispersion_plot, ts_dispersion_uplot,
-                        ts_dispersion_grid, scatter_dispersion_grid)
+                        ts_dispersion_plot, ts_dispersion_grid,
+                        scatter_dispersion_grid)
                         #, report_plot, cat_plot, violin_plot)
 
-    if config._ipython_avail: from .plot import ts_uplot
+    if config._ipython_avail:
+        from .plot import ts_uplot, ts_dispersion_uplot
     from .export import to_csv, to_html
     from .load import load
     from .utils import (combine, prepare, dispersion_analysis,
