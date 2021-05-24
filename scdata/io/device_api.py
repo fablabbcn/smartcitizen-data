@@ -11,7 +11,6 @@ from geopy.distance import distance
 from scdata._config import config
 from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker
 from tzwhere import tzwhere
-
 from datetime import date, datetime
 from os import environ, urandom
 from json import dumps

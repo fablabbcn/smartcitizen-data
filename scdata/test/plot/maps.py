@@ -258,8 +258,6 @@ def device_metric_map(self, channel, start_date, end_date, options = dict()):
             pass
             continue
 
-        print (dfc)
-
         if channel not in dfc.columns: continue
         # Make color column
         dfc['color'] = cut(dfc[channel], bins, labels = config._map_colors_palette)

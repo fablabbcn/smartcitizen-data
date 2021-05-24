@@ -20,10 +20,9 @@ def prepare(self, measurand, inputs, options = dict()):
         df = pandas Dataframe
         measurand_name = string
     """
-    
+
     options = dict_fmerge(options, config._model_def_opt)
-    std_out(f'Using options {options}')
-    
+
     # Measurand
     measurand_device = list(measurand.keys())[0]
     measurand_metric = measurand[measurand_device][0]
@@ -37,7 +36,7 @@ def prepare(self, measurand, inputs, options = dict()):
         df = df.combine_first(combined_df)
 
     if options['common_avg']:
-        
+
         common_channels = inputs[list(inputs.keys())[0]]
         for input_device in inputs.keys():
             common_channels = list(set(common_channels).intersection(set(inputs[input_device])))
@@ -48,8 +47,9 @@ def prepare(self, measurand, inputs, options = dict()):
 
         df = df.loc[:, df.columns.str.contains("_AVG")| df.columns.str.contains(measurand_name)]
 
-    if options['clean_na'] is not None: df = clean(df, options['clean_na'], how = 'any')
-    
+    if options['clean_na'] is not None:
+        df = clean(df, options['clean_na'], how = 'any')
+
     return df, measurand_name
 
 def normalise_vbls(df, refn):
