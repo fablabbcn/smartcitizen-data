@@ -154,7 +154,7 @@ def get_json_from_url(url):
 
     return rjson
 
-def get_firmware_names(sensorsh):
+def load_firmware_names(sensorsh):
     '''
         Loads sensor names from Sensors.h of firmware repo
         Parameters

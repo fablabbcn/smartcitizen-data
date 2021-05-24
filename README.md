@@ -51,13 +51,13 @@ pip install --editable .
 
 If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set an environment variable called `ZENODO_TOKEN` in your environment. You can get more instructions [here](https://docs.smartcitizen.me/Guides/data/Upload%20data%20to%20zenodo/) and with [this example](https://github.com/fablabbcn/smartcitizen-data/blob/master/examples/notebooks/06_upload_to_zenodo.ipynb).
 
-A configuration file is available at `~/.config/scdata/config.yaml`, which contains a set of configurable variables to allow or not the local storage of relevant data in the data folder, normally in `~/.cache/scdata/data`:
+A configuration file is available at `~/.config/scdata/config.yaml`, which contains a set of configurable variables to allow or not the local storage of relevant data in the data folder, normally in `~/.cache/scdata`:
 
 ```
 data:
   cached_data_margin: 2
   load_cached_api: true
-  reload_firmware_names: true
+  reload_metadata: true
   store_cached_api: true
 paths:
   config: /Users/username/.config/scdata
@@ -74,11 +74,11 @@ zenodo_real_base_url: https://zenodo.org
 zenodo_sandbox_base_url: http://sandbox.zenodo.org
 ```
 
-Also, `.env` files will be picked from `~/.cache/scdata/data`.
+Also, `.env` files will be picked from `~/.cache/scdata`.
 
 ### Using with jupyter lab (optional)
 
-It can also be used with `jupyterlab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab).
+It can also be used with `jupyter lab` or `jupyter`. For this [install juypterlab](https://github.com/jupyterlab/jupyterlab).
 
 ## Contribute
 

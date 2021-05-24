@@ -4,7 +4,7 @@ import json
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints,
                                 load_calibrations, load_connectors,
-                                load_env, get_firmware_names)
+                                load_env, load_firmware_names)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -62,8 +62,8 @@ class Config(object):
     _combined_devices_name = 'COMBINED_DEVICES'
 
     data = {
-        # Whether or not to reload smartcitizen firmware names from git repo
-        'reload_firmware_names': True,
+        # Whether or not to reload metadata from git repo
+        'reload_metadata': True,
         # Whether or not to load or store cached data (saves time when requesting a lot of data)
         'load_cached_api': True,
         'store_cached_api': True,
@@ -614,21 +614,64 @@ class Config(object):
 
     def get_meta_data(self):
         """ Get meta data from blueprints and _calibrations """
-        # Blueprints and calibrations
-        blueprints = load_blueprints(self.blueprints_urls)
-        calibrations = load_calibrations(self.calibrations_urls)
-        connectors = load_connectors(self.connectors_urls)
-        sc_sensor_names = get_firmware_names(self.sensor_names_url_21)
 
-        if calibrations is not None: self.calibrations = calibrations
-        if blueprints is not None: self.blueprints = blueprints
-        if connectors is not None: self.connectors = connectors
-        if sc_sensor_names is not None: self.sc_sensor_names = sc_sensor_names
+        # (re)load calibrations
+        bppath = join(self.paths['interim'], 'blueprints.json')
+        if self.data['reload_metadata'] or not exists(bppath):
+            blueprints = load_blueprints(self.blueprints_urls)
+            bpreload = True
+        else:
+            with open(bppath, 'r') as file: blueprints = json.load(file)
+            bpreload = False
+
+        calpath = join(self.paths['interim'], 'calibrations.json')
+        if self.data['reload_metadata'] or not exists(calpath):
+            calibrations = load_calibrations(self.calibrations_urls)
+            calreload = True
+        else:
+            with open(calpath, 'r') as file: calibrations = json.load(file)
+            calreload = False
+
+        conpath = join(self.paths['interim'], 'connectors.json')
+        if self.data['reload_metadata'] or not exists(conpath):
+            connectors = load_connectors(self.connectors_urls)
+            conreload = True
+        else:
+            with open(conpath, 'r') as file: connectors = json.load(file)
+            conreload = False
+
+        namespath = join(self.paths['interim'], 'names.json')
+        if self.data['reload_metadata'] or not exists(namespath):
+            sc_sensor_names = load_firmware_names(self.sensor_names_url_21)
+            namesreload = True
+        else:
+            with open(namespath, 'r') as file: sc_sensor_names = json.load(file)
+            namesreload = False
+
+        if blueprints is not None:
+            self.blueprints = blueprints
+            if bpreload:
+                with open(bppath, 'w') as file: json.dump(blueprints, file)
+        if calibrations is not None:
+            self.calibrations = calibrations
+            if calreload:
+                with open(calpath, 'w') as file: json.dump(calibrations, file)
+        if connectors is not None:
+            self.connectors = connectors
+            if conreload:
+                with open(conpath, 'w') as file: json.dump(connectors, file)
+        if sc_sensor_names is not None:
+            self.sc_sensor_names = sc_sensor_names
+            if namesreload:
+                with open(namespath, 'w') as file: json.dump(sc_sensor_names, file)
 
         # Find environment file in root or in scdata/ for clones
-        if exists(join(self.paths['data'],'.env')): env_file = join(self.paths['data'],'.env')
+        if exists(join(self.paths['data'],'.env')):
+            env_file = join(self.paths['data'],'.env')
         else:
-            print (f'No environment file found. If you had an environment file (.env) before, make sure its now here:')
+            print (f'No environment file found. \
+                    If you had an environment file (.env) before, \
+                    make sure its now here:')
             print(join(self.paths['data'],'.env'))
             env_file = None
 
