@@ -8,9 +8,8 @@ from scdata.device.process import *
 
 from os.path import join, basename
 from urllib.parse import urlparse
-from pandas import DataFrame, to_datetime, to_timedelta
+from pandas import DataFrame, to_timedelta
 from traceback import print_exc
-import datetime
 
 class Device(object):
     ''' Main implementation of the device class '''
@@ -502,15 +501,16 @@ class Device(object):
 
         if process_ok:
             # Latest postprocessing to latest readings
-            if self.api_device.get_device_postprocessing() is not None:
-                std_out('Updating postprocessing')
-                # Add latest postprocessing rounded up with frequency so that we don't end up in
-                # and endless loop processing only the latest data line (minute vs. second precission of the readings)
-                latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                self.api_device.postprocessing['latest_postprocessing'] = latest_postprocessing
+            if self.source == 'api':
+                if self.api_device.get_device_postprocessing() is not None:
+                    std_out('Updating postprocessing')
+                    # Add latest postprocessing rounded up with frequency so that we don't end up in
+                    # and endless loop processing only the latest data line (minute vs. second precission of the readings)
+                    latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                    self.api_device.postprocessing['latest_postprocessing'] = latest_postprocessing
 
-                std_out(f"{self.api_device.postprocessing}")
-                std_out(f"Device {self.id} processed", "SUCCESS")
+                    std_out(f"{self.api_device.postprocessing}")
+            std_out(f"Device {self.id} processed", "SUCCESS")
 
         self.processed = process_ok
 
