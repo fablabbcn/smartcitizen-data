@@ -96,11 +96,16 @@ class Test(object):
 
                 # Wait for input
                 poss_names = list()
+                std_out ('Possible tests found', force = True)
                 for ctest in test_logn:
                     if name in ctest:
                         poss_names.append(test_logn.index(ctest) + 1)
                         std_out (str(test_logn.index(ctest) + 1) + ' --- ' + ctest, force = True)
-                which_test = input('Similar tests found, please select one or input other name [New]: ')
+                std_out ('// --- \\\\', force = True)
+                if len(poss_names) == 1:
+                    which_test = str(poss_names[0])
+                else:
+                    which_test = input('Similar tests found, please select one or input other name [New]: ')
 
                 if which_test == 'New':
                     new_name = input('Enter new name: ')
