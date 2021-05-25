@@ -46,12 +46,7 @@ class Test(object):
 
         self.details = dict()
         self.devices = dict()
-
-        self.descriptor = dict()
-        self.models = dict()
-        self.descriptor['id'] = self.full_name
-        self.cached_info = dict()
-        self.ready_to_model = False
+        self.descriptor = {'id': self.full_name}
 
         self._default_fields = {
                                 'id': '',
@@ -75,6 +70,26 @@ class Test(object):
 
     def __str__(self):
         return self.full_name
+
+
+    @property
+    def default_fields(self):
+        return self._default_fields
+
+    def __set_options__(self, options):
+
+        test_options = [
+            'load_cached_api',
+            'store_cached_api',
+            'clean_na',
+            'frequency',
+            'min_date',
+            'max_date'
+        ]
+
+        for option in test_options:
+            if option in options.keys():
+                self.options[option] = options[option]
 
     def __set_tname__(self, name):
         current_date = datetime.now()
@@ -238,26 +253,6 @@ class Test(object):
 
         return process_ok
 
-    def __set_options__(self, options):
-
-        if 'load_cached_api' in options.keys():
-            self.options['load_cached_api'] = options['load_cached_api']
-
-        if 'store_cached_api' in options.keys():
-            self.options['store_cached_api'] = options['store_cached_api']
-
-        if 'clean_na' in options.keys():
-            self.options['clean_na'] = options['clean_na']
-
-        if 'frequency' in options.keys():
-            self.options['frequency'] = options['frequency']
-
-        if 'min_date' in options.keys():
-            self.options['min_date'] = options['min_date']
-
-        if 'max_date' in options.keys():
-            self.options['max_date'] = options['max_date']
-
     def __preprocess__(self):
         '''
             Processes the files for one test, given that the devices and details have been added
@@ -327,10 +322,6 @@ class Test(object):
 
             std_out('Files preprocessed')
         std_out(f'Test {self.full_name} path: {self.path}')
-
-    @property
-    def default_fields(self):
-        return self._default_fields
 
     def __update_descriptor__(self):
         if self.descriptor == {}: self.std_out('No descriptor file to update')
