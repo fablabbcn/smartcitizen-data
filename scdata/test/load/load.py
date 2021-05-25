@@ -10,11 +10,11 @@ def load(self, options = dict()):
 
     '''
         Loads the test data and the different devices
-        
+
         Parameters:
         -----------
             options: dict()
-            
+
                 load_cached_api: bool
                 Default: config.data['data']['load_cached_api']
                 Load or not cached data from the API in previous test loads
@@ -42,12 +42,12 @@ def load(self, options = dict()):
         ----------
             None
     '''
-    
+
     # Load descriptor
     std_out(f'Loading test {self.full_name}')
-    if not exists(self.path): 
+    if not exists(self.path):
         std_out('Test does not exist with that name. Have you already created it? Hint: test.create()', 'ERROR')
-        return 
+        return
 
     with open(join(self.path, 'test_description.yaml'), 'r') as descriptor_file:
         self.descriptor = yaml.load(descriptor_file, Loader = yaml.FullLoader)
@@ -58,13 +58,12 @@ def load(self, options = dict()):
                                    self.descriptor['devices'][key])
 
     # Set options
-    self.ready_to_model = False
     self.__set_options__(options)
 
     std_out (f'Using options: {self.options}')
 
     for key in self.devices.keys():
-        
+
         device = self.devices[key]
         std_out('---------------------------')
         std_out(f'Loading device {device.id}')
@@ -79,7 +78,7 @@ def load(self, options = dict()):
                 device.location = device.api_device.get_device_timezone()
 
             # Get last reading from API
-            if 'get_device_last_reading' in dir(device.api_device): 
+            if 'get_device_last_reading' in dir(device.api_device):
                 last_reading_api = localise_date(device.api_device.get_device_last_reading(),
                     device.location)
 
@@ -96,7 +95,7 @@ def load(self, options = dict()):
                         load_API = True
 
                     else:
-                        
+
                         std_out(f'Loaded cached files', 'SUCCESS')
                         std_out(f'Checking if new data is to be loaded')
 
@@ -140,11 +139,11 @@ def load(self, options = dict()):
                 max_date_to_load = max_date_device
                 last_reading_api = None
                 load_API = True
-            
+
             # Load data from API if necessary
             if load_API:
                 std_out('Downloading device from API')
-                
+
                 if last_reading_api is not None:
 
                     # Check which min date to load
@@ -186,7 +185,7 @@ def load(self, options = dict()):
         elif device.source == 'csv':
 
             device.load(options = self.options, path = self.path)
-            
+
         if self.options['store_cached_api'] and device.loaded and device.source == 'api' and load_API:
 
             std_out(f'Caching files for {device.id}')
@@ -195,7 +194,7 @@ def load(self, options = dict()):
             if not exists(cached_file_path):
                 std_out('Creating path for exporting cached data')
                 makedirs(cached_file_path)
-                
+
             if export_csv_file(cached_file_path, device.id, device.readings, forced_overwrite = True): std_out('Devices cached')
 
         if device.loaded: std_out(f'Device {device.id} has been loaded', 'SUCCESS')
