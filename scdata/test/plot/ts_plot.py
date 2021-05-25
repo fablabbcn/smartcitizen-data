@@ -25,7 +25,7 @@ def ts_plot(self, **kwargs):
                              "channel" : "TEMP",
                              "subplot": 2}
                         }
-        options: dict 
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Formatting dict. Defaults in config._ts_plot_def_fmt
@@ -37,7 +37,7 @@ def ts_plot(self, **kwargs):
     if config.framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
-    if 'traces' not in kwargs: 
+    if 'traces' not in kwargs:
         std_out('No traces defined', 'ERROR')
         return None
     else:
@@ -68,10 +68,15 @@ def ts_plot(self, **kwargs):
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     n_subplots = len(subplots)
 
     # Size sanity check
-    if formatting['width'] > 50: 
+    if formatting['width'] > 50:
         std_out('Reducing width to 12')
         formatting['width'] = 12
     if formatting['height'] > 50:
@@ -111,13 +116,13 @@ def ts_plot(self, **kwargs):
             ax.plot(df.index, df[trace], label = trace, alpha = alpha);
 
         # TODO make this to compare to not None, so that we can send location
-        if formatting['legend']: 
+        if formatting['legend']:
             ax.legend(loc='center left', bbox_to_anchor=(1, 0.5));
-        if formatting['ylabel'] is not None: 
+        if formatting['ylabel'] is not None:
             ax.set_ylabel(formatting['ylabel'][isbplt+1]);
-        if formatting['xlabel'] is not None: 
+        if formatting['xlabel'] is not None:
             ax.set_xlabel(formatting['xlabel']);
-        if formatting['yrange'] is not None: 
+        if formatting['yrange'] is not None:
             ax.set_ylim(formatting['yrange'][isbplt+1]);
         if formatting['xrange'] is not None:
             if formatting['sharex']: ax.set_xlim(to_datetime(formatting['xrange'][1]));

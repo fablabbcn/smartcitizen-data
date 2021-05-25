@@ -23,8 +23,8 @@ def ts_iplot(self, **kwargs):
                         "2": {"devices": "all",
                              "channel" : "TEMP",
                              "subplot": 2}
-                        }     
-        options: dict 
+                        }
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
@@ -55,6 +55,11 @@ def ts_iplot(self, **kwargs):
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     n_subplots = len(subplots)
 
     # Size sanity check
@@ -65,19 +70,19 @@ def ts_iplot(self, **kwargs):
         std_out('Reducing height to 600')
         formatting['height'] = 600
 
-    figure = make_subplots(rows = n_subplots, cols=1, 
+    figure = make_subplots(rows = n_subplots, cols=1,
                            shared_xaxes = formatting['sharex'])
 
     # Add traces
     for isbplt in range(n_subplots):
 
         for trace in subplots[isbplt]:
-            
-            figure.append_trace({'x': df.index, 
-                                 'y': df[trace], 
+
+            figure.append_trace({'x': df.index,
+                                 'y': df[trace],
                                  'type': 'scatter',
                                  'mode': 'lines+markers',
-                                 'name': trace}, 
+                                 'name': trace},
                                 isbplt + 1, 1)
 
         # Name the axis
@@ -108,7 +113,7 @@ def ts_iplot(self, **kwargs):
                             #             borderwidth = 0),
                             title=dict(text=formatting['title'])
                            )
-    
+
     if options['show']: figure.show()
 
     return figure

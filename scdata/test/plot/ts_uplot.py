@@ -100,6 +100,11 @@ def ts_uplot(self, **kwargs):
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     df = df.fillna('null')
     n_subplots = len(subplots)
 

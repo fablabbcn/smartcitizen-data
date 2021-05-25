@@ -20,8 +20,8 @@ def box_plot(self, **kwargs):
                         "2": {"devices": "all",
                              "channel" : "TEMP",
                              "subplot": 2}
-                        }     
-        options: dict 
+                        }
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._boxplot_def_fmt
@@ -33,7 +33,7 @@ def box_plot(self, **kwargs):
     if config.framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
-    if 'traces' not in kwargs: 
+    if 'traces' not in kwargs:
         std_out('No traces defined', 'ERROR')
         return None
     else:
@@ -57,25 +57,30 @@ def box_plot(self, **kwargs):
 
     # Make it standard
     for trace in traces:
-        if 'subplot' not in trace: traces[trace]['subplot'] = 1  
-    
+        if 'subplot' not in trace: traces[trace]['subplot'] = 1
+
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
-    
+
     # Font size
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     n_subplots = len(subplots)
 
-    dfgb, labels, xaxis, channel = groupby_session(df, frequency_hours = formatting['frequency_hours'], 
+    dfgb, labels, xaxis, channel = groupby_session(df, frequency_hours = formatting['frequency_hours'],
                                                        periods = formatting['periods'])
 
     # Sample figsize in inches
-    _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));         
-    
+    _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));
+
     # Pivot with 'session'
     if formatting['periods'] is not None:
         g = boxplot(x=dfgb['session'], y=dfgb[channel], hue = dfgb['period'], \
@@ -83,26 +88,26 @@ def box_plot(self, **kwargs):
     else:
         g = boxplot(x=dfgb['session'], y=dfgb[channel], ax=ax, palette = formatting['cmap']);
 
-    # TODO make this to compare to not None, so that we can send location       
-    if formatting['ylabel'] is not None: 
+    # TODO make this to compare to not None, so that we can send location
+    if formatting['ylabel'] is not None:
         _ = g.set_ylabel(formatting['ylabel']);
-    
-    if formatting['grid'] is not None: 
+
+    if formatting['grid'] is not None:
          _ = g.grid(formatting['grid']);
-    
-    if formatting['yrange'] is not None: 
+
+    if formatting['yrange'] is not None:
         ax.set_ylim(formatting['yrange']);
-    
+
     _ = g.set_xlabel(xaxis);
-  
+
     # Set title
     if formatting['title'] is not None:
         _ = g.figure.suptitle(formatting['title'], fontsize=formatting['title_fontsize']);
-    
+
     # Suptitle factor
     if formatting['suptitle_factor'] is not None:
         plt.subplots_adjust(top = formatting['suptitle_factor']);
-    
+
     # Show
     if options['show']: plt.show()
 

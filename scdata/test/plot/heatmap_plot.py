@@ -15,8 +15,8 @@ def heatmap_plot(self, **kwargs):
             Data for the plot, with the format:
             "traces":  {"1": {"devices": '8019043',
                              "channel" : "PM_10"}
-                        }     
-        options: dict 
+                        }
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._heatmap_def_fmt
@@ -28,7 +28,7 @@ def heatmap_plot(self, **kwargs):
     if config.framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
-    if 'traces' not in kwargs: 
+    if 'traces' not in kwargs:
         std_out('No traces defined', 'ERROR')
         return None
     else:
@@ -49,17 +49,22 @@ def heatmap_plot(self, **kwargs):
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config._plot_style)
-    
+
     # Font size
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
 
     # Make it standard
     for trace in traces:
-        if 'subplot' not in trace: traces[trace]['subplot'] = 1            
+        if 'subplot' not in trace: traces[trace]['subplot'] = 1
 
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     n_subplots = len(subplots)
 
     gskwags = {'frequency_hours': formatting['frequency_hours']}
@@ -67,11 +72,11 @@ def heatmap_plot(self, **kwargs):
     dfgb, labels, yaxis, _ = groupby_session(df, **gskwags)
 
     # Sample figsize in inches
-    _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));         
-    
-    
+    _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));
+
+
     xticks = [i.strftime("%Y-%m-%d") for i in dfgb.resample(formatting['session']).mean().index]
-    
+
     # Pivot with 'session'
     g = heatmap(dfgb.pivot(columns='session').resample(formatting['session']).mean().T, ax = ax,
                 cmap = formatting['cmap'], robust = formatting['robust'],
@@ -85,7 +90,7 @@ def heatmap_plot(self, **kwargs):
     # Set title
     _ = g.figure.suptitle(formatting['title'], fontsize=formatting['title_fontsize']);
     plt.subplots_adjust(top=formatting['suptitle_factor'])
-    
+
     # Show
     if options['show']: plt.show()
 

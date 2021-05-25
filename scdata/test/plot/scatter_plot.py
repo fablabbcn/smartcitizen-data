@@ -26,9 +26,9 @@ def scatter_plot(self, **kwargs):
                           'subplot': 2}
                       4: {'devices': ['10752', '10752'],
                           'channels': ['TEMP', 'GB_2W'],
-                          'subplot': 2} 
+                          'subplot': 2}
                     }
-        options: dict 
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Formatting dict. Defaults in config._scatter_plot_def_fmt
@@ -40,7 +40,7 @@ def scatter_plot(self, **kwargs):
     if config.framework == 'jupyterlab': plt.ioff();
     plt.clf();
 
-    if 'traces' not in kwargs: 
+    if 'traces' not in kwargs:
         std_out('No traces defined', 'ERROR')
         return None
     else:
@@ -61,10 +61,10 @@ def scatter_plot(self, **kwargs):
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config._plot_style)
-    
+
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
-    
+
     # Font size
     if formatting['fontsize'] is not None: rcParams.update({'font.size': formatting['fontsize']});
 
@@ -74,7 +74,7 @@ def scatter_plot(self, **kwargs):
     for trace in traces:
         if 'subplot' not in traces[trace]: traces[trace]['subplot'] = 1
         if 'channels' not in traces[trace]: ptraces = traces; continue
-        
+
         ptrace_1 = trace * 10 + 1
         ptrace_2 = trace * 10 + 2
 
@@ -86,25 +86,30 @@ def scatter_plot(self, **kwargs):
         ptraces[ptrace_2] = {'devices': traces[trace]['devices'][1],
                              'channel': traces[trace]['channels'][1],
                              'subplot': traces[trace]['subplot']
-                            }                            
+                            }
 
 
     # Get dataframe
     df, subplots = prepare_data(self, ptraces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
     n_subplots = len(subplots)
 
     # Plot
     nrows = min(n_subplots, formatting['nrows'])
     ncols = ceil(n_subplots/nrows)
-    
+
     figure, axes = plt.subplots(nrows, ncols, figsize = (formatting['width'],
                                                           formatting['height'])
                                 );
 
-    if n_subplots == 1: 
+    if n_subplots == 1:
         axes = array(axes)
         axes.shape = (1)
-    
+
     cind = 0
     y_axes = list()
     x_axes = list()
@@ -116,13 +121,13 @@ def scatter_plot(self, **kwargs):
 
             if nrows > 1 and ncols > 1:
                 row = floor(subplots.index(i)/ncols)
-                col = subplots.index(i)-row*ncols                
+                col = subplots.index(i)-row*ncols
                 ax = axes[row][col]
             else:
                 ax = axes[subplots.index(i)]
 
             kwargs = {
-                        'data':df, 
+                        'data':df,
                         'ax': ax,
                         'label': f'{i[2*j+1]} vs. {i[2*j]}'
                     }
@@ -131,7 +136,7 @@ def scatter_plot(self, **kwargs):
 
             regplot(df[i[2*j]], df[i[2*j+1]], **kwargs)
 
-            if formatting['legend']: 
+            if formatting['legend']:
                 ax.legend(loc='best')
 
             if formatting['ylabel'] is not None:
@@ -144,13 +149,13 @@ def scatter_plot(self, **kwargs):
             else:
                 ax.set_ylabel('')
 
-            if formatting['xlabel'] is not None: 
+            if formatting['xlabel'] is not None:
                 try:
                     ax.set_xlabel(formatting['xlabel'][subplots.index(i)+1]);
                 except:
                     std_out (f'x_label for subplot {subplots.index(i)} not set', 'WARNING')
                     ax.set_xlabel('')
-                    pass    
+                    pass
             else:
                 ax.set_xlabel('')
 
@@ -164,35 +169,35 @@ def scatter_plot(self, **kwargs):
 
             if nrows > 1 and ncols > 1:
                 row = floor(subplots.index(i)/ncols)
-                col = subplots.index(i)-row*ncols                
+                col = subplots.index(i)-row*ncols
                 ax = axes[row][col]
             else:
                 ax = axes[subplots.index(i)]
-           
+
             # Set y axis limit
             if formatting['yrange'] is not None and not formatting['sharey']:
                 try:
                     ax.set_ylim(formatting['yrange']);
                 except:
                     std_out (f'yrange for subplot {subplots.index(i)} not set', 'WARNING')
-                    pass                
+                    pass
             elif formatting['sharey']:
                 ax.set_ylim(min([yl[0] for yl in y_axes]), max([yl[1] for yl in y_axes]))
-            
+
             # Set x axis limit
             if formatting['xrange'] is not None and not formatting['sharex']:
                 try:
                     ax.set_xlim(formatting['xrange']);
                 except:
                     std_out (f'xrange for subplot {subplots.index(i)} not set', 'WARNING')
-                    pass                     
+                    pass
             elif formatting['sharex']:
-                ax.set_xlim(min([xl[0] for xl in x_axes]), max([xl[1] for xl in x_axes])) 
+                ax.set_xlim(min([xl[0] for xl in x_axes]), max([xl[1] for xl in x_axes]))
 
     # Set title
     figure.suptitle(formatting['title'], fontsize = formatting['title_fontsize']);
     plt.subplots_adjust(top = formatting['suptitle_factor']);
-    
-    if options['show']: plt.show(); 
+
+    if options['show']: plt.show();
 
     return figure
