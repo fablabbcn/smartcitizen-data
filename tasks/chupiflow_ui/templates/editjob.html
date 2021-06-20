@@ -1,54 +1,54 @@
 {% extends "layout.html" %}
 {% block content %}
-	<div id="main-container">
-		<h1>Edit</h1>
-		<h2>Editing job <span class="inline-code">{{cron}}</span> in <span class="inline-code">{{tabfile}}.tab</span></h2>
-		<div class="edit-container">			
-			<form action = "" method = "POST">		
-				<div class="field">
-					<label for="schedule" class="label">Schedule</label>
-	      			<div class="control">
-	            		<input type="text" name="schedule-input" value={{ crondict['schedule'] }} required>
-		        	</div>
-		      	</div>
-				<div class="field">
-					<label for="task" class="label">Who</label>
-	      			<div class="control">
-	            		<input type="text" name="who-input" value={{ crondict['who']|tojson }} required>
-		        	</div>
-		      	</div>
-				<div class="field">
-					<label for="task" class="label">Task</label>
-	      			<div class="control">
-	            		<input type="text" name="task-input" value={{ crondict['task']|tojson }} required>
-		        	</div>
-		      	</div>            		
-				<div class="field">
-					<label for="logfile" class="label">Logfile</label>
-	      			<div class="control">
-	            		<input type="text" name="logfile-input" value={{ crondict['logfile']|tojson }} required>
-		        	</div>
-		      	</div>
-				<div class="field">
-					<label for="enabled" class="label">Enabled</label>
-	      			<div class="control">
-						<label class="switch">
-							{% if crondict['enabled'] %}
-								<input type="checkbox" name="enabled-input" checked>
-							{% else %}
-								<input type="checkbox" name="enabled-input">
-							{% endif %}
-							<span class="slider round"></span>
-						</label>
-		        	</div>
-		      	</div>
-		      	<div class="button-container">
-		            <button class="btn btn-success btn-sm">Submit</button>
-		            {% if error %}
-		            	<span style="color:#B22222">Job is not valid. {{ error }}</span>
-		            {% endif %}
-	            </div>    
-	        </form>
-	    </div>    
-	</div>
+    <div id="main-container">
+        <h1>Edit</h1>
+        <h2>Editing job <span class="inline-code">{{cron}}</span> in <span class="inline-code">{{tabfile}}.tab</span></h2>
+        <div class="edit-container">
+            <form action = "" method = "POST">
+                <div class="field">
+                    <label for="schedule" class="label">Schedule</label>
+                    <div class="control">
+                        <input type="text" name="schedule-input" value={{ crondict['schedule']|tojson }} required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="task" class="label">Who</label>
+                    <div class="control">
+                        <input type="text" name="who-input" value={{ crondict['who']|tojson }} required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="task" class="label">Task</label>
+                    <div class="control">
+                        <input type="text" name="task-input" value={{ crondict['task']|tojson }} required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="logfile" class="label">Logfile</label>
+                    <div class="control">
+                        <input type="text" name="logfile-input" value={{ crondict['logfile']|tojson }} required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="enabled" class="label">Enabled</label>
+                    <div class="control">
+                        <label class="switch">
+                            {% if crondict['enabled'] %}
+                                <input type="checkbox" name="enabled-input" checked>
+                            {% else %}
+                                <input type="checkbox" name="enabled-input">
+                            {% endif %}
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="button-container">
+                    <button class="btn btn-success btn-sm">Submit</button>
+                    {% if error %}
+                        <span style="color:#B22222">Job is not valid. {{ error }}</span>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
