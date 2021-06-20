@@ -144,7 +144,9 @@ def ts_dispersion_uplot(self, **kwargs):
     udf = udf.fillna('null')
     # List containing subplots. First list for TBR, second for OK
     subplots = [[],[]]
-    n_subplots = 2
+
+    if formatting['join_sbplot']: n_subplots = 1
+    else: n_subplots = 2
     udf.index = udf.index.astype(int)/10**9
 
     # Compose subplots lists
@@ -172,19 +174,22 @@ def ts_dispersion_uplot(self, **kwargs):
                 subplots[0].append(ncol)
             #OK
             else:
-                subplots[1].append(ncol)
+                subplots[n_subplots-1].append(ncol)
 
     # Add upper and low bound bound to subplot 0
     subplots[0].append(channel + '_AVG')
     subplots[0].append('upper_bound')
     subplots[0].append('lower_bound')
 
-    # Add upper and low bound bound to subplot 1
-    subplots[1].append(channel + '_AVG')
-    subplots[1].append('upper_bound')
-    subplots[1].append('lower_bound')
+    if n_subplots > 1:
+        # Add upper and low bound bound to subplot 1
+        subplots[n_subplots-1].append(channel + '_AVG')
+        subplots[n_subplots-1].append('upper_bound')
+        subplots[n_subplots-1].append('lower_bound')
 
-    ylabels = [channel + '_TBR', channel + '_OK']
+        ylabels = [channel + '_TBR', channel + '_OK']
+    else:
+        ylabels = [channel]
 
     # Make subplots
     for isbplt in range(n_subplots):
