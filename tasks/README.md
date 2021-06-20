@@ -1,6 +1,6 @@
 # Tasks
 
-Tasks are managed by `chupiflow.py` script and ultimately by `scheduler.py` and CronTab, thanks to `python-crontab` (full doc [here](https://gitlab.com/doctormo/python-crontab))
+Tasks are managed by `chupiflow.py` script and ultimately by `scheduler.py` and CronTab, thanks to `python-crontab` (full doc [here](https://gitlab.com/doctormo/python-crontab)). The script can program tasks in a automated or manual way. If done automatically, it can schedule them `@daily`, `@hourly` and `@minute`, with optional load balancing (not scheduling them all at the same time, but randomly in low load times).
 
 ## Start scheduling
 
@@ -36,3 +36,7 @@ This will schedule a device regardless the auto-scheduling:
 ```
 python chupiflow.py manual-schedule --device <device> --dry-run --force-first-run --overwrite
 ```
+
+## Statement
+
+This code was made as a response to the lack of simple task schedulers that are not thought to be running in Azure, Kubernetes or whatever else (`airflow` gets the reference for the name). Nothing against it, just too complex for what could be solved with simple `cron` scheduling.

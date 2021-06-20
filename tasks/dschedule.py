@@ -14,27 +14,27 @@ from scheduler import Scheduler
 
 def dschedule(interval_hours, dry_run = False):
     '''
-        This function schedules processing SC API devices based 
+        This function schedules processing SC API devices based
         on the result of a global query for data processing
         in the SC API
     '''
     try:
-        df = ScApiDevice.search_by_query(key="postprocessing_id", 
+        df = ScApiDevice.search_by_query(key="postprocessing_id",
                                          value="not_null", full= True)
     except:
         pass
         return None
-    
+
     # Check devices to postprocess first
     dl = []
-    
+
     for device in df.index:
         std_out(f'Checking postprocessing for {device}')
         scd = Device(descriptor={'source': 'api', 'id': device})
         # Avoid scheduling invalid devices
         if scd.validate(): dl.append(device)
         else: std_out(f'Device {device} not valid', 'ERROR')
-    
+
     for d in dl:
         # Set scheduler
         s = Scheduler()
@@ -45,10 +45,11 @@ def dschedule(interval_hours, dry_run = False):
         makedirs(dt, exist_ok=True)
         log = f"{join(dt, f'{config._device_processor}_{d}.log')}"
         # Schedule task
-        s.schedule_task(task = task, 
-                        log = log, 
-                        interval = f'{interval_hours}H', 
-                        dry_run = dry_run)
+        s.schedule_task(task = task,
+                        log = log,
+                        interval = f'{interval_hours}H',
+                        dry_run = dry_run,
+                        load_balancing = True)
 
 if __name__ == '__main__':
 
@@ -58,14 +59,14 @@ if __name__ == '__main__':
         print('options:')
         print('--interval-hours: taks execution interval in hours (default: scdata.config._postprocessing_interval_hours)')
         print('--dry-run: dry run')
-        sys.exit()    
-    
+        sys.exit()
+
     if '--dry-run' in sys.argv: dry_run = True
     else: dry_run = False
 
-    if '--interval-hours' in sys.argv: 
+    if '--interval-hours' in sys.argv:
         interval = int(sys.argv[sys.argv.index('--interval-hours')+1])
-    else: 
+    else:
         interval = config._postprocessing_interval_hours
 
     dschedule(interval, dry_run)
