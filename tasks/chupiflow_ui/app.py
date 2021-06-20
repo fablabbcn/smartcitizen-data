@@ -32,7 +32,7 @@ def editjob(tabfile,cron,error=None):
         log=request.form["logfile-input"]
         task=request.form["task-input"]
         schedule=request.form["schedule-input"]
-        if request.form.getlist("enabled-input") == ['on']: enabled=True 
+        if request.form.getlist("enabled-input") == ['on']: enabled=True
         else: enabled=False
         who=request.form["who-input"]
         # Validate
@@ -42,12 +42,14 @@ def editjob(tabfile,cron,error=None):
         tabfiles[tabfile][cron]['schedule']=schedule
         tabfiles[tabfile][cron]['enabled']=enabled
         tabfiles[tabfile][cron]['who']=who
-
+        # Check error
         if not error:
             savetabfiles(tabfiles=tabfiles, path=dpath)
             return redirect(url_for("default"))
-
+    # Overwrite schedule to cope with lists or normal strings options
+    tabfiles[tabfile][cron]['schedule'] = str(tabfiles[tabfile][cron]['schedule'])
     crondict=tabfiles[tabfile][cron]
+
     return render_template("editjob.html", tabfile=tabfile, cron=cron, crondict=crondict, error=error)
 
 @app.route('/triggerjob/<tabfile>-<cron>', methods = ['POST'])
@@ -113,7 +115,7 @@ def taskfile(tabfile, cron):
         line = line.strip('\n')
         if line != '':
             task.append(line)
-    return render_template("file_viewer.html", file_type='task', cron=cron, file=task)            
+    return render_template("file_viewer.html", file_type='task', cron=cron, file=task)
 
 if __name__ == '__main__':
    app.run(debug = True)
