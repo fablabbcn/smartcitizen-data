@@ -10,6 +10,7 @@ from os.path import join, basename
 from urllib.parse import urlparse
 from pandas import DataFrame, to_timedelta
 from traceback import print_exc
+from numpy import nan
 
 class Device(object):
     ''' Main implementation of the device class '''
@@ -722,14 +723,17 @@ class Device(object):
         # Make a copy of df
         df = self.readings.copy().dropna(axis = 0, how='all')
         # Get metrics to post, only the ones that have True in 'post' field and a valid ID
+        # Replace their name with the ID to post
         for metric in self.metrics:
             if self.metrics[metric]['post'] == True:
                 std_out(f"Adding {metric} for device {self.id}")
-                rd[col] = self.metrics[metric]['id']
+                rd[metric] = self.metrics[metric]['id']
 
         # Keep only metrics in df
         df = df[df.columns.intersection(list(rd.keys()))]
         df.rename(columns=rd, inplace=True)
+        # Fill None or other values with actual NaN
+        df = df.fillna(value=nan)
 
         # If empty, avoid
         if df.empty:
