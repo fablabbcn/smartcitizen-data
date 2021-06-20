@@ -158,7 +158,8 @@ class Config(object):
     # Metrics levels
     _channel_bins = {
         'NOISE': [-inf, 52, 54, 56, 58, 60, 62, 64, 66, 68, inf],
-        'PM': [-inf, 10, 20, 30, 40, 50, 75, 100, 150, 200, inf]
+        'PM': [-inf, 10, 20, 30, 40, 50, 75, 100, 150, 200, inf],
+        'GPS_HDOP': [-inf, 0, 40, 80, 120, 160, 200, 240, 260, 300, inf]
     }
 
     _channel_bin_n = 11
