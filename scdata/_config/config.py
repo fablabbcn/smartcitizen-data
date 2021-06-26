@@ -77,7 +77,11 @@ class Config(object):
     # If using multiple training datasets, how to call the joint df
     _name_multiple_training_data = 'CDEV'
 
+    # Maximum amount of points to load when postprocessing data
     _max_load_amount = 500
+
+    # Ignore duplicate sensor ids
+    _sc_ignore_keys = ['DALLAS_TEMP', 'GB_TEMP', 'GB_HUM']
 
     ### ---------------------------------------
     ### --------------ALGORITHMS---------------

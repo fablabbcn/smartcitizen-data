@@ -464,7 +464,8 @@ class ScApiDevice:
                 for sensor in sensors:
                     for key in config.sc_sensor_names:
                         if str(config.sc_sensor_names[key]['id']) == str(sensor['id']):
-                            # IDs are unique
+                            # IDs are not unique
+                            if key in config._sc_ignore_keys: continue
                             self.sensors[sensor['id']] = key
 
         return self.sensors
@@ -744,11 +745,11 @@ class ScApiDevice:
             # }
         '''
 
-        if 'SC_BEARER' not in environ:
-            std_out('Cannot post without Auth Bearer', 'ERROR')
+        if 'SC_ADMIN_BEARER' not in environ:
+            std_out('Cannot post without Admin Auth Bearer', 'ERROR')
             return
 
-        headers = {'Authorization':'Bearer ' + environ['SC_BEARER'],
+        headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'],
                    'Content-type': 'application/json'}
 
         post = {"postprocessing_attributes": self.postprocessing}

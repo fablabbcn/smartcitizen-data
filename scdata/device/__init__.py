@@ -334,6 +334,7 @@ class Device(object):
             if self.readings is not None:
                 self.__check_sensors__()
                 if max_amount is not None:
+                    std_out(f'Trimming dataframe to {max_amount} rows')
                     self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
                 if not self.readings.empty:
                     # Only add metrics if there is something that can be potentially processed
