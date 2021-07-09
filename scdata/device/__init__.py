@@ -664,7 +664,12 @@ class Device(object):
 
         rd = dict()
         df = self.readings.copy().dropna(axis = 0, how='all')
-        for col in self.readings: rd[col] = self.sensors[col]['id']
+        for col in self.readings:
+            if col not in rd:
+                std_out(f'Column ({col}) not in recognised IDs. Ignoring', 'WARNING')
+                df.drop(col, axis=1, inplace=True)
+                continue
+            rd[col] = self.sensors[col]['id']
 
         df.rename(columns=rd, inplace=True)
 
