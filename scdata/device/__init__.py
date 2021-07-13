@@ -665,7 +665,7 @@ class Device(object):
         rd = dict()
         df = self.readings.copy().dropna(axis = 0, how='all')
         for col in self.readings:
-            if col not in rd:
+            if col not in self.sensors:
                 std_out(f'Column ({col}) not in recognised IDs. Ignoring', 'WARNING')
                 df.drop(col, axis=1, inplace=True)
                 continue
