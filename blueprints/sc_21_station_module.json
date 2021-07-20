@@ -133,7 +133,7 @@
         "post": true,
         "process": "alphasense_803_04",
         "units": "ppb"
-    },    
+    },
     "O3": {
       "desc": "Calculation of O3 based on AAN 803-04",
       "id": 157,
@@ -149,7 +149,7 @@
         "post": true,
         "process": "alphasense_803_04",
         "units": "ppb"
-    }, 
+    },
     "SO2": {
       "desc": "Calculation of SO2 based on AAN 803-04",
       "id": 155,
@@ -166,7 +166,7 @@
         "post": true,
         "process": "alphasense_803_04",
         "units": "ppb"
-    }, 
+    },
     "NO": {
       "desc": "Calculation of NO based on AAN 803-04",
       "id": 154,
@@ -198,7 +198,7 @@
         "post": true,
         "process": "alphasense_803_04",
         "units": "ppb"
-    }    
+    }
   },
   "min_date": null,
   "platform_id": 28,
