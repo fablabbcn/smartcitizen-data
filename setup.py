@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.4.7',
+    version= '0.4.8',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -65,7 +65,7 @@ setup(
                         'importlib-metadata~=1.7.0',
                         'Jinja2==2.11.2',
                         'matplotlib==3.2.1',
-                        'numpy~=1.19.4',
+                        'numpy~=1.20.0',
                         'pandas~=1.0.3',
                         'pdfrw==0.4',
                         'PDPbox==0.2.0',
@@ -73,8 +73,8 @@ setup(
                         'PyYAML==5.3.1',
                         'requests==2.23.0',
                         'reportlab==3.5.*',
-                        'scipy==1.4.1',
-                        'scikit-learn==0.23.1',
+                        'scipy~=1.5.0',
+                        'scikit-learn~=0.23.1',
                         'seaborn==0.10.1',
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
