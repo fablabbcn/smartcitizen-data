@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.4.8',
+    version= '0.4.9',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -62,7 +62,6 @@ setup(
                         'Flask~=1.1.2',
                         'folium==0.12.1',
                         'geopy==1.21.0',
-                        'importlib-metadata~=1.7.0',
                         'Jinja2==2.11.2',
                         'matplotlib==3.2.1',
                         'numpy~=1.20.0',
