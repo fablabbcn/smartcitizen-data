@@ -102,6 +102,29 @@
       "post": true,
       "id": 87
     },
+    "ASPT1000": {
+      "desc": "PT1000 temperature calculation in AFE",
+      "id": null,
+      "kwargs": {
+        "pt1000minus": null,
+        "from_date": null,
+        "location": null,
+        "to_date": null,
+        "pt1000plus": null,
+        "afe_id": null
+      },
+      "post": false,
+      "process": "alphasense_pt1000",
+      "units": "degC"
+    },
+    "EC_SENSOR_TEMP": {
+      "desc": "Electrochemical sensor temperature",
+      "id": null,
+      "kwargs": null,
+      "post": false,
+      "process": "ec_sensor_temp",
+      "units": "degC"
+    },    
     "CO": {
       "desc": "Calculation of CO based on AAN 803-04",
       "id": 152,
@@ -110,7 +133,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
         },
@@ -126,7 +149,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
         },
@@ -142,7 +165,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
         },
@@ -158,7 +181,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null,
           "use_alternative": true
@@ -175,7 +198,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
         },
@@ -191,7 +214,7 @@
           "alphasense_id": null,
           "from_date": null,
           "location": null,
-          "t": "PM_DALLAS_TEMP",
+          "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
         },
