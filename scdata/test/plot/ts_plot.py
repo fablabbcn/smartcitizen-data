@@ -88,7 +88,7 @@ def ts_plot(self, **kwargs):
                                 sharex = formatting['sharex'],
                                 figsize = (formatting['width'],
                                            formatting['height'])
-                                );
+                               );
 
     if n_subplots == 1:
         axes = array(axes)
@@ -121,7 +121,8 @@ def ts_plot(self, **kwargs):
         if formatting['ylabel'] is not None:
             ax.set_ylabel(formatting['ylabel'][isbplt+1]);
         if formatting['xlabel'] is not None:
-            ax.set_xlabel(formatting['xlabel']);
+            if not formatting['sharex'] or axes[-1] == ax:
+                ax.set_xlabel(formatting['xlabel']);
         if formatting['yrange'] is not None:
             ax.set_ylim(formatting['yrange'][isbplt+1]);
         if formatting['xrange'] is not None:
@@ -135,28 +136,41 @@ def ts_plot(self, **kwargs):
 
             if 'axvline' in formatting['decorators']:
                 for vline in formatting['decorators']['axvline']:
-                    ax.axvline(to_datetime(vline), linestyle = 'dotted', color = 'gray');
+                    ax.axvline(to_datetime(vline),
+                        linestyle = 'dotted',
+                        color = 'gray');
 
             if 'axhline' in formatting['decorators']:
                 for vline in formatting['decorators']['axhline']:
-                    ax.axhline(vline, linestyle = 'dotted', color = 'gray');
+                    ax.axhline(vline,
+                        linestyle = 'dotted',
+                        color = 'gray');
 
             if 'xtext' in formatting['decorators']:
                 for xtext in formatting['decorators']['xtext'].keys():
                     text = formatting['decorators']['xtext'][xtext]
                     position = formatting['yrange'][isbplt+1][1]-(formatting['yrange'][isbplt+1][1]-formatting['yrange'][isbplt+1][0])/10
-                    ax.text(to_datetime(xtext), position, text, size=15, color = 'gray');
+                    ax.text(to_datetime(xtext),
+                        position, text,
+                        size=15, color = 'gray');
 
             # TODO Fix
             if 'ytext' in formatting['decorators']:
                 for ytext in formatting['decorators']['ytext'].keys():
                     text = formatting['decorators']['ytext'][ytext]
                     position = formatting['xrange'][isbplt+1][1]-(formatting['xrange'][isbplt+1][1]-formatting['yrange'][isbplt+1][0])/10
-                    ax.text(ytext, position, text, size=15, color = 'gray');
+                    ax.text(ytext,
+                        position, text,
+                        size=15, color = 'gray');
 
-    figure.suptitle(formatting['title'], fontsize=formatting['title_fontsize']);
-    plt.subplots_adjust(top = formatting['suptitle_factor']);
+    figure.suptitle(formatting['title'],
+        x = formatting['suptitle_x'], y = formatting['suptitle_y'],
+        fontsize=formatting['title_fontsize'],
+        ha = formatting['title_loc']);
+
+    plt.subplots_adjust(top = formatting['suptitle_factor'],
+        hspace = formatting['hspace'],
+        wspace = formatting['wspace']);
 
     if options['show']: plt.show();
-
     return figure

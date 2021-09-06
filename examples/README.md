@@ -22,3 +22,4 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Basic analysis workflow: [notebooks/10_basic_workflow.ipynb](notebooks/10_basic_workflow.ipynb)
 - Making HTML-PDF reports: [notebooks/11_making_html-pdf_reports.ipynb](notebooks/11_making_html-pdf_reports.ipynb)
 - Visualizing Geolocated data: [notebooks/12_geolocated_data.ipynb](notebooks/12_geolocated_data.ipynb)
+- Large format plots: [notebooks/13-pdf-largescale-plots.ipynb](notebooks/13-pdf-largescale-plots.ipynb)
