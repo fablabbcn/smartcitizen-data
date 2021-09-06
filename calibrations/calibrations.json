@@ -2250,5 +2250,34 @@
     "we_sensitivity_na_ppb": "0.399",
     "we_sensor_zero_mv": "32",
     "we_total_zero_mv": "376"
+  },
+  "212070552": {
+    "ae_electronic_zero_mv": "302",
+    "ae_sensor_zero_mv": "1",
+    "ae_total_zero_mv": "303",
+    "pcb_gain_mv_na": "-0.73",
+    "we_cross_sensitivity_no2_mv_ppb": "0.0",
+    "we_cross_sensitivity_no2_na_ppb": "0.0",
+    "we_electronic_zero_mv": "288",
+    "we_sensitivity_mv_ppb": "0.271",
+    "we_sensitivity_na_ppb": "-0.371",
+    "we_sensor_zero_mv": "-2",
+    "we_total_zero_mv": "286"
+  },
+  "132070362": {
+    "ae_electronic_zero_mv": "298",
+    "ae_sensor_zero_mv": "2",
+    "ae_total_zero_mv": "300",
+    "pcb_gain_mv_na": "0.8",
+    "we_cross_sensitivity_no2_mv_ppb": "0.0",
+    "we_cross_sensitivity_no2_na_ppb": "0.0",
+    "we_electronic_zero_mv": "292",
+    "we_sensitivity_mv_ppb": "0.277",
+    "we_sensitivity_na_ppb": "0.346",
+    "we_sensor_zero_mv": "1",
+    "we_total_zero_mv": "293"
+  },
+  "12-000445": {
+    "v20": 0.297
   }
 }
