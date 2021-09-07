@@ -17,7 +17,7 @@ def alphasense_803_04(dataframe, **kwargs):
         to_date: string, datetime object
             Date until which this calibration id is valid to. None if current
         alphasense_id: string
-            Alphasense sensor ID (must be in calibrations.yaml)
+            Alphasense sensor ID (must be in calibrations.json)
         we: string
             Name of working electrode found in dataframe (V)
         ae: string
@@ -116,11 +116,11 @@ def alphasense_803_04(dataframe, **kwargs):
             std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
             return
 
-    # Remove spurios voltages (0V < electrode < 5V)
+    # Remove spurious voltages (0V < electrode < 5V)
     for electrode in ['we', 'ae']:
         subkwargs = {'name': kwargs[electrode], 
-                     'limits': (0, 5), # In V
-                     'window_size': None
+                        'limits': (0, 5), # In V
+                        'window_size': None
                     }
 
         df[f'{electrode}_clean'] = clean_ts(df, **subkwargs)
@@ -143,6 +143,7 @@ def alphasense_803_04(dataframe, **kwargs):
         df['we_c'] = df['we_t'] - (cal_data['we_sensor_zero_mv'] - cal_data['ae_sensor_zero_mv']) / 1000.0 - df['kp_t'] * df['ae_t']
     elif algorithm == 4:
         df['we_c'] = df['we_t'] - cal_data['we_sensor_zero_mv'] / 1000.0 - df['kpp_t']
+    # TODO - Check if df['we_c'] needs to always be positive and avoid spurious data
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0):
@@ -153,6 +154,101 @@ def alphasense_803_04(dataframe, **kwargs):
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
     return df['conc']
+
+def ec_sensor_temp(dataframe, **kwargs):
+    """
+    Outputs electrochemical temperature
+    Parameters
+    ----------
+        priority: string
+            Name of channel to be used as prioritary
+    Returns
+    -------
+        Temperature series
+    """
+    if 'priority' in kwargs:
+        if kwargs['priority'] in dataframe.columns: return dataframe[kwargs['priority']]
+    if 'ASPT1000' in dataframe.columns: return dataframe['ASPT1000']
+    if 'PM_DALLAS_TEMP' in dataframe.columns: return dataframe['PM_DALLAS_TEMP']
+    std_out('Problem with input data', 'ERROR')
+    return None
+
+def alphasense_pt1000(dataframe, **kwargs):
+    """
+    Calculates temperature in degC of a PT1000, given positive and negative voltage
+    levels (in V), considering negative PT1000 value is grounded
+    Parameters
+    ----------
+        from_date: string, datetime object
+            Date from which this calibration id is valid from
+        to_date: string, datetime object
+            Date until which this calibration id is valid to. None if current
+        pt1000plus: string
+            Name of PT1000+ found in dataframe (V)
+        pt1000minus: string
+            Name of PT1000- found in dataframe (V)
+        location: string
+            Valid location for date localisation
+        afe_id: string
+            Alphasense AFE ID (must be in calibrations.json)
+    Returns
+    -------
+        Calculation of temperature in degC
+    """
+    # Check inputs
+    flag_error = False
+    if 'pt1000plus' not in kwargs: flag_error = True
+    if 'pt1000minus' not in kwargs: flag_error = True
+
+    if flag_error:
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    if kwargs['afe_id'] is None:
+        std_out(f"Empty ID. Ignoring", 'WARNING')
+        return None
+
+    # Get Sensor data
+    if kwargs['afe_id'] not in config.calibrations:
+        std_out(f"AFE {kwargs['afe_id']} not in calibration data", 'ERROR')
+        return None
+
+    # Process input dates
+    if 'from_date' not in kwargs: from_date = None
+    else:
+        if 'location' not in kwargs:
+            std_out('Cannot localise date without location')
+            return None
+        from_date = localise_date(kwargs['from_date'], kwargs['location'])
+
+    if 'to_date' not in kwargs: to_date = None
+    else:
+        if 'location' not in kwargs:
+            std_out('Cannot localise date without location')
+            return None
+        to_date = localise_date(kwargs['to_date'], kwargs['location'])
+
+    # Retrieve calibration data - verify its all float
+    cal_data = config.calibrations[kwargs['afe_id']]
+    for item in cal_data:
+        try:
+            cal_data[item] = float (cal_data[item])
+        except:
+            std_out(f"Alphasense calibration data for {kwargs['afe_id']} is not correct", 'ERROR')
+            std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
+            return
+
+    # Make copy
+    df = dataframe.copy()
+    # Trim data
+    if from_date is not None: df = df[df.index > from_date]
+    if to_date is not None: df = df[df.index < to_date]
+
+    # Calculate temperature
+    df['v20'] = cal_data['v20'] - (cal_data['t20'] - 20.0) / 1000.0
+    df['temp'] = (df[kwargs['pt1000plus']] - df['v20']) * 1000.0 + 20.0 # in degC
+
+    return df['temp']
 
 def basic_4electrode_alg(dataframe, **kwargs):
     """

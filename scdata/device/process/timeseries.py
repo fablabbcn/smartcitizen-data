@@ -68,14 +68,13 @@ def clean_ts(dataframe, **kwargs):
     if kwargs['name'] not in dataframe: return None
 
     result = dataframe[kwargs['name']].copy()
-
     # Limits
     if 'limits' in kwargs: lower_limit, upper_limit = kwargs['limits'][0], kwargs['limits'][1]
     else: lower_limit, upper_limit = 0, 99999
 
     result[result > upper_limit] = nan
     result[result < lower_limit] = nan
-     
+
     # Smoothing
     if 'window_size' in kwargs: window = kwargs['window_size'] 
     else: window = 3

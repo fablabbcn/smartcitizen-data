@@ -120,7 +120,9 @@
     "EC_SENSOR_TEMP": {
       "desc": "Electrochemical sensor temperature",
       "id": null,
-      "kwargs": null,
+      "kwargs": {
+        "priority": "ASPT1000"
+      },
       "post": false,
       "process": "ec_sensor_temp",
       "units": "degC"
