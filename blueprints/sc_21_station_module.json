@@ -102,6 +102,16 @@
       "post": true,
       "id": 87
     },
+    "PT1000_POS": {
+      "desc": "PT1000 raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
     "ASPT1000": {
       "desc": "PT1000 temperature calculation in AFE",
       "id": null,
@@ -126,7 +136,127 @@
       "post": false,
       "process": "ec_sensor_temp",
       "units": "degC"
-    },    
+    },
+    "CO_WE": {
+      "desc": "CO working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "CO_AE": {
+      "desc": "CO auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "NO2_WE": {
+      "desc": "NO2 working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "NO2_AE": {
+      "desc": "NO2 auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "NO_WE": {
+      "desc": "NO working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "NO_AE": {
+      "desc": "NO auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "SO2_WE": {
+      "desc": "SO2 working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "SO2_AE": {
+      "desc": "SO2 auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "H2S_WE": {
+      "desc": "H2S working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "H2S_AE": {
+      "desc": "H2S auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "OX_WE": {
+      "desc": "OX working electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
+    "OX_AE": {
+      "desc": "OX auxiliary electrode raw value",
+      "id": null,
+      "kwargs": {
+        "channel": null
+      },
+      "post": false,
+      "process": "channel_names",
+      "units": "V"
+    },
     "CO": {
       "desc": "Calculation of CO based on AAN 803-04",
       "id": 152,
