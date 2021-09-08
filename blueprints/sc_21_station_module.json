@@ -129,7 +129,7 @@
     },
     "EC_SENSOR_TEMP": {
       "desc": "Electrochemical sensor temperature",
-      "id": null,
+      "id": "X013",
       "kwargs": {
         "priority": "ASPT1000"
       },
@@ -139,7 +139,7 @@
     },
     "CO_WE": {
       "desc": "CO working electrode raw value",
-      "id": null,
+      "id": "X001",
       "kwargs": {
         "channel": null
       },
@@ -149,7 +149,7 @@
     },
     "CO_AE": {
       "desc": "CO auxiliary electrode raw value",
-      "id": null,
+      "id": "X002",
       "kwargs": {
         "channel": null
       },
@@ -159,7 +159,7 @@
     },
     "NO2_WE": {
       "desc": "NO2 working electrode raw value",
-      "id": null,
+      "id": "X003",
       "kwargs": {
         "channel": null
       },
@@ -169,7 +169,7 @@
     },
     "NO2_AE": {
       "desc": "NO2 auxiliary electrode raw value",
-      "id": null,
+      "id": "X004",
       "kwargs": {
         "channel": null
       },
@@ -179,7 +179,7 @@
     },
     "NO_WE": {
       "desc": "NO working electrode raw value",
-      "id": null,
+      "id": "X005",
       "kwargs": {
         "channel": null
       },
@@ -189,7 +189,7 @@
     },
     "NO_AE": {
       "desc": "NO auxiliary electrode raw value",
-      "id": null,
+      "id": "X006",
       "kwargs": {
         "channel": null
       },
@@ -199,7 +199,7 @@
     },
     "SO2_WE": {
       "desc": "SO2 working electrode raw value",
-      "id": null,
+      "id": "X007",
       "kwargs": {
         "channel": null
       },
@@ -209,7 +209,7 @@
     },
     "SO2_AE": {
       "desc": "SO2 auxiliary electrode raw value",
-      "id": null,
+      "id": "X008",
       "kwargs": {
         "channel": null
       },
@@ -219,7 +219,7 @@
     },
     "H2S_WE": {
       "desc": "H2S working electrode raw value",
-      "id": null,
+      "id": "X009",
       "kwargs": {
         "channel": null
       },
@@ -229,7 +229,7 @@
     },
     "H2S_AE": {
       "desc": "H2S auxiliary electrode raw value",
-      "id": null,
+      "id": "X010",
       "kwargs": {
         "channel": null
       },
@@ -239,7 +239,7 @@
     },
     "OX_WE": {
       "desc": "OX working electrode raw value",
-      "id": null,
+      "id": "X011",
       "kwargs": {
         "channel": null
       },
@@ -249,7 +249,7 @@
     },
     "OX_AE": {
       "desc": "OX auxiliary electrode raw value",
-      "id": null,
+      "id": "X012",
       "kwargs": {
         "channel": null
       },

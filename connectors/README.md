@@ -5,3 +5,18 @@ This folder specifies data connectors with other APIs that might interact in som
 ## Currently implemented connections
 
 - [nilu](https://iflink.nilu.no/en/home/): https://sensors.nilu.no/api/doc
+
+## Definition
+
+```
+{
+  "handler": "NiluApiDevice", # Handler class in device_api.py
+  "sensors": {
+    "14": { # SC ID (see https://api.smartcitizen.me/v0/sensors/?per_page=200)
+      "id": 56, # target ID (for NILU see https://sensors.nilu.no/api/components)
+      "unitid": 28, # target unit ID
+      "level": 1 # target level ID
+    },
+    ...
+}
+```
