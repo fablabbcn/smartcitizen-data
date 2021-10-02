@@ -41,6 +41,14 @@
       "id": "PM10",
       "units": "ug/m3"
     },
+    "PM_1": {
+      "id": "PM1",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "id": "PM2.5",
+      "units": "ug/m3"
+    },
     "SO2": {
       "id": "SO2",
       "units": "ug/m3"
