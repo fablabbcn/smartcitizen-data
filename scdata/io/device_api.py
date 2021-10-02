@@ -1,5 +1,5 @@
 from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta,
-                    to_numeric, read_csv, DateOffset, MultiIndex)
+                    to_numeric, read_csv, read_json, DateOffset, MultiIndex)
 
 from math import isnan
 from traceback import print_exc
@@ -848,7 +848,7 @@ class MuvApiDevice:
 
 class DadesObertesApiDevice:
 
-    API_BASE_URL="https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?"
+    API_BASE_URL="https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json"
 
     def __init__ (self, did = None, within = None):
         if did is None and within is None:
@@ -867,7 +867,7 @@ class DadesObertesApiDevice:
         self.timezone = None
 
     @staticmethod
-    def get_world_map(city = None, within = None, station_type = None, area_type = None):
+    def get_world_map(city = None, within = None, station_type = None, area_type = None, full = False):
         """
         Gets devices from Dades Obertes API with certain requirements
         Parameters
@@ -885,6 +885,9 @@ class DadesObertesApiDevice:
             area_type: string
                 None
                 Type of area, to choose from:  nan, 'peri-urban', 'rural', 'suburban', 'urban'
+            full: bool
+                False
+                Return full dataframe or not
         Returns
         -------
             A list of eoi codes that comply with the requirements. If no requirements are set, returns all of them
@@ -895,8 +898,8 @@ class DadesObertesApiDevice:
 
             return distance(location_A=(within[0], within[1]), location_B=(x['latitude'], x['longitude'])).m < within[2]
 
-        world_map = get("https://analisi.transparenciacatalunya.cat/resource/uy6k-2s8r.csv?")
-        df = read_csv(StringIO(world_map.content.decode('utf-8'))).set_index('codi_eoi')
+        world_map = get("https://analisi.transparenciacatalunya.cat/resource/tasf-thgu.json")
+        df = read_json(StringIO(world_map.content.decode('utf-8'))).set_index('codi_eoi')
 
         # Location
         if city is not None: df=df[(df['municipi']==city)]
@@ -906,10 +909,11 @@ class DadesObertesApiDevice:
             df=df[(df['within']==True)]
 
         # Station type
-        if station_type is not None: df=df[(df['tipus_est']==station_type)]
+        if station_type is not None: df=df[(df['tipus_estacio']==station_type)]
         # Area type
-        if area_type is not None: df=df[(df['rea_urb']==area_type)]
+        if area_type is not None: df=df[(df['area_urbana']==area_type)]
 
+        if full: return df
         return list(set(list(df.index)))
 
     def get_id_from_within(self, within):
@@ -927,7 +931,7 @@ class DadesObertesApiDevice:
             return None
 
         if s.status_code == 200 or s.status_code == 201:
-            df = read_csv(StringIO(s.content.decode('utf-8')))
+            df = read_json(StringIO(s.content.decode('utf-8')))
         else:
             std_out('API reported {}'.format(s.status_code), 'ERROR')
             return None
@@ -938,11 +942,11 @@ class DadesObertesApiDevice:
             elif len(ids) > 1:
                 for ptid in ids:
                     municipi = next(iter(set(df[df.codi_eoi==ptid].municipi.values)))
-                    nom_estaci = next(iter(set(df[df.codi_eoi==ptid].nom_estaci.values)))
-                    rea_urb = next(iter(set(df[df.codi_eoi==ptid].rea_urb.values)))
-                    tipus_est = next(iter(set(df[df.codi_eoi==ptid].tipus_est.values)))
+                    nom_estacio = next(iter(set(df[df.codi_eoi==ptid].nom_estacio.values)))
+                    area_urbana = next(iter(set(df[df.codi_eoi==ptid].area_urbana.values)))
+                    tipus_estacio = next(iter(set(df[df.codi_eoi==ptid].tipus_estacio.values)))
 
-                    std_out(f'{ids.index(ptid)+1} /- {ptid} --- {municipi} - {nom_estaci} - Type: {rea_urb} - {tipus_est}')
+                    std_out(f'{ids.index(ptid)+1} /- {ptid} --- {municipi} - {nom_estacio} - Type: {area_urbana} - {tipus_estacio}')
 
                 wptid = int(input('Multiple stations found, please select one: ')) - 1
 
@@ -951,11 +955,11 @@ class DadesObertesApiDevice:
             else:
                 devid = ids[0]
                 municipi = next(iter(set(df[df.codi_eoi==devid].municipi.values)))
-                nom_estaci = next(iter(set(df[df.codi_eoi==devid].nom_estaci.values)))
-                rea_urb = next(iter(set(df[df.codi_eoi==devid].rea_urb.values)))
-                tipus_est = next(iter(set(df[df.codi_eoi==devid].tipus_est.values)))
+                nom_estacio = next(iter(set(df[df.codi_eoi==devid].nom_estacio.values)))
+                area_urbana = next(iter(set(df[df.codi_eoi==devid].area_urbana.values)))
+                tipus_estacio = next(iter(set(df[df.codi_eoi==devid].tipus_estacio.values)))
                 std_out(f'Found station in {next(iter(set(df[df.codi_eoi==devid].municipi.values)))} with codi_eoi={devid}')
-                std_out(f'Found station in {municipi} - {nom_estaci} - {devid} - Type: {rea_urb} - {tipus_est}')
+                std_out(f'Found station in {municipi} - {nom_estacio} - {devid} - Type: {area_urbana} - {tipus_estacio}')
 
         else:
             std_out('Data is empty', 'ERROR')
@@ -987,9 +991,9 @@ class DadesObertesApiDevice:
 
         if self.devicejson is None:
             try:
-                s = get(self.API_BASE_URL + f'codi_eoi={self.id}')
+                s = get(self.API_BASE_URL + f'/?codi_eoi={self.id}')
                 if s.status_code == 200 or s.status_code == 201:
-                    self.devicejson = read_csv(StringIO(s.content.decode('utf-8')))
+                    self.devicejson = read_json(StringIO(s.content.decode('utf-8')))
                 else:
                     std_out('API reported {}'.format(s.status_code), 'ERROR')
             except:
@@ -1037,7 +1041,7 @@ class DadesObertesApiDevice:
         self.get_device_timezone()
 
         request = self.API_BASE_URL
-        request += f'codi_eoi={self.id}'
+        request += f'/?codi_eoi={self.id}'
 
         if min_date is not None and max_date is not None:
             request += "&$where=data between " + to_datetime(min_date).strftime("'%Y-%m-%dT%H:%M:%S'") \
@@ -1056,7 +1060,7 @@ class DadesObertesApiDevice:
             return None
 
         if s.status_code == 200 or s.status_code == 201:
-            df = read_csv(StringIO(s.content.decode('utf-8')))
+            df = read_json(StringIO(s.content.decode('utf-8')))
         else:
             std_out('API reported {}'.format(s.status_code), 'ERROR')
             pass
@@ -1289,9 +1293,17 @@ class NiluApiDevice(object):
         components = []
 
         # Construct
+
+        print (config.connectors[API_CONNECTOR]['sensors'])
         for sensor in sensors.keys():
             # Check if it's in the configured connectors
             _sid = str(sensors[sensor]['id'])
+
+            print (_sid)
+
+            if _sid is None:
+                std_out(f"Sensor {sensor} id is None. Ignoring", "WARNING")
+                return False
 
             if _sid not in config.connectors[API_CONNECTOR]['sensors']:
                 if config._strict:
