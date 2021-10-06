@@ -5,6 +5,7 @@ from scdata.io import read_csv_file, export_csv_file
 from scdata.utils import LazyCallable, url_checker, get_json_from_url
 from scdata._config import config
 from scdata.device.process import *
+from scdata.io.device_api import *
 
 from os.path import join, basename
 from urllib.parse import urlparse
@@ -308,7 +309,17 @@ class Device(object):
             elif 'api' in self.source:
 
                 # Get device location
-                self.location = self.api_device.get_device_timezone()
+                # Location data should be standard for each new device
+                self.api_device.get_device_lat_long()
+                self.api_device.get_device_alt()
+
+                self.location = {
+                    'longitude': self.api_device.long,
+                    'latitude': self.api_device.lat,
+                    'altitude': self.api_device.alt
+                }
+
+                self.timezone = self.api_device.get_device_timezone()
 
                 if path is None:
                     # Not chached case
@@ -409,6 +420,9 @@ class Device(object):
                             self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
                             self.metrics[pollutant]['kwargs']['from_date'] = from_date
                             self.metrics[pollutant]['kwargs']['to_date'] = to_date
+                            # Add channel name for traceability
+                            self.metrics[f'{pollutant}_WE']['kwargs']['channel'] = wen
+                            self.metrics[f'{pollutant}_AE']['kwargs']['channel'] = aen
 
                     # Alphasense type - AAN 803-04
                     if slot.startswith('PT'):
@@ -432,10 +446,12 @@ class Device(object):
                             self.metrics[metric]['kwargs']['timezone'] = self.timezone
                             self.metrics[metric]['kwargs']['from_date'] = from_date
                             self.metrics[metric]['kwargs']['to_date'] = to_date
+                            # Add channel name for traceability
+                            self.metrics[f'PT1000_POS']['kwargs']['channel'] = pt1000plus
 
                     # Other metric types will go here
-            else:
-                std_out('No hardware versions found, ignoring additional metrics', 'WARNING')
+        else:
+            std_out('No hardware versions found, ignoring additional metrics', 'WARNING')
 
     def __check_sensors__(self):
         remove_sensors = list()

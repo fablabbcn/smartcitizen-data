@@ -250,6 +250,38 @@ def alphasense_pt1000(dataframe, **kwargs):
 
     return df['temp']
 
+def channel_names(dataframe, **kwargs):
+    """
+    Gets a named channel related to a generic ADC channel.
+    For instance, an ADC with I2C address 48 has three
+    channels: 0, 1, 2 and 3. 48_0 could corresponde to the working electrode
+    of a CO sensor, so the channel ADC_48_0 would be copied over to a new
+    channel named CO_WE. for the ADC_48_1, the CO auxiliary electrode
+    it would be copied to CO_AE. The naming convention is specified in the
+    hardware folder
+    Parameters
+    ----------
+        channel: string
+            Channel name, i.e. ADC_48_0
+    Returns
+    -------
+        Channel named accordingly
+    """
+    # Check inputs
+    flag_error = False
+    if 'channel' not in kwargs: flag_error = True
+    if kwargs['channel'] not in dataframe:
+        std_out(f"Channel {kwargs['channel']} not in dataframe. Ignoring", 'WARNING')
+        return None
+
+    if flag_error:
+        std_out('Problem with input data', 'ERROR')
+        return None
+
+    # Make copy
+    df = dataframe.copy()
+    return df[kwargs['channel']]
+
 def basic_4electrode_alg(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
