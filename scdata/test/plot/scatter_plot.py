@@ -141,7 +141,7 @@ def scatter_plot(self, **kwargs):
 
             if formatting['ylabel'] is not None:
                 try:
-                    ax.set_ylabel(formatting['ylabel'][subplots.index(i)+1]);
+                    ax.set_ylabel(formatting['ylabel']);
                 except:
                     std_out (f'y_label for subplot {subplots.index(i)} not set', 'WARNING')
                     ax.set_ylabel('')
@@ -151,7 +151,7 @@ def scatter_plot(self, **kwargs):
 
             if formatting['xlabel'] is not None:
                 try:
-                    ax.set_xlabel(formatting['xlabel'][subplots.index(i)+1]);
+                    ax.set_xlabel(formatting['xlabel']);
                 except:
                     std_out (f'x_label for subplot {subplots.index(i)} not set', 'WARNING')
                     ax.set_xlabel('')
