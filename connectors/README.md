@@ -11,6 +11,7 @@ This folder specifies data connectors with other APIs that might interact in som
 ```
 {
   "handler": "NiluApiDevice", # Handler class in device_api.py
+  "name_prepend": "SmartCitizen_", # This will be the name in the target API - SmartCitizen_{id}
   "sensors": {
     "14": { # SC ID (see https://api.smartcitizen.me/v0/sensors/?per_page=200)
       "id": 56, # target ID (for NILU see https://sensors.nilu.no/api/components)
