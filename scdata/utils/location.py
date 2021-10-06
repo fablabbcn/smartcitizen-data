@@ -21,4 +21,11 @@ def get_elevation(_lat = None, _long = None):
         elevation = json_normalize(r.json(), 'results')['elevation'].values[0]
     else:
         elevation = None
+
+    try:
+        elevation = int(elevation)
+    except:
+        elevation = None
+        pass
+
     return elevation
