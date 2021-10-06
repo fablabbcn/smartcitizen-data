@@ -6,6 +6,7 @@
         <title>{{ descriptor['id'] }}</title>
         <!-- Web Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i%7CMontserrat:400,700" rel="stylesheet">
+        <link rel="icon" href="https://smartcitizen.me/assets/favicon_128x128.png" sizes="128x128">
     </head>
     <body>
 {% endif %}
@@ -24,7 +25,7 @@
                 </div>
                 <ul>
                     <li><strong>Author:</strong> {{ descriptor.author }}</li>
-                    <li><strong>Date:</strong> {{ descriptor.id[0:7].replace("_", "-") }}</li>
+                    <li><strong>Date:</strong> {{ descriptor.date }}</li>
                     <li><strong>Comment:</strong> {{ descriptor.comment }}</li>
                     <li><strong>Conditions:</strong> {{ descriptor.type_test }}</li>
                     <li><strong>Project:</strong> {{ descriptor.project }}</li>
@@ -34,26 +35,30 @@
                 <div class="header">
                     <h2>Devices summary</h2>
                 </div>
-                <table>
-                    <tr class="first">
-                        <th style="width: 15vh;"> Device </th>
-                        <th class='table-center' style="width: 35vh;"> Blueprint </th>
-                        <th class='table-center' style="width: 20vh;"> Documentation </th>
-                        <th class='table-center' style="width: 20vh;"> Timezone </th>
-                        <th class='table-center' style="width: 20vh;"> Source </th>                       
-                    </tr>
-                    {% for key, value in descriptor.devices.items() %}
-                        <tr>
-                            <td>{{ key }}</td>
-                            <td class='table-center'>{{ value.blueprint.upper().replace("_", " ") }}</td>
-                            <td class='table-center'><a href="{{ value.documentation }}" >Documentation</a></td>
-                            <td class='table-center'><a>{{ value.location }}</a></td>
-                            <td class='table-center'><em>{{ value.source.upper().replace("_", " ") }}</em></td>
+                <details>
+                    <summary>Devices list</summary>
+                    <table>
+                        <tr class="first">
+                            <th style="width: 15vh;"> Device </th>
+                            <th class='table-center' style="width: 35vh;"> Blueprint </th>
+                            <th class='table-center' style="width: 20vh;"> Documentation </th>
+                            <th class='table-center' style="width: 20vh;"> Timezone </th>
+                            <th class='table-center' style="width: 20vh;"> Source </th>
                         </tr>
-                    {% endfor %}
-                </table>
+                        {% for key, value in descriptor.devices.items() %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td class='table-center'>{{ value.blueprint.upper().replace("_", " ") }}</td>
+                                <td class='table-center'><a href="{{ value.documentation }}" >Documentation</a></td>
+                                <td class='table-center'><a>{{ value.location }}</a></td>
+                                <td class='table-center'><em>{{ value.source.upper().replace("_", " ") }}</em></td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </details>
                 <div class="header">
                     <h2>Device information</h2>
+                    <p> Below is a description of each device, finding documentation and data sources.</p>
                 </div>
                 {% for device, _ in descriptor.devices.items() %}
                     <details>
@@ -109,10 +114,12 @@
                 <h2> Analysis </h2>
                 {% for item, value in content.items() %}
                     <div class="analysis-block">
-                    <h3>{{ value.title }}</h3>
+                    {% if value.show_title %}
+                        <h3>{{ value.title }}</h3>
+                    {% endif %}
                     {% if 'text' in value %}
                         <p>
-                            {{ value.text }}
+                            {{ value.text|safe }}
                         </p>
                     {% endif %}
                     {% if 'image' in value %}
@@ -139,7 +146,7 @@
     body {
         text-align: justify;
         line-height: 1.6;
-        font-size: 1rem;
+        font-size: 14px;
         font-family: Roboto, sans-serif; 
         margin: 15px;
         overflow: visible;
@@ -173,34 +180,37 @@
     }
 
     h3{
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 1.1em;
     }
 
     h4{
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 1em;
     }
 
 
-    ul {
+/*    ul {
         list-style: none;
-        font-size: 1rem;
-    }
+    }*/
 
     table {
-        font-size: 0.8rem;
+        font-size: 13px;
         margin: auto;
         padding: 20px;
         text-align: center;
 
     }
 
-    summary{
-        background: grey;
-        color: white;
-        text-emphasis: 2em;
+    details{
         padding: 3px 20px;
+    }
+
+    summary{
+/*        background: grey;
+        color: white;*/
+        text-emphasis: 2em;
+        /*padding: 3px 20px;*/
         margin-bottom: 5px;
         border-radius: 20px;
     }

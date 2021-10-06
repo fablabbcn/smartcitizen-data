@@ -100,4 +100,4 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
         
     std_out (f'File saved to: {filename}', 'SUCCESS')
 
-    return rendered
+    return filename, rendered
