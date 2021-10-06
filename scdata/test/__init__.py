@@ -214,14 +214,40 @@ class Test(object):
         if device.id not in self.devices.keys(): self.devices[device.id] = device
         else: std_out(f'Device {device.id} is duplicated', 'WARNING')
 
-    def add_content(self, title = None, figure = None, text = None, iframe = None):
+    def add_content(self, title, figure = None, text = None, iframe = None, show_title = True, force = False):
         '''
-            Adds content for the rendered flask template of the test
+            Adds content for the rendered flask template of the test. Content is a dict()
+            which contains a key per title (replacing ' ' with '_') and the content in it.
+
+            Parameters
+            ----------
+            title
+                None
+                Content title. Needs to not be None
+            figure
+                None
+                matplotlib or similar figure that can be converted to base64
+            text
+                None
+                Text to be converted to <p> html tag with additional inner html (jinja2 safe rendered)
+            iframe
+                None
+                HTML iframe contanining anything
+            show_title
+                True
+                show title in HTML <h3> tag
+            force
+                If already added content with this title
+
+            Returns
+            ----------
+            True if content added, false otherwise
+
         '''
 
         title_cor = sub('\W|^(?=\d)','_', title)
 
-        if title_cor not in self.content:
+        if title_cor not in self.content or force:
             self.content[title_cor] = dict()
 
             if title is not None:
@@ -233,10 +259,13 @@ class Test(object):
             if iframe is not None:
                 self.content[title_cor]['iframe'] = iframe
 
+            self.content[title_cor]['show_title'] = show_title
+
+            std_out('Item added', 'SUCCESS')
             return True
 
         else:
-
+            std_out('Item not added as its already in content', 'ERROR')
             return False
 
     def process(self, only_new = False):
