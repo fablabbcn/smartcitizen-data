@@ -183,8 +183,10 @@ def prepare_data(test, traces, options):
                 subplots[traces[trace]['subplot']-1].append(extra_name)
 
     # Trim data
-    if options['min_date'] is not None: df = df[df.index > options['min_date']]
-    if options['max_date'] is not None: df = df[df.index < options['max_date']]
+    if 'min_date' in options:
+        if options['min_date'] is not None: df = df[df.index > options['min_date']]
+    if 'max_date' in options:
+        if options['max_date'] is not None: df = df[df.index < options['max_date']]
 
     # Make sure everything is numeric before resampling
     # https://stackoverflow.com/questions/34257069/resampling-pandas-dataframe-is-deleting-column#34270422
