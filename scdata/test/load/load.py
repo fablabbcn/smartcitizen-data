@@ -68,19 +68,19 @@ def load(self, options = dict()):
         std_out('---------------------------')
         std_out(f'Loading device {device.id}')
 
-        min_date_device = localise_date(device.min_date, device.location)
-        max_date_device = localise_date(device.max_date, device.location)
+        min_date_device = localise_date(device.min_date, device.timezone)
+        max_date_device = localise_date(device.max_date, device.timezone)
 
         # If device comes from API, pre-check dates
         if device.source == 'api':
 
-            if device.location is None:
-                device.location = device.api_device.get_device_timezone()
+            if device.timezone is None:
+                device.timezone = device.api_device.get_device_timezone()
 
             # Get last reading from API
             if 'get_device_last_reading' in dir(device.api_device):
                 last_reading_api = localise_date(device.api_device.get_device_last_reading(),
-                    device.location)
+                    device.timezone)
 
                 if self.options['load_cached_api']:
                     std_out(f'Checking if we can load cached data')
@@ -89,9 +89,9 @@ def load(self, options = dict()):
 
                         std_out(f'No valid cached data. Requesting device {device.id} to API', 'WARNING')
                         min_date_to_load = localise_date(device.options['min_date'],
-                                                         device.location)
+                                                         device.timezone)
                         max_date_to_load = localise_date(device.options['max_date'],
-                                                         device.location)
+                                                         device.timezone)
                         load_API = True
 
                     else:
@@ -100,7 +100,7 @@ def load(self, options = dict()):
                         std_out(f'Checking if new data is to be loaded')
 
                         # Get last reading from cached
-                        last_reading_cached = localise_date(device.readings.index[-1], device.location)
+                        last_reading_cached = localise_date(device.readings.index[-1], device.timezone)
                         std_out(f'Last cached date {last_reading_cached}')
                         std_out(f'Last reading in API {last_reading_api}')
 

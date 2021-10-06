@@ -33,8 +33,8 @@ class Config(object):
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
 
-    # Default location for timezones
-    _location = 'Europe/Madrid'
+    # Default timezone for timezones
+    _timezone = 'Europe/Madrid'
     _epsg = 4326
 
     # Returns when iterables cannot be fully processed

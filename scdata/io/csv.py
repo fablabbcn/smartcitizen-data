@@ -37,14 +37,14 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
     
     return True
 
-def read_csv_file(file_path, location, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8'):
+def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8'):
     """
     Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
     Parameters
     ----------
         file_path: String
             File path for csv file
-        location: String
+        timezone: String
             Time zone for the csv file
         clean_na: String or None
             None
@@ -82,7 +82,7 @@ def read_csv_file(file_path, location, frequency, clean_na = None, index_name = 
         return None
 
     # Set index
-    df.index = localise_date(df.index, location)
+    df.index = localise_date(df.index, timezone)
     # Remove duplicates
     df = df[~df.index.duplicated(keep='first')]
     

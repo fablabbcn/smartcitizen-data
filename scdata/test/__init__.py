@@ -344,7 +344,7 @@ class Test(object):
                         dst_path = join(self.path, device.processed_data_file)
 
                         # Load csv file, only localising and removing
-                        df = read_csv_file(src_path, device.location, device.frequency, clean_na = None,
+                        df = read_csv_file(src_path, device.timezone, device.frequency, clean_na = None,
                                            index_name = device.sources[device.source]['index'],
                                            skiprows = device.sources[device.source]['header_skip'])
                         df.to_csv(dst_path, sep=",")

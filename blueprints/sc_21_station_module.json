@@ -4,7 +4,7 @@
   "frequency": null,
   "id": null,
   "info_data_file": null,
-  "location": null,
+  "timezone": null,
   "max_date": null,
   "metrics": {
     "CCS811_ECO2_CLEAN": {
@@ -118,7 +118,7 @@
       "kwargs": {
         "pt1000minus": null,
         "from_date": null,
-        "location": null,
+        "timezone": null,
         "to_date": null,
         "pt1000plus": null,
         "afe_id": null
@@ -264,7 +264,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
@@ -280,7 +280,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
@@ -296,7 +296,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
@@ -312,7 +312,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null,
@@ -329,7 +329,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null
@@ -345,7 +345,7 @@
           "ae": null,
           "alphasense_id": null,
           "from_date": null,
-          "location": null,
+          "timezone": null,
           "t": "EC_SENSOR_TEMP",
           "to_date": null,
           "we": null

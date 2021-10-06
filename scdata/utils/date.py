@@ -1,6 +1,6 @@
 from pandas import to_datetime
 
-def localise_date(date, location):
+def localise_date(date, timezone):
     """
     Localises a date if it's tzinfo is None, otherwise converts it to it.
     If the timestamp is tz-aware, converts it as well
@@ -8,7 +8,7 @@ def localise_date(date, location):
     ----------
         date: string or datetime
             Date
-        location: string
+        timezone: string
             Timezone string. i.e.: 'Europe/Madrid'
     Returns
     -------
@@ -18,9 +18,9 @@ def localise_date(date, location):
     if date is not None:
         result_date = to_datetime(date, utc = True)
         if result_date.tzinfo is not None: 
-            result_date = result_date.tz_convert(location)
+            result_date = result_date.tz_convert(timezone)
         else:
-            result_date = result_date.tz_localize(location)
+            result_date = result_date.tz_localize(timezone)
 
     else: 
         result_date = None

@@ -70,7 +70,7 @@ class ScApiDevice:
         return self._api_url
 
     @staticmethod
-    def new_device(name, kit_id = 26, latitude = 41.396867,  longitude = 2.194351, exposure = 'indoor', user_tags = 'Lab, Research, Experimental'):
+    def new_device(name, kit_id = 26, location = None, exposure = 'indoor', user_tags = 'Lab, Research, Experimental'):
         '''
             Creates a new device in the Smart Citizen Platform provided a name
             Parameters
@@ -80,12 +80,13 @@ class ScApiDevice:
                 kit_id: int, optional
                     26 (SCK 2.1)
                     Kit ID - related to blueprint
-                latitude: int, optional
-                    41.396867
-                    Latitude
-                longitude: int, optional
-                    2.194351
-                    Longitude
+                location: dict, optional
+                    None
+                    location = {
+                                'longitude': longitude (double) – sensor east-west position,
+                                'latitude': latitude (double) – sensor north-south position,
+                                'altitude': altitude (double) – sensor height above sea level
+                                }
                 exposure: string, optional
                     'indoor'
                     Type of exposure ('indoor', 'outdoor')
@@ -433,7 +434,6 @@ class ScApiDevice:
 
         if self.lat is None or self.long is None:
             self.get_device_lat_long(update)
-
 
         if self.alt is None or update:
             self.alt = get_elevation(_lat = self.lat, _long = self.long)
@@ -1293,13 +1293,9 @@ class NiluApiDevice(object):
         components = []
 
         # Construct
-
-        print (config.connectors[API_CONNECTOR]['sensors'])
         for sensor in sensors.keys():
             # Check if it's in the configured connectors
             _sid = str(sensors[sensor]['id'])
-
-            print (_sid)
 
             if _sid is None:
                 std_out(f"Sensor {sensor} id is None. Ignoring", "WARNING")
@@ -1329,7 +1325,6 @@ class NiluApiDevice(object):
 
             parameters.append(_pjson)
             components.append(_cjson)
-
         # Add timestamp as long
         parameters.append({
             'name': 'date',

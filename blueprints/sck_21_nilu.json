@@ -3,7 +3,7 @@
   "documentation": "https://docs.smartcitizen.me/",
   "frequency": null,
   "id": null,
-  "location": null,
+  "timezone": null,
   "max_date": null,
   "metrics": null,
   "min_date": null,

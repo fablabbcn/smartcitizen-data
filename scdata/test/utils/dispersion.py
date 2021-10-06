@@ -2,7 +2,7 @@ from scdata.utils import std_out, localise_date
 from pandas import DataFrame
 from scdata._config import config
 
-def dispersion_analysis(self, min_date = None, max_date = None, location = 'Europe/Madrid', smooth_window = 5):
+def dispersion_analysis(self, min_date = None, max_date = None, timezone = 'Europe/Madrid', smooth_window = 5):
     '''
         Creates channels on a new dataframe for each device/channel combination, and makes the average/std of each
         in a point-by-point fashion
@@ -17,9 +17,9 @@ def dispersion_analysis(self, min_date = None, max_date = None, location = 'Euro
             Default: None
             Maximum date from which to perform the analysis
         
-        location: String
+        timezone: String
             Default: None
-            Location of the sensors for timezone
+            Sensors for timezone
         
         smooth_window: int
             Default: 5
@@ -35,8 +35,8 @@ def dispersion_analysis(self, min_date = None, max_date = None, location = 'Euro
     if len(self.common_channels) == 0: self.get_common_channels() 
 
     # Localise dates
-    min_date = localise_date(min_date, location)
-    max_date = localise_date(max_date, location)
+    min_date = localise_date(min_date, timezone)
+    max_date = localise_date(max_date, timezone)
     
     # Calculate the dispersion for the sensors present in the dataset
     warning = False
@@ -61,7 +61,7 @@ def dispersion_analysis(self, min_date = None, max_date = None, location = 'Euro
                 std_out(f'Device {device} does not contain {channel}</p>', 'WARNING')
                 warning = True
 
-        self.dispersion_df.index = localise_date(self.dispersion_df.index, location)
+        self.dispersion_df.index = localise_date(self.dispersion_df.index, timezone)
 
         # Trim dataset to min and max dates (normally these tests are carried out with _minutes_ of differences)
         if min_date is not None: self.dispersion_df = self.dispersion_df[self.dispersion_df.index > min_date]

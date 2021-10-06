@@ -27,8 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
-        location: string
-            Valid location for date localisation
+        timezone: string
+            Valid timezone for date localisation
     Returns
     -------
         calculation of pollutant in ppb
@@ -75,17 +75,17 @@ def alphasense_803_04(dataframe, **kwargs):
     # Process input dates
     if 'from_date' not in kwargs: from_date = None
     else:
-        if 'location' not in kwargs:
-            std_out('Cannot localise date without location')
+        if 'timezone' not in kwargs:
+            std_out('Cannot localise date without timezone')
             return None
-        from_date = localise_date(kwargs['from_date'], kwargs['location'])
+        from_date = localise_date(kwargs['from_date'], kwargs['timezone'])
 
     if 'to_date' not in kwargs: to_date = None
     else:
-        if 'location' not in kwargs:
-            std_out('Cannot localise date without location')
+        if 'timezone' not in kwargs:
+            std_out('Cannot localise date without timezone')
             return None
-        to_date = localise_date(kwargs['to_date'], kwargs['location'])
+        to_date = localise_date(kwargs['to_date'], kwargs['timezone'])
 
     # Make copy
     df = dataframe.copy()
@@ -187,8 +187,8 @@ def alphasense_pt1000(dataframe, **kwargs):
             Name of PT1000+ found in dataframe (V)
         pt1000minus: string
             Name of PT1000- found in dataframe (V)
-        location: string
-            Valid location for date localisation
+        timezone: string
+            Valid timezone for date localisation
         afe_id: string
             Alphasense AFE ID (must be in calibrations.json)
     Returns
@@ -216,17 +216,17 @@ def alphasense_pt1000(dataframe, **kwargs):
     # Process input dates
     if 'from_date' not in kwargs: from_date = None
     else:
-        if 'location' not in kwargs:
-            std_out('Cannot localise date without location')
+        if 'timezone' not in kwargs:
+            std_out('Cannot localise date without timezone')
             return None
-        from_date = localise_date(kwargs['from_date'], kwargs['location'])
+        from_date = localise_date(kwargs['from_date'], kwargs['timezone'])
 
     if 'to_date' not in kwargs: to_date = None
     else:
-        if 'location' not in kwargs:
-            std_out('Cannot localise date without location')
+        if 'timezone' not in kwargs:
+            std_out('Cannot localise date without timezone')
             return None
-        to_date = localise_date(kwargs['to_date'], kwargs['location'])
+        to_date = localise_date(kwargs['to_date'], kwargs['timezone'])
 
     # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['afe_id']]

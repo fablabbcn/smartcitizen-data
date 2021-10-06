@@ -245,6 +245,21 @@ class Device(object):
         if self.hardware_description is not None: return True
         else: return False
 
+    def merge_sensor_metrics(self, ignore_empty = True):
+        std_out('Merging sensor and metrics channels')
+        all_channels = dict_fmerge(self.sensors, self.metrics)
+
+        if ignore_empty:
+            to_ignore = []
+            for channel in all_channels.keys():
+                if self.readings[channel].dropna().empty:
+                    std_out (f'{channel} is empty')
+                    to_ignore.append(channel)
+
+            [all_channels.pop(x) for x in to_ignore]
+
+        return all_channels
+
     def load(self, options = None, path = None, convert_units = True, only_unprocessed = False, max_amount = None):
         '''
         Loads the device with some options
@@ -284,7 +299,7 @@ class Device(object):
 
         try:
             if self.source == 'csv':
-                self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.location,
+                self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.timezone,
                                                             self.options['frequency'], self.options['clean_na'],
                                                             self.sources[self.source]['index']))
                 if self.readings is not None:
@@ -318,7 +333,7 @@ class Device(object):
                 else:
                     # Cached case
                     self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
-                                                                self.location, self.options['frequency'],
+                                                                self.timezone, self.options['frequency'],
                                                                 self.options['clean_na'], self.sources['csv']['index']))
 
         except FileNotFoundError:
@@ -390,7 +405,7 @@ class Device(object):
                             std_out(f'{pollutant} found in blueprint metrics, filling up with hardware info')
                             self.metrics[pollutant]['kwargs']['we'] = wen
                             self.metrics[pollutant]['kwargs']['ae'] = aen
-                            self.metrics[pollutant]['kwargs']['location'] = self.location
+                            self.metrics[pollutant]['kwargs']['timezone'] = self.timezone
                             self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
                             self.metrics[pollutant]['kwargs']['from_date'] = from_date
                             self.metrics[pollutant]['kwargs']['to_date'] = to_date
@@ -414,7 +429,7 @@ class Device(object):
                             self.metrics[metric]['kwargs']['pt1000plus'] = pt1000plus
                             self.metrics[metric]['kwargs']['pt1000minus'] = pt1000minus
                             self.metrics[metric]['kwargs']['afe_id'] = str(sensor_id)
-                            self.metrics[metric]['kwargs']['location'] = self.location
+                            self.metrics[metric]['kwargs']['timezone'] = self.timezone
                             self.metrics[metric]['kwargs']['from_date'] = from_date
                             self.metrics[metric]['kwargs']['to_date'] = to_date
 
@@ -489,6 +504,7 @@ class Device(object):
         else: metrics = dict([(key, self.metrics[key]) for key in lmetrics])
 
         for metric in metrics:
+            std_out(f'---')
             std_out(f'Processing {metric}')
 
             if only_new and metric in self.readings:
@@ -562,10 +578,7 @@ class Device(object):
             std_out('Empty forwarding information', 'ERROR')
             return False
 
-        rd = dict()
         df = self.readings.copy().dropna(axis = 0, how='all')
-
-        df.rename(columns=rd, inplace=True)
 
         if df.empty:
             std_out('Empty dataframe, ignoring', 'WARNING')

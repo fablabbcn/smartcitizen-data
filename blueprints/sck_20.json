@@ -4,7 +4,7 @@
   "frequency": null,
   "id": null,
   "info_data_file": null,
-  "location": null,
+  "timezone": null,
   "max_date": null,
   "metrics": {
     "PM_10_CLEAN": {
