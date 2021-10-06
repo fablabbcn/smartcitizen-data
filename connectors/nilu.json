@@ -1,5 +1,6 @@
 {
   "handler": "NiluApiDevice",
+  "name_prepend": "SmartCitizen_",
   "sensors": {
     "14": {
       "id": 56,
