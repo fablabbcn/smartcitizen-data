@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import style
 from seaborn import set_palette, boxplot
+# import seaborn as sns
 from scdata.utils import std_out, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, groupby_session
@@ -51,6 +52,9 @@ def box_plot(self, **kwargs):
     else:
         formatting = dict_fmerge(config._boxplot_def_fmt['mpl'], kwargs['formatting'])
 
+    # if 'fontsize' in formatting:
+    #     sns.set(rc = {'font.size': formatting['fontsize']})
+
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config._plot_style)
@@ -62,18 +66,12 @@ def box_plot(self, **kwargs):
     # Palette
     if formatting['palette'] is not None: set_palette(formatting['palette'])
 
-    # Font size
-    if formatting['fontsize'] is not None:
-            rcParams.update({'font.size': formatting['fontsize']});
-
     # Get dataframe
     df, subplots = prepare_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:
         return None
-
-    n_subplots = len(subplots)
 
     dfgb, labels, xaxis, channel = groupby_session(df, frequency_hours = formatting['frequency_hours'],
                                                        periods = formatting['periods'])
@@ -90,7 +88,9 @@ def box_plot(self, **kwargs):
 
     # TODO make this to compare to not None, so that we can send location
     if formatting['ylabel'] is not None:
-        _ = g.set_ylabel(formatting['ylabel']);
+        _ = g.set_ylabel(formatting['ylabel'], fontsize = formatting['fontsize']);
+    else:
+        _ = g.set_ylabel(g.axes.get_ylabel(), fontsize = formatting['fontsize']);
 
     if formatting['grid'] is not None:
          _ = g.grid(formatting['grid']);
@@ -98,11 +98,12 @@ def box_plot(self, **kwargs):
     if formatting['yrange'] is not None:
         ax.set_ylim(formatting['yrange']);
 
-    _ = g.set_xlabel(xaxis);
+    _ = g.set_xlabel(xaxis, fontsize = formatting['fontsize']);
 
     # Set title
     if formatting['title'] is not None:
         _ = g.figure.suptitle(formatting['title'], fontsize=formatting['title_fontsize']);
+    g.axes.tick_params(labelsize = formatting['fontsize'])
 
     # Suptitle factor
     if formatting['suptitle_factor'] is not None:
