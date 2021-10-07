@@ -172,5 +172,12 @@
       "unitid": 2,
       "level": 1
     }
+  },
+  "kwargs": {
+    "description": "same_as_api",
+    "frequency": "options",
+    "espg": "config",
+    "enabled": true,
+    "sensors": "same_as_device"
   }
 }
