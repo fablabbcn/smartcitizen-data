@@ -362,6 +362,11 @@ class ScApiDevice:
                 pass
         return self.devicejson
 
+    def get_device_description(self, update = False):
+        if self.get_device_json(update) is not None:
+            return self.get_device_json()['kit']['description']
+        return None
+
     def get_kit_ID(self, update = False):
 
         if self.kit_id is None or update:
@@ -1446,6 +1451,11 @@ class NiluApiDevice(object):
                 std_out('Failed request. Probably no connection', 'ERROR')
                 pass
         return self.devicejson
+
+    def get_device_description(self, update = False):
+        if self.get_device_json(update) is not None:
+            return self.get_device_json()['description']
+        return None
 
     def get_device_lat_long(self, update = False):
 
