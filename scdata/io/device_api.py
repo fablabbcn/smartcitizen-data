@@ -1472,6 +1472,18 @@ class NiluApiDevice(object):
 
         return (self.lat, self.long)
 
+    def get_device_alt(self, update = False):
+
+        if self.lat is None or self.long is None:
+            self.get_device_lat_long(update)
+
+        if self.alt is None or update:
+            self.alt = get_elevation(_lat = self.lat, _long = self.long)
+
+        std_out ('Device {} altitude is {}m'.format(self.id, self.alt))
+
+        return self.alt
+
     def get_device_last_reading(self, update = False):
         if 'NILU_BEARER' in environ:
             std_out('Auth Bearer found, using it', 'SUCCESS')
