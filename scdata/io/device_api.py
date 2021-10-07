@@ -70,16 +70,14 @@ class ScApiDevice:
         return self._api_url
 
     @staticmethod
-    def new_device(name, kit_id = 26, location = None, exposure = 'indoor', user_tags = 'Lab, Research, Experimental'):
+    # def new_device(name, kit_id = 26, location = None, exposure = 'indoor', user_tags = 'Lab, Research, Experimental', dry_run = False):
+    def new_device(name, location = {}, dry_run = False, **kwargs):
         '''
             Creates a new device in the Smart Citizen Platform provided a name
             Parameters
             ----------
                 name: string
                     Device name
-                kit_id: int, optional
-                    26 (SCK 2.1)
-                    Kit ID - related to blueprint
                 location: dict, optional
                     None
                     location = {
@@ -87,16 +85,33 @@ class ScApiDevice:
                                 'latitude': latitude (double) – sensor north-south position,
                                 'altitude': altitude (double) – sensor height above sea level
                                 }
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
+                **kwargs
+                ------
+                kit_id: int, optional
+                    26 (SCK 2.1)
+                    Kit ID - related to blueprint
                 exposure: string, optional
                     'indoor'
                     Type of exposure ('indoor', 'outdoor')
                 user_tags: string
                     'Lab, Research, Experimental'
-                    User tags, comma sepparated
+                    User tags, comma separated
+                -----
             Returns
             -------
-                platform id
+                If dry_run, prints out a dict containing the payload and
+                returns False
+                If not, either False in case of error or a
+                dictionary containing:
+                    id (int) – sensor identifier
+                    message (string) – HTTP status text
+                    http-status-code (int) – HTTP status code
         '''
+
+        API_BASE_URL = 'https://api.smartcitizen.me/v0/devices'
 
         if 'SC_ADMIN_BEARER' not in environ:
             std_out('Cannot post without Auth Bearer', 'ERROR')
@@ -104,33 +119,51 @@ class ScApiDevice:
 
         headers = {'Authorization':'Bearer ' + environ['SC_ADMIN_BEARER'], 'Content-type': 'application/json'}
 
-        device = {}
+        # Set defaults
+        if 'kit_id' not in kwargs:
+            kit_id = 26
+        else: kit_id = kwargs['kit_id']
+
+        if 'exposure' not in kwargs:
+            exposure = 'indoor'
+        else: exposure = kwargs['exposure']
+
+        if 'user_tags' not in kwargs:
+            user_tags = 'Lab, Research, Experimental'
+        else: user_tags = kwargs['user_tags']
+
+        payload = {}
         try:
-            device['name'] = name
+            payload['name'] = name
         except:
             std_out('Your device needs a name!', 'ERROR')
-            # TODO ask for a name
             sys.exit()
 
-        device['device_token'] = binascii.b2a_hex(urandom(3)).decode('utf-8')
-        device['description'] = ''
-        device['kit_id'] = kit_id
-        device['latitude'] = latitude
-        device['longitude'] = longitude
-        device['exposure'] = exposure
-        device['user_tags'] = user_tags
+        payload['device_token'] = binascii.b2a_hex(urandom(3)).decode('utf-8')
+        payload['description'] = ''
+        payload['kit_id'] = kit_id
+        payload['latitude'] = location['latitude']
+        payload['longitude'] = location['longitude']
+        payload['exposure'] = exposure
+        payload['user_tags'] = user_tags
 
-        device_json = dumps(device)
-        backed_device = post('https://api.smartcitizen.me/v0/devices', data=device_json, headers=headers)
+        if dry_run:
+            std_out(f'Dry run request to: {API_BASE_URL}sensors/configure')
+            print(dumps(payload, indent = 2))
+            return False
 
-        if backed_device.status_code == 200 or backed_device.status_code == 201:
+        response = post(API_BASE_URL, data=dumps(payload), headers=headers)
 
-            platform_id = str(backed_device.json()['id'])
-            platform_url = "https://smartcitizen.me/kits/" + platform_id
-            std_out(f'Device created with: \n{platform_url}', 'SUCCESS')
-            return platform_id
+        if response.status_code == 200 or response.status_code == 201:
+            if 'id' in response.json():
+                platform_id = str(response.json()['id'])
+                platform_url = "https://smartcitizen.me/kits/" + platform_id
+                std_out(f'Device created with: \n{platform_url}', 'SUCCESS')
+                return response.json()
+            else:
+                std_out('Response does not contain id field')
 
-        std_out(f'Error while creating new device, platform returned {backed_device.status_code}', 'ERROR')
+        std_out(f'Error while creating new device, platform returned {response.status_code}', 'ERROR')
         return False
 
     @staticmethod
@@ -1168,7 +1201,9 @@ class NiluApiDevice(object):
         return self._api_url
 
     @staticmethod
-    def new_device(name, description = '', resolution = '1Min', epsg = config._epsg, enabled = True, location = None, sensors = None, dry_run = False):
+    # def new_device(name, description = '', resolution = '1Min', epsg = config._epsg, enabled = True, location = None, sensors = None, dry_run = False):
+    def new_device(name, location = {}, dry_run = False, **kwargs):
+
         '''
             Configures the device as a new sensor schema.
             This is a one-time configuration and shouldn't be necessary in a recursive way.
@@ -1178,18 +1213,6 @@ class NiluApiDevice(object):
             ----------
                 name: string
                     Device name
-                description: string, optional
-                    ''
-                    sensor description
-                resolution: string, optional
-                    '1Min'
-                    pandas formatted resolution
-                epsg: int, optional
-                    4326
-                    SRS EPSG code. Defaults to 4326 (WGS84). More info https://spatialreference.org/
-                enabled: boolean, optional
-                    True
-                    flag indicating if sensor is enabled for data transfer
                 location: dict
                     None
                     sensor location. If sensor is moving (i.e. position is not fixed),
@@ -1199,6 +1222,24 @@ class NiluApiDevice(object):
                                 'latitude': latitude (double) – sensor north-south position,
                                 'altitude': altitude (double) – sensor height above sea level
                                 }
+                dry_run: boolean
+                    False
+                    Post the payload to the API or just return it
+                **kwargs
+                ------
+                description: string, optional
+                    ''
+                    sensor description
+                frequency: string, optional
+                    '1Min'
+                    pandas formatted frequency
+                epsg: int, optional
+                    4326
+                    SRS EPSG code. Defaults to 4326 (WGS84). More info https://spatialreference.org/
+                enabled: boolean, optional
+                    True
+                    flag indicating if sensor is enabled for data transfer
+
                 sensors: dict()
                     Dictionary containing necessary information of the sensors to be stored. scdata format:
                     {
@@ -1209,13 +1250,12 @@ class NiluApiDevice(object):
                                     },
                         ...
                     }
-                dry_run: boolean
-                    False
-                    Post the payload to the API or just return it
+                ------
 
             Returns
             -------
-                If dry_run, a dict containing the payload
+                If dry_run, prints out a dict containing the payload and
+                returns False
                 If not, either False in case of error or a
                 dictionary containing:
                     sensorid (int) – sensor identifier
@@ -1240,15 +1280,19 @@ class NiluApiDevice(object):
         if name is None:
             std_out('Need a name to create a new sensor', 'ERROR')
             return False
-
         std_out (f'Configuring IFLINK device named {name}')
 
         # Verify inputs
         flag_error = False
 
+        dft_input_params = ['epsg', 'description', 'frequency', 'enabled', 'sensors']
+        if any([x not in kwargs for x in dft_input_params]):
+            std_out('Input params not ok for NiluApiDevice', 'ERROR')
+            return False
+
         # EPSG int type
         try:
-            int(epsg)
+            epsg = int(kwargs['epsg'])
         except:
             std_out('Could not convert epsg to int', 'ERROR')
             flag_error = True
@@ -1257,7 +1301,7 @@ class NiluApiDevice(object):
         # Resolution in seconds
         if not flag_error:
             try:
-                resolution_seconds = to_timedelta(resolution).seconds
+                resolution_seconds = to_timedelta(kwargs['frequency']).seconds
             except:
                 std_out('Could not convert resolution to seconds', 'ERROR')
                 flag_error = True
@@ -1279,12 +1323,12 @@ class NiluApiDevice(object):
         # Construct payload
         payload = {
             "name": name,
-            "description": description,
+            "description": kwargs['description'],
             "resolution": resolution_seconds,
             "srs": {
-                "epsg": int(epsg)
+                "epsg": epsg
             },
-            "enabled": enabled
+            "enabled": kwargs['enabled']
         }
 
         payload['location'] = location
@@ -1293,6 +1337,7 @@ class NiluApiDevice(object):
         components = []
 
         # Construct
+        sensors = kwargs['sensors']
         for sensor in sensors.keys():
             # Check if it's in the configured connectors
             _sid = str(sensors[sensor]['id'])
@@ -1354,14 +1399,21 @@ class NiluApiDevice(object):
 
         if dry_run:
             std_out(f'Dry run request to: {API_BASE_URL}sensors/configure')
-            return dumps(payload, indent = 2)
+            print(dumps(payload, indent = 2))
+            return False
 
         response = post(f'{API_BASE_URL}sensors/configure',
                         data = dumps(payload), headers = headers)
 
+
         if response.status_code == 200 or response.status_code == 201:
-            std_out('Post successful', 'SUCCESS')
-            return response.json()
+            if 'sensorid' in response.json():
+                platform_id = str(response.json()['sensorid'])
+                platform_url = "https://sensors.nilu.no/api/sensors/" + platform_id
+                std_out(f'Device created with: \n{platform_url}', 'SUCCESS')
+                return response.json()
+            else:
+                std_out('Response does not contain sensorid field')
         else:
             std_out(f'{API_BASE_URL} reported {response.status_code}:\n{response.json()}', 'ERROR')
             return False

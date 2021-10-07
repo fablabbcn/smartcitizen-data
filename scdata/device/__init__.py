@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from pandas import DataFrame, to_timedelta
 from traceback import print_exc
 from numpy import nan
+from collections.abc import Iterable
 
 class Device(object):
     ''' Main implementation of the device class '''
@@ -590,27 +591,69 @@ class Device(object):
                 True if posted ok, False otherwise
         '''
 
-        if self.forwarding_params is None:
-            std_out('Empty forwarding information', 'ERROR')
-            return False
-
-        df = self.readings.copy().dropna(axis = 0, how='all')
-
-        if df.empty:
-            std_out('Empty dataframe, ignoring', 'WARNING')
-            return False
-
         # Import requested handler
         hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
         Hclass = getattr(hmod, config.connectors[self.forwarding_request]['handler'])
 
-        # Create object
-        device = Hclass(did = self.forwarding_params)
-        post_ok = device.post_data_to_device(df, chunk_size = chunk_size, dry_run = dry_run)
-        if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
-        else: std_out(f'Error posting data for {self.id}', 'ERROR')
+        # Create new device in target API if it hasn't been created yet
+        if self.forwarding_params is None:
+            std_out('Empty forwarding information, attemping creating a new device', 'WARNING')
+            # We assume the device has never been posted
+            # Construct new device kwargs dictionary
+            kwargs = dict()
+            for item in config.connectors[self.forwarding_request]['kwargs']:
+                val = config.connectors[self.forwarding_request]['kwargs'][item]
+                if val == 'options':
+                    kitem = self.options[item]
+                elif val == 'config':
+                    # Items in config should be underscored
+                    kitem = config.__getattr__(f'_{item}')
+                elif isinstance(val, Iterable):
+                    if 'same' in val:
+                        if 'as_device' in val:
+                            if item == 'sensors':
+                                kitem = self.merge_sensor_metrics(ignore_empty = True)
+                            elif item == 'description':
+                                kitem = self.blueprint.replace('_', ' ')
+                        elif 'as_api' in val:
+                            if item == 'sensors':
+                                kitem = self.api_device.get_device_sensors()
+                            elif item == 'description':
+                                kitem = self.api_device.get_device_description()
+                else:
+                    kitem = val
+                kwargs[item] = kitem
 
-        return post_ok
+            response = Hclass.new_device(name = config.connectors[self.forwarding_request]['name_prepend']\
+                                                + str(self.id),
+                                         location = self.location,
+                                         dry_run = dry_run,
+                                         **kwargs)
+
+            # TODO CHECK IF THIS GETS ACTUALLY DONE IN IFLINK AND THE RESPONSE IS OK
+            if response:
+                if 'sensorid' in response:
+                    # TODO VERIFY
+                    self.forwarding_params = response['sensorid']
+                    std_out(f'New sensor ID in {self.forwarding_request} is {self.forwarding_params}. Updating')
+
+        if self.forwarding_params is not None:
+            df = self.readings.copy().dropna(axis = 0, how='all')
+
+            if df.empty:
+                std_out('Empty dataframe, ignoring', 'WARNING')
+                return False
+            # Create object
+            ndev = Hclass(did = self.forwarding_params)
+            post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size, dry_run = dry_run)
+            if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
+            else: std_out(f'Error posting data for {self.id}', 'ERROR')
+
+            return post_ok
+
+        else:
+            std_out('Empty forwarding information', 'ERROR')
+            return False
 
     def add_metric(self, metric = dict()):
         '''
