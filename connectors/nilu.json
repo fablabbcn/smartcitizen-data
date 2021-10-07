@@ -176,7 +176,7 @@
   "kwargs": {
     "description": "same_as_api",
     "frequency": "options",
-    "espg": "config",
+    "epsg": "config",
     "enabled": true,
     "sensors": "same_as_device"
   }
