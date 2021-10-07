@@ -15,8 +15,10 @@ from numpy import arange, array
 
 class Config(object):
 
-    # Output level. 'QUIET': nothing, 'NORMAL': warn, err,
-    # 'DEBUG': info, warn, err
+    # Output level
+    #   'QUIET': nothing
+    #   'NORMAL': warn, err,
+    #   'DEBUG': info, warn, err
     _out_level = 'NORMAL'
 
     # Timestamp for log output
@@ -33,7 +35,7 @@ class Config(object):
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
 
-    # Default timezone for timezones
+    # Default timezone
     _timezone = 'Europe/Madrid'
     _epsg = 4326
 
