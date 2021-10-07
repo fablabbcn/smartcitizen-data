@@ -29,11 +29,11 @@ def dschedule(interval_hours, dry_run = False):
     dl = []
 
     for device in df.index:
-        std_out(f'Checking postprocessing for {device}')
+        std_out(f'[CHUPIFLOW] Checking postprocessing for {device}')
         scd = Device(descriptor={'source': 'api', 'id': device})
         # Avoid scheduling invalid devices
         if scd.validate(): dl.append(device)
-        else: std_out(f'Device {device} not valid', 'ERROR')
+        else: std_out(f'[CHUPIFLOW] Device {device} not valid', 'ERROR')
 
     for d in dl:
         # Set scheduler

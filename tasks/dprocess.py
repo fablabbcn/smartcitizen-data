@@ -12,7 +12,7 @@ def dprocess(device, dryrun = False):
         is postprocessing information in it and that it's valid for doing
         so 
     '''    
-    std_out(f'Processing instance for device {device}')
+    std_out(f'[CHUPIFLOW] Processing instance for device {device}')
     # Create device from SC API
     d = Device(descriptor = {'source': 'api', 'id': f'{device}'})
     if d.validate(): 
@@ -24,12 +24,12 @@ def dprocess(device, dryrun = False):
             d.post_metrics(dry_run=dry_run)
             # Forward it if requested
             if d.forwarding_request is not None:
-                std_out(f'Forwarding {device}')
+                std_out(f'[CHUPIFLOW] Forwarding {device}')
                 d.forward(dry_run=dry_run)
             d.update_postprocessing(dry_run=dry_run)
     else:
-        std_out(f'Device {device} not valid', 'ERROR')
-    std_out(f'Concluded job for {device}')
+        std_out(f'[CHUPIFLOW] Device {device} not valid', 'ERROR')
+    std_out(f'[CHUPIFLOW] Concluded job for {device}')
 
 if __name__ == '__main__':
 
