@@ -740,14 +740,22 @@ class Device(object):
             std_out('Not supported format' ,'ERROR')
             return False
 
-    def post_sensors(self, dry_run = False):
+    def post_sensors(self, clean_na = 'drop', chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Posts devices sensors. Only available for parent of ScApiDevice
             Parameters
             ----------
+            clean_na: string, optional
+                'drop'
+                'drop', 'fill'
+            chunk_size: integer
+                chunk size to split resulting pandas DataFrame for posting readings
             dry_run: boolean
                 False
                 Post the payload to the API or just return it
+            max_retries: int
+                2
+                Maximum number of retries per chunk
         Returns
         ----------
             boolean
@@ -774,7 +782,8 @@ class Device(object):
             std_out('Empty dataframe, ignoring', 'WARNING')
             return False
 
-        post_ok = self.api_device.post_data_to_device(df, dry_run = dry_run)
+        post_ok = self.api_device.post_data_to_device(df, clean_na = clean_na,
+            chunk_size = chunk_size, dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
         else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
@@ -799,7 +808,7 @@ class Device(object):
         if post_ok: std_out(f"Postprocessing posted for device {self.id}", "SUCCESS")
         return post_ok
 
-    def post_metrics(self, with_postprocessing = False, dry_run = False):
+    def post_metrics(self, with_postprocessing = False, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Posts devices metrics. Only available for parent of ScApiDevice
         Parameters
@@ -807,9 +816,14 @@ class Device(object):
             with_postprocessing: boolean
                 False
                 Post the postprocessing_attributes too
+            chunk_size: integer
+                chunk size to split resulting pandas DataFrame for posting readings
             dry_run: boolean
                 False
                 Post the payload to the API or just return it
+            max_retries: int
+                2
+                Maximum number of retries per chunk
         Returns
         ----------
             boolean
@@ -843,7 +857,8 @@ class Device(object):
             std_out('Empty dataframe, ignoring', 'WARNING')
             return False
 
-        post_ok = self.api_device.post_data_to_device(df, dry_run = dry_run)
+        post_ok = self.api_device.post_data_to_device(df, chunk_size = chunk_size,
+            dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted metrics for {self.id}', 'SUCCESS')
         else: std_out(f'Error posting metrics for {self.id}', 'ERROR')
 
