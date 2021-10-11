@@ -55,6 +55,7 @@ class Config(object):
     # Tasks
     _postprocessing_interval_hours = 1
     _device_processor = 'dprocess'
+    _max_forward_retries = 2
 
     ### ---------------------------------------
     ### -----------------DATA------------------

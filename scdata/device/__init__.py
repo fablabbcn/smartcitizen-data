@@ -564,9 +564,8 @@ class Device(object):
                     std_out('Updating postprocessing')
                     # Add latest postprocessing rounded up with frequency so that we don't end up in
                     # and endless loop processing only the latest data line (minute vs. second precission of the readings)
-                    latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                    self.api_device.postprocessing['latest_postprocessing'] = latest_postprocessing
-
+                    self.latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                    self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
                     std_out(f"{self.api_device.postprocessing}")
             std_out(f"Device {self.id} processed", "SUCCESS")
 
@@ -630,12 +629,15 @@ class Device(object):
                                          dry_run = dry_run,
                                          **kwargs)
 
-            # TODO CHECK IF THIS GETS ACTUALLY DONE IN IFLINK AND THE RESPONSE IS OK
             if response:
-                if 'sensorid' in response:
-                    # TODO VERIFY
-                    self.forwarding_params = response['sensorid']
-                    std_out(f'New sensor ID in {self.forwarding_request} is {self.forwarding_params}. Updating')
+                if 'message' in response:
+                    if response['message'] == 'Created':
+                        if 'sensorid' in response:
+                            self.forwarding_params = response['sensorid']
+                            self.api_device.postprocessing['forwarding_params'] = self.forwarding_params
+
+                            std_out(f'New sensor ID in {self.forwarding_request}\
+                             is {self.forwarding_params}. Updating')
 
         if self.forwarding_params is not None:
             df = self.readings.copy().dropna(axis = 0, how='all')

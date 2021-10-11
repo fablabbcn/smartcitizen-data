@@ -1633,7 +1633,7 @@ class NiluApiDevice(object):
         std_out(f'Device {self.id} loaded successfully from API', 'SUCCESS')
         return self.data
 
-    def post_data_to_device(self, df, clean_na = 'drop', chunk_size = None, dry_run = False):
+    def post_data_to_device(self, df, clean_na = 'drop', chunk_size = None, dry_run = False, max_retries = 2):
         '''
             POST external data in the IFLINK API, following
             https://sensors.nilu.no/api/doc#push--sensor-data-by-id
@@ -1652,6 +1652,9 @@ class NiluApiDevice(object):
                 dry_run: boolean
                     False
                     Post the payload to the API or just return it
+                max_retries: int
+                    2
+                    Maximum number of retries per chunk
             Returns
             -------
                 True if the data was posted succesfully
@@ -1686,13 +1689,27 @@ class NiluApiDevice(object):
                 std_out(f'Dry run request to: {self.API_BASE_URL}sensors/{self.id}/inbound')
                 return dumps(payload, indent = 2)
 
-            response = post(f'{self.API_BASE_URL}sensors/{self.id}/inbound',
+            post_ok = False
+            retries = 0
+
+            while post_ok == False or retries < max_retries:
+
+                response = post(f'{self.API_BASE_URL}sensors/{self.id}/inbound',
                             data = dumps(payload), headers = headers)
 
-            if not(response.status_code == 200 or response.status_code == 201):
+                if response.status_code == 200 or response.status_code == 201:
+                    post_ok = True
+                    break
+                else:
+                    retries += 1
+                    std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
+                           API responded {response.status_code}.\
+                            Retrying ({retries}/{max_retries}', 'WARNING')
 
+            if (not post_ok) or (retries == max_retries):
                 std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
-                           API responded {response.status_code}:\n{response.json()}', 'ERROR')
+                       API responded {response.status_code}.\
+                        Reached max_retries', 'ERROR')
                 return False
 
         return True
