@@ -154,7 +154,7 @@ def alphasense_803_04(dataframe, **kwargs):
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
     if config._avoid_negative_conc:
-        data['conc'].clip(lower = 0, inplace = True)
+        df['conc'].clip(lower = 0, inplace = True)
 
     return df['conc']
 
