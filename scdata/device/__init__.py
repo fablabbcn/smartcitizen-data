@@ -573,7 +573,7 @@ class Device(object):
 
         return process_ok
 
-    def forward(self, chunk_size = 500, dry_run = False):
+    def forward(self, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
             Forwards data to another api
                 Parameters
@@ -584,6 +584,9 @@ class Device(object):
                 dry_run: boolean
                     False
                     Post the payload to the API or just return it
+                max_retries: int
+                    2
+                    Maximum number of retries per chunk
             Returns
             ----------
                 boolean
@@ -647,7 +650,8 @@ class Device(object):
                 return False
             # Create object
             ndev = Hclass(did = self.forwarding_params)
-            post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size, dry_run = dry_run)
+            post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size,
+                dry_run = dry_run, max_retries = 2)
             if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
             else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
