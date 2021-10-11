@@ -96,6 +96,9 @@ class Config(object):
     # Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
     _plot_out_level = 'DEBUG'
 
+    # Avoid negative pollutant concentrations
+    _avoid_negative_conc = False
+
     ### ---------------------------------------
     ### ----------------ZENODO-----------------
     ### ---------------------------------------

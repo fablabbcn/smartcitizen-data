@@ -3,8 +3,11 @@ from scdata._config import config
 from scdata import Device
 from scdata.utils import std_out
 import sys
+
+# Config settings
 config._out_level = 'DEBUG'
 config._timestamp = True
+config._avoid_negative_conc = True
 
 def dprocess(device, dryrun = False):
     '''

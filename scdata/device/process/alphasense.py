@@ -153,6 +153,9 @@ def alphasense_803_04(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
+    if config._avoid_negative_conc:
+        data['conc'].clip(lower = 0, inplace = True)
+
     return df['conc']
 
 def ec_sensor_temp(dataframe, **kwargs):
