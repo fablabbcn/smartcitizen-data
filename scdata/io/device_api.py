@@ -593,19 +593,19 @@ class ScApiDevice:
             request += '&function=avg'
 
             # Make request
-            sensor_req = get(request, headers = headers)
+            response = get(request, headers = headers)
 
             # Retry once in case of 429 after 30s
-            if sensor_req.status_code == 429:
+            if response.status_code == 429:
                 std_out('Too many requests, waiting for 1 more retry', 'WARNING')
                 sleep (30)
-                sensor_req = get(request, headers = headers)
+                response = get(request, headers = headers)
 
             flag_error = False
             try:
-                sensorjson = sensor_req.json()
+                sensorjson = response.json()
             except:
-                std_out(f'Problem with json data from API, {sensor_req.status_code}', 'ERROR')
+                std_out(f'Problem with json data from API, {response.status_code}', 'ERROR')
                 flag_error = True
                 pass
                 continue
@@ -1494,22 +1494,23 @@ class NiluApiDevice(object):
 
         if self.last_reading_at is None or update:
             try:
-                deviceR = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
-                if deviceR.status_code == 429:
-                    std_out('API reported {}. Retrying once'.format(deviceR.status_code),
+                response = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
+                print (f'{self.API_BASE_URL}data/id/{self.id}/maxutc')
+                if response.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(response.status_code),
                             'WARNING')
                     sleep(30)
-                    deviceR = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
+                    response = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
 
-                if deviceR.status_code == 200 or deviceR.status_code == 201:
-                    last_json = deviceR.json()
+                if response.status_code == 200 or response.status_code == 201:
+                    last_json = response.json()
                     last_readings = []
                     for item in last_json:
                         if 'timestamp_from_epoch' in item: last_readings.append(item['timestamp_from_epoch'])
 
                     self.last_reading_at = localise_date(datetime.fromtimestamp(max(list(set(last_readings)))), 'UTC')
                 else:
-                    std_out(f'API reported {deviceR.status_code}: {deviceR.json()}', 'ERROR')
+                    std_out(f'API reported {response.status_code}: {response.json()}', 'ERROR')
             except:
                 print_exc()
                 std_out('Failed request. Probably no connection', 'ERROR')
@@ -1601,15 +1602,15 @@ class NiluApiDevice(object):
         if max_date is not None: request += f'toutc/{max_date}'
 
         # Make request
-        sensor_req = get(request, headers = headers)
+        response = get(request, headers = headers)
 
         # Retry once in case of 429 after 30s
-        if sensor_req.status_code == 429:
+        if response.status_code == 429:
             std_out('Too many requests, waiting for 1 more retry', 'WARNING')
             sleep (30)
-            sensor_req = get(request, headers = headers)
+            response = get(request, headers = headers)
 
-        df = DataFrame(sensor_req.json()).pivot(index='timestamp_from_epoch', columns='component', values='value')
+        df = DataFrame(response.json()).pivot(index='timestamp_from_epoch', columns='component', values='value')
         df.columns.name = None
         df.index = localise_date(to_datetime(df.index, unit='s'), self.timezone)
         df = df.reindex(df.index.rename('TIME'))
