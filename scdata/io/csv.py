@@ -104,7 +104,7 @@ def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = 
     
     return df
 
-def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = 'CONCAT.CSV'):
+def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT']):
     '''
         Loads files from local directory in text format, for instance
         SD card files with timestamp, sparse or concatenated
@@ -135,7 +135,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
     marked_for_revision = False
 
     for file in listdir(path):
-        if file != output and file != ignore:
+        if file != output and file not in ignore:
             std_out(f'Loading file: {file}')
             filename, _ = splitext(file)
             src_path = join(path, file)
