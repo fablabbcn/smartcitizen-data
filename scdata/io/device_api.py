@@ -1216,6 +1216,7 @@ class NiluApiDevice(object):
         self.sensors = None
         self.devicejson = None
         self.last_reading_at = None
+        self.added_at = None
         self._api_url = self.API_BASE_URL + f'sensors/{self.id}'
 
     @property
@@ -1501,6 +1502,43 @@ class NiluApiDevice(object):
 
         return self.alt
 
+    def get_device_added_at(self, update = False):
+
+        if 'NILU_BEARER' in environ:
+            std_out('Auth Bearer found, using it', 'SUCCESS')
+            headers = {'Authorization':'Bearer ' + environ['NILU_BEARER']}
+        else:
+            std_out('Cannot request without bearer', 'ERROR')
+            return None
+
+        if self.added_at is None or update:
+            try:
+                response = get(f'{self.API_BASE_URL}data/id/{self.id}/minutc', headers = headers)
+                print (f'{self.API_BASE_URL}data/id/{self.id}/minutc')
+                if response.status_code == 429:
+                    std_out('API reported {}. Retrying once'.format(response.status_code),
+                            'WARNING')
+                    sleep(30)
+                    response = get(f'{self.API_BASE_URL}data/id/{self.id}/minutc', headers = headers)
+
+                if response.status_code == 200 or response.status_code == 201:
+                    last_json = response.json()
+                    first_readings = []
+                    for item in last_json:
+                        if 'timestamp_from_epoch' in item: first_readings.append(item['timestamp_from_epoch'])
+
+                    self.added_at = localise_date(datetime.fromtimestamp(max(list(set(first_readings)))), 'UTC')
+                else:
+                    std_out(f'API reported {response.status_code}: {response.json()}', 'ERROR')
+            except:
+                print_exc()
+                std_out('Failed request. Probably no connection', 'ERROR')
+                pass
+
+        std_out ('Device {} has last reading at {}'.format(self.id, self.added_at))
+
+        return self.added_at
+
     def get_device_last_reading(self, update = False):
         if 'NILU_BEARER' in environ:
             std_out('Auth Bearer found, using it', 'SUCCESS')
@@ -1583,6 +1621,7 @@ class NiluApiDevice(object):
         # Make sure we have the everything we need beforehand
         self.get_device_sensors()
         self.get_device_timezone()
+        self.get_device_added_at()
         self.get_device_last_reading()
 
         if self.timezone is None:
@@ -1595,7 +1634,7 @@ class NiluApiDevice(object):
             std_out (f'Min Date: {min_date}')
         else:
             std_out(f"No min_date specified, requesting all", 'WARNING')
-            min_date = localise_date(to_datetime('2021-01-01'), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+            min_date = localise_date(to_datetime(self.added_at), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
 
         if max_date is not None:
             max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
