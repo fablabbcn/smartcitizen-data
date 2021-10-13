@@ -254,7 +254,8 @@ class Device(object):
         if ignore_empty:
             to_ignore = []
             for channel in all_channels.keys():
-                if self.readings[channel].dropna().empty:
+                if channel not in self.readings: to_ignore.append(channel)
+                elif self.readings[channel].dropna().empty:
                     std_out (f'{channel} is empty')
                     to_ignore.append(channel)
 
@@ -370,7 +371,6 @@ class Device(object):
                     if convert_units: self.__convert_units__()
                 else:
                     std_out('Empty dataframe in readings', 'WARNING')
-
         finally:
             self.processed = False
             return self.loaded
@@ -460,15 +460,18 @@ class Device(object):
         for sensor in self.sensors:
             if sensor not in self.readings.columns: remove_sensors.append(sensor)
 
-        if remove_sensors != []: std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
-        for sensor_to_remove in remove_sensors: self.sensors.pop(sensor_to_remove, None)
+        if remove_sensors != []:
+            std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
+        for sensor_to_remove in remove_sensors:
+            self.sensors.pop(sensor_to_remove, None)
 
         std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
 
     def __convert_names__(self):
         rename = dict()
         for sensor in self.sensors:
-            if 'id' in self.sensors[sensor] and sensor in self.readings.columns: rename[self.sensors[sensor]['id']] = sensor
+            if 'id' in self.sensors[sensor] and sensor in self.readings.columns:
+                rename[self.sensors[sensor]['id']] = sensor
         self.readings.rename(columns=rename, inplace=True)
 
     def __convert_units__(self):
@@ -491,7 +494,7 @@ class Device(object):
         '''
         Processes devices metrics, either added by the blueprint definition
         or the addition using Device.add_metric(). See help(Device.add_metric) for
-        more information about the definition of the metrics to be added
+        more information about the definition of the metrics to be added.
 
         Parameters
         ----------
@@ -537,60 +540,76 @@ class Device(object):
             try:
                 funct = LazyCallable(lazy_name)
             except ModuleNotFoundError:
-                print_exc()
+                #print_exc()
                 process_ok &= False
                 std_out('Problem adding lazy callable to metrics list', 'ERROR')
                 pass
-                return False
 
             args, kwargs = list(), dict()
             if 'args' in metrics[metric]: args = metrics[metric]['args']
             if 'kwargs' in metrics[metric]: kwargs = metrics[metric]['kwargs']
 
             try:
-                self.readings[metric] = funct(self.readings, *args, **kwargs)
+                result = funct(self.readings, *args, **kwargs)
             except KeyError:
                 # print_exc()
                 std_out('Metric args not in dataframe', 'ERROR')
-                process_ok=False
+                process_ok = False
                 pass
-
-            if metric in self.readings: process_ok &= True
+            else:
+                if result is not None:
+                    self.readings[metric] = result
+                    process_ok &= True
+                else:
+                    process_ok = False
 
         if process_ok:
-            # Latest postprocessing to latest readings
             if self.source == 'api':
-                if self.api_device.get_device_postprocessing() is not None:
-                    std_out('Updating postprocessing')
-                    # Add latest postprocessing rounded up with frequency so that we don't end up in
-                    # and endless loop processing only the latest data line (minute vs. second precission of the readings)
-                    self.latest_postprocessing = localise_date(self.readings.index[-1]+to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                    self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
-                    std_out(f"{self.api_device.postprocessing}")
+                self.update_latest_postprocessing()
             std_out(f"Device {self.id} processed", "SUCCESS")
 
         self.processed = process_ok
 
-        return process_ok
+        return self.processed
+
+    def update_latest_postprocessing(self):
+        # Sets latest postprocessing to latest reading
+
+        if self.source == 'api':
+                if self.api_device.get_device_postprocessing() is not None:
+                    std_out('Updating postprocessing')
+                    # Add latest postprocessing rounded up with
+                    # frequency so that we don't end up in
+                    # and endless loop processing only the latest data line
+                    # (minute vs. second precission of the readings)
+                    self.latest_postprocessing = localise_date(self.readings.index[-1]+\
+                        to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                    self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
+                    std_out(f"Updated latest_postprocessing to: \
+                        {self.api_device.postprocessing}['latest_postprocessing']")
+
+                    return True
+
+        return False
 
     def forward(self, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
-            Forwards data to another api
-                Parameters
-                ----------
-                chunk_size: int
-                    500
-                    Chunk size to be sent to device.post_data_to_device in question
-                dry_run: boolean
-                    False
-                    Post the payload to the API or just return it
-                max_retries: int
-                    2
-                    Maximum number of retries per chunk
-            Returns
-            ----------
-                boolean
-                True if posted ok, False otherwise
+        Forwards data to another api.
+        Parameters
+        ----------
+        chunk_size: int
+            500
+            Chunk size to be sent to device.post_data_to_device in question
+        dry_run: boolean
+            False
+            Post the payload to the API or just return it
+        max_retries: int
+            2
+            Maximum number of retries per chunk
+        Returns
+        ----------
+            boolean
+            True if posted ok, False otherwise
         '''
 
         # Import requested handler
@@ -631,23 +650,24 @@ class Device(object):
                                          location = self.location,
                                          dry_run = dry_run,
                                          **kwargs)
-
             if response:
                 if 'message' in response:
                     if response['message'] == 'Created':
                         if 'sensorid' in response:
                             self.forwarding_params = response['sensorid']
                             self.api_device.postprocessing['forwarding_params'] = self.forwarding_params
-
                             std_out(f'New sensor ID in {self.forwarding_request}\
                              is {self.forwarding_params}. Updating')
 
         if self.forwarding_params is not None:
-            df = self.readings.copy().dropna(axis = 0, how='all')
+            df = self.readings.copy()
+            df = df[df.columns.intersection(list(self.merge_sensor_metrics(ignore_empty=True).keys()))]
+            df = clean(df, 'drop', how = 'all')
 
             if df.empty:
                 std_out('Empty dataframe, ignoring', 'WARNING')
                 return False
+
             # Create object
             ndev = Hclass(did = self.forwarding_params)
             post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size,
