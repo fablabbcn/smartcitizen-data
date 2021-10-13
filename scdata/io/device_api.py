@@ -1720,19 +1720,24 @@ class NiluApiDevice(object):
             std_out('Cannot post without Auth Bearer', 'ERROR')
             return False
 
-        headers = {'Authorization':'Bearer ' + environ['NILU_BEARER'], 'Content-type': 'application/json'}
+        headers = {'Authorization':'Bearer ' + environ['NILU_BEARER'],
+            'Content-type': 'application/json'}
 
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
 
+        # Fill with declared schema to avoid rejection by the API
+        self.get_device_sensors()
+        for sensor in self.sensors:
+            if self.sensors[sensor] not in df.columns:
+                df[self.sensors[sensor]] = nan
+
         # Split the dataframe in chunks
         std_out(f'Splitting post in chunks of size {chunk_size}')
-        # chunked_dfs = [df[i:i+chunk_size] for i in range(0, df.shape[0], chunk_size)]
 
         for i in trange(len(df.index), file=sys.stdout,
                         desc=f"Posting data for {self.id}..."):
 
-            # chunk = chunked_dfs[i].copy()
             row = DataFrame(df.loc[df.index[i],:]).T
             # Prepare json post
             payload = {}
@@ -1758,12 +1763,12 @@ class NiluApiDevice(object):
                     break
                 else:
                     retries += 1
-                    std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
+                    std_out (f'Chunk ({i+1}/{len(df.index)}) post failed. \
                            API responded {response.status_code}.\
                             Retrying ({retries}/{max_retries}', 'WARNING')
 
             if (not post_ok) or (retries == max_retries):
-                std_out (f'Chunk ({i+1}/{len(chunked_dfs)}) post failed. \
+                std_out (f'Chunk ({i+1}/{len(df.index)}) post failed. \
                        API responded {response.status_code}.\
                         Reached max_retries', 'ERROR')
                 return False
