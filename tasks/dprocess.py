@@ -23,12 +23,14 @@ def dprocess(device, dryrun = False):
         if d.load(only_unprocessed=True, max_amount=config._max_load_amount):
             # Process it
             d.process()
-            # Post results if not dry run
-            d.post_metrics(dry_run=dry_run, max_retries = config._max_forward_retries)
+            # Post results
+            d.post_metrics(dry_run=dry_run,
+                max_retries = config._max_forward_retries)
             # Forward it if requested
             if d.forwarding_request is not None:
                 std_out(f'[CHUPIFLOW] Forwarding {device}')
-                d.forward(dry_run=dry_run, max_retries = config._max_forward_retries)
+                d.forward(dry_run=dry_run,
+                    max_retries = config._max_forward_retries)
             d.update_postprocessing(dry_run=dry_run)
     else:
         std_out(f'[CHUPIFLOW] Device {device} not valid', 'ERROR')
