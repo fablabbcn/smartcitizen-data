@@ -220,14 +220,14 @@ def alphasense_pt1000(dataframe, **kwargs):
     if 'from_date' not in kwargs: from_date = None
     else:
         if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone')
+            std_out('Cannot localise date without timezone', 'ERROR')
             return None
         from_date = localise_date(kwargs['from_date'], kwargs['timezone'])
 
     if 'to_date' not in kwargs: to_date = None
     else:
         if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone')
+            std_out('Cannot localise date without timezone', 'ERROR')
             return None
         to_date = localise_date(kwargs['to_date'], kwargs['timezone'])
 
