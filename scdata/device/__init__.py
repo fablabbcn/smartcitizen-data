@@ -672,9 +672,14 @@ class Device(object):
             ndev = Hclass(did = self.forwarding_params)
             post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size,
                 dry_run = dry_run, max_retries = 2)
-            if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
-            else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
+            if post_ok:
+                # TODO Check if we like this
+                if self.source == 'api':
+                    self.update_latest_postprocessing()
+                std_out(f'Posted data for {self.id}', 'SUCCESS')
+            else:
+                std_out(f'Error posting data for {self.id}', 'ERROR')
             return post_ok
 
         else:
