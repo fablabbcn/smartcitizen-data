@@ -1,7 +1,7 @@
 from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta,
                     to_numeric, read_csv, read_json, DateOffset, MultiIndex)
 
-from math import isnan
+from math import isnan, nan
 from traceback import print_exc
 from requests import get, post, patch
 from re import search
@@ -765,8 +765,7 @@ class ScApiDevice:
             post_ok = False
             retries = 0
 
-            while post_ok == False or retries < max_retries:
-
+            while post_ok == False and retries < max_retries:
                 response = post(f'{self.API_BASE_URL}{self.id}/readings',
                             data = dumps(payload), headers = headers)
 
@@ -1749,7 +1748,7 @@ class NiluApiDevice(object):
             post_ok = False
             retries = 0
 
-            while post_ok == False or retries < max_retries:
+            while post_ok == False and retries < max_retries:
 
                 response = post(f'{self.API_BASE_URL}sensors/{self.id}/inbound',
                             data = dumps(payload), headers = headers)
