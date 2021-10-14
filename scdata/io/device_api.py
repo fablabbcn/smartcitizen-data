@@ -406,11 +406,21 @@ class ScApiDevice:
 
         if self.last_reading_at is None or update:
             if self.get_device_json(update) is not None:
-                self.last_reading_at = self.devicejson['last_reading_at']
+                self.last_reading_at = localise_date(self.devicejson['last_reading_at'], 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
 
         std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
 
         return self.last_reading_at
+
+    def get_device_added_at(self, update = False):
+
+        if self.added_at is None or update:
+            if self.get_device_json(update) is not None:
+                self.added_at = localise_date(self.devicejson['added_at'], 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        std_out ('Device {} was added at {}'.format(self.id, self.added_at))
+
+        return self.added_at
 
     def get_device_postprocessing(self, update = False):
 
@@ -479,16 +489,6 @@ class ScApiDevice:
         std_out ('Device {} altitude is {}m'.format(self.id, self.alt))
 
         return self.alt
-
-    def get_device_added_at(self, update = False):
-
-        if self.added_at is None or update:
-            if self.get_device_json(update) is not None:
-                self.added_at = self.devicejson['added_at']
-
-        std_out ('Device {} was added at {}'.format(self.id, self.added_at))
-
-        return self.added_at
 
     def get_device_sensors(self, update = False):
 
@@ -569,6 +569,22 @@ class ScApiDevice:
             max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
             std_out (f'Max Date: {max_date}')
 
+        # Trim based on actual data available
+        if min_date is not None and self.last_reading_at is not None:
+            if min_date > self.last_reading_at:
+                std_out(f'Device request would yield empty data (min_date). Returning', 'WARNING')
+                return None
+
+        if max_date is not None and self.added_at is not None:
+            if max_date < self.added_at:
+                std_out(f'Device request would yield empty data (max_date). Returning', 'WARNING')
+                return None
+
+        if max_date is not None and self.last_reading_at is not None:
+            if max_date > self.last_reading_at:
+                std_out('Trimming max_date to last reading', 'WARNING')
+                max_date = self.last_reading_at
+
         # Print stuff
         std_out('Kit ID: {}'.format(self.kit_id))
         std_out(f'Device timezone: {self.timezone}')
@@ -578,6 +594,7 @@ class ScApiDevice:
         else: std_out(f'Sensor IDs: {list(self.sensors.keys())}')
 
         df = DataFrame()
+        std_out(f'Requesting from {min_date} to {max_date}')
 
         # Get devices in the sensor first
         for sensor_id in self.sensors.keys():
@@ -734,6 +751,8 @@ class ScApiDevice:
 
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
+        std_out(f'Posting columns to {self.API_BASE_URL}')
+        std_out(f'{list(df.columns)}')
         df.index.name = 'recorded_at'
 
         # Split the dataframe in chunks
@@ -1513,7 +1532,6 @@ class NiluApiDevice(object):
         if self.added_at is None or update:
             try:
                 response = get(f'{self.API_BASE_URL}data/id/{self.id}/minutc', headers = headers)
-                print (f'{self.API_BASE_URL}data/id/{self.id}/minutc')
                 if response.status_code == 429:
                     std_out('API reported {}. Retrying once'.format(response.status_code),
                             'WARNING')
@@ -1526,7 +1544,7 @@ class NiluApiDevice(object):
                     for item in last_json:
                         if 'timestamp_from_epoch' in item: first_readings.append(item['timestamp_from_epoch'])
 
-                    self.added_at = localise_date(datetime.fromtimestamp(max(list(set(first_readings)))), 'UTC')
+                    self.added_at = localise_date(datetime.fromtimestamp(max(list(set(first_readings)))), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
                 else:
                     std_out(f'API reported {response.status_code}: {response.json()}', 'ERROR')
             except:
@@ -1549,7 +1567,6 @@ class NiluApiDevice(object):
         if self.last_reading_at is None or update:
             try:
                 response = get(f'{self.API_BASE_URL}data/id/{self.id}/maxutc', headers = headers)
-                print (f'{self.API_BASE_URL}data/id/{self.id}/maxutc')
                 if response.status_code == 429:
                     std_out('API reported {}. Retrying once'.format(response.status_code),
                             'WARNING')
@@ -1562,7 +1579,7 @@ class NiluApiDevice(object):
                     for item in last_json:
                         if 'timestamp_from_epoch' in item: last_readings.append(item['timestamp_from_epoch'])
 
-                    self.last_reading_at = localise_date(datetime.fromtimestamp(max(list(set(last_readings)))), 'UTC')
+                    self.last_reading_at = localise_date(datetime.fromtimestamp(max(list(set(last_readings)))), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
                 else:
                     std_out(f'API reported {response.status_code}: {response.json()}', 'ERROR')
             except:
@@ -1633,13 +1650,29 @@ class NiluApiDevice(object):
             std_out (f'Min Date: {min_date}')
         else:
             std_out(f"No min_date specified, requesting all", 'WARNING')
-            min_date = localise_date(to_datetime(self.added_at), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
+            # min_date = localise_date(to_datetime(self.added_at), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
 
         if max_date is not None:
             max_date = localise_date(to_datetime(max_date), 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
             std_out (f'Max Date: {max_date}')
         else:
             std_out(f"No max_date specified")
+
+        # Trim based on actual data available
+        if min_date is not None and self.last_reading_at is not None:
+            if min_date > self.last_reading_at:
+                std_out(f'Device request would yield empty data (min_date). Returning', 'WARNING')
+                return None
+
+        if max_date is not None and self.added_at is not None:
+            if max_date < self.added_at:
+                std_out(f'Device request would yield empty data (max_date). Returning', 'WARNING')
+                return None
+
+        if max_date is not None and self.last_reading_at is not None:
+            if max_date > self.last_reading_at:
+                std_out('Trimming max_date to last reading', 'WARNING')
+                max_date = self.last_reading_at
 
         # Print stuff
         std_out(f'Device timezone: {self.timezone}')
@@ -1725,6 +1758,9 @@ class NiluApiDevice(object):
 
         # Clean df of nans
         df = clean(df, clean_na, how = 'all')
+
+        std_out(f'Posting columns to {self.API_BASE_URL}.')
+        std_out(f'Rest in schema are empty: {list(df.columns)}')
 
         # Fill with declared schema to avoid rejection by the API
         self.get_device_sensors()
