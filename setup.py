@@ -11,13 +11,13 @@ if sys.version_info < (3,0):
     sys.exit("scdata requires python 3.")
 
 PROJECT_URLS = {
-    "Documentation": "https://docs.smartcitizen.me/Data%20Analysis/",
+    "Documentation": "https://docs.smartcitizen.me/",
     "Source Code": "https://github.com/fablabbcn/smartcitizen-data",
 }
 
 setup(
     name='scdata',
-    version= '0.5.4',
+    version= '0.5.5',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -48,7 +48,7 @@ setup(
     long_description_content_type='text/markdown',
 
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',

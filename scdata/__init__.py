@@ -1,4 +1,4 @@
 from .test import Test
 from .device import Device
 
-__version__ = '0.5.4'
+__version__ = '0.5.5'
