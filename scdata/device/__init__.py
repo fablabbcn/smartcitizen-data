@@ -361,10 +361,10 @@ class Device(object):
         else:
             if self.readings is not None:
                 self.__check_sensors__()
-                if max_amount is not None:
-                    std_out(f'Trimming dataframe to {max_amount} rows')
-                    self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
                 if not self.readings.empty:
+                    if max_amount is not None:
+                        std_out(f'Trimming dataframe to {max_amount} rows')
+                        self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
                     # Only add metrics if there is something that can be potentially processed
                     self.__fill_metrics__()
                     self.loaded = True
@@ -560,8 +560,8 @@ class Device(object):
                 if result is not None:
                     self.readings[metric] = result
                     process_ok &= True
-                else:
-                    process_ok = False
+                # If the metric is None, might be for many reasons and shouldn't collapse
+                # the process_ok
 
         if process_ok:
             if self.source == 'api':
@@ -585,8 +585,7 @@ class Device(object):
                     self.latest_postprocessing = localise_date(self.readings.index[-1]+\
                         to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                     self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
-                    std_out(f"Updated latest_postprocessing to: \
-                        {self.api_device.postprocessing['latest_postprocessing']}")
+                    std_out(f"Updated latest_postprocessing to: {self.api_device.postprocessing['latest_postprocessing']}")
 
                     return True
 
@@ -872,8 +871,8 @@ class Device(object):
         # Get metrics to post, only the ones that have True in 'post' field and a valid ID
         # Replace their name with the ID to post
         for metric in self.metrics:
-            if self.metrics[metric]['post'] == True:
-                std_out(f"Adding {metric} for device {self.id}")
+            if self.metrics[metric]['post'] == True and metric in self.readings.columns:
+                std_out(f"Adding {metric} for device {self.id} (ID: {self.metrics[metric]['id']})")
                 rd[metric] = self.metrics[metric]['id']
 
         # Keep only metrics in df

@@ -628,12 +628,12 @@ class ScApiDevice:
                 continue
 
             if 'readings' not in sensorjson.keys():
-                std_out(f'No readings key in request for sensor: {sensor_id}', 'ERROR')
+                std_out(f'No readings key in request for sensor: {sensor_id} ({self.sensors[sensor_id]})', 'ERROR')
                 flag_error = True
                 continue
 
             elif sensorjson['readings'] == []:
-                std_out(f'No data in request for sensor: {sensor_id}', 'WARNING')
+                std_out(f'No data in request for sensor: {sensor_id} ({self.sensors[sensor_id]})', 'WARNING')
                 flag_error = True
                 continue
 
