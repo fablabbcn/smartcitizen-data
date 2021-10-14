@@ -586,7 +586,7 @@ class Device(object):
                         to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                     self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
                     std_out(f"Updated latest_postprocessing to: \
-                        {self.api_device.postprocessing}['latest_postprocessing']")
+                        {self.api_device.postprocessing['latest_postprocessing']}")
 
                     return True
 
@@ -811,6 +811,7 @@ class Device(object):
             std_out('Empty dataframe, ignoring', 'WARNING')
             return False
 
+        std_out(f'Trying to post {list(df.columns)}')
         post_ok = self.api_device.post_data_to_device(df, clean_na = clean_na,
             chunk_size = chunk_size, dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
@@ -886,6 +887,7 @@ class Device(object):
             std_out('Empty dataframe, ignoring', 'WARNING')
             return False
 
+        std_out(f'Trying to post {list(df.columns)}')
         post_ok = self.api_device.post_data_to_device(df, chunk_size = chunk_size,
             dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted metrics for {self.id}', 'SUCCESS')
