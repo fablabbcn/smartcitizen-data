@@ -245,7 +245,7 @@ def device_metric_map(self, channel, start_date, end_date, options = dict()):
             _lat = self.devices[str(device)].api_device.lat
             _long = self.devices[str(device)].api_device.long
         except AttributeError:
-            std_out(f'Cannot retrieve [lat, long] from device {device}', 'ERROR')
+            std_out(f'Cannot retrieve [lat, long] from device {device}', 'WARNING')
             pass
             continue
 

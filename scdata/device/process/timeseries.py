@@ -179,12 +179,18 @@ def rolling_avg(dataframe, **kwargs):
             Accepts arguments in the list of windows for scipy.signal windows:
             https://docs.scipy.org/doc/scipy/reference/signal.html#window-functions
             Default to None implies normal rolling average
+        type: str, optional
+            'mean'
+            Accepts mean, max or min for rolling windows. Default is 'mean' as per the scipy
+            implementation
     Returns
     -------
         pandas series containing the rolling average
     """   
 
-    if 'name' not in kwargs: return None
+    if 'name' not in kwargs:
+        std_out (f'name not in kwargs', 'ERROR')
+        return None
 
     result = dataframe[kwargs['name']].copy()
 
