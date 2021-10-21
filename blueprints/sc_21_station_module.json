@@ -535,8 +535,18 @@
       "id": "55",
       "units": "degC"
     },
-    "CO2": {
-      "desc": "External NDIR CO2 (SDC30)",
+    "SCD30_TEMP": {
+      "desc": "External temperature (SCD30)",
+      "id": "160",
+      "units": "degC"
+    },
+    "SCD30_HUM": {
+      "desc": "External humidity (SCD30)",
+      "id": "161",
+      "units": "%rh"
+    },
+    "SCD30_CO2": {
+      "desc": "CO2 (SCD30)",
       "id": "158",
       "units": "ppm"
     }
