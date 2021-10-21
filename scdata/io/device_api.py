@@ -937,6 +937,7 @@ class DadesObertesApiDevice:
         self.devicejson = None
         self.lat = None
         self.long = None
+        self.alt = None
         self.timezone = None
 
     @staticmethod
@@ -1085,6 +1086,18 @@ class DadesObertesApiDevice:
         std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
 
         return self.timezone
+
+    def get_device_alt(self, update = False):
+
+        if self.lat is None or self.long is None:
+            self.get_device_lat_long(update)
+
+        if self.alt is None or update:
+            self.alt = get_elevation(_lat = self.lat, _long = self.long)
+
+        std_out ('Device {} altitude is {}m'.format(self.id, self.alt))
+
+        return self.alt
 
     def get_device_lat_long(self):
 
