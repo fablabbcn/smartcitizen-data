@@ -120,7 +120,9 @@ class Device(object):
         for ditem in self.description.keys():
             if ditem not in vars(self): std_out (f'Ignoring {ditem} from input'); continue
             if type(self.__getattribute__(ditem)) == dict:
-                self.__setattr__(ditem, dict_fmerge(self.__getattribute__(ditem), self.description[ditem]))
+                self.__setattr__(ditem,
+                    dict_fmerge(self.__getattribute__(ditem),
+                    self.description[ditem]))
             else: self.__setattr__(ditem, self.description[ditem])
 
     def check_overrides(self, options = {}):

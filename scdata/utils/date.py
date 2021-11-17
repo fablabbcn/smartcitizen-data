@@ -1,6 +1,6 @@
 from pandas import to_datetime
 
-def localise_date(date, timezone):
+def localise_date(date, timezone, tzaware=True):
     """
     Localises a date if it's tzinfo is None, otherwise converts it to it.
     If the timestamp is tz-aware, converts it as well
@@ -14,14 +14,14 @@ def localise_date(date, timezone):
     -------
         The date converted to 'UTC' and localised based on the timezone
     """    
-    
     if date is not None:
-        result_date = to_datetime(date, utc = True)
+        # Per default, we consider that timestamps are tz-aware or UTC.
+        # If not, preprocessing should be done to get there
+        result_date = to_datetime(date, utc = tzaware)
         if result_date.tzinfo is not None: 
             result_date = result_date.tz_convert(timezone)
         else:
             result_date = result_date.tz_localize(timezone)
-
     else: 
         result_date = None
 
