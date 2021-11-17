@@ -64,7 +64,9 @@
         1,
         4
       ],
-      "index": "date"
+      "index": "date",
+      "sep": ",",
+      "tz-aware": true
     }
   },
   "version": null

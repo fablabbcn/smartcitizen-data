@@ -195,7 +195,9 @@
         2,
         3
       ],
-      "index": "TIME"
+      "index": "TIME",
+      "sep": ",",
+      "tz-aware": true
     }
   },
   "version": null

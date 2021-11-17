@@ -35,7 +35,9 @@
     },
     "csv": {
       "header_skip": null,
-      "index": "Time"
+      "index": "Time",
+      "sep": ",",
+      "tz-aware": true
     }
   },
   "version": null

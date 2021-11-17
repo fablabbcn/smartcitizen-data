@@ -41,7 +41,9 @@
         2,
         3
       ],
-      "index": "TIME"
+      "index": "TIME",
+      "sep": ",",
+      "tz-aware": false
     }
   },
   "version": null
