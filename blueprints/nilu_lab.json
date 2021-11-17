@@ -1,0 +1,65 @@
+{
+  "clean_na": null,
+  "documentation": null,
+  "frequency": null,
+  "id": null,
+  "timezone": null,
+  "max_date": null,
+  "min_date": null,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "CO": {
+      "id": "CO",
+      "units": "ppm"
+    },
+    "NO": {
+      "id": "NO",
+      "units": "ppb"
+    },
+    "NOX": {
+      "id": "NOx",
+      "units": "ppb"
+    },     
+    "NO2": {
+      "id": "NO2",
+      "units": "ppb"
+    },
+    "O3": {
+      "id": "O3",
+      "units": "ppb"
+    },
+    "SO2": {
+      "id": "SO2",
+      "units": "ppb"
+    },
+    "TEMP_A": {
+      "id": "Temp_Ch_A",
+      "units": "degC"
+    },
+    "TEMP_B": {
+      "id": "Temp_Ch_B",
+      "units": "degC"
+    },
+    "HUM_A": {
+      "id": "RH_Ch_A",
+      "units": "%rh"
+    },
+    "HUM_B": {
+      "id": "RH_Ch_B",
+      "units": "%rh"
+    }     
+  },
+  "source": null,
+  "sources": {
+    "csv": {
+      "header_skip": [
+        1
+      ],
+      "index": ["DATE", "TIME"],
+      "sep": " ",
+      "tz-aware": false
+    }
+  },
+  "version": null
+}
