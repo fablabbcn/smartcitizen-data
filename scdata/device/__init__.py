@@ -404,8 +404,10 @@ class Device(object):
 
                         sensor_id = version["ids"][slot]
                         as_type = config._as_sensor_codes[sensor_id[0:3]]
-                        pollutant = as_type[as_type.index('_')+1:]
-                        if pollutant == 'OX': pollutant = 'O3'
+                        channel = as_type[as_type.index('_')+1:]
+                        pollutant = channel
+                        if channel == 'OX':
+                            pollutant = 'O3'
 
                         # Get working and auxiliary electrode names
                         wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
@@ -424,8 +426,8 @@ class Device(object):
                             self.metrics[pollutant]['kwargs']['from_date'] = from_date
                             self.metrics[pollutant]['kwargs']['to_date'] = to_date
                             # Add channel name for traceability
-                            self.metrics[f'{pollutant}_WE']['kwargs']['channel'] = wen
-                            self.metrics[f'{pollutant}_AE']['kwargs']['channel'] = aen
+                            self.metrics[f'{channel}_WE']['kwargs']['channel'] = wen
+                            self.metrics[f'{channel}_AE']['kwargs']['channel'] = aen
 
                     # Alphasense type - AAN 803-04
                     if slot.startswith('PT'):
