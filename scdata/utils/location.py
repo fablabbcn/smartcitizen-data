@@ -1,5 +1,6 @@
 from requests import get
 from pandas import json_normalize
+from scdata.utils import std_out
 
 def get_elevation(_lat = None, _long = None):
     '''
@@ -13,8 +14,17 @@ def get_elevation(_lat = None, _long = None):
     
     query = ('https://api.open-elevation.com/api/v1/lookup'
              f'?locations={_lat},{_long}')
+
     # Request with a timeout for slow responses
-    r = get(query, timeout = 20)
+    error = False
+    try:
+        r = get(query, timeout = 20)
+    except:
+        std_out(f'Cannot get altitude from {query}')
+        error = True
+        pass
+
+    if error: return None
 
     # Only get the json response in case of 200 or 201
     if r.status_code == 200 or r.status_code == 201:
