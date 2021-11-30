@@ -1668,7 +1668,8 @@ class NiluApiDevice(object):
         # Make sure we have the everything we need beforehand
         self.get_device_sensors()
         self.get_device_timezone()
-        self.get_device_added_at()
+        # This is not available yet
+        # self.get_device_added_at()
         self.get_device_last_reading()
 
         if self.timezone is None:
