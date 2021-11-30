@@ -9,7 +9,7 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker
+from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker, process_headers
 from tzwhere import tzwhere
 from datetime import date, datetime
 from os import environ, urandom
@@ -239,21 +239,30 @@ class ScApiDevice:
         if value is None: std_out(f'Value needs a value, {value} supplied', 'ERROR'); return None
 
         if value == 'null' or value == 'not_null':
-             query = API_BASE_URL  + f'?q[{key}_{value}]=1'
+             url = API_BASE_URL  + f'?q[{key}_{value}]=1'
         else:
-             query = API_BASE_URL  + f'?q[{key}]={value}'
+             url = API_BASE_URL  + f'?q[{key}]={value}'
 
-        try:
-            qresp = get(query)
+        df = DataFrame()
+        isn = True
+        while isn:
+            try:
+                r = get(url)
+                # If status code OK, retrieve data
+                if r.status_code == 200 or r.status_code == 201:
+                    h = process_headers(r.headers)
+                    df = df.combine_first(DataFrame(r.json()).set_index('id'))
+                else:
+                    std_out('API reported {}'.format(r.status_code), 'ERROR')
+            except:
+                std_out('Failed request. Probably no connection', 'ERROR')
+                pass
 
-            # If status code OK, retrieve data
-            if qresp.status_code == 200 or qresp.status_code == 201:
-                df = DataFrame(qresp.json()).set_index('id')
+            if 'next' in h:
+                if h['next'] == url: isn = False
+                elif h['next'] != url: url = h['next']
             else:
-                std_out('API reported {}'.format(qresp.status_code), 'ERROR')
-        except:
-            std_out('Failed request. Probably no connection', 'ERROR')
-            pass
+                isn = False
 
         if full: return df
         else: return list(df.index)

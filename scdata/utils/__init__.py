@@ -10,5 +10,6 @@ from .stats import spearman, get_metrics
 from .cleaning import clean
 from .location import get_elevation
 from .url_check import url_checker
+from .headers import process_headers
 # from .other.manage_post_info import create_post_info
 # from .zenodo import zenodo_upload
