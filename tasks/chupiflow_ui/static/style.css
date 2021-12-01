@@ -109,7 +109,6 @@ h3 {
 table{
 	font-size: 13px;
   margin-top:10px;
-  width: 100%;
 }
 
 thead{
@@ -131,7 +130,6 @@ td.td-code-center{
 }
 
 th{
-	font-size: 15px;
 	padding: 1rem;
 	color: white;
 }

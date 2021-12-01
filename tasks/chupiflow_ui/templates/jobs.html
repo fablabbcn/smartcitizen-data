@@ -14,7 +14,7 @@
                     {% for tabfilename, tabdict  in tabfiles.items() %}
                         <div class="list-group">
                             <h1>Tabfile: <a href = {{ url_for('tabfile', tabfile=tabfilename) }}>{{ tabfilename }}</a></h1>
-                            <table>
+                            <table id="jobs" style="width:100%">
                                 <thead>
                                     <th>Jobname</th>
                                     <th>Schedule</th>
