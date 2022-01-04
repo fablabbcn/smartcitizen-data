@@ -68,7 +68,8 @@ def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = 
 
     # Read pandas dataframe
 
-    df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = ',', encoding = encoding)
+    df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = sep,
+                  encoding = encoding, encoding_errors='ignore')
 
     flag_found = False
     if type(index_name) == str:
@@ -154,7 +155,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
             src_path = join(path, file)
 
             try:
-                with open(src_path, 'r', newline = '\n') as csv_file:
+                with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
                     header = csv_file.readlines()[0:4]
             except:
                 ignore_file = True
@@ -179,8 +180,10 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                         header_tokenized[short_tokenized[index]]['unit'] = unit_tokenized[index]
                         header_tokenized[short_tokenized[index]]['long'] = long_tokenized[index]
                         header_tokenized[short_tokenized[index]]['id'] = id_tokenized[index]
-            
-            temp = read_csv(src_path, verbose=False, skiprows=range(1,4)).set_index("TIME")
+
+            temp = read_csv(src_path, verbose=False, skiprows=range(1,4),
+                            encoding_errors='ignore').set_index("TIME")
+            temp = clean(temp, clean_na='drop', how='all')
             temp.index.rename(index_name, inplace=True)
             concat = concat.combine_first(temp)
 
