@@ -344,10 +344,17 @@ class Test(object):
                         dst_path = join(self.path, device.processed_data_file)
 
                         # Load csv file, only localising and removing
-                        df = read_csv_file(src_path, device.timezone, device.frequency, clean_na = None,
-                                           index_name = device.sources[device.source]['index'],
-                                           skiprows = device.sources[device.source]['header_skip'])
-                        df.to_csv(dst_path, sep=",")
+                        df = read_csv_file(file_path = src_path,
+                                            timezone = device.timezone,
+                                            frequency = device.frequency,
+                                            clean_na = None,
+                                            index_name = device.sources[device.source]['index'],
+                                            skiprows = device.sources[device.source]['header_skip'],
+                                            sep = device.sources[device.source]['sep'],
+                                            tzaware = device.sources[device.source]['tz-aware']
+                                            )
+                        df.index.rename(config._csv_defaults['index_name'], inplace=True)
+                        df.to_csv(dst_path, sep=config._csv_defaults['sep'])
 
             std_out('Files preprocessed')
         std_out(f'Test {self.full_name} path: {self.path}')

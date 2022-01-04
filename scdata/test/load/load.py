@@ -184,7 +184,7 @@ def load(self, options = dict()):
 
         elif device.source == 'csv':
 
-            device.load(options = self.options, path = self.path)
+            device.load(options = self.options, path = self.path, follow_defaults = True)
 
         if self.options['store_cached_api'] and device.loaded and device.source == 'api' and load_API:
 
@@ -200,6 +200,7 @@ def load(self, options = dict()):
         if device.loaded: std_out(f'Device {device.id} has been loaded', 'SUCCESS')
         else: std_out(f'Could not load device {device.id}. Skipping', 'WARNING')
 
+    # TODO IMPORTANT!
     self.__update_descriptor__()
     std_out('Test load done', 'SUCCESS')
     self.loaded = True

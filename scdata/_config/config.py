@@ -42,6 +42,9 @@ class Config(object):
     # Returns when iterables cannot be fully processed
     _strict = False
 
+    # Ignore additional channels in csv loads
+    _strict_load = True
+
     ### ---------------------------------------
     ### ----------------CRONTAB----------------
     ### ---------------------------------------
@@ -604,6 +607,12 @@ class Config(object):
         'blueprint_loaded_from_url',
         'hardware_loaded_from_url'
     ]
+
+    _csv_defaults = {
+        'index_name': 'TIME',
+        'sep': ',',
+        'skiprows': None
+    }
 
     def __init__(self):
         self._env_file = False
