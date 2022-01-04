@@ -494,13 +494,20 @@ class Device(object):
         for sensor_to_remove in remove_sensors:
             self.sensors.pop(sensor_to_remove, None)
 
+        if config._strict_load:
+            remove_columns = list()
+            for column in self.readings.columns:
+                if column not in self.sensors: remove_columns.append(column)
+            self.readings.drop(remove_columns, axis=1, inplace=True)
+
         std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
 
     def __convert_names__(self):
         rename = dict()
         for sensor in self.sensors:
-            if 'id' in self.sensors[sensor] and sensor in self.readings.columns:
-                rename[self.sensors[sensor]['id']] = sensor
+            if 'id' in self.sensors[sensor]:
+                if self.sensors[sensor]['id'] in self.readings.columns:
+                    rename[self.sensors[sensor]['id']] = sensor
         self.readings.rename(columns=rename, inplace=True)
 
     def __convert_units__(self):
@@ -515,8 +522,8 @@ class Device(object):
             factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
 
             if factor != 1:
-                self.readings.rename(columns={sensor: sensor + '_RAW'}, inplace=True)
-                self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_RAW']*factor
+                self.readings.rename(columns={sensor: sensor + '_in_' + self.sensors[sensor]['units']}, inplace=True)
+                self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_in_' + self.sensors[sensor]['units']]*factor
         std_out('Units check done', 'SUCCESS')
 
     def process(self, only_new = False, lmetrics = None):
