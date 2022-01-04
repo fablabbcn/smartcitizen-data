@@ -85,7 +85,8 @@ def load(self, options = dict()):
                 if self.options['load_cached_api']:
                     std_out(f'Checking if we can load cached data')
                     if not device.load(options = self.options,
-                        path = join(self.path, 'cached'), convert_units = False):
+                                       path = join(self.path, 'cached'),
+                                       convert_units = False):
 
                         std_out(f'No valid cached data. Requesting device {device.id} to API', 'WARNING')
                         min_date_to_load = localise_date(device.options['min_date'],
