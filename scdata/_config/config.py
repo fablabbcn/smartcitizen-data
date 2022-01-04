@@ -539,7 +539,9 @@ class Config(object):
             'fontsize': 8.,
             'orientation': 'left',
             'title_fontsize': 14,
-            'suptitle_factor': 0.92
+            'suptitle_factor': 0.92,
+            'style': _plot_style,
+            'palette': None
         }
     }
 
