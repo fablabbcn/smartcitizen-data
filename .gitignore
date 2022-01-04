@@ -21,6 +21,7 @@ scr.egg-info
 connectors/clean.py
 connectors/sensors.py
 references
+notebooks/delivery_report_template.ipynb
 
 TODO.md
 secrets.py
