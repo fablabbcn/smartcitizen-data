@@ -37,6 +37,29 @@ This will schedule a device regardless the auto-scheduling:
 python chupiflow.py manual-schedule --device <device> --dry-run --force-first-run --overwrite
 ```
 
+## Local deployment
+
+You would need to replace the following lines in `tasks/chupiflow_ui/app.py` for local deployment:
+
+```
+from cron import parsetabfiles, validate, savetabfiles, triggercrontab
+from extras import get_dpath
+```
+
+Into:
+
+```
+from .cron import parsetabfiles, validate, savetabfiles, triggercrontab
+from .extras import get_dpath
+```
+
+Then you can run:
+
+```
+export FLASK_APP=app.py
+flask run
+```
+
 ## Statement
 
 This code was made as a response to the lack of simple task schedulers that are not thought to be running in Azure, Kubernetes or whatever else (`airflow` gets the reference for the name). Nothing against it, just too complex for what could be solved with simple `cron` scheduling.
