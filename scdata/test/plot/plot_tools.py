@@ -13,8 +13,8 @@ Available styles
 'seaborn-whitegrid', 'seaborn', 'Solarize_Light2', 'tableau-colorblind10']
 '''
 
-# markers = ["o" ,"v" ,"^" ,"<" ,">" ,"1" ,"2" ,"3" ,"4" ,"8" ,"s" ,"p" ,
-#             "P" , "*" ,"h" ,"H" ,"+" ,"x" ,"X" ,"D" ,"d" ,"|", "_"]
+markers = ["o" ,"v" ,"^" ,"<" ,">" ,"1" ,"2" ,"3" ,"4" ,"8" ,"s" ,"p" ,
+            "P" , "*" ,"h" ,"H" ,"+" ,"x" ,"X" ,"D" ,"d" ,"|", "_"]
 
 colors = ['sienna',     'gold',
           'orange',   'salmon',    'chartreuse', 'green',      'mediumspringgreen', 'lightseagreen',

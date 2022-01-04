@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import style
-from seaborn import set_palette, regplot
+from seaborn import set_palette, regplot, scatterplot, relplot
 from scdata.utils import std_out, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, colors
@@ -88,6 +88,13 @@ def scatter_plot(self, **kwargs):
                              'subplot': traces[trace]['subplot']
                             }
 
+        # Workaround to get the hue here
+        if 'hue' in traces[trace]:
+            ptrace_3 = trace * 10 + 3
+            ptraces[ptrace_3] = {'devices': traces[trace]['hue'][0],
+                                 'channel': traces[trace]['hue'][1],
+                                 'subplot': traces[trace]['subplot']
+                                }
 
     # Get dataframe
     df, subplots = prepare_data(self, ptraces, options)
@@ -132,12 +139,35 @@ def scatter_plot(self, **kwargs):
                         'label': f'{i[2*j+1]} vs. {i[2*j]}'
                     }
 
-            if formatting['palette'] is None: kwargs['color'] = colors[cind]
+            if len(i) == 3:
 
-            regplot(df[i[2*j]], df[i[2*j+1]], **kwargs)
+                if formatting['palette'] is None:
+                    cmap = plt.colormaps()[cind]
+                else:
+                    cmap = formatting['palette']
 
-            if formatting['legend']:
-                ax.legend(loc='best')
+                # Assume this is the hue
+                norm = plt.Normalize(df[i[2]].min(), df[i[2]].max())
+                sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+                sm.set_array([])
+
+                kwargs['hue'] = i[2]
+                kwargs['palette'] = cmap
+                kwargs['legend'] = False
+                hashue=True
+
+            else:
+                if formatting['palette'] is None:
+                    kwargs['color'] = colors[cind]
+                hashue=False
+
+            scatterplot(df[i[2*j]], df[i[2*j+1]], **kwargs)
+
+            if hashue:
+                plt.colorbar(sm, ax = ax, orientation = 'vertical', label = i[2])
+
+                if formatting['legend']:
+                    ax.set_title(f'{i[2*j+1]} vs. {i[2*j]}', fontsize = formatting['title_fontsize'])
 
             if formatting['ylabel'] is not None:
                 try:
@@ -166,7 +196,6 @@ def scatter_plot(self, **kwargs):
     for i in subplots:
         for j in range(int(len(i)/2)):
 
-
             if nrows > 1 and ncols > 1:
                 row = floor(subplots.index(i)/ncols)
                 col = subplots.index(i)-row*ncols
@@ -194,10 +223,15 @@ def scatter_plot(self, **kwargs):
             elif formatting['sharex']:
                 ax.set_xlim(min([xl[0] for xl in x_axes]), max([xl[1] for xl in x_axes]))
 
+            if formatting['legend']:
+                ax.legend(loc='best')
+            else:
+                ax.get_legend().remove()
+
     # Set title
     figure.suptitle(formatting['title'], fontsize = formatting['title_fontsize']);
     plt.subplots_adjust(top = formatting['suptitle_factor']);
 
     if options['show']: plt.show();
 
-    return figure
+    return figure, axes

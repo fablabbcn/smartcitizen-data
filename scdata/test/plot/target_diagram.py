@@ -1,6 +1,14 @@
-def target_diagram(models, plot_train, style_to_use = 'seaborn-paper'):
+from matplotlib import style
+from math import sqrt
+from numpy import power
+import matplotlib.pyplot as plt
+from traceback import print_exc
+from .plot_tools import colors, markers
+
+def target_diagram(models, **kwargs):
     ## TODO DOCUMENT
-    style.use(style_to_use)
+    if 'style' in kwargs:
+        style.use(kwargs['style'])
     
     def minRtarget(targetR):
         return sqrt(1+ power(targetR,2)-2*power(targetR,2))

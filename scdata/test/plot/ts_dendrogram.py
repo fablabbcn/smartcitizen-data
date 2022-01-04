@@ -17,7 +17,7 @@ def ts_dendrogram(self, **kwargs):
             If 'all', uses all devices in the test
         channels: list
             'all'
-            If 'all', uses all channels in the devices        
+            If 'all', uses all channels in the devices
         metric: string
             'correlation' for normal R2 or custom metric by callable
         'method': string
@@ -26,7 +26,7 @@ def ts_dendrogram(self, **kwargs):
         'options': dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
-            Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
+            Name of auxiliary electrode found in dataframe. Defaults in config._dendrogram_def_fmt
     Returns
     -------
         Dendrogram matrix, shows plot
@@ -51,9 +51,9 @@ def ts_dendrogram(self, **kwargs):
 
     if 'formatting' not in kwargs:
         std_out('Using default formatting')
-        formatting = config._ts_plot_def_fmt['mpl']
+        formatting = config._dendrogram_def_fmt['mpl']
     else:
-        formatting = dict_fmerge(config._ts_plot_def_fmt['mpl'], kwargs['formatting'])
+        formatting = dict_fmerge(config._dendrogram_def_fmt['mpl'], kwargs['formatting'])
 
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
@@ -84,26 +84,23 @@ def ts_dendrogram(self, **kwargs):
         dfd = dfd.resample(options['frequency']).mean()
         
         if channels != 'all': 
-            for channel in channels: 
+            for channel in channels:
                 if channel in dfd.columns: df = df.append(dfd[channel].rename(device+'_'+channel))
         else: df = df.append(dfd)
 
-    df = clean(df, options['clean_na'], how = 'any')    
-            
-    # if options['clean_na'] is not None:
-    #     if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
-    #     if options['clean_na'] == 'fill': df = df.fillna(method='ffill')
+    if options['clean_na'] is not None:
+        if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
+        if options['clean_na'] == 'fill': df = df.fillna(method='ffill')
     
-    # Do the clustering        
-    Z = hac.linkage(df, method = method, metric = metric)
+    Z = hc.linkage(df, method = method, metric = metric)
 
     # Plot dendogram
     plt.figure(figsize=(formatting['width'], formatting['height']))
-    plt.title(formatting['title'], fontsize = formatting['titlefontsize'])
+    plt.title(formatting['title'], fontsize = formatting['title_fontsize'])
     plt.subplots_adjust(top = formatting['suptitle_factor']);
     plt.xlabel(formatting['xlabel'])
     plt.ylabel(formatting['ylabel'])
-    hac.dendrogram(
+    hc.dendrogram(
         Z,
         orientation=formatting['orientation'],
         leaf_font_size=formatting['fontsize'],  # font size for the x axis labels
