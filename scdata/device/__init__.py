@@ -265,7 +265,12 @@ class Device(object):
 
         return all_channels
 
-    def load(self, options = None, path = None, convert_units = True, only_unprocessed = False, max_amount = None):
+    def make_raw(self):
+
+        self.processed_data_file = self.raw_data_file
+        return True
+
+    def load(self, options = None, path = '', convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
         '''
         Loads the device with some options
 
@@ -282,7 +287,7 @@ class Device(object):
             options['frequency'] = frequency to load data at in pandas format
                 Default to device frequency (from blueprint or test) or '1Min'
         path: String
-            Default: None
+            Default: ''
             Path were the csv file is, if any. Normally not needed to be provided, only for internal usage
         convert_units: bool
             Default: True
@@ -293,6 +298,9 @@ class Device(object):
         max_amount: int
             Default: None
             Trim dataframe to this amount for processing and forwarding purposes
+        follow_defaults: bool
+            Default: False
+            Use defaults from config._csv_defaults for loading
         Returns
         ----------
             True if loaded correctly
@@ -304,9 +312,26 @@ class Device(object):
 
         try:
             if self.source == 'csv':
-                self.readings = self.readings.combine_first(read_csv_file(join(path, self.processed_data_file), self.timezone,
-                                                            self.options['frequency'], self.options['clean_na'],
-                                                            self.sources[self.source]['index']))
+                if follow_defaults:
+                    index_name = config._csv_defaults['index_name']
+                    sep = config._csv_defaults['sep']
+                    skiprows = config._csv_defaults['skiprows']
+                else:
+                    index_name = self.sources[self.source]['index']
+                    sep = self.sources[self.source]['sep']
+                    skiprows = self.sources[self.source]['header_skip']
+
+                # here we don't use tzaware because we only load preprocessed data
+                self.readings = self.readings.combine_first(
+                                                        read_csv_file(
+                                                            file_path = join(path, self.processed_data_file),
+                                                            timezone = self.timezone,
+                                                            frequency = self.options['frequency'],
+                                                            clean_na = self.options['clean_na'],
+                                                            index_name = index_name,
+                                                            sep = sep,
+                                                            skiprows = skiprows)
+                                                        )
                 if self.readings is not None:
                     self.__convert_names__()
 
@@ -325,7 +350,7 @@ class Device(object):
 
                 self.timezone = self.api_device.get_device_timezone()
 
-                if path is None:
+                if path == '':
                     # Not chached case
                     if only_unprocessed:
 

@@ -27,14 +27,14 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
     if not exists(path):
         makedirs(path)
 
-    # If file does not exist 
+    # If file does not exist
     if not exists(path + '/' + str(file_name) + '.csv') or forced_overwrite:
         df.to_csv(path + '/' + str(file_name) + '.csv', sep=",")
         std_out('File saved to: \n' + path + '/' + str(file_name) +  '.csv', 'SUCCESS')
     else:
         std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'ERROR')
         return False
-    
+
     return True
 
 def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8', tzaware = True):
@@ -64,18 +64,31 @@ def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = 
     Returns
     -------
         Pandas dataframe
-    """  
+    """
 
     # Read pandas dataframe
 
     df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = ',', encoding = encoding)
 
     flag_found = False
-    for column in df.columns:
-        if index_name in column: 
-            df = df.set_index(column)
-            flag_found = True
-            break
+    if type(index_name) == str:
+        # Single joint index
+        for column in df.columns:
+            if index_name in column:
+                df = df.set_index(column)
+                flag_found = True
+                break
+    elif type(index_name) == list:
+        # Composite index (for instance, DATE and TIME in different columns)
+        for iname in index_name:
+            if iname not in df.columns:
+                std_out(f'{iname} not found in columns', 'ERROR')
+                return None
+        joint_index_name = '_'.join(index_name)
+        df[joint_index_name] = df[index_name].agg(' '.join, axis=1)
+        df = df.set_index(joint_index_name)
+        df.drop(index_name, axis=1, inplace=True)
+        flag_found = True
 
     if not flag_found:
         std_out('Index not found. Cannot reindex', 'ERROR')
@@ -85,13 +98,13 @@ def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = 
     df.index = localise_date(df.index, timezone, tzaware=tzaware)
     # Remove duplicates
     df = df[~df.index.duplicated(keep='first')]
-    
+
     # Sort index
     df.sort_index(inplace=True)
-    
+
     # Drop unnecessary columns
     df.drop([i for i in df.columns if 'Unnamed' in i], axis=1, inplace=True)
-    
+
     # Check for weird things in the data
     # df = df.apply(to_numeric, errors='coerce')
     df = df.astype(float, errors='ignore')
@@ -101,7 +114,7 @@ def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = 
 
     # Remove na
     df = clean(df, clean_na, how = 'all')
-    
+
     return df
 
 def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT']):
@@ -161,7 +174,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                 for item in short_tokenized:
                     if item != '' and item not in header_tokenized.keys():
                         index = short_tokenized.index(item)
-                        
+
                         header_tokenized[short_tokenized[index]] = dict()
                         header_tokenized[short_tokenized[index]]['unit'] = unit_tokenized[index]
                         header_tokenized[short_tokenized[index]]['long'] = long_tokenized[index]
@@ -169,7 +182,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
             
             temp = read_csv(src_path, verbose=False, skiprows=range(1,4)).set_index("TIME")
             temp.index.rename(index_name, inplace=True)
-            concat = concat.combine_first(temp)            
+            concat = concat.combine_first(temp)
 
     columns = concat.columns
 
