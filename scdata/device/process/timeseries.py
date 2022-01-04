@@ -1,5 +1,7 @@
-from numpy import nan, full, power, ones
+from numpy import nan, full, power, ones, diff, convolve, append
+from scipy import ndimage
 from scdata.device.process import is_within_circle
+from scdata.utils import std_out
 
 def poly_ts(dataframe, **kwargs):
     """
@@ -189,7 +191,7 @@ def rolling_avg(dataframe, **kwargs):
     """   
 
     if 'name' not in kwargs:
-        std_out (f'name not in kwargs', 'ERROR')
+        std_out (f'{kwargs[name]} not in kwargs', 'ERROR')
         return None
 
     result = dataframe[kwargs['name']].copy()
@@ -208,9 +210,42 @@ def rolling_avg(dataframe, **kwargs):
     else:
         return result.rolling(window = window, win_type = win_type).mean()
 
+def time_derivative(dataframe, **kwargs):
+    """
+    Performs timeseries derivative of input
+    Parameters
+    ----------
+        name: str
+            Name of the channel to perform the derivative onto
+        gaussian_filter: bool, optional
+            True
+            Gaussian filter of output
+    Returns
+    -------
+        pandas series containing derivative using simple np.diff
+    """
+
+    if 'name' not in kwargs: return None
+    if 'gaussian_filter1d' not in kwargs: gaussian_filter1d = True
+    else: gaussian_filter1d = False
+
+    df = dataframe.copy()
+
+    #Normalization:
+    dx = diff(df.index).astype("timedelta64[m]").astype(int)
+
+    #First derivatives:
+    df['diff'] = append(diff(dataframe[kwargs['name']]) / dx, 0)
+
+    if gaussian_filter1d:
+        df['diff_filter1d']  = ndimage.gaussian_filter1d(df['diff'], sigma=1, order=1, mode='wrap') / dx
+        return df['diff_filter1d']
+
+    return df['diff']
+
 def geo_located(dataframe, **kwargs):
     """
-    Performs pandas.rolling with input
+    Performs geo location of input
     Parameters
     ----------
         within: tuple
