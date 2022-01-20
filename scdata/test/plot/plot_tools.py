@@ -167,18 +167,21 @@ def prepare_data(test, traces, options):
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.resample.Resampler.aggregate.html
         if 'extras' in traces[trace]:
             for extra in traces[trace]['extras']:
+                extra_name = channel + f"-{trace}-{extra.upper()}"
 
-                extra_name = channel + f'-{extra.upper()}'
-                sbl = subplots[traces[trace]['subplot']-1]
+                nextras = list()
+                for device in traces[trace]['devices']:
+                    for channel in traces[trace]['channel']:
+                        nextras.append(channel + '_' + str(device))
 
                 if extra == 'max':
-                    df[extra_name] = df.loc[:, sbl].max(axis = 1)
+                    df[extra_name] = df.loc[:, nextras].max(axis = 1)
 
                 if extra == 'mean':
-                    df[extra_name] = df.loc[:, sbl].mean(axis = 1)
+                    df[extra_name] = df.loc[:, nextras].mean(axis = 1)
 
                 if extra == 'min':
-                    df[extra_name] = df.loc[:, sbl].min(axis = 1)
+                    df[extra_name] = df.loc[:, nextras].min(axis = 1)
 
                 subplots[traces[trace]['subplot']-1].append(extra_name)
 

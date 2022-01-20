@@ -1,9 +1,12 @@
 from scdata.utils import std_out
 
-def get_common_channels(self, ignore_missing_channels = False, pop_zero_readings_devices = False, verbose = True):
+def get_common_channels(self, devices = None, ignore_missing_channels = False, pop_zero_readings_devices = False, verbose = True):
     '''
         Convenience method get the common channels of the devices in the test
         Params:
+            devices: list
+                None
+                List of devices to get common channels from. Passing None means 'all'
             ignore_missing_channels: bool
             	False
             	In case there is a device with lower amount of channels, ignore the missing channels and keep going
@@ -18,7 +21,13 @@ def get_common_channels(self, ignore_missing_channels = False, pop_zero_readings
     '''
 
 	# Get list of devices
-    list_devices = list(self.devices.keys())
+    if devices is None:
+        list_devices = list(self.devices.keys())
+        return_all = True
+    else:
+        list_devices = devices
+        return_all = False
+
     # Init list of common channels. Get just the first one
     list_channels = self.devices[list_devices[0]].readings.columns
 
@@ -59,11 +68,17 @@ def get_common_channels(self, ignore_missing_channels = False, pop_zero_readings
             std_out ('Error on device, ignoring', 'WARNING')
             continue
 
-    self.common_channels = list_channels
-    
-    std_out(f'Final list of channels:\n {self.common_channels}')
-    if show_warning:
-    	std_out (f'Some devices show less amount of sensors', 'WARNING')
-    	print (channels_devices)
+    if return_all:
 
-    return self.common_channels
+        self.common_channels = list_channels
+    
+        std_out(f'Final list of channels:\n {self.common_channels}')
+        if show_warning:
+            std_out (f'Some devices show less amount of sensors', 'WARNING')
+            print (channels_devices)
+
+        return self.common_channels
+
+    else:
+
+        return list_channels

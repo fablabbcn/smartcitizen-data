@@ -181,4 +181,4 @@ def ts_dispersion_plot(self, **kwargs):
 
     if options['show']: plt.show()
 
-    return figure    
+    return figure

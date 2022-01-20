@@ -20,7 +20,7 @@ def ts_plot(self, **kwargs):
             "traces":  {"1": {"devices": ['8019043', '8019044', '8019004'],
                              "channel" : "PM_10",
                              "subplot": 1,
-                             "extras": ['max', 'min', 'avg']},
+                             "extras": ['max', 'min', 'mean']},
                         "2": {"devices": "all",
                              "channel" : "TEMP",
                              "subplot": 2}
