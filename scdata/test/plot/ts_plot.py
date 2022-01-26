@@ -104,16 +104,42 @@ def ts_plot(self, **kwargs):
         elif any(['-MIN' in trace for trace in subplots[isbplt]]): has_hl = True
         else: has_hl = False
 
+        bands = dict()
+        if any(['-BAND' in trace for trace in subplots[isbplt]]): has_bands = True
+        else: has_bands = False
+
         for trace in subplots[isbplt]:
 
+            label = trace
+
             if has_hl:
-                if '-MEAN' in trace: alpha = formatting['alpha_highlight']
-                elif '-MAX' in trace: alpha = formatting['alpha_highlight']
-                elif '-MIN' in trace: alpha = formatting['alpha_highlight']
-                else: alpha = formatting['alpha_other']
+                if '-MEAN' in trace:
+                    alpha = formatting['alpha_highlight']
+                elif '-MAX' in trace:
+                    alpha = formatting['alpha_highlight']
+                elif '-MIN' in trace:
+                    alpha = formatting['alpha_highlight']
+                else:
+                    alpha = formatting['alpha_other']
             else: alpha = 1
 
-            ax.plot(df.index, df[trace], label = trace, alpha = alpha);
+            if has_bands:
+                bnames = ['UPPER-BAND', 'LOWER-BAND']
+                for bname in bnames:
+                    if bname in trace:
+                        if trace.replace('-'+bname, "") not in bands:
+                            bands[trace.replace('-'+bname, "")]=dict()
+                        bands[trace.replace('-'+bname, "")][bname] = trace
+                        label = None
+
+            ax.plot(df.index, df[trace], label = label, alpha = alpha);
+
+        if has_bands:
+            for band in bands:
+                plt.fill_between(x=df.index,
+                            y1=df[bands[band]['UPPER-BAND']],
+                            y2=df[bands[band]['LOWER-BAND']],
+                            alpha=formatting['alpha_bands']);
 
         # TODO make this to compare to not None, so that we can send location
         if formatting['legend']:

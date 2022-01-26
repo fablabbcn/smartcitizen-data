@@ -377,6 +377,7 @@ class Config(object):
             'fontsize': 10,
             'alpha_highlight': 0.8,
             'alpha_other': 0.1,
+            'alpha_bands': 0.2,
             'palette': None,
             'decorators': None,
             'legend': True,
