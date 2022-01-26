@@ -7,6 +7,7 @@ data/interim/development/*
 data/interim/deliveries/*
 data/interim/tests/*
 models/*
+notebooks/*/
 work
 working_tasks
 notebooks/working_*.ipynb
