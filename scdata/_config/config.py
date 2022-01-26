@@ -45,6 +45,9 @@ class Config(object):
     # Ignore additional channels in csv loads
     _strict_load = True
 
+    # Timeout for http requests
+    _timeout = 3
+
     ### ---------------------------------------
     ### ----------------CRONTAB----------------
     ### ---------------------------------------

@@ -1,6 +1,7 @@
 from requests import get
 from pandas import json_normalize
 from scdata.utils import std_out
+from scdata._config import config
 
 def get_elevation(_lat = None, _long = None):
     '''
@@ -18,7 +19,7 @@ def get_elevation(_lat = None, _long = None):
     # Request with a timeout for slow responses
     error = False
     try:
-        r = get(query, timeout = 20)
+        r = get(query, timeout = config._timeout)
     except:
         std_out(f'Cannot get altitude from {query}')
         error = True
