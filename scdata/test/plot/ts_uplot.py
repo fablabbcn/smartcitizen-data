@@ -155,7 +155,7 @@ def ts_uplot(self, **kwargs):
         u_options = {
                         'width': formatting['width'],
                         'height': formatting['height'],
-                        'legend': {'isolate': True},
+                        'legend': {'isolate': False},
                         'cursor': {
                                     'lock': True,
                                     'focus': {
