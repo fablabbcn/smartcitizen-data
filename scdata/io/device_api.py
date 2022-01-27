@@ -1,6 +1,7 @@
 from pandas import (DataFrame, to_datetime, to_numeric, to_timedelta,
                     to_numeric, read_csv, read_json, DateOffset, MultiIndex)
 
+from numpy import integer, floating, ndarray
 from math import isnan, nan
 from traceback import print_exc
 from requests import get, post, patch
@@ -13,7 +14,7 @@ from scdata.utils import std_out, localise_date, clean, get_elevation, url_check
 from tzwhere import tzwhere
 from datetime import date, datetime
 from os import environ, urandom
-from json import dumps
+from json import dumps, JSONEncoder
 
 import binascii
 from time import sleep
@@ -38,6 +39,18 @@ Methods
 The units should not be converted here, as they will be later on converted in device.py
 If you want to support caching, see get_device_data in ScApiDevice
 '''
+
+# numpy to json encoder to avoid convertion issues. borrowed from
+# https://stackoverflow.com/questions/50916422/python-typeerror-object-of-type-int64-is-not-json-serializable#50916741
+class NpEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, integer):
+            return int(obj)
+        if isinstance(obj, floating):
+            return float(obj)
+        if isinstance(obj, ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
 
 class ScApiDevice:
 
@@ -797,14 +810,14 @@ class ScApiDevice:
 
             if dry_run:
                 std_out(f'Dry run request to: {self.API_BASE_URL}{self.id}/readings for chunk ({i+1}/{len(chunked_dfs)})')
-                return dumps(payload, indent = 2)
+                return dumps(payload, indent = 2, cls = NpEncoder)
 
             post_ok = False
             retries = 0
 
             while post_ok == False and retries < max_retries:
                 response = post(f'{self.API_BASE_URL}{self.id}/readings',
-                            data = dumps(payload), headers = headers)
+                            data = dumps(payload, cls = NpEncoder), headers = headers)
 
                 if response.status_code == 200 or response.status_code == 201:
                     post_ok = True
@@ -1816,7 +1829,7 @@ class NiluApiDevice(object):
 
             if dry_run:
                 std_out(f'Dry run request to: {self.API_BASE_URL}sensors/{self.id}/inbound')
-                return dumps(payload, indent = 2)
+                return dumps(payload, indent = 2, cls = NpEncoder)
 
             post_ok = False
             retries = 0
@@ -1824,7 +1837,7 @@ class NiluApiDevice(object):
             while post_ok == False and retries < max_retries:
 
                 response = post(f'{self.API_BASE_URL}sensors/{self.id}/inbound',
-                            data = dumps(payload), headers = headers)
+                            data = dumps(payload, cls = NpEncoder), headers = headers)
 
                 if response.status_code == 200 or response.status_code == 201:
                     post_ok = True
