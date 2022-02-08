@@ -485,6 +485,21 @@
       "id": "76",
       "units": "ug/m3"
     },
+    "PM_1": {
+      "desc": "PM1 measurement from PMS5003",
+      "id": "89",
+      "units": "ug/m3"
+    },
+    "PM_10": {
+      "desc": "PM10 measurement from PMS5003",
+      "id": "88",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "desc": "PM2.5 measurement from PMS5003",
+      "id": "87",
+      "units": "ug/m3"
+    },
     "EXT_SHT31_HUM": {
       "desc": "External SHT31 humidity",
       "id": "null",
