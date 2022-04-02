@@ -1,5 +1,6 @@
 from scdata.utils import std_out, get_units_convf, find_dates, localise_date
 from scdata._config import config
+from scdata.device.process.params import *
 from scdata.device.process import baseline_calc, clean_ts
 from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
@@ -38,19 +39,19 @@ def alphasense_803_04(dataframe, **kwargs):
         if isnull(x['t']): return None
 
         # Below min temperature, we saturate
-        if x['t'] < config._as_t_comp[0]: return comp_lut[0]
+        if x['t'] < as_t_comp[0]: return comp_lut[0]
 
         # Over max temperature, we saturate
-        if x['t'] > config._as_t_comp[-1]: return comp_lut[-1]
+        if x['t'] > as_t_comp[-1]: return comp_lut[-1]
 
         # Otherwise, we calculate
-        idx_2 = next(axis[0] for axis in enumerate(config._as_t_comp) if axis[1] > x['t'])
+        idx_2 = next(axis[0] for axis in enumerate(as_t_comp) if axis[1] > x['t'])
         idx_1 = idx_2 - 1
 
         delta_y = comp_lut[idx_2] - comp_lut[idx_1]
-        delta_x = config._as_t_comp[idx_2] - config._as_t_comp[idx_1]
+        delta_x = as_t_comp[idx_2] - as_t_comp[idx_1]
 
-        return comp_lut[idx_1] + (x['t'] - config._as_t_comp[idx_1]) * delta_y / delta_x
+        return comp_lut[idx_1] + (x['t'] - as_t_comp[idx_1]) * delta_y / delta_x
 
     # Check inputs
     flag_error = False
@@ -94,7 +95,7 @@ def alphasense_803_04(dataframe, **kwargs):
     if to_date is not None: df = df[df.index < to_date]
 
     # Get sensor type
-    as_type = config._as_sensor_codes[kwargs['alphasense_id'][0:3]]
+    as_type = as_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
     if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
@@ -102,9 +103,9 @@ def alphasense_803_04(dataframe, **kwargs):
     else: algorithm_idx = 0
 
     # Get algorithm name
-    algorithm = list(config._as_sensor_algs[as_type].keys())[algorithm_idx]
-    comp_type = config._as_sensor_algs[as_type][algorithm][0]
-    comp_lut = config._as_sensor_algs[as_type][algorithm][1]
+    algorithm = list(as_sensor_algs[as_type].keys())[algorithm_idx]
+    comp_type = as_sensor_algs[as_type][algorithm][0]
+    comp_lut = as_sensor_algs[as_type][algorithm][1]
 
     # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['alphasense_id']]
@@ -153,7 +154,7 @@ def alphasense_803_04(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
-    if config._avoid_negative_conc:
+    if avoid_negative_conc:
         df['conc'].clip(lower = 0, inplace = True)
 
     return df['conc']
@@ -299,7 +300,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, background_conc, CHANNEL_LUT
         hardware: alphadelta or isb
     Returns
     -------
@@ -331,7 +332,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
         return None
 
     # This is always in ppm since the calibration data is in signal/ppm
-    if kwargs['hardware'] == 'alphadelta': current_factor = config._alphadelta_pcb
+    if kwargs['hardware'] == 'alphadelta': current_factor = alphadelta_pcb
     elif kwargs['hardware'] == 'isb': current_factor = 1 #TODO make it so we talk in mV
     else: 
         std_out(f"Measurement hardware {kwargs['hardware']} not supported", 'ERROR')
@@ -342,7 +343,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
     # Convert units
     result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     # Add Background concentration
-    result += config._background_conc[kwargs['pollutant']]
+    result += background_conc[kwargs['pollutant']]
 
     return result
 
@@ -363,7 +364,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, background_conc, CHANNEL_LUT
         regression_type: 'string'
             'best'
             Use a 'linear' or 'exponential' regression for the calculation of the baseline
@@ -378,7 +379,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             '1Min'
             Resample frequency for the target dataframe         
         pcb_factor: int
-            config._alphadelta_pcb (6.36)
+            alphadelta_pcb (6.36)
             Factor converting mV to nA due to the board configuration
 
     Returns
@@ -412,13 +413,13 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     else: resample = '1Min'    
 
     if 'pcb_factor' in kwargs: pcb_factor = kwargs['pcb_factor']
-    else: pcb_factor = config._alphadelta_pcb
+    else: pcb_factor = alphadelta_pcb
     
     if 'baseline_type' in kwargs: baseline_type = kwargs['baseline_type']
     else: baseline_type = 'deltas'
 
     if 'deltas' in kwargs: deltas = kwargs['deltas']
-    else: deltas = config._baseline_deltas
+    else: deltas = baseline_deltas
     
     if flag_error: 
         std_out('Problem with input data', 'ERROR')
@@ -450,7 +451,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
         # Convert units
         result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
         # Add Background concentration
-        result += config._background_conc[kwargs['pollutant']]
+        result += background_conc[kwargs['pollutant']]
     
     else:
         # Calculate non convolved part
@@ -476,7 +477,7 @@ def deconvolution(dataframe, **kwargs):
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
-            MOLECULAR_WEIGHTS, config._background_conc, CHANNEL_LUT
+            MOLECULAR_WEIGHTS, background_conc, CHANNEL_LUT
     Returns
     -------
         calculation of pollutant based on: 6.36 * sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
@@ -508,9 +509,9 @@ def deconvolution(dataframe, **kwargs):
     factor_unit_1 = get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     factor_unit_2 = get_units_convf(kwargs['base'], from_units = 'ppm')
 
-    result = factor_unit_1*(config._alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
+    result = factor_unit_1*(alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
     
     # Add Background concentration
-    result += config._background_conc[kwargs['pollutant']]
+    result += background_conc[kwargs['pollutant']]
     
     return result
