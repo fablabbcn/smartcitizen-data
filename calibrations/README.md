@@ -28,6 +28,21 @@
   we_total_zero_mv: ''
 ```
 
+## Alphasense AFE Boards
+
+```
+'BOARDID':
+  # t20 - t20 temperature for v20 voltage level
+  t20: ''
+  # v20 - v20 voltage factor - voltage at which the t20 is seen
+  v20: ''
+```
+
+Formula (PT1000 is the positive voltage reading of the PT1000 in mV):
+
+k = cal_data['v20'] - (cal_data['t20'] - 20.0) / 1000.0 # in mV
+T = (PT1000 - k) * 1000.0 + 20.0 # in degC
+
 ### Connections to the SmartCitizen ASB
 
 When using the ASB 4-ch, the measurements are as follows:
