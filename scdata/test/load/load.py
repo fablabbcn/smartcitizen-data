@@ -76,6 +76,8 @@ def load(self, options = dict()):
 
             if device.timezone is None:
                 device.timezone = device.api_device.get_device_timezone()
+                min_date_device = localise_date(device.min_date, device.timezone)
+                max_date_device = localise_date(device.max_date, device.timezone)
 
             # Get last reading from API
             if 'get_device_last_reading' in dir(device.api_device):
