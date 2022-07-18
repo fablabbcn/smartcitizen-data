@@ -1,0 +1,103 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "timezone": null,
+  "max_date": null,
+  "metrics": {},
+  "min_date": null,
+  "platform_id": 28,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "ATLAS_PH" : {
+      "desc": "Atlas pH",
+      "id": "43",
+      "units": "-"
+    },
+    "ATLAS_DO" : {
+      "desc": "Atlas DO",
+      "id": "48",
+      "units": "-"
+    },
+    "ATLAS_OS" : {
+      "desc": "Atlas Oxygen Saturation",
+      "id": "49",
+      "units": "-"
+    },
+    "ATLAS_SG" : {
+      "desc": "Atlas Specific Gravity",
+      "id": "46",
+      "units": "-"
+    },
+    "ATLAS_TDS" : {
+      "desc": "Atlas Total Dissolved Solids",
+      "id": "122",
+      "units": "-"
+    },            
+    "ATLAS_T" : {
+      "desc": "Atlas T",
+      "id": "51",
+      "units": "-"
+    },
+    "PM_DALLAS_TEMP": {
+      "desc": "Dallas External probe Temperature",
+      "id": "96",
+      "units": "degC"
+    },
+    "GPS_ALT": {
+      "desc": "GPS Altitude",
+      "id": "127",
+      "units": "m"
+    },
+    "GPS_DIL": {
+      "desc": "GPS Horizontal Dilution of Position",
+      "id": "131",
+      "units": "#"
+    },
+    "GPS_FIX_QUALITY": {
+      "desc": "GPS Fix Quality",
+      "id": "128",
+      "units": "#"
+    },
+    "GPS_LAT": {
+      "desc": "GPS Latitude",
+      "id": "125",
+      "units": "deg"
+    },
+    "GPS_LONG": {
+      "desc": "GPS Longitude",
+      "id": "126",
+      "units": "deg"
+    },
+    "GPS_SAT_N": {
+      "desc": "GPS Traked Satellites",
+      "id": "130",
+      "units": "#"
+    },
+    "GPS_SPEED": {
+      "desc": "GPS Speed",
+      "id": "129",
+      "units": "m/s"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": [
+        1,
+        2,
+        3
+      ],
+      "index": "TIME",
+      "sep": ",",
+      "tz-aware": true
+    }
+  },
+  "version": null
+}
