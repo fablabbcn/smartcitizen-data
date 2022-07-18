@@ -12,42 +12,42 @@
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
-    "ATLAS_EC" : {
+    "AS_COND": {
       "desc": "Atlas Conductivity",
       "id": "45",
       "units": "uS/cm"
-    },    
-    "ATLAS_PH" : {
+    },
+    "AS_PH": {
       "desc": "Atlas pH",
       "id": "43",
       "units": "-"
     },
-    "ATLAS_DO" : {
+    "AS_DO": {
       "desc": "Atlas Dissolved Oxygen",
       "id": "48",
       "units": "mg/L"
     },
-    "ATLAS_OS" : {
+    "AS_DO_SAT": {
       "desc": "Atlas Oxygen Saturation",
       "id": "49",
       "units": "%"
     },
-    "ATLAS_SG" : {
+    "AS_SG": {
       "desc": "Atlas Specific Gravity",
       "id": "46",
       "units": "sg"
     },
-    "ATLAS_TDS" : {
+    "AS_TDS": {
       "desc": "Atlas Total Dissolved Solids",
       "id": "122",
       "units": "ppm"
-    },          
-    "ATLAS_SALINITY" : {
+    },
+    "AS_SAL": {
       "desc": "Atlas Salinity",
       "id": "51",
       "units": "degC"
-    },      
-    "ATLAS_T" : {
+    },
+    "AS_TEMP": {
       "desc": "Atlas Temperature",
       "id": "44",
       "units": "PSU"
