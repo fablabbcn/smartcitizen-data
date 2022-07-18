@@ -15,7 +15,7 @@
     "ATLAS_EC" : {
       "desc": "Atlas Conductivity",
       "id": "45",
-      "units": "-"
+      "units": "uS/cm"
     },    
     "ATLAS_PH" : {
       "desc": "Atlas pH",
@@ -25,27 +25,32 @@
     "ATLAS_DO" : {
       "desc": "Atlas Dissolved Oxygen",
       "id": "48",
-      "units": "-"
+      "units": "mg/L"
     },
     "ATLAS_OS" : {
       "desc": "Atlas Oxygen Saturation",
       "id": "49",
-      "units": "-"
+      "units": "%"
     },
     "ATLAS_SG" : {
       "desc": "Atlas Specific Gravity",
       "id": "46",
-      "units": "-"
+      "units": "sg"
     },
     "ATLAS_TDS" : {
       "desc": "Atlas Total Dissolved Solids",
       "id": "122",
-      "units": "-"
-    },            
+      "units": "ppm"
+    },          
+    "ATLAS_SALINITY" : {
+      "desc": "Atlas Salinity",
+      "id": "51",
+      "units": "degC"
+    },      
     "ATLAS_T" : {
       "desc": "Atlas Temperature",
-      "id": "51",
-      "units": "-"
+      "id": "44",
+      "units": "PSU"
     },
     "PM_DALLAS_TEMP": {
       "desc": "Dallas External probe Temperature",
