@@ -12,13 +12,18 @@
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
+    "ATLAS_EC" : {
+      "desc": "Atlas Conductivity",
+      "id": "45",
+      "units": "-"
+    },    
     "ATLAS_PH" : {
       "desc": "Atlas pH",
       "id": "43",
       "units": "-"
     },
     "ATLAS_DO" : {
-      "desc": "Atlas DO",
+      "desc": "Atlas Dissolved Oxygen",
       "id": "48",
       "units": "-"
     },
@@ -38,7 +43,7 @@
       "units": "-"
     },            
     "ATLAS_T" : {
-      "desc": "Atlas T",
+      "desc": "Atlas Temperature",
       "id": "51",
       "units": "-"
     },
