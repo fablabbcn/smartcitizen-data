@@ -13,7 +13,6 @@ import sys
 from math import inf
 from numpy import array
 
-
 class Config(object):
 
     # Output level
@@ -103,6 +102,22 @@ class Config(object):
     # Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
     _plot_out_level = 'DEBUG'
 
+    # Alphasense sensor codes
+    _as_sensor_codes =  {
+        '132':  'ASA4_CO',
+        '133':  'ASA4_H2S',
+        '130':  'ASA4_NO',
+        '212':  'ASA4_NO2',
+        '214':  'ASA4_OX',
+        '134':  'ASA4_SO2',
+        '162':  'ASB4_CO',
+        '133':  'ASB4_H2S',#
+        '130':  'ASB4_NO', #
+        '202':  'ASB4_NO2',
+        '204':  'ASB4_OX',
+        '164':  'ASB4_SO2'
+    }
+
     ### ---------------------------------------
     ### ----------------ZENODO-----------------
     ### ---------------------------------------
@@ -115,7 +130,8 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    sensor_names_url_21='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
+    sensor_names_url_21 = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
+    sensors_api_names_url = 'https://api.smartcitizen.me/v0/sensors/?per_page=500'
     # sensor_names_url_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
     _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
     _default_file_type = 'json'
@@ -138,7 +154,8 @@ class Config(object):
         f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_co2.{_default_file_type}'
+        f'{_base_postprocessing_url}blueprints/sck_21_co2.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_21_water.{_default_file_type}'
     ]
 
     connectors_urls = [
@@ -577,6 +594,7 @@ class Config(object):
         namespath = join(self.paths['interim'], 'names.json')
         if self.data['reload_metadata'] or not exists(namespath):
             sc_sensor_names = load_firmware_names(self.sensor_names_url_21)
+            # sc_sensor_names = load_api_names(self.sensors_api_names_url)
             namesreload = True
         else:
             with open(namespath, 'r') as file: sc_sensor_names = json.load(file)
