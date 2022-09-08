@@ -2,7 +2,7 @@
 
 from os import makedirs
 from os.path import join, exists
-from shutil import copyfile, rmtree
+from shutil import copyfile, rmtree, make_archive
 from traceback import print_exc
 from datetime import datetime
 import yaml
@@ -388,3 +388,51 @@ class Test(object):
             yaml.dump(self.descriptor, yaml_file)
 
         std_out ('Descriptor file updated')
+
+    def compress(self, cformat = 'zip', selection = 'full'):
+        '''
+            Compress the test folder (or selected folder) into a defined
+            format in the test.path directory
+
+            Parameters
+            ----------
+            cformat
+                'zip'
+                String. Valid shutil.make_archive input: 'zip', 'tar',
+                'gztar', 'bztar', 'xztar'
+            selection
+                'full'
+                String. Selection of folders to compress. Either 'full',
+                'cached' or 'raw'. If 'full', compresses the whole test,
+                including test_description.yaml
+
+            Returns
+            ----------
+            True if all good, False otherwise
+
+        '''
+
+
+        if cformat not in ['zip', 'tar', 'gztar', 'bztar', 'xztar']:
+            std_out('Invalid format', 'ERROR')
+            return False
+
+        if selection not in ['full', 'cached', 'raw']:
+            std_out('Invalid selection (valid options: full, cached, raw', 'ERROR')
+            return False
+
+        if selection == 'full':
+            _root_dir = self.path
+        elif selection == 'cached':
+            _root_dir = join(self.path, 'cached')
+        elif selection == 'raw':
+            _root_dir = join(self.path, 'raw')
+
+        fname_t = join(self.path.strip(f'{self.full_name}')[:-1], self.full_name + f'_{selection}')
+        print (fname_t)
+        make_archive(fname_t, cformat, root_dir=_root_dir)
+
+        fname = fname_t + '.' + cformat
+        if not exists(fname): return False
+
+        return fname

@@ -37,8 +37,10 @@ def dispersion_analysis(self, devices = None, min_date = None, max_date = None, 
     # Get common channels for this group
     if devices is not None:
         common_ch = self.get_common_channels(devices = devices)
+        _devices = devices
     else:
-        if len(self.common_channels) == 0: self.get_common_channels()
+        common_ch = self.get_common_channels()
+        _devices = self.devices
 
     # Localise dates
     min_date = localise_date(min_date, timezone)
@@ -52,7 +54,7 @@ def dispersion_analysis(self, devices = None, min_date = None, max_date = None, 
 
         if channel in config._dispersion['ignore_channels']: continue
 
-        for device in devices:
+        for device in _devices:
             if channel in self.devices[device].readings.columns and len(self.devices[device].readings.loc[:,channel]) >0:
                 # Important to resample and bfill for unmatching measures
                 if smooth_window is not None:
@@ -84,7 +86,6 @@ def dispersion_analysis(self, devices = None, min_date = None, max_date = None, 
 
     if devices is None:
         self.dispersion_df = dispersion_df
-
         return self.dispersion_summary
 
     group_dispersion_summary = dict()
