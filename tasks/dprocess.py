@@ -20,7 +20,8 @@ def dprocess(device, dryrun = False):
     d = Device(descriptor = {'source': 'api', 'id': f'{device}'})
     if d.validate(): 
         # Load only unprocessed
-        if d.load(only_unprocessed=True, max_amount=config._max_load_amount):
+        if d.load(only_unprocessed=True, options = {'resample': False},
+            max_amount=config._max_load_amount):
             # Process it
             d.process()
             # Post results
