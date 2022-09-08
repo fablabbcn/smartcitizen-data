@@ -205,7 +205,8 @@ def load(self, options = dict()):
                 std_out('Creating path for exporting cached data')
                 makedirs(cached_file_path)
 
-            if export_csv_file(cached_file_path, device.id, device.readings, forced_overwrite = True): std_out('Devices cached')
+            if export_csv_file(cached_file_path, device.id, device.readings, forced_overwrite = True):
+                std_out('Devices cached', 'SUCCESS')
 
         if device.loaded: std_out(f'Device {device.id} has been loaded', 'SUCCESS')
         else: std_out(f'Could not load device {device.id}. Skipping', 'WARNING')

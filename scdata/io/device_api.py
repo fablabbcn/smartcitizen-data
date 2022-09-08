@@ -436,7 +436,7 @@ class ScApiDevice:
     def get_device_last_reading(self, update = False):
 
         if self.last_reading_at is None or update:
-            if self.get_device_json(update) is not None:
+            if self.get_device_json(update) is not None and self.get_device_json(update)['state'] != 'never_published':
                 self.last_reading_at = localise_date(self.devicejson['last_reading_at'], 'UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
 
         std_out ('Device {} has last reading at {}'.format(self.id, self.last_reading_at))
