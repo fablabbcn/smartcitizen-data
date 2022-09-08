@@ -533,7 +533,7 @@ class ScApiDevice:
                 for sensor in sensors:
                     for key in config.sc_sensor_names:
                         if str(config.sc_sensor_names[key]['id']) == str(sensor['id']):
-                            # IDs are not unique
+                            # IDs are unique
                             if key in config._sc_ignore_keys: continue
                             self.sensors[sensor['id']] = key
 
@@ -559,7 +559,7 @@ class ScApiDevice:
         rollup = rollup_value + rollup_unit
         return rollup
 
-    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None, resample = True):
 
         if 'SC_ADMIN_BEARER' in environ:
             std_out('Admin Bearer found, using it', 'SUCCESS')
@@ -684,7 +684,8 @@ class ScApiDevice:
                 dfsensor = dfsensor.astype(float, errors='ignore')
                 # dfsensor = dfsensor.apply(to_numeric, errors='coerce')
                 # Resample
-                dfsensor = dfsensor.resample(frequency).mean()
+                if (resample):
+                    dfsensor = dfsensor.resample(frequency).mean()
                 df = df.combine_first(dfsensor)
             except:
                 print_exc()
@@ -900,7 +901,7 @@ class MuvApiDevice:
                         self.sensors[config.blueprints[key]['sensors'][sensor_name]['id']] = sensor_name
         return self.sensors
 
-    def get_device_data(self, min_date = None, max_date = None, frequency = '3Min', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '3Min', clean_na = None, resample = True):
 
         if min_date is not None: days_ago = (to_datetime(date.today())-to_datetime(min_date)).days
         else: days_ago = 365 # One year of data
@@ -934,7 +935,8 @@ class MuvApiDevice:
             # Check for weird things in the data
             df = df.apply(to_numeric, errors='coerce')
             # # Resample
-            df = df.resample(frequency).mean()
+            if (resample):
+                df = df.resample(frequency).mean()
             df = df.reindex(df.index.rename('TIME'))
 
             df = clean(df, clean_na, how = 'all')
@@ -1146,7 +1148,7 @@ class DadesObertesApiDevice:
 
         return (self.lat, self.long)
 
-    def get_device_data(self, min_date = None, max_date = None, frequency = '1H', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1H', clean_na = None, resample = True):
         '''
         Based on code snippet from Marc Roig:
         # I2CAT RESEARCH CENTER - BARCELONA - MARC ROIG (marcroig@i2cat.net)
@@ -1244,7 +1246,8 @@ class DadesObertesApiDevice:
         # Check for weird things in the data
         df = df.apply(to_numeric, errors='coerce')
         # Resample
-        df = df.resample(frequency).mean()
+        if (resample):
+            df = df.resample(frequency).mean()
 
         try:
             df = df.reindex(df.index.rename('TIME'))
@@ -1660,7 +1663,7 @@ class NiluApiDevice(object):
 
         return self.sensors
 
-    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None):
+    def get_device_data(self, min_date = None, max_date = None, frequency = '1Min', clean_na = None, resample = True):
         '''
             From
             https://sensors.nilu.no/api/doc#get--data-from-utc-timestamp-by-id
@@ -1753,7 +1756,8 @@ class NiluApiDevice(object):
         # Check for weird things in the data
         df = df.apply(to_numeric, errors='coerce')
         # Resample
-        df = df.resample(frequency).mean()
+        if (resample):
+            df = df.resample(frequency).mean()
         df = clean(df, clean_na, how = 'all')
 
         # Rename columns

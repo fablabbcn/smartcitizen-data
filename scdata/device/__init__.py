@@ -149,6 +149,11 @@ class Device(object):
         else:
             self.options['frequency'] = '1Min'
 
+        if 'resample' in options.keys():
+            self.options['resample'] = options['resample']
+        else:
+            self.options['resample'] = True
+
     def load_postprocessing(self):
 
         if self.source != 'api': return None
@@ -310,6 +315,8 @@ class Device(object):
         if options is not None: self.check_overrides(options)
         else: self.check_overrides()
 
+        std_out(f'Using options for device: {options}')
+
         try:
             if self.source == 'csv':
                 if follow_defaults:
@@ -330,7 +337,8 @@ class Device(object):
                                                             clean_na = self.options['clean_na'],
                                                             index_name = index_name,
                                                             sep = sep,
-                                                            skiprows = skiprows)
+                                                            skiprows = skiprows,
+                                                            resample = self.options['resample'])
                                                         )
                 if self.readings is not None:
                     self.__convert_names__()
@@ -360,8 +368,11 @@ class Device(object):
                             # Override min loading date
                             self.options['min_date'] = hw_latest_postprocess
 
-                    df = self.api_device.get_device_data(self.options['min_date'], self.options['max_date'],
-                                                         self.options['frequency'], self.options['clean_na'])
+                    df = self.api_device.get_device_data(self.options['min_date'],
+                                                         self.options['max_date'],
+                                                         self.options['frequency'],
+                                                         self.options['clean_na'],
+                                                         resample = self.options['resample'])
 
                     # API Device is not aware of other csv index data, so make it here
                     if 'csv' in self.sources and df is not None:
@@ -374,16 +385,18 @@ class Device(object):
                     # Cached case
                     self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
                                                                 self.timezone, self.options['frequency'],
-                                                                self.options['clean_na'], self.sources['csv']['index']))
+                                                                self.options['clean_na'], self.sources['csv']['index'],
+                                                                resample = self.options['resample']))
 
         except FileNotFoundError:
+            # print_exc()
             # Handle error
             if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
             elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {path}', 'ERROR')
 
             self.loaded = False
         except:
-            print_exc()
+            # print_exc()
             self.loaded = False
         else:
             if self.readings is not None:
@@ -423,10 +436,8 @@ class Device(object):
                     return None
 
                 for slot in version["ids"]:
-
                     # Alphasense type - AAN 803-04
                     if slot.startswith('AS'):
-
                         sensor_id = version["ids"][slot]
                         as_type = config._as_sensor_codes[sensor_id[0:3]]
                         channel = as_type[as_type.index('_')+1:]
@@ -437,7 +448,6 @@ class Device(object):
                         # Get working and auxiliary electrode names
                         wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
                         aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
-
                         if pollutant not in self.metrics:
                             # Create Metric
                             std_out(f'Metric {pollutant} not in blueprint, ignoring.', 'WARNING')

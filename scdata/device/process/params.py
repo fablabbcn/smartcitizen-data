@@ -19,23 +19,6 @@ baseline_deltas = arange(30, 45, 5)
 # Lambdas for baseline ALS algorithm
 baseline_als_lambdas = [1e5]
 
-# Alphasense sensor codes
-as_sensor_codes =  {
-    '132':  'ASA4_CO',
-    '133':  'ASA4_H2S',
-    '130':  'ASA4_NO',
-    '212':  'ASA4_NO2',
-    '214':  'ASA4_OX',
-    '134':  'ASA4_SO2',
-    '162':  'ASB4_CO',
-    '133':  'ASB4_H2S',#
-    '130':  'ASB4_NO', #
-    '202':  'ASB4_NO2',
-    '204':  'ASB4_OX',
-    '164':  'ASB4_SO2'
-}
-
-
 # Alphasense pcb gains in mV/nA - TBR
 as_pcb_gains = {
     'CO': 0.8,

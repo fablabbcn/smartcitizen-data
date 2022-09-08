@@ -38,6 +38,10 @@ def load(self, options = dict()):
                 max_date: String or datetime
                 Default: None
                 Maximum date to load data to
+
+                resample: Boolean
+                Default: True
+                Resample timestamp to the "frequency" resolution
         Returns
         ----------
             None
@@ -60,7 +64,7 @@ def load(self, options = dict()):
     # Set options
     self.__set_options__(options)
 
-    std_out (f'Using options: {self.options}')
+    std_out (f'Using options for test: {self.options}')
 
     for key in self.devices.keys():
 
@@ -182,6 +186,9 @@ def load(self, options = dict()):
 
                 if 'frequency' in self.options:
                     device_options['frequency'] = self.options['frequency']
+
+                if 'resample' in self.options:
+                    device_options['resample'] = self.options['resample']
 
                 device.load(options = device_options)
 

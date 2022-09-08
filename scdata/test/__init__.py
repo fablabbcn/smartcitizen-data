@@ -84,7 +84,8 @@ class Test(object):
             'clean_na',
             'frequency',
             'min_date',
-            'max_date'
+            'max_date',
+            'resample'
         ]
 
         for option in test_options:

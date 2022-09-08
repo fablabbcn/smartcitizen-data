@@ -95,7 +95,7 @@ def alphasense_803_04(dataframe, **kwargs):
     if to_date is not None: df = df[df.index < to_date]
 
     # Get sensor type
-    as_type = as_sensor_codes[kwargs['alphasense_id'][0:3]]
+    as_type = config._as_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
     if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
