@@ -17,6 +17,11 @@
       "id": "45",
       "units": "uS/cm"
     },
+    "AS_ORP": {
+      "desc": "Atlas Redox Potential",
+      "id": "164",
+      "units": "mV"
+    },
     "AS_PH": {
       "desc": "Atlas pH",
       "id": "43",
