@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.6.4',
+    version= '0.7.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -39,14 +39,14 @@ setup(
     ],
 
     install_requires=[
-                        'branca==0.4.0',
-                        'Flask~=1.1.2',
-                        'folium==0.12.1',
+                        'branca~=0.4.0',
+                        'Flask~=2.2.2',
+                        'folium~=0.12.1',
                         'geopy==1.21.0',
-                        'Jinja2==2.11.2',
+                        'Jinja2~=3.1.2',
                         'matplotlib==3.2.1',
                         'numpy~=1.20.0',
-                        'pandas>=1.3.0',
+                        'pandas~=1.5.0',
                         'pdfrw==0.4',
 #                       'PDPbox==0.2.0',
                         'plotly~=4.14.3',
@@ -55,10 +55,10 @@ setup(
                         'reportlab==3.5.*',
                         'scipy~=1.5.0',
                         'scikit-learn~=1.0.1',
-                        'seaborn==0.10.1',
+                        'seaborn~=0.11.2',
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
-                        'tzwhere==3.0.3',
+                        'tzwhere@git+ssh://git@github.com/oscgonfer/pytzwhere.git@77ec775140d7ed1c78afa109e47e9851cb10a61a',
                         'urllib3==1.25.9'
                     ],
 
