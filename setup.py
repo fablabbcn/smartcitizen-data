@@ -58,7 +58,7 @@ setup(
                         'seaborn~=0.11.2',
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
-                        'tzwhere@git+ssh://git@github.com/oscgonfer/pytzwhere.git@77ec775140d7ed1c78afa109e47e9851cb10a61a',
+                        'tzwhere==3.0.3',
                         'urllib3==1.25.9'
                     ],
 
