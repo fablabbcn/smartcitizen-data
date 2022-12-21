@@ -1,7 +1,8 @@
 ''' Implementation of zenodo export '''
 
 from scdata._config import config
-from scdata.utils import std_out, get_tests_log, include_footer
+from scdata.utils import std_out, get_tests_log
+from scdata.utils.report import include_footer
 from scdata import Test
 import json, yaml
 from os.path import join, dirname, getsize, exists
