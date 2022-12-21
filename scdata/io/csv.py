@@ -37,7 +37,7 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
 
     return True
 
-def read_csv_file(file_path, timezone, frequency, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8', tzaware = True, resample = True):
+def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8', tzaware = True, resample = True):
     """
     Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
     Parameters
