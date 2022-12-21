@@ -11,7 +11,8 @@ from io import StringIO
 from geopy.distance import distance
 from scdata._config import config
 from scdata.utils import std_out, localise_date, clean, get_elevation, url_checker, process_headers
-from tzwhere import tzwhere
+# from tzwhere import tzwhere
+from timezonefinder import TimezoneFinder
 from datetime import date, datetime
 from os import environ, urandom
 from json import dumps, JSONEncoder
@@ -22,7 +23,8 @@ from time import sleep
 import sys
 from tqdm import trange
 
-tz_where = tzwhere.tzwhere(forceTZ=True)
+# tz_where = tzwhere.tzwhere(forceTZ=True)
+tf = TimezoneFinder()
 
 '''
 About the classes in this file:
@@ -485,8 +487,8 @@ class ScApiDevice:
             # Localize it
 
             if latitude is not None and longitude is not None:
-                self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
-
+                # self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
+                self.timezone = tf.timezone_at(lng=longitude, lat=latitude)
         std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
 
         return self.timezone
@@ -1114,7 +1116,8 @@ class DadesObertesApiDevice:
         if self.timezone is None:
             latitude, longitude = self.get_device_lat_long()
             # Localize it
-            self.timezone = tz_where.tzNameAt(latitude, longitude)
+            # self.timezone = tz_where.tzNameAt(latitude, longitude)
+            self.timezone = tf.timezone_at(lng=longitude, lat=latitude)
 
         std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
 
@@ -1644,7 +1647,8 @@ class NiluApiDevice(object):
             latitude, longitude = self.get_device_lat_long(update)
             # Localize it
             if latitude is not None and longitude is not None:
-                self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
+                # self.timezone = tz_where.tzNameAt(latitude, longitude, forceTZ=True)
+                self.timezone = tf.timezone_at(lng=longitude, lat=latitude)
 
         std_out ('Device {} timezone is {}'.format(self.id, self.timezone))
 

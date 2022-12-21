@@ -58,7 +58,7 @@ setup(
                         'seaborn~=0.11.2',
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
-                        'tzwhere==3.0.3',
+                        'timezonefinder~=6.1.9'
                         'urllib3==1.25.9'
                     ],
 
