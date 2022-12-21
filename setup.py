@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.7.0',
+    version= '0.8.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -58,7 +58,7 @@ setup(
                         'seaborn~=0.11.2',
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
-                        'timezonefinder~=6.1.9'
+                        'timezonefinder~=6.1.9',
                         'urllib3==1.25.9'
                     ],
 
