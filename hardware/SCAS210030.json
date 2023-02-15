@@ -1,0 +1,16 @@
+{
+  "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
+  "description": "2PMS5003-4ELEC-CO2",
+  "versions": [
+    {
+      "ids": {
+        "AS_48_01": "202760040",
+        "AS_48_23": "204042163",
+        "AS_49_01": "164780964",
+        "AS_49_23": "163040003"
+      },
+      "from": "2023-02-15",
+      "to": null
+    }
+  ]
+}
