@@ -25,3 +25,5 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Large format plots: [notebooks/13-pdf-largescale-plots.ipynb](notebooks/13-pdf-largescale-plots.ipynb)
 - Easy dispersion analysis: [notebooks/14-easy-dispersion-analysis.ipynb](notebooks/14-easy-dispersion-analysis.ipynb)
 - R basic example: [notebooks/15-R-basic-example.ipynb](notebooks/15-R-basic-example.ipynb)
+- Load, process and post device: [notebooks/16-device_processing.ipynb](notebooks/16-device_processing.ipynb)
+
