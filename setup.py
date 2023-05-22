@@ -51,7 +51,7 @@ setup(
 #                       'PDPbox==0.2.0',
                         'plotly~=4.14.3',
                         'PyYAML==5.3.1',
-                        'requests==2.23.0',
+                        'requests==2.31.0',
 #                       'reportlab==3.5.*',
                         'scipy~=1.5.0',
                         'scikit-learn~=1.0.1',
