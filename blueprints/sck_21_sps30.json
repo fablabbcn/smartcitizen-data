@@ -123,52 +123,52 @@
       "id": "53",
       "units": "dBA"
     },
-    "PM_1": {
+    "PM_1_SPS30": {
       "desc": "PM1 measurement from SPS30",
       "id": "182",
       "units": "ug/m3"
     },
-    "PM_10": {
+    "PM_10_SPS30": {
       "desc": "PM10 measurement from SPS30",
       "id": "185",
       "units": "ug/m3"
     },
-    "PM_25": {
+    "PM_25_SPS30": {
       "desc": "PM2.5 measurement from SPS30",
       "id": "183",
       "units": "ug/m3"
     },
-    "PM_40": {
+    "PM_40_SPS30": {
       "desc": "PM4.0 measurement from SPS30",
       "id": "184",
       "units": "ug/m3"
     },
-    "PN_05": {
+    "PN_05_SPS30": {
       "desc": "PN0.5 measurement from SPS30",
       "id": "186",
       "units": "#/0.1l"
     },
-    "PN_1": {
+    "PN_1_SPS30": {
       "desc": "PN1.0 measurement from SPS30",
       "id": "187",
       "units": "#/0.1l"
     },
-    "PN_25": {
+    "PN_25_SPS30": {
       "desc": "PN2.5 measurement from SPS30",
       "id": "188",
       "units": "#/0.1l"
     },
-    "PN_40": {
+    "PN_40_SPS30": {
       "desc": "PN4.0 measurement from SPS30",
       "id": "189",
       "units": "#/0.1l"
     },
-    "PN_10": {
+    "PN_10_SPS30": {
       "desc": "PN10.0 measurement from SPS30",
       "id": "190",
       "units": "#/0.1l"
     },
-    "TPS": {
+    "TPS_SPS30": {
       "desc": "Typical Particle Size from SPS30",
       "id": "191",
       "units": "um"
