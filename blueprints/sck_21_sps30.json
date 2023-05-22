@@ -1,0 +1,204 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "timezone": null,
+  "max_date": null,
+  "metrics": {
+    "CCS811_ECO2_CLEAN": {
+      "desc": "eCO2 cleaned data",
+      "kwargs": {
+        "limits": [
+          400,
+          65000
+        ],
+        "name": "CCS811_ECO2",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppm",
+      "post": false,
+      "id": null
+    },
+    "CCS811_VOCS_CLEAN": {
+      "desc": "Volatile Organic Compounds cleaned data",
+      "kwargs": {
+        "limits": [
+          0,
+          65000
+        ],
+        "name": "CCS811_VOCS",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppb",
+      "post": false,
+      "id": null
+    },
+    "PM_10_CLEAN": {
+      "desc": "PM10 calculated based on both SPS30 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_10",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_1_CLEAN": {
+      "desc": "PM1 calculated based on both SPS30 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_1",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_25_CLEAN": {
+      "desc": "PM2.5 calculated based on both SPS30 PM2.5 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_25",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    }
+  },
+  "min_date": null,
+  "platform_id": 28,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
+    "CCS811_ECO2": {
+      "desc": "Equivalent CO2",
+      "id": "112",
+      "units": "ppm"
+    },
+    "CCS811_VOCS": {
+      "desc": "total Volatile Organics Compounds",
+      "id": "113",
+      "units": "ppb"
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "56",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "14",
+      "units": "lux"
+    },
+    "NOISE_A": {
+      "desc": "A-scale noise SPL",
+      "id": "53",
+      "units": "dBA"
+    },
+    "PM_1": {
+      "desc": "PM1 measurement from SPS30",
+      "id": "182",
+      "units": "ug/m3"
+    },
+    "PM_10": {
+      "desc": "PM10 measurement from SPS30",
+      "id": "185",
+      "units": "ug/m3"
+    },
+    "PM_25": {
+      "desc": "PM2.5 measurement from SPS30",
+      "id": "183",
+      "units": "ug/m3"
+    },
+    "PM_40": {
+      "desc": "PM4.0 measurement from SPS30",
+      "id": "184",
+      "units": "ug/m3"
+    },
+    "PN_05": {
+      "desc": "PN0.5 measurement from SPS30",
+      "id": "186",
+      "units": "#/0.1l"
+    },
+    "PN_1": {
+      "desc": "PN1.0 measurement from SPS30",
+      "id": "187",
+      "units": "#/0.1l"
+    },
+    "PN_25": {
+      "desc": "PN2.5 measurement from SPS30",
+      "id": "188",
+      "units": "#/0.1l"
+    },
+    "PN_40": {
+      "desc": "PN4.0 measurement from SPS30",
+      "id": "189",
+      "units": "#/0.1l"
+    },
+    "PN_10": {
+      "desc": "PN10.0 measurement from SPS30",
+      "id": "190",
+      "units": "#/0.1l"
+    },
+    "TPS": {
+      "desc": "Typical Particle Size from SPS30",
+      "id": "191",
+      "units": "um"
+    },     
+    "PRESS": {
+      "desc": "Atmospheric pressure",
+      "id": "58",
+      "units": "kPa"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": [
+        1,
+        2,
+        3
+      ],
+      "index": "TIME",
+      "sep": ",",
+      "tz-aware": true
+    }
+  },
+  "version": null
+}
