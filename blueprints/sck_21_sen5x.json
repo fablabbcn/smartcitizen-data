@@ -1,0 +1,250 @@
+{
+  "clean_na": null,
+  "documentation": "https://docs.smartcitizen.me/",
+  "frequency": null,
+  "id": null,
+  "info_data_file": null,
+  "timezone": null,
+  "max_date": null,
+  "metrics": {
+    "CCS811_ECO2_CLEAN": {
+      "desc": "eCO2 cleaned data",
+      "kwargs": {
+        "limits": [
+          400,
+          65000
+        ],
+        "name": "CCS811_ECO2",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppm",
+      "post": false,
+      "id": null
+    },
+    "CCS811_VOCS_CLEAN": {
+      "desc": "Volatile Organic Compounds cleaned data",
+      "kwargs": {
+        "limits": [
+          0,
+          65000
+        ],
+        "name": "CCS811_VOCS",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ppb",
+      "post": false,
+      "id": null
+    },
+    "PM_10_CLEAN": {
+      "desc": "PM10 calculated based on both SPS30 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_10",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_1_CLEAN": {
+      "desc": "PM1 calculated based on both SPS30 PM10 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_1",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    },
+    "PM_25_CLEAN": {
+      "desc": "PM2.5 calculated based on both SPS30 PM2.5 inputs",
+      "kwargs": {
+        "limits": [
+          0,
+          1000
+        ],
+        "name": "PM_25",
+        "window_size": 5,
+        "window_type": null
+      },
+      "process": "clean_ts",
+      "units": "ug/m3",
+      "post": false,
+      "id": null
+    }
+  },
+  "min_date": null,
+  "platform_id": 42,
+  "processed_data_file": null,
+  "raw_data_file": null,
+  "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
+    "CCS811_ECO2": {
+      "desc": "Equivalent CO2",
+      "id": "112",
+      "units": "ppm"
+    },
+    "CCS811_VOCS": {
+      "desc": "total Volatile Organics Compounds",
+      "id": "113",
+      "units": "ppb"
+    },
+    "HUM": {
+      "desc": "Urban board humidity (SHT31)",
+      "id": "56",
+      "units": "%rh"
+    },
+    "LIGHT": {
+      "desc": "Urban board ambient light",
+      "id": "14",
+      "units": "lux"
+    },
+    "NOISE_A": {
+      "desc": "A-scale noise SPL",
+      "id": "53",
+      "units": "dBA"
+    },
+    "SEN5X_PM_1":
+    {
+         "id": "193",
+         "desc": "PM1 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_10":
+    {
+         "id": "196",
+         "desc": "PM10 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_25":
+    {
+         "id": "194",
+         "desc": "PM2.5 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_40":
+    {
+         "id": "195",
+         "desc": "PM4.0 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PN_05":
+    {
+         "id": "197",
+         "desc": "PN0.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_1":
+    {
+         "id": "198",
+         "desc": "PN1.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_25":
+    {
+         "id": "199",
+         "desc": "PN2.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_40":
+    {
+         "id": "200",
+         "desc": "PN4.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_10":
+    {
+         "id": "201",
+         "desc": "PN10.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_TPS":
+    {
+         "id": "202",
+         "desc": "Typical Particle Size from SEN5X",
+         "units": "um"
+    },
+    "SEN5X_TEMP":
+    {
+        "id": "204",
+        "desc": "SEN5X Temperature",
+        "units": "C"
+    },
+    "SEN5X_HUM":
+    {
+        "id": "203",
+        "desc": "SEN5X Humidity",
+        "units": "%rh"
+    },
+    "SEN5X_VOCS_IDX":
+    {
+        "id": "205",
+        "desc": "SEN5X VOCs Index",
+        "units": ""
+    },
+    "SEN5X_NOX_IDX":
+    {
+        "id": "206",
+        "desc": "SEN5X NOX Index",
+        "units": ""
+    },
+    "SEN5X_VOCS_RAW":
+    {
+        "id": "207",
+        "desc": "SEN5X VOCs raw",
+        "units": ""
+    },
+    "SEN5X_NOX_RAW":
+    {
+        "id": "208",
+        "desc": "SEN5X NOX raw",
+        "units": ""
+    },
+    "PRESS": {
+      "desc": "Atmospheric pressure",
+      "id": "58",
+      "units": "kPa"
+    },
+    "TEMP": {
+      "desc": "Urban board temperature (SHT31)",
+      "id": "55",
+      "units": "degC"
+    }
+  },
+  "source": null,
+  "sources": {
+    "api": {
+      "handler": "ScApiDevice"
+    },
+    "csv": {
+      "header_skip": [
+        1,
+        2,
+        3
+      ],
+      "index": "TIME",
+      "sep": ",",
+      "tz-aware": true
+    }
+  },
+  "version": null
+}

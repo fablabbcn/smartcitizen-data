@@ -706,5 +706,101 @@
          "id": "191",
          "desc": "Typical Particle Size from SPS30",
          "units": "um"
-    }    
+    },
+    "SEN5X_PM_1":
+    {
+         "id": "193",
+         "desc": "PM1 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_10":
+    {
+         "id": "196",
+         "desc": "PM10 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_25":
+    {
+         "id": "194",
+         "desc": "PM2.5 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PM_40":
+    {
+         "id": "195",
+         "desc": "PM4.0 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    "SEN5X_PN_05":
+    {
+         "id": "197",
+         "desc": "PN0.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_1":
+    {
+         "id": "198",
+         "desc": "PN1.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_25":
+    {
+         "id": "199",
+         "desc": "PN2.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_40":
+    {
+         "id": "200",
+         "desc": "PN4.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_PN_10":
+    {
+         "id": "201",
+         "desc": "PN10.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    "SEN5X_TPS":
+    {
+         "id": "202",
+         "desc": "Typical Particle Size from SEN5X",
+         "units": "um"
+    },
+    "SEN5X_TEMP":
+    {
+        "id": "204",
+        "desc": "SEN5X Temperature",
+        "units": "C"
+    },
+    "SEN5X_HUM":
+    {
+        "id": "203",
+        "desc": "SEN5X Humidity",
+        "units": "%rh"
+    },
+    "SEN5X_VOCS_IDX":
+    {
+        "id": "205",
+        "desc": "SEN5X VOCs Index",
+        "units": ""
+    },
+    "SEN5X_NOX_IDX":
+    {
+        "id": "206",
+        "desc": "SEN5X NOX Index",
+        "units": ""
+    },
+    "SEN5X_VOCS_RAW":
+    {
+        "id": "207",
+        "desc": "SEN5X VOCs raw",
+        "units": ""
+    },
+    "SEN5X_NOX_RAW":
+    {
+        "id": "208",
+        "desc": "SEN5X NOX raw",
+        "units": ""
+    }
 }
