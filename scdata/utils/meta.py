@@ -234,7 +234,6 @@ def load_names(urls):
         try:
             c = get_json_from_url(url)
             _nc = basename(urlparse(str(url)).path).split('.')[0]
-            print (_nc)
             names[_nc] = c
         except:
             print(f'Problem loading names from {url}')
