@@ -16,11 +16,11 @@ def load(self, options = dict()):
             options: dict()
 
                 load_cached_api: bool
-                Default: config.data['data']['load_cached_api']
+                Default: config.data['load_cached_api']
                 Load or not cached data from the API in previous test loads
 
                 store_cached_api: bool
-                Default: config.data['data']['store_cached_api']
+                Default: config.data['store_cached_api']
                 Cache or not newly downloaded API data for future test loads
 
                 clean_na: String
