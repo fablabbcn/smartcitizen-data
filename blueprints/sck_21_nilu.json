@@ -40,17 +40,17 @@
       "id": "57",
       "units": "dBA"
     },
-    "PM_1": {
+    "PMS5003_PM_1": {
       "desc": "PM1 measurement from PMS5003",
       "id": "11",
       "units": "ug/m3"
     },
-    "PM_10": {
+    "PMS5003_PM_10": {
       "desc": "PM10 measurement from PMS5003",
       "id": "12",
       "units": "ug/m3"
     },
-    "PM_25": {
+    "PMS5003_PM_25": {
       "desc": "PM2.5 measurement from PMS5003",
       "id": "13",
       "units": "ug/m3"

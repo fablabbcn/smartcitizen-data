@@ -33,7 +33,7 @@
     {
         "id": "56",
         "desc": "Humidity",
-        "units": "%"
+        "units": "%rh"
     },
     "NOISE_A":
     {
@@ -89,55 +89,55 @@
         "desc": "eCO2 Gas CCS811",
         "units": "ppm"
     },
-    "PM_1":
+    "PMS5003_PM_1":
     {
         "id": "89",
         "desc": "PM 1.0",
         "units": "ug/m3"
     },
-    "PM_25":
+    "PMS5003_PM_25":
     {
         "id": "87",
         "desc": "PM 2.5",
         "units": "ug/m3"
     },
-    "PM_10":
+    "PMS5003_PM_10":
     {
         "id": "88",
         "desc": "PM 10.0",
         "units": "ug/m3"
     },
-    "PN_03":
+    "PMS5003_PN_03":
     {
         "id": "165",
         "desc": "PN 0.3",
         "units": "#/0.1l"
     },
-    "PN_05":
+    "PMS5003_PN_05":
     {
         "id": "166",
         "desc": "PN 0.5",
         "units": "#/0.1l"
     },
-    "PN_1":
+    "PMS5003_PN_1":
     {
         "id": "167",
         "desc": "PN 1.0",
         "units": "#/0.1l"
     },
-    "PN_25":
+    "PMS5003_PN_25":
     {
         "id": "168",
         "desc": "PN 2.5",
         "units": "#/0.1l"
     },
-    "PN_5":
+    "PMS5003_PN_5":
     {
         "id": "169",
         "desc": "PN 5.0",
         "units": "#/0.1l"
     },
-    "PN_10":
+    "PMS5003_PN_10":
     {
         "id": "170",
         "desc": "PN 10.0",
@@ -305,109 +305,109 @@
         "desc": "Soil Light",
         "units": ""
     },
-    "EXT_PM_A_1":
+    "PMS5003_EXT_PM_A_1":
     {
         "id": "71",
         "desc": "Ext PM_A 1.0",
         "units": "ug/m3"
     },
-    "EXT_PM_A_25":
+    "PMS5003_EXT_PM_A_25":
     {
         "id": "72",
         "desc": "Ext PM_A 2.5",
         "units": "ug/m3"
     },
-    "EXT_PM_A_10":
+    "PMS5003_EXT_PM_A_10":
     {
         "id": "73",
         "desc": "Ext PM_A 10.0",
         "units": "ug/m3"
     },
-    "EXT_PN_A_03":
+    "PMS5003_EXT_PN_A_03":
     {
         "id": "99",
         "desc": "Ext PN_A 0.3",
         "units": "#/0.1l"
     },
-    "EXT_PN_A_05":
+    "PMS5003_EXT_PN_A_05":
     {
         "id": "100",
         "desc": "Ext PN_A 0.5",
         "units": "#/0.1l"
     },
-    "EXT_PN_A_1":
+    "PMS5003_EXT_PN_A_1":
     {
         "id": "101",
         "desc": "Ext PN_A 1.0",
         "units": "#/0.1l"
     },
-    "EXT_PN_A_25":
+    "PMS5003_EXT_PN_A_25":
     {
         "id": "102",
         "desc": "Ext PN_A 2.5",
         "units": "#/0.1l"
     },
-    "EXT_PN_A_5":
+    "PMS5003_EXT_PN_A_5":
     {
         "id": "103",
         "desc": "Ext PN_A 5.0",
         "units": "#/0.1l"
     },
-    "EXT_PN_A_10":
+    "PMS5003_EXT_PN_A_10":
     {
         "id": "104",
         "desc": "Ext PN_A 10.0",
         "units": "#/0.1l"
     },
-    "EXT_PM_B_1":
+    "PMS5003_EXT_PM_B_1":
     {
         "id": "75",
         "desc": "Ext PM_B 1.0",
         "units": "ug/m3"
     },
-    "EXT_PM_B_25":
+    "PMS5003_EXT_PM_B_25":
     {
         "id": "76",
         "desc": "Ext PM_B 2.5",
         "units": "ug/m3"
     },
-    "EXT_PM_B_10":
+    "PMS5003_EXT_PM_B_10":
     {
         "id": "77",
         "desc": "Ext PM_B 10.0",
         "units": "ug/m3"
     },
-    "EXT_PN_B_03":
+    "PMS5003_EXT_PN_B_03":
     {
         "id": "105",
         "desc": "Ext PN_B 0.3",
         "units": "#/0.1l"
     },
-    "EXT_PN_B_05":
+    "PMS5003_EXT_PN_B_05":
     {
         "id": "106",
         "desc": "Ext PN_B 0.5",
         "units": "#/0.1l"
     },
-    "EXT_PN_B_1":
+    "PMS5003_EXT_PN_B_1":
     {
         "id": "107",
         "desc": "Ext PN_B 1.0",
         "units": "#/0.1l"
     },
-    "EXT_PN_B_25":
+    "PMS5003_EXT_PN_B_25":
     {
         "id": "108",
         "desc": "Ext PN_B 2.5",
         "units": "#/0.1l"
     },
-    "EXT_PN_B_5":
+    "PMS5003_EXT_PN_B_5":
     {
         "id": "109",
         "desc": "Ext PN_B 5.0",
         "units": "#/0.1l"
     },
-    "EXT_PN_B_10":
+    "PMS5003_EXT_PN_B_10":
     {
         "id": "110",
         "desc": "Ext PN_B 10.0",
@@ -437,13 +437,13 @@
         "desc": "Ext Humidity",
         "units": "%"
     },
-    "EXT_TEMP_SHT35":
+    "SHT35_EXT_TEMP":
     {
         "id": "0",
         "desc": "Ext SHT35 Temperature",
         "units": "C"
     },
-    "EXT_HUM_SHT35":
+    "SHT35_EXT_HUM":
     {
         "id": "0",
         "desc": "Ext SHT35 Humidity",
@@ -647,61 +647,61 @@
         "desc": "Groove OLED",
         "units": ""
     },
-    "PM_1_SPS30":
+    "SPS30_PM_1":
     {
          "id": "182",
          "desc": "PM1 measurement from SPS30",
          "units": "ug/m3"
     },
-    "PM_10_SPS30":
+    "SPS30_PM_10":
     {
          "id": "185",
          "desc": "PM10 measurement from SPS30",
          "units": "ug/m3"
     },
-    "PM_25_SPS30":
+    "SPS30_PM_25":
     {
          "id": "183",
          "desc": "PM2.5 measurement from SPS30",
          "units": "ug/m3"
     },
-    "PM_40_SPS30":
+    "SPS30_PM_40":
     {
          "id": "184",
          "desc": "PM4.0 measurement from SPS30",
          "units": "ug/m3"
     },
-    "PN_05_SPS30":
+    "SPS30_PN_05":
     {
          "id": "186",
          "desc": "PN0.5 measurement from SPS30",
          "units": "#/0.1l"
     },
-    "PN_1_SPS30":
+    "SPS30_PN_1":
     {
          "id": "187",
          "desc": "PN1.0 measurement from SPS30",
          "units": "#/0.1l"
     },
-    "PN_25_SPS30":
+    "SPS30_PN_25":
     {
          "id": "188",
          "desc": "PN2.5 measurement from SPS30",
          "units": "#/0.1l"
     },
-    "PN_40_SPS30":
+    "SPS30_PN_40":
     {
          "id": "189",
          "desc": "PN4.0 measurement from SPS30",
          "units": "#/0.1l"
     },
-    "PN_10_SPS30":
+    "SPS30_PN_10":
     {
          "id": "190",
          "desc": "PN10.0 measurement from SPS30",
          "units": "#/0.1l"
     },
-    "TPS_SPS30":
+    "SPS30_TPS":
     {
          "id": "191",
          "desc": "Typical Particle Size from SPS30",

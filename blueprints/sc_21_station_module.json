@@ -356,7 +356,7 @@
     }
   },
   "min_date": null,
-  "platform_id": 28,
+  "platform_id": 33,
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
@@ -485,17 +485,17 @@
       "id": "76",
       "units": "ug/m3"
     },
-    "PM_1": {
+    "PMS5003_PM_1": {
       "desc": "PM1 measurement from PMS5003",
       "id": "89",
       "units": "ug/m3"
     },
-    "PM_10": {
+    "PMS5003_PM_10": {
       "desc": "PM10 measurement from PMS5003",
       "id": "88",
       "units": "ug/m3"
     },
-    "PM_25": {
+    "PMS5003_PM_25": {
       "desc": "PM2.5 measurement from PMS5003",
       "id": "87",
       "units": "ug/m3"

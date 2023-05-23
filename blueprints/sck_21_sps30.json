@@ -89,7 +89,7 @@
     }
   },
   "min_date": null,
-  "platform_id": 28,
+  "platform_id": 41,
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
@@ -123,52 +123,52 @@
       "id": "53",
       "units": "dBA"
     },
-    "PM_1_SPS30": {
+    "SPS30_PM_1": {
       "desc": "PM1 measurement from SPS30",
       "id": "182",
       "units": "ug/m3"
     },
-    "PM_10_SPS30": {
+    "SPS30_PM_10": {
       "desc": "PM10 measurement from SPS30",
       "id": "185",
       "units": "ug/m3"
     },
-    "PM_25_SPS30": {
+    "SPS30_PM_25": {
       "desc": "PM2.5 measurement from SPS30",
       "id": "183",
       "units": "ug/m3"
     },
-    "PM_40_SPS30": {
+    "SPS30_PM_40": {
       "desc": "PM4.0 measurement from SPS30",
       "id": "184",
       "units": "ug/m3"
     },
-    "PN_05_SPS30": {
+    "SPS30_PN_05": {
       "desc": "PN0.5 measurement from SPS30",
       "id": "186",
       "units": "#/0.1l"
     },
-    "PN_1_SPS30": {
+    "SPS30_PN_1": {
       "desc": "PN1.0 measurement from SPS30",
       "id": "187",
       "units": "#/0.1l"
     },
-    "PN_25_SPS30": {
+    "SPS30_PN_25": {
       "desc": "PN2.5 measurement from SPS30",
       "id": "188",
       "units": "#/0.1l"
     },
-    "PN_40_SPS30": {
+    "SPS30_PN_40": {
       "desc": "PN4.0 measurement from SPS30",
       "id": "189",
       "units": "#/0.1l"
     },
-    "PN_10_SPS30": {
+    "SPS30_PN_10": {
       "desc": "PN10.0 measurement from SPS30",
       "id": "190",
       "units": "#/0.1l"
     },
-    "TPS_SPS30": {
+    "SPS30_TPS": {
       "desc": "Typical Particle Size from SPS30",
       "id": "191",
       "units": "um"
