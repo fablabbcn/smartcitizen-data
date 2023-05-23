@@ -154,58 +154,6 @@ def get_json_from_url(url):
 
     return rjson
 
-def load_firmware_names(sensorsh):
-    '''
-        Loads sensor names from Sensors.h of firmware repo
-        Parameters
-        ----------
-            sensorsh: String
-                Sensors.h url
-        Returns
-        ---------
-            Dictionary containing sensor names with descriptions
-    '''
-    try:
-        sensor_names = dict()
-        # Read only 20000 chars
-        data = get(sensorsh).text
-        # split it into lines
-        data = data.split('\n')
-        line_sensors = len(data)
-        for line in data:
-            if 'class AllSensors' in line:
-                line_sensors = data.index(line)
-            if data.index(line) > line_sensors:
-                if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
-                    # Split commas
-                    line_tokenized =  line.strip('').split(',')
-                    # Elimminate unnecessary elements
-                    line_tokenized_sublist = list()
-                    for item in line_tokenized:
-                            item = sub('\t', '', item)
-                            item = sub('OneSensor', '', item)
-                            item = sub('{', '', item)
-                            item = sub('}', '', item)
-                            item = sub('"', '', item)
-                            if item != '' and item != ' ':
-                                while item[0] == ' ' and len(item)>0: item = item[1:]
-                            line_tokenized_sublist.append(item)
-                    line_tokenized_sublist = line_tokenized_sublist[:-1]
-                    if len(line_tokenized_sublist) > 2:
-                            shortTitle = sub(' ', '', line_tokenized_sublist[3])
-                            if len(line_tokenized_sublist)>9:
-                                sensor_names[shortTitle] = dict()
-                                sensor_names[shortTitle]['SensorLocation'] = sub(' ', '', line_tokenized_sublist[0])
-                                sensor_names[shortTitle]['id'] = sub(' ','', line_tokenized_sublist[5])
-                                sensor_names[shortTitle]['title'] = line_tokenized_sublist[4]
-                                sensor_names[shortTitle]['unit'] = line_tokenized_sublist[-1]
-    except:
-        print ('Problem while loading Sensors.h file')
-        print_exc()
-        sensor_names = None
-        pass
-    return sensor_names
-
 def load_calibrations(urls):
     '''
         Loads calibrations from urls.
@@ -228,8 +176,8 @@ def load_calibrations(urls):
         }
         Parameters
         ----------
-            path: String
-                json file path
+            urls: [String]
+                json file urls
         Returns
         ---------
             Dictionary containing calibrations otherwise None
@@ -259,3 +207,38 @@ def load_connectors(urls):
             return None
 
     return connectors
+
+def load_names(urls):
+    '''
+        Loads names from urls. Names have to be unique in each
+        {
+            "SCD30_CO2":
+            {
+                "id": "158",
+                "title": "SCD30 CO2",
+                "unit": "ppm"
+            },
+            ...
+        }
+        Parameters
+        ----------
+            urls: [String]
+                json file urls
+        Returns
+        ---------
+            Dictionary containing names, otherwise None
+    '''
+
+    names = dict()
+    for url in urls:
+        try:
+            c = get_json_from_url(url)
+            _nc = basename(urlparse(str(url)).path).split('.')[0]
+            print (_nc)
+            names[_nc] = c
+        except:
+            print(f'Problem loading names from {url}')
+            print_exc()
+            return None
+
+    return names

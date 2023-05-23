@@ -494,6 +494,7 @@ class Device(object):
             std_out('No hardware versions found, ignoring additional metrics', 'WARNING')
 
     def __check_sensors__(self):
+
         remove_sensors = list()
         # Remove sensor from the list if it's not in self.readings.columns
         for sensor in self.sensors:
@@ -504,7 +505,7 @@ class Device(object):
         for sensor_to_remove in remove_sensors:
             self.sensors.pop(sensor_to_remove, None)
 
-        if config._strict_load:
+        if config.data['strict_load']:
             remove_columns = list()
             for column in self.readings.columns:
                 if column not in self.sensors: remove_columns.append(column)

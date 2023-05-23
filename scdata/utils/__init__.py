@@ -4,7 +4,7 @@ from .units import get_units_convf
 from .dictmerge import dict_fmerge
 from .lazy import LazyCallable
 from .logs import get_tests_log
-from .meta import get_current_blueprints, load_blueprints, get_json_from_url
+from .meta import get_current_blueprints, load_blueprints, get_json_from_url, load_names
 from .stats import spearman, get_metrics
 from .cleaning import clean
 from .location import get_elevation

@@ -533,8 +533,8 @@ class ScApiDevice:
                 # Put the ids and the names in lists
                 self.sensors = dict()
                 for sensor in sensors:
-                    for key in config.sc_sensor_names:
-                        if str(config.sc_sensor_names[key]['id']) == str(sensor['id']):
+                    for key in config.names['sc_sensor_names']:
+                        if str(config.names['sc_sensor_names'][key]['id']) == str(sensor['id']):
                             # IDs are unique
                             if key in config._sc_ignore_keys: continue
                             self.sensors[sensor['id']] = key

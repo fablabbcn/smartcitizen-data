@@ -4,7 +4,7 @@ import json
 from scdata.utils.dictmerge import dict_fmerge
 from scdata.utils.meta import (get_paths, load_blueprints,
                                 load_calibrations, load_connectors,
-                                load_env, load_firmware_names)
+                                load_env, load_names)
 
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
@@ -42,9 +42,6 @@ class Config(object):
     # Returns when iterables cannot be fully processed
     _strict = False
 
-    # Ignore additional channels in csv loads
-    _strict_load = True
-
     # Timeout for http requests
     _timeout = 3
 
@@ -80,7 +77,9 @@ class Config(object):
         # latest reading in the API should be ignore
         'cached_data_margin': 1,
         # clean_na
-        'clean_na': None
+        'clean_na': None,
+        # Ignore additional channels from API or CSV that are not in the blueprint.json
+        'strict_load': True
     }
 
     # If using multiple training datasets, how to call the joint df
@@ -130,9 +129,6 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    sensor_names_url_21 = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-21/master/lib/Sensors/Sensors.h'
-    sensors_api_names_url = 'https://api.smartcitizen.me/v0/sensors/?per_page=500'
-    # sensor_names_url_20='https://raw.githubusercontent.com/fablabbcn/smartcitizen-kit-20/master/lib/Sensors/Sensors.h'
     _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
     _default_file_type = 'json'
 
@@ -160,6 +156,10 @@ class Config(object):
 
     connectors_urls = [
         f'{_base_postprocessing_url}connectors/nilu.{_default_file_type}'
+    ]
+
+    names_urls = [
+        f'{_base_postprocessing_url}names/sc_sensor_names.{_default_file_type}'
     ]
 
     # Convertion table from API SC to Pandas
@@ -593,11 +593,12 @@ class Config(object):
 
         namespath = join(self.paths['interim'], 'names.json')
         if self.data['reload_metadata'] or not exists(namespath):
-            sc_sensor_names = load_firmware_names(self.sensor_names_url_21)
+            names = load_names(self.names_urls)
+            # sc_sensor_names = load_firmware_names(self.sensor_names_url_21)
             # sc_sensor_names = load_api_names(self.sensors_api_names_url)
             namesreload = True
         else:
-            with open(namespath, 'r') as file: sc_sensor_names = json.load(file)
+            with open(namespath, 'r') as file: names = json.load(file)
             namesreload = False
 
         if blueprints is not None:
@@ -612,10 +613,10 @@ class Config(object):
             self.connectors = connectors
             if conreload:
                 with open(conpath, 'w') as file: json.dump(connectors, file)
-        if sc_sensor_names is not None:
-            self.sc_sensor_names = sc_sensor_names
+        if names is not None:
+            self.names = names
             if namesreload:
-                with open(namespath, 'w') as file: json.dump(sc_sensor_names, file)
+                with open(namespath, 'w') as file: json.dump(names, file)
 
         # Find environment file in root or in scdata/ for clones
         if exists(join(self.paths['data'],'.env')):
