@@ -46,6 +46,9 @@ def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_
             File path for csv file
         timezone: String
             Time zone for the csv file
+        frequency: String
+            None
+            Frequency in pandas format of the desired output
         clean_na: String or None
             None
             Whether to perform clean_na or not. Either None, 'fill' or 'drop'
@@ -112,6 +115,7 @@ def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_
 
     # Resample
     if (resample):
+        std_out ('Resampling', 'INFO')
         df = df.resample(frequency).mean()
 
     # Remove na

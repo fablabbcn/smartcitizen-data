@@ -4,6 +4,7 @@
   "frequency": null,
   "id": null,
   "timezone": null,
+  "resample": false,
   "max_date": null,
   "min_date": null,
   "sensors": {

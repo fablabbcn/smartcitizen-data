@@ -299,22 +299,21 @@ class Test(object):
                 return list_raw_files
 
         def copy_raw_files(_raw_src_path, _raw_dst_path, _list_raw_files):
+            try:
 
-                try:
+                for item in _list_raw_files:
+                    s = join(_raw_src_path, item)
+                    d = join(_raw_dst_path, item.split('/')[-1])
+                    copyfile(s, d)
 
-                    for item in _list_raw_files:
-                        s = join(_raw_src_path, item)
-                        d = join(_raw_dst_path, item)
-                        copyfile(s, d)
+                std_out('Copy raw files: OK', 'SUCCESS')
 
-                    std_out('Copy raw files: OK', 'SUCCESS')
+                return True
 
-                    return True
-
-                except:
-                    std_out('Problem copying raw files', 'ERROR')
-                    print_exc()
-                    return False
+            except:
+                std_out('Problem copying raw files', 'ERROR')
+                print_exc()
+                return False
 
         def date_parser(s, a):
             return parser.parse(s).replace(microsecond=int(a[-3:])*1000)
@@ -352,7 +351,8 @@ class Test(object):
                                             index_name = device.sources[device.source]['index'],
                                             skiprows = device.sources[device.source]['header_skip'],
                                             sep = device.sources[device.source]['sep'],
-                                            tzaware = device.sources[device.source]['tz-aware']
+                                            tzaware = device.sources[device.source]['tz-aware'],
+                                            resample = device.resample
                                             )
                         df.index.rename(config._csv_defaults['index_name'], inplace=True)
                         df.to_csv(dst_path, sep=config._csv_defaults['sep'])
@@ -368,7 +368,6 @@ class Test(object):
 
         # Add details to descriptor, or update them if there is anything in details
         for detail in self.details.keys(): self.descriptor[detail] = self.details[detail]
-
         # Add devices to descriptor
         for device_name in self.devices.keys():
 
@@ -379,7 +378,8 @@ class Test(object):
 
             dvars = vars(device).copy()
             for discvar in config._discvars:
-                if discvar in dvars: dvars.pop(discvar)
+                if discvar in dvars:
+                    dvars.pop(discvar)
 
             self.descriptor['devices'][device.id] = dvars
 
@@ -429,7 +429,6 @@ class Test(object):
             _root_dir = join(self.path, 'raw')
 
         fname_t = join(self.path.strip(f'{self.full_name}')[:-1], self.full_name + f'_{selection}')
-        print (fname_t)
         make_archive(fname_t, cformat, root_dir=_root_dir)
 
         fname = fname_t + '.' + cformat

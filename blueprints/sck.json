@@ -4,6 +4,7 @@
   "id": null,
   "info_data_file": null,
   "timezone": null,
+  "resample": false,
   "max_date": null,
   "min_date": null,
   "processed_data_file": null,

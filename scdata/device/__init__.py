@@ -152,7 +152,7 @@ class Device(object):
         if 'resample' in options.keys():
             self.options['resample'] = options['resample']
         else:
-            self.options['resample'] = True
+            self.options['resample'] = False
 
     def load_postprocessing(self):
 
@@ -316,104 +316,106 @@ class Device(object):
         else: self.check_overrides()
 
         std_out(f'Using options for device: {options}')
+        self.loaded = False
 
-        try:
-            if self.source == 'csv':
-                if follow_defaults:
-                    index_name = config._csv_defaults['index_name']
-                    sep = config._csv_defaults['sep']
-                    skiprows = config._csv_defaults['skiprows']
-                else:
-                    index_name = self.sources[self.source]['index']
-                    sep = self.sources[self.source]['sep']
-                    skiprows = self.sources[self.source]['header_skip']
+        if self.source == 'csv':
+            if follow_defaults:
+                index_name = config._csv_defaults['index_name']
+                sep = config._csv_defaults['sep']
+                skiprows = config._csv_defaults['skiprows']
+            else:
+                index_name = self.sources[self.source]['index']
+                sep = self.sources[self.source]['sep']
+                skiprows = self.sources[self.source]['header_skip']
 
-                # here we don't use tzaware because we only load preprocessed data
+            # here we don't use tzaware because we only load preprocessed data
+            try:
                 self.readings = self.readings.combine_first(
-                                                        read_csv_file(
-                                                            file_path = join(path, self.processed_data_file),
-                                                            timezone = self.timezone,
-                                                            frequency = self.options['frequency'],
-                                                            clean_na = self.options['clean_na'],
-                                                            index_name = index_name,
-                                                            sep = sep,
-                                                            skiprows = skiprows,
-                                                            resample = self.options['resample'])
-                                                        )
-                if self.readings is not None:
-                    self.__convert_names__()
+                                                    read_csv_file(
+                                                        file_path = join(path, self.processed_data_file),
+                                                        timezone = self.timezone,
+                                                        frequency = self.options['frequency'],
+                                                        clean_na = self.options['clean_na'],
+                                                        index_name = index_name,
+                                                        sep = sep,
+                                                        skiprows = skiprows,
+                                                        resample = self.options['resample'])
+                                                    )
+            except FileNotFoundError:
+                std_out(f'File not found for device {self.id} in {path}', 'ERROR')
 
-            elif 'api' in self.source:
-
-                # Get device location
-                # Location data should be standard for each new device
-                self.api_device.get_device_lat_long()
-                self.api_device.get_device_alt()
-
-                self.location = {
-                    'longitude': self.api_device.long,
-                    'latitude': self.api_device.lat,
-                    'altitude': self.api_device.alt
-                }
-
-                self.timezone = self.api_device.get_device_timezone()
-
-                if path == '':
-                    # Not chached case
-                    if only_unprocessed:
-
-                        # Override dates for post-processing
-                        if self.latest_postprocessing is not None:
-                            hw_latest_postprocess = localise_date(self.latest_postprocessing, 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                            # Override min loading date
-                            self.options['min_date'] = hw_latest_postprocess
-
-                    df = self.api_device.get_device_data(self.options['min_date'],
-                                                         self.options['max_date'],
-                                                         self.options['frequency'],
-                                                         self.options['clean_na'],
-                                                         resample = self.options['resample'])
-
-                    # API Device is not aware of other csv index data, so make it here
-                    if 'csv' in self.sources and df is not None:
-                        df = df.reindex(df.index.rename(self.sources['csv']['index']))
-
-                    # Combine it with readings if possible
-                    if df is not None: self.readings = self.readings.combine_first(df)
-
-                else:
-                    # Cached case
-                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
-                                                                self.timezone, self.options['frequency'],
-                                                                self.options['clean_na'], self.sources['csv']['index'],
-                                                                resample = self.options['resample']))
-
-        except FileNotFoundError:
-            # print_exc()
-            # Handle error
-            if 'api' in self.source: std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
-            elif 'csv' in self.source: std_out(f'File not found for device {self.id} in {path}', 'ERROR')
-
-            self.loaded = False
-        except:
-            # print_exc()
-            self.loaded = False
-        else:
             if self.readings is not None:
-                self.__check_sensors__()
-                if not self.readings.empty:
-                    if max_amount is not None:
-                        std_out(f'Trimming dataframe to {max_amount} rows')
-                        self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
-                    # Only add metrics if there is something that can be potentially processed
-                    self.__fill_metrics__()
-                    self.loaded = True
-                    if convert_units: self.__convert_units__()
+                self.__convert_names__()
+                self.__load_wrapup__(max_amount, convert_units)
+
+        elif 'api' in self.source:
+
+            # Get device location
+            # Location data should be standard for each new device
+            self.api_device.get_device_lat_long()
+            self.api_device.get_device_alt()
+
+            self.location = {
+                'longitude': self.api_device.long,
+                'latitude': self.api_device.lat,
+                'altitude': self.api_device.alt
+            }
+
+            self.timezone = self.api_device.get_device_timezone()
+
+            if path == '':
+                # Not chached case
+                if only_unprocessed:
+
+                    # Override dates for post-processing
+                    if self.latest_postprocessing is not None:
+                        hw_latest_postprocess = localise_date(self.latest_postprocessing, 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                        # Override min loading date
+                        self.options['min_date'] = hw_latest_postprocess
+
+                df = self.api_device.get_device_data(self.options['min_date'],
+                                                     self.options['max_date'],
+                                                     self.options['frequency'],
+                                                     self.options['clean_na'],
+                                                     resample = self.options['resample'])
+
+                # API Device is not aware of other csv index data, so make it here
+                if 'csv' in self.sources and df is not None:
+                    df = df.reindex(df.index.rename(self.sources['csv']['index']))
+
+                # Combine it with readings if possible
+                if df is not None:
+                    self.readings = self.readings.combine_first(df)
+                    self.__load_wrapup__(max_amount, convert_units)
+
+            else:
+                # Cached case
+                try:
+                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
+                                                            self.timezone, self.options['frequency'],
+                                                            self.options['clean_na'], self.sources['csv']['index'],
+                                                            resample = self.options['resample']))
+                except FileNotFoundError:
+                    std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
                 else:
-                    std_out('Empty dataframe in readings', 'WARNING')
-        finally:
-            self.processed = False
-            return self.loaded
+                    self.__load_wrapup__(max_amount, convert_units)
+
+        self.processed = False
+        return self.loaded
+
+    def __load_wrapup__(self, max_amount, convert_units):
+        if self.readings is not None:
+            self.__check_sensors__()
+            if not self.readings.empty:
+                if max_amount is not None:
+                    std_out(f'Trimming dataframe to {max_amount} rows')
+                    self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
+                # Only add metrics if there is something that can be potentially processed
+                self.__fill_metrics__()
+                self.loaded = True
+                if convert_units: self.__convert_units__()
+            else:
+                std_out('Empty dataframe in readings', 'WARNING')
 
     def __fill_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')

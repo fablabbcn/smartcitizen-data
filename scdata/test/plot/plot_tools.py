@@ -134,8 +134,8 @@ def prepare_data(test, traces, options):
 
                 # Device dataframe
                 dfdev = DataFrame(test.devices[ndev].readings[column_orig].values,
-                                columns = columns_add,
-                                index = test.devices[ndev].readings.index)
+                                    columns = columns_add,
+                                    index = test.devices[ndev].readings.index)
 
                 # Add filtering function
                 if 'filter' in traces[trace]:
@@ -220,8 +220,8 @@ def prepare_data(test, traces, options):
             if options['resample'] == 'min': df = df.resample(options['frequency']).min()
             if options['resample'] == 'mean': df = df.resample(options['frequency']).mean()
 
-        else: df = df.resample(options['frequency']).mean()
-
+        else:
+            df = df.resample(options['frequency']).mean()
 
     # Clean na
     if options['clean_na'] is not None:

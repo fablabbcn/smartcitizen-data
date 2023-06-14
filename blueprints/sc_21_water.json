@@ -6,6 +6,7 @@
   "info_data_file": null,
   "timezone": null,
   "max_date": null,
+  "resample": false,
   "metrics": {},
   "min_date": null,
   "platform_id": 31,

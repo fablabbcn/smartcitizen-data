@@ -5,6 +5,7 @@
   "id": null,
   "info_data_file": null,
   "timezone": null,
+  "resample": false,
   "max_date": null,
   "metrics": {
     "CCS811_ECO2_CLEAN": {

@@ -7,6 +7,7 @@
   "timezone": null,
   "max_date": null,
   "min_date": null,
+  "resample": false,
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
