@@ -161,7 +161,6 @@ def prepare_data(test, traces, options):
 
                 # Combine it in the df
                 df = df.combine_first(dfdev)
-
         # Add average or other extras
         # TODO Check this to simplify
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.resample.Resampler.aggregate.html

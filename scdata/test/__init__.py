@@ -31,7 +31,8 @@ class Test(object):
     from .export import to_csv, to_html
     from .load import load
     from .utils import (combine, prepare, dispersion_analysis,
-                        dispersion_summary, get_common_channels)
+                        dispersion_summary, get_common_channels,
+                        gaps_check)
 
     def __init__(self, name):
 

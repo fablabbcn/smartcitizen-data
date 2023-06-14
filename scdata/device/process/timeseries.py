@@ -3,6 +3,10 @@ from scipy import ndimage
 from scdata.device.process import is_within_circle
 from scdata.utils import std_out
 
+def delta_index_ts(dataframe, **kwargs):
+    result = dataframe.index.to_series().diff().astype('timedelta64[s]')
+    return result
+
 def poly_ts(dataframe, **kwargs):
     """
     Calculates the a polinomy based on channels.
