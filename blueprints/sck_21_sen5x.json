@@ -188,7 +188,7 @@
     {
         "id": "204",
         "desc": "SEN5X Temperature",
-        "units": "C"
+        "units": "degC"
     },
     "SEN5X_HUM":
     {
