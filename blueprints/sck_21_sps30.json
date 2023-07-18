@@ -139,7 +139,7 @@
       "id": "183",
       "units": "ug/m3"
     },
-    "SPS30_PM_40": {
+    "SPS30_PM_4": {
       "desc": "PM4.0 measurement from SPS30",
       "id": "184",
       "units": "ug/m3"
@@ -159,7 +159,7 @@
       "id": "188",
       "units": "#/0.1l"
     },
-    "SPS30_PN_40": {
+    "SPS30_PN_4": {
       "desc": "PN4.0 measurement from SPS30",
       "id": "189",
       "units": "#/0.1l"
@@ -169,7 +169,7 @@
       "id": "190",
       "units": "#/0.1l"
     },
-    "SPS30_TPS": {
+    "SPS30_TPSIZE": {
       "desc": "Typical Particle Size from SPS30",
       "id": "191",
       "units": "um"

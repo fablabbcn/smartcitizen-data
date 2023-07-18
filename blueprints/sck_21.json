@@ -139,6 +139,42 @@
       "id": "87",
       "units": "ug/m3"
     },
+    "PMS5003_PN_03":
+    {
+         "id": "165",
+         "desc": "PN0.5 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
+    "PMS5003_PN_05":
+    {
+         "id": "166",
+         "desc": "PN0.5 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
+    "PMS5003_PN_1":
+    {
+         "id": "167",
+         "desc": "PN1.0 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
+    "PMS5003_PN_25":
+    {
+         "id": "168",
+         "desc": "PN2.5 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
+    "PMS5003_PN_5":
+    {
+         "id": "169",
+         "desc": "PN5.0 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
+    "PMS5003_PN_10":
+    {
+         "id": "170",
+         "desc": "PN10.0 measurement from PMS5003",
+         "units": "#/0.1l"
+    },
     "PRESS": {
       "desc": "Atmospheric pressure",
       "id": "58",

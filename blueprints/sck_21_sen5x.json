@@ -142,7 +142,7 @@
          "desc": "PM2.5 measurement from SEN5X",
          "units": "ug/m3"
     },
-    "SEN5X_PM_40":
+    "SEN5X_PM_4":
     {
          "id": "195",
          "desc": "PM4.0 measurement from SEN5X",
@@ -166,7 +166,7 @@
          "desc": "PN2.5 measurement from SEN5X",
          "units": "#/0.1l"
     },
-    "SEN5X_PN_40":
+    "SEN5X_PN_4":
     {
          "id": "200",
          "desc": "PN4.0 measurement from SEN5X",
@@ -178,7 +178,7 @@
          "desc": "PN10.0 measurement from SEN5X",
          "units": "#/0.1l"
     },
-    "SEN5X_TPS":
+    "SEN5X_TPSIZE":
     {
          "id": "202",
          "desc": "Typical Particle Size from SEN5X",
