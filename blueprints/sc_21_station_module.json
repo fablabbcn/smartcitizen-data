@@ -456,32 +456,32 @@
       "id": "113",
       "units": "ppm"
     },
-    "EXT_PM_A_1": {
+    "PMS5003_EXT_PM_A_1": {
       "desc": "PM1 measurement from PMS5003 A",
       "id": "71",
       "units": "ug/m3"
     },
-    "EXT_PM_A_10": {
+    "PMS5003_EXT_PM_A_10": {
       "desc": "PM10 measurement from PMS5003 A",
       "id": "73",
       "units": "ug/m3"
     },
-    "EXT_PM_A_25": {
+    "PMS5003_EXT_PM_A_25": {
       "desc": "PM2.5 measurement from PMS5003 A",
       "id": "72",
       "units": "ug/m3"
     },
-    "EXT_PM_B_1": {
+    "PMS5003_EXT_PM_B_1": {
       "desc": "PM1 measurement from PMS5003 B",
       "id": "75",
       "units": "ug/m3"
     },
-    "EXT_PM_B_10": {
+    "PMS5003_EXT_PM_B_10": {
       "desc": "PM10 measurement from PMS5003 B",
       "id": "77",
       "units": "ug/m3"
     },
-    "EXT_PM_B_25": {
+    "PMS5003_EXT_PM_B_25": {
       "desc": "PM2.5 measurement from PMS5003 B",
       "id": "76",
       "units": "ug/m3"
@@ -501,12 +501,12 @@
       "id": "87",
       "units": "ug/m3"
     },
-    "EXT_SHT31_HUM": {
+    "SHT31_EXT_HUM": {
       "desc": "External SHT31 humidity",
       "id": "null",
       "units": "%rh"
     },
-    "EXT_SHT31_TEMP": {
+    "SHT31_EXT_TEMP": {
       "desc": "External SHT31 temperature",
       "id": "null",
       "units": "degC"

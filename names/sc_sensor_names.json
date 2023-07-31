@@ -425,16 +425,16 @@
         "desc": "Direct Dallas Temperature",
         "units": "C"
     },
-    "EXT_TEMP":
+    "SHT31_EXT_TEMP":
     {
         "id": "79",
-        "desc": "Ext Temperature",
+        "desc": "Ext SHT31 Temperature",
         "units": "C"
     },
-    "EXT_HUM":
+    "SHT31_EXT_HUM":
     {
         "id": "80",
-        "desc": "Ext Humidity",
+        "desc": "Ext SHT31 Humidity",
         "units": "%"
     },
     "SHT35_EXT_TEMP":
