@@ -252,6 +252,17 @@
     "we_sensitivity_na_ppb": "0.564",
     "we_sensor_zero_mv": "-53.760000000000005"
   },
+  "162600311": {
+    "ae_electronic_zero_mv": "345",
+    "ae_sensor_zero_mv": "-8",
+    "pcb_gain_mv_na": "0.8",
+    "we_cross_sensitivity_no2_mv_ppb": "0",
+    "we_cross_sensitivity_no2_na_ppb": "0",
+    "we_electronic_zero_mv": "345",
+    "we_sensitivity_mv_ppb": "0.471",
+    "we_sensitivity_na_ppb": "0.589",
+    "we_sensor_zero_mv": "153"
+  },
   "164200206": {
     "ae_electronic_zero_mv": "347.67",
     "ae_sensor_zero_mv": "2",
@@ -1220,7 +1231,18 @@
     "we_sensitivity_na_ppb": "-0.46888",
     "we_sensor_zero_mv": "-12.4246"
   },
-  "202440338\u001b": {
+  "204390004": {
+    "ae_electronic_zero_mv": "240",
+    "ae_sensor_zero_mv": "-3",
+    "pcb_gain_mv_na": "-0.73",
+    "we_cross_sensitivity_no2_mv_ppb": "0.3950468",
+    "we_cross_sensitivity_no2_na_ppb": "-0.54116",
+    "we_electronic_zero_mv": "236",
+    "we_sensitivity_mv_ppb": "0.306",
+    "we_sensitivity_na_ppb": "-0.420",
+    "we_sensor_zero_mv": "-3"
+  },
+  "202440338": {
     "ae_electronic_zero_mv": "",
     "ae_sensor_zero_mv": "-18.396",
     "pcb_gain_mv_na": "-0.73",
@@ -2034,6 +2056,17 @@
     "we_sensitivity_na_ppb": "-0.3468",
     "we_sensor_zero_mv": "-18.177"
   },
+  "202602547": {
+    "ae_electronic_zero_mv": "234",
+    "ae_sensor_zero_mv": "-1",
+    "pcb_gain_mv_na": "-0.73",
+    "we_cross_sensitivity_no2_mv_ppb": "-0.0",
+    "we_cross_sensitivity_no2_na_ppb": "0.0",
+    "we_electronic_zero_mv": "228",
+    "we_sensitivity_mv_ppb": "0.301",
+    "we_sensitivity_na_ppb": "-0.413",
+    "we_sensor_zero_mv": "1"
+  },
   "204440527": {
     "ae_electronic_zero_mv": "234.48",
     "ae_sensor_zero_mv": "-9.4389",
@@ -2250,6 +2283,19 @@
     "we_sensitivity_na_ppb": "0.399",
     "we_sensor_zero_mv": "32",
     "we_total_zero_mv": "376"
+  },
+  "164390301": {
+    "ae_electronic_zero_mv": "333",
+    "ae_sensor_zero_mv": "8",
+    "ae_total_zero_mv": "341",
+    "pcb_gain_mv_na": "0.8",
+    "we_cross_sensitivity_no2_mv_ppb": "0",
+    "we_cross_sensitivity_no2_na_ppb": "0",
+    "we_electronic_zero_mv": "346",
+    "we_sensitivity_mv_ppb": "0.331",
+    "we_sensitivity_na_ppb": "0.414",
+    "we_sensor_zero_mv": "28",
+    "we_total_zero_mv": "374"
   },
   "212070552": {
     "ae_electronic_zero_mv": "302",
