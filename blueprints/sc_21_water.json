@@ -51,12 +51,12 @@
     "AS_SAL": {
       "desc": "Atlas Salinity",
       "id": "51",
-      "units": "degC"
+      "units": "PSU"
     },
     "AS_TEMP": {
       "desc": "Atlas Temperature",
       "id": "44",
-      "units": "PSU"
+      "units": "degC"
     },
     "PM_DALLAS_TEMP": {
       "desc": "Dallas External probe Temperature",
