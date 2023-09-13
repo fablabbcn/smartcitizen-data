@@ -1,6 +1,7 @@
 {
   "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
   "description": "1PMS5003-2ELEC-AFE",
+  "comment": "Demo",
   "versions": [
     {
       "ids": {
