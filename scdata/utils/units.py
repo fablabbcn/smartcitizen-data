@@ -34,7 +34,7 @@ def get_units_convf(sensor, from_units):
             else: molecular_weight = 1
         
         # Check if channel is in look-up table
-        if config._channel_lut[channel] != from_units: 
+        if config._channel_lut[channel] != from_units and from_units != "": 
             std_out(f"Converting units for {sensor}. From {from_units} to {config._channel_lut[channel]}")
             for unit in config._unit_convertion_lut:
                 # Get units
@@ -51,6 +51,8 @@ def get_units_convf(sensor, from_units):
             std_out(f"Factor: {rfactor}")
         else: 
             std_out(f"No units conversion needed for {sensor}")
+            if from_units == "":
+                std_out("Empty units in blueprint is placeholder for keep")
             rfactor = 1
         if rfactor != 1: break
     

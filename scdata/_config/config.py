@@ -214,7 +214,8 @@ class Config(object):
         "HUM": "%rh",
         "PRESS": "kPa",
         "PM_(\d|[A,B]_\d)": "ug/m3",
-        "CO(\D|$)": "ppb",
+        "^CO2": "ppm",
+        "^CO": "ppb", # Always start with CO
         "NOISE_A": "dBA",
         "NO\Z": "ppb",
         "NO2": "ppb",
