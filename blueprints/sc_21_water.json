@@ -13,6 +13,11 @@
   "processed_data_file": null,
   "raw_data_file": null,
   "sensors": {
+    "BATT": {
+      "desc": "Device battery status",
+      "id": "10",
+      "units": "%"
+    },
     "AS_COND": {
       "desc": "Atlas Conductivity",
       "id": "45",
