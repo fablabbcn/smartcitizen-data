@@ -503,12 +503,12 @@
     },
     "SHT31_EXT_HUM": {
       "desc": "External SHT31 humidity",
-      "id": "null",
+      "id": "80",
       "units": "%rh"
     },
     "SHT31_EXT_TEMP": {
       "desc": "External SHT31 temperature",
-      "id": "null",
+      "id": "79",
       "units": "degC"
     },
     "PM_DALLAS_TEMP": {
