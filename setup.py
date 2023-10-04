@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+from scdata import __version__ as scdata_version
 
 import sys
 
@@ -17,7 +18,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= '0.8.0',
+    version= scdata_version,
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -27,7 +28,6 @@ setup(
     project_urls=PROJECT_URLS,
     long_description = open('README.md').read(),
     long_description_content_type='text/markdown',
-
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Education',
@@ -37,22 +37,19 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
     ],
-
     install_requires=[
                         'branca~=0.4.0',
                         'Flask~=2.2.2',
                         'folium~=0.12.1',
-                        'geopy==1.21.0',
+                        'geopy~=1.21.0',
                         'Jinja2~=3.1.2',
-                        'matplotlib==3.2.1',
+                        'matplotlib~=3.2.1',
                         'numpy~=1.20.0',
                         'pandas~=1.5.0',
-#                       'pdfrw==0.4',
-#                       'PDPbox==0.2.0',
                         'plotly~=4.14.3',
+                        'pytest',
                         'PyYAML==5.3.1',
                         'requests==2.23.0',
-#                       'reportlab==3.5.*',
                         'scipy~=1.5.0',
                         'scikit-learn~=1.0.1',
                         'seaborn~=0.11.2',
@@ -61,9 +58,8 @@ setup(
                         'timezonefinder~=6.1.9',
                         'urllib3==1.25.9'
                     ],
-
     setup_requires=['wheel'],
-
+    python_requires=">=3.6",
     include_package_data=True,
     zip_safe=False
 )
