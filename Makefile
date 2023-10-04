@@ -2,11 +2,16 @@
 
 all: package
 
+test:
+	pytest
+
 package:
-# 	rm dist/*
+	rm dist/*
+	rm -rf build/*
 	python setup.py sdist bdist_wheel
 
 release: package
+	git tag -a v$(python setup.py --version)
 	twine upload dist/*
 
 clean:
