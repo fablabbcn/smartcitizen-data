@@ -1,10 +1,12 @@
 from os import makedirs, listdir
-from os.path import exists, join, dirname, realpath, splitext
+from os.path import exists, join, splitext
 from scdata.utils import std_out, localise_date, clean
-from pandas import read_csv, to_datetime, to_numeric, option_context, DataFrame
+from pandas import read_csv, to_datetime, DataFrame
+from scdata._config import config
 import csv
 
-def export_csv_file(path, file_name, df, forced_overwrite = False):
+
+def export_csv_file(path, file_name, df, forced_overwrite=False):
     '''
     Exports pandas dataframe to a csv file
     Parameters
@@ -30,14 +32,15 @@ def export_csv_file(path, file_name, df, forced_overwrite = False):
     # If file does not exist
     if not exists(path + '/' + str(file_name) + '.csv') or forced_overwrite:
         df.to_csv(path + '/' + str(file_name) + '.csv', sep=",")
-        std_out('File saved to: \n' + path + '/' + str(file_name) +  '.csv', 'SUCCESS')
+        std_out('File saved to: \n' + path + '/' + str(file_name) + '.csv', 'SUCCESS')
     else:
         std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'ERROR')
         return False
 
     return True
 
-def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_name = '', skiprows = None, sep = ',', encoding = 'utf-8', tzaware = True, resample = True):
+
+def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name='', skiprows=None, sep=',', encoding='utf-8', tzaware=True, resample=True):
     """
     Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
     Parameters
@@ -71,8 +74,8 @@ def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_
 
     # Read pandas dataframe
 
-    df = read_csv(file_path, verbose = False, skiprows = skiprows, sep = sep,
-                  encoding = encoding, encoding_errors='ignore')
+    df = read_csv(file_path, verbose=False, skiprows=skiprows, sep=sep,
+                  encoding=encoding, encoding_errors='ignore')
 
     flag_found = False
     if type(index_name) == str:
@@ -123,7 +126,7 @@ def read_csv_file(file_path, timezone, frequency = None, clean_na = None, index_
 
     return df
 
-def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT']):
+def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT'], **kwargs):
     '''
         Loads files from local directory in text format, for instance
         SD card files with timestamp, sparse or concatenated
@@ -187,7 +190,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                         header_tokenized[short_tokenized[index]]['id'] = id_tokenized[index]
 
             temp = read_csv(src_path, verbose=False, skiprows=range(1,4),
-                            encoding_errors='ignore').set_index("TIME")
+                            encoding_errors='ignore', na_values=config._ignore_na_values).set_index("TIME")
             temp = clean(temp, clean_na='drop', how='all')
             temp.index.rename(index_name, inplace=True)
             concat = concat.combine_first(temp)
@@ -196,6 +199,35 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
 
     ## Sort index
     concat.sort_index(inplace = True)
+
+    # Rename case
+    if 'rename_to_blueprint' in kwargs:
+        rename = kwargs['rename_to_blueprint']
+    else:
+        rename = False
+
+    if 'blueprint' in kwargs:
+        rename_bp = kwargs['blueprint']
+        if rename_bp not in config.blueprints:
+            std_out('Blueprint not in config. Cannot rename', 'WARNING')
+            rename = False
+    else:
+        std_out('No blueprint specified', 'INFO')
+        rename = False
+
+    if rename:
+        std_out('Keep in mind that renaming doesnt change the units', 'WARNING')
+        rename_d = dict()
+        for old_key in header_tokenized:
+            for key, value in config.blueprints[rename_bp]['sensors'].items():
+                if value['id'] == header_tokenized[old_key]['id'] and old_key != key:
+                    rename_d[old_key] = key
+                    break
+
+        for old_key in rename_d:
+            std_out(f'Renaming {old_key} to {rename_d[old_key]}')
+            header_tokenized[rename_d[old_key]] = header_tokenized.pop(old_key)
+            concat.rename(columns=rename_d, inplace=True)
 
     ## Save it as CSV
     if output.endswith('.CSV') or output.endswith('.csv'):
