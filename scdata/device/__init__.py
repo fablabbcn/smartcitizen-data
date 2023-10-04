@@ -28,7 +28,7 @@ class Device(object):
         blueprint: String
             Default: 'sck_21'
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
-            parrot_soil, sc_20_station, sc_21_station. A list of all the blueprints is found in
+            parrot_soil, sc_20_station, sc_21_station... A list of all the blueprints is found in
             config.blueprints_urls and accessible via the scdata.utils.load_blueprints(urls) function.
             The blueprint can also be defined from the postprocessing info in SCAPI. The manual
             parameter passed here is overriden by that of the API.
@@ -153,6 +153,8 @@ class Device(object):
             self.options['resample'] = options['resample']
         else:
             self.options['resample'] = False
+
+        std_out (f'Set following options: {self.options}')
 
     def load_postprocessing(self):
 
@@ -332,7 +334,8 @@ class Device(object):
             try:
                 self.readings = self.readings.combine_first(
                                                     read_csv_file(
-                                                        file_path = join(path, self.processed_data_file),
+                                                        file_path = join(path,
+                                                                         self.processed_data_file),
                                                         timezone = self.timezone,
                                                         frequency = self.options['frequency'],
                                                         clean_na = self.options['clean_na'],
@@ -369,7 +372,8 @@ class Device(object):
 
                     # Override dates for post-processing
                     if self.latest_postprocessing is not None:
-                        hw_latest_postprocess = localise_date(self.latest_postprocessing, 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                        hw_latest_postprocess = localise_date(self.latest_postprocessing,
+                                                              'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                         # Override min loading date
                         self.options['min_date'] = hw_latest_postprocess
 
@@ -500,20 +504,27 @@ class Device(object):
         remove_sensors = list()
         # Remove sensor from the list if it's not in self.readings.columns
         for sensor in self.sensors:
-            if sensor not in self.readings.columns: remove_sensors.append(sensor)
+            if sensor not in self.readings.columns:
+                std_out(f'{sensor} not in readings columns. Marked for removal', 'INFO')
+                remove_sensors.append(sensor)
 
         if remove_sensors != []:
             std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
-        for sensor_to_remove in remove_sensors:
-            self.sensors.pop(sensor_to_remove, None)
+            for sensor_to_remove in remove_sensors:
+                self.sensors.pop(sensor_to_remove, None)
+
+        extra_columns = list()
+        for column in self.readings.columns:
+            if column not in self.sensors: extra_columns.append(column)
+        std_out(f'Data contains extra columns: {extra_columns}', 'INFO')
 
         if config.data['strict_load']:
-            remove_columns = list()
-            for column in self.readings.columns:
-                if column not in self.sensors: remove_columns.append(column)
-            self.readings.drop(remove_columns, axis=1, inplace=True)
+            std_out(f"config.data['strict_load'] is enabled. Removing extra columns")
+            self.readings.drop(extra_columns, axis=1, inplace=True)
+        else:
+            std_out(f"config.data['strict_load'] is disabled. Ignoring extra columns")
 
-        std_out(f'Device sensors after removal: {list(self.sensors.keys())}')
+        std_out(f'Device sensors after checks: {list(self.sensors.keys())}')
 
     def __convert_names__(self):
         rename = dict()

@@ -675,7 +675,6 @@ class ScApiDevice:
             try:
                 dfsensor = DataFrame(sensorjson['readings']).set_index(0)
                 dfsensor.columns = [self.sensors[sensor_id]]
-                # dfsensor.index = to_datetime(dfsensor.index).tz_localize('UTC').tz_convert(self.timezone)
                 dfsensor.index = localise_date(dfsensor.index, self.timezone)
                 dfsensor.sort_index(inplace=True)
                 dfsensor = dfsensor[~dfsensor.index.duplicated(keep='first')]

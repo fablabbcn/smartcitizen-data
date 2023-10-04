@@ -208,13 +208,18 @@ class Test(object):
                                                                             }
                                     )
             )
+        return True
 
     def add_device(self, device):
         '''
             Adds a device to the test. The device has to be an instance of 'scdata.device.Device'
         '''
-        if device.id not in self.devices.keys(): self.devices[device.id] = device
-        else: std_out(f'Device {device.id} is duplicated', 'WARNING')
+        if device.id not in self.devices.keys():
+            self.devices[device.id] = device
+            return True
+        else:
+            std_out(f'Device {device.id} is duplicated', 'WARNING')
+            return False
 
     def add_content(self, title, figure = None, text = None, iframe = None, show_title = True, force = False):
         '''

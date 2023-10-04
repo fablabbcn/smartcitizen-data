@@ -2,15 +2,16 @@ from os.path import join
 from urllib.request import urlopen
 from scdata.utils import std_out
 from scdata._config import config
-
 import json
 from re import sub
 from traceback import print_exc
 
+
 def get_firmware_names(sensorsh, json_path, file_name):
+
     # Directory
     names_dict = join(json_path, file_name + '.json')
-    
+
     if config.reload_firmware_names:
         try:
             # Read only 20000 chars
@@ -22,26 +23,23 @@ def get_firmware_names(sensorsh, json_path, file_name):
             for line in data:
                 if 'class AllSensors' in line:
                     line_sensors = data.index(line)
-                    
                 if data.index(line) > line_sensors:
 
                     if 'OneSensor' in line and '{' in line and '}' in line and '/*' not in line:
                         # Split commas
-                        line_tokenized =  line.strip('').split(',')
+                        line_tokenized = line.strip('').split(',')
 
                         # Elimminate unnecessary elements
                         line_tokenized_sublist = list()
                         for item in line_tokenized:
-                                item = sub('\t', '', item)
-                                item = sub('OneSensor', '', item)
-                                item = sub('{', '', item)
-                                item = sub('}', '', item)
-                                #item = sub(' ', '', item)
-                                item = sub('"', '', item)
-                                
-                                if item != '' and item != ' ':
-                                    while item[0] == ' ' and len(item)>0: item = item[1:]
-                                line_tokenized_sublist.append(item)
+                            item = sub('\t', '', item)
+                            item = sub('OneSensor', '', item)
+                            item = sub('{', '', item)
+                            item = sub('}', '', item)
+                            item = sub('"', '', item)
+                            if item != '' and item != ' ':
+                                while item[0] == ' ' and len(item)>0: item = item[1:]
+                            line_tokenized_sublist.append(item)
                         line_tokenized_sublist = line_tokenized_sublist[:-1]
 
                         if len(line_tokenized_sublist) > 2:
@@ -71,3 +69,4 @@ def get_firmware_names(sensorsh, json_path, file_name):
         if sensor_names is not None: std_out('Local version of sensor names loaded', 'SUCCESS')
 
     return sensor_names
+
