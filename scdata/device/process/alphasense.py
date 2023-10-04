@@ -174,6 +174,7 @@ def ec_sensor_temp(dataframe, **kwargs):
         if kwargs['priority'] in dataframe.columns: return dataframe[kwargs['priority']]
     if 'ASPT1000' in dataframe.columns: return dataframe['ASPT1000']
     if 'PM_DALLAS_TEMP' in dataframe.columns: return dataframe['PM_DALLAS_TEMP']
+    if 'SHT31_EXT_TEMP' in dataframe.columns: return dataframe['SHT31_EXT_TEMP']
     std_out('Problem with input data', 'ERROR')
     return None
 
