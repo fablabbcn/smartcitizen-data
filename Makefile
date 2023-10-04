@@ -6,7 +6,7 @@ test:
 	pytest
 
 package:
-	rm dist/*
+	rm -rf dist/*
 	rm -rf build/*
 	python setup.py sdist bdist_wheel
 

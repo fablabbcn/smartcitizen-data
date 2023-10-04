@@ -43,6 +43,7 @@ setup(
                         'geopy~=1.21.0',
                         'Jinja2~=3.1.2',
                         'matplotlib~=3.2.1',
+                        'missingno~=0.5.2',
                         'numpy~=1.20.0',
                         'pandas~=1.5.0',
                         'plotly~=4.14.3',
