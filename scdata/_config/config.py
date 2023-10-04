@@ -79,7 +79,7 @@ class Config(object):
         # clean_na
         'clean_na': None,
         # Ignore additional channels from API or CSV that are not in the blueprint.json
-        'strict_load': True
+        'strict_load': False
     }
 
     # If using multiple training datasets, how to call the joint df
@@ -90,6 +90,10 @@ class Config(object):
 
     # Ignore duplicate sensor ids
     _sc_ignore_keys = ['DALLAS_TEMP', 'GB_TEMP', 'GB_HUM']
+
+    # Ingore Nas when loading data (for now only in CSVs)
+    # Similar to na_values in https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
+    _ignore_na_values = [' nan']
 
     ### ---------------------------------------
     ### --------------ALGORITHMS---------------
