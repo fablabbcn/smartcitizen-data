@@ -4,7 +4,6 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
-from scdata import __version__ as scdata_version
 
 import sys
 
@@ -18,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version= scdata_version,
+    version= '0.8.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
