@@ -11,6 +11,8 @@ notebooks/*/
 work
 working_tasks
 notebooks/working_*.ipynb
+wip*.ipynb
+Untitled*.ipynb
 notebooks/00_done
 wip*.py
 notebooks/wip*.*

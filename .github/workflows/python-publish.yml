@@ -1,26 +1,29 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python application
+name: Python Publish
 
 on:
  push:
    branches: [ "master" ]
- pull_request:
-   branches: [ "master" ]
+   tags:
+     - '*'
 
 jobs:
-  build:
+  pypi-publish:
+    name: Upload release to PyPI
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9"]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/scdata
+    permissions:
+      id-token: write
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.8
         cache: 'pip'
     - name: Display Python version
       run: python -c "import sys; print(sys.version)"
@@ -46,3 +49,6 @@ jobs:
       with:
         name: scdata-pkg
         path: dist
+    - name: Publish package distributions to PyPI
+      if: github.repository == 'fablabbcn/smartcitizen-data' && github.ref == 'refs/heads/master' && job.status == 'success'
+      uses: pypa/gh-action-pypi-publish@release/v1
