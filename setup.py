@@ -17,7 +17,7 @@ PROJECT_URLS = {
 
 setup(
     name='scdata',
-    version='0.9.0',
+    version='0.9.1',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -56,7 +56,8 @@ setup(
                         'termcolor==1.1.0',
                         'tqdm~=4.50.2',
                         'timezonefinder~=6.1.9',
-                        'urllib3==1.25.9'
+                        'urllib3==1.25.9',
+                        'Werkzeug==2.2.2'
                     ],
     setup_requires=['wheel'],
     python_requires=">=3.6",
