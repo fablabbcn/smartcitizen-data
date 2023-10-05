@@ -4,6 +4,7 @@ Smart Citizen Data
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
 [![PyPI version](https://badge.fury.io/py/scdata.svg)](https://badge.fury.io/py/scdata)
+[![Python application](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-app.yml/badge.svg)](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-app.yml)
 
 Welcome to **SmartCitizen Data**. This is a data analysis framework for working with sensor data in different ways:
 
@@ -13,7 +14,7 @@ Welcome to **SmartCitizen Data**. This is a data analysis framework for working 
 - Generate data visualisations - matplotlib, [plotly](https://plotly.com/) or [uplot](https://leeoniya.github.io/uPlot)
 - Generate analysis reports in html or pdf and upload them to [Zenodo](http://zenodo.org)
 
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data/Data%20Analysis/). 
+A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data/Data%20Analysis/).
 
 ## Installation
 
