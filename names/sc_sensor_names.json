@@ -641,6 +641,36 @@
         "desc": "SCD30 Humidity",
         "units": "%"
     },
+    "SFA30_HCHO":
+    {
+        "id": "212",
+        "desc": "SFA30 HCHO",
+        "units": "ppb"
+    },
+    "SFA30_TEMP":
+    {
+        "id": "211",
+        "desc": "SFA30 Temperature",
+        "units": "C"
+    },
+    "SFA30_HUM":
+    {
+        "id": "210",
+        "desc": "SFA30 Humidity",
+        "units": "%"
+    },
+    "RSSI":
+    {
+        "id": "220",
+        "desc": "Wi-Fi RSSI",
+        "units": "dBm"
+    },
+    "SD-card":
+    {
+        "id": "221",
+        "desc": "SD card presence",
+        "units": ""
+    },
     "GR_OLED":
     {
         "id": "0",
