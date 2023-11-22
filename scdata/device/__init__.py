@@ -10,18 +10,21 @@ from scdata.io.device_api import *
 from os.path import join, basename
 from urllib.parse import urlparse
 from pandas import DataFrame, to_timedelta
-from traceback import print_exc
 from numpy import nan
 from collections.abc import Iterable
+from importlib import import_module
+
+from timezonefinder import TimezoneFinder
+tf = TimezoneFinder()
 
 class Device(object):
     ''' Main implementation of the device class '''
 
-    def __init__(self, blueprint = None, descriptor = {}):
+    def __init__(self, blueprint = None, source=dict(), params=dict()):
 
         '''
-        Creates an instance of device. Devices are objects that contain sensors readings, metrics
-        (calculations based on sensors readings), and metadata such as units, dates, frequency and source
+        Creates an instance of device. Devices are objects that contain sensors data, metrics
+        (calculations based on sensors data), and metadata such as units, dates, frequency and source
 
         Parameters:
         -----------
@@ -30,20 +33,20 @@ class Device(object):
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
             parrot_soil, sc_20_station, sc_21_station... A list of all the blueprints is found in
             config.blueprints_urls and accessible via the scdata.utils.load_blueprints(urls) function.
-            The blueprint can also be defined from the postprocessing info in SCAPI. The manual
-            parameter passed here is overriden by that of the API.
+            The blueprint can also be defined from the postprocessing info in SCAPI.
+            The manual parameter passed here overrides that of the API.
 
-        descriptor: dict()
-            Default: empty: std_out('Empty dataframe, ignoring', 'WARNING') dict
-            A dictionary containing information about the device itself. Depending on the blueprint, this descriptor
-            needs to have different data. If not all the data is present, the corresponding blueprint's default will
-            be used
+        source: dict()
+            Default: empty dict
+            A dictionary containing a description of how to obtain the data from the device itself.
+
+        params: dict()
+            Default: empty dict
+            A dictionary containing information about the device itself. Depending on the blueprint, this params needs to have different data. If not all the data is present, the corresponding blueprint's default will be used
 
         Examples:
         ----------
-        Device('sck_21', descriptor = {'source': 'api', 'id': '1919'})
-            device with sck_21 blueprint with 1919 ID
-        Device(descriptor = {'source': 'api', 'id': '1919'})
+        Device('sck_21', handler = {'source': 'api', 'id': '1919'}, params = {})
             device with sck_21 blueprint with 1919 ID
 
         Returns
@@ -51,210 +54,87 @@ class Device(object):
             Device object
         '''
 
-        self.skip_blueprint = False
+        # Set handler
+        self.source = source
+        self.__set_handler__()
 
+        # Set custom params
+        self.params = params
+        self.__set_blueprint_attrs__(config.blueprints['base'])
+        self.__set_params_attrs__(params)
+
+        # Start out handler object now
+        if self.hclass is not None:
+            self.handler = self.hclass(self.id)
+
+        # Set blueprint
         if blueprint is not None:
             self.blueprint = blueprint
-            self.skip_blueprint = True
         else:
-            self.blueprint = 'sck_21'
+            if url_checker(self.handler.blueprint_url):
+                std_out(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
+                self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
 
-        # Set attributes
         if self.blueprint not in config.blueprints:
-            raise ValueError(f'Specified blueprint {self.blueprint} is not in config')
+            raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
 
-        self.set_blueprint_attrs(config.blueprints[self.blueprint])
-        self.blueprint_loaded_from_url = False
-        self.hardware_loaded_from_url = False
+        self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
 
-        self.description = descriptor
-        self.set_descriptor_attrs()
-
-        if self.id is not None: self.id = str(self.id)
-
-        # Postprocessing and forwarding
-        self.hardware_url = None
-        self.blueprint_url = None
-        self.forwarding_params = None
-        self.forwarding_request = None
-        self.meta = None
-        self.latest_postprocessing = None
-        self.processed = False
-        self.hardware_description = None
-
-        # Add API handler if needed
-        if self.source == 'api':
-
-            hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
-            Hclass = getattr(hmod, self.sources[self.source]['handler'])
-
-            # Create object
-            self.api_device = Hclass(did = self.id)
-
-            std_out(f'Checking postprocessing info from API device')
-
-            if self.load_postprocessing() and (self.hardware_url is None):# or self.blueprint_url is None):
-                if config._strict:
-                    raise ValueError('Postprocessing could not be loaded as is incomplete and strict mode is enabled')
-                std_out(f'Postprocessing loaded but with problems (hardware_url: {self.hardware_url} // blueprint_url: {self.blueprint_url}', 'WARNING')
-
-        if self.blueprint is None:
-            raise ValueError(f'Device {self.id} cannot be init without blueprint. Need a blueprint to proceed')
-        else:
-            std_out(f'Device {self.id} is using {self.blueprint} blueprint')
-
-        self.readings = DataFrame()
+        # Init the rest of the stuff
+        self.data = DataFrame()
         self.loaded = False
-        self.options = dict()
+        self.processed = False
         std_out(f'Device {self.id} initialised', 'SUCCESS')
 
-    def set_blueprint_attrs(self, blueprintd):
+    def __set_handler__(self):
+        # Add handlers here
+        if self.source['type'] == 'api':
+            if 'module' in self.source:
+                module = self.source['module']
+            else:
+                module = 'scdata.io.device_api'
+            try:
+               hmod = import_module(self.source['module'])
+            except ModuleNotFoundError:
+                std_out(f"Module not found: {self.source['module']}")
+                raise ModuleNotFoundError(f'Specified module not found')
+            else:
+                self.hclass = getattr(hmod, self.source['handler'])
+                # Create object
+                std_out(f'Setting handler as {self.hclass}')
+        elif self.source['type'] == 'csv':
+            # TODO Add handler here
+            std_out ('No handler for CSV yet', 'ERROR')
+            self.hclass = None
+        elif self.source['type'] == 'kafka':
+            # TODO Add handler here
+            std_out ('No handler for kafka yet', 'ERROR')
+            raise NotImplementedError
+
+    def __set_blueprint_attrs__(self, blueprintd):
 
         # Set attributes
         for bpitem in blueprintd:
-            self.__setattr__(bpitem, blueprintd[bpitem])
+            if bpitem not in vars(self):
+                self.__setattr__(bpitem, blueprintd[bpitem])
+            elif self.__getattribute__(bpitem) is None:
+                self.__setattr__(bpitem, blueprintd[bpitem])
 
-    def set_descriptor_attrs(self):
+    def __set_params_attrs__(self, params):
 
-        # Descriptor attributes
-        for ditem in self.description.keys():
-            if ditem not in vars(self): std_out (f'Ignoring {ditem} from input'); continue
-            if type(self.__getattribute__(ditem)) == dict:
-                self.__setattr__(ditem,
-                    dict_fmerge(self.__getattribute__(ditem),
-                    self.description[ditem]))
-            else: self.__setattr__(ditem, self.description[ditem])
-
-    def check_overrides(self, options = {}):
-
-        if 'min_date' in options.keys():
-            self.options['min_date'] = options['min_date']
-        else:
-            self.options['min_date'] = self.min_date
-
-        if 'max_date' in options.keys():
-            self.options['max_date'] = options['max_date']
-        else:
-            self.options['max_date'] = self.max_date
-
-        if 'clean_na' in options.keys():
-            self.options['clean_na'] = options['clean_na']
-        else:
-            self.options['clean_na'] = self.clean_na
-
-        if 'frequency' in options.keys():
-            self.options['frequency'] = options['frequency']
-        elif self.frequency is not None:
-            self.options['frequency'] = self.frequency
-        else:
-            self.options['frequency'] = '1Min'
-
-        if 'resample' in options.keys():
-            self.options['resample'] = options['resample']
-        else:
-            self.options['resample'] = False
-
-        std_out (f'Set following options: {self.options}')
-
-    def load_postprocessing(self):
-
-        if self.source != 'api': return None
-
-        if self.sources[self.source]['handler'] != 'ScApiDevice': return None
-
-        # Request to get postprocessing information
-        if self.api_device.get_device_postprocessing() is None: return None
-
-        # Put it where it goes
-        try:
-            self.hardware_url = self.api_device.postprocessing['hardware_url']
-            self.blueprint_url = self.api_device.postprocessing['blueprint_url']
-            self.latest_postprocessing = self.api_device.postprocessing['latest_postprocessing']
-            self.forwarding_params = self.api_device.postprocessing['forwarding_params']
-            self.meta = self.api_device.postprocessing['meta']
-            inc_postprocessing = False
-        except KeyError:
-            std_out('Ignoring postprocessing info as its incomplete', 'WARNING')
-            inc_postprocessing = True
-            pass
-
-        if inc_postprocessing: return None
-
-        # Load postprocessing info from url
-        if url_checker(self.hardware_url) and self.hardware_loaded_from_url == False:
-
-            std_out(f'Loading hardware information from:\n{self.hardware_url}')
-            hardware_description = get_json_from_url(self.hardware_url)
-
-            # TODO
-            # Add additional checks to hardware_description
-
-            if hardware_description is not None:
-                self.hardware_description = hardware_description
-                std_out('Hardware described in url is valid', "SUCCESS")
-                self.hardware_loaded_from_url = True
+        # Params attributes
+        for param in params.keys():
+            if param not in vars(self):
+                std_out (f'Ignoring {param} from input')
+                continue
+            if type(self.__getattribute__(param)) == dict:
+                self.__setattr__(param, dict_fmerge(self.__getattribute__(param), params[param]))
             else:
-                std_out("Hardware in url is not valid", 'ERROR')
-                self.hardware_description = None
+                self.__setattr__(param, params[param])
 
-        # Find forwarding request
-        if self.hardware_description is not None:
-            if 'forwarding' in self.hardware_description:
-                if self.hardware_description['forwarding'] in config.connectors:
-                    self.forwarding_request = self.hardware_description['forwarding']
-                    std_out(f"Requested a {self.hardware_description['forwarding']} connector for {self.id}")
-                    if self.forwarding_params is None:
-                        std_out('Assuming device has never been posted. Forwarding parameters are empty', 'WARNING')
-                    else:
-                        std_out(f'Connector parameters are not empty: {self.forwarding_params}')
-                else:
-                    std_out(f"Requested a {self.hardware_description['forwarding']} connector that is not available. Ignoring", 'WARNING')
-
-        # Find postprocessing blueprint
-        if self.skip_blueprint: std_out('Skipping blueprint as it was defined in device constructor', 'WARNING')
-        if self.blueprint_loaded_from_url == False and not self.skip_blueprint:
-
-            # Case when there is no info stored
-            if url_checker(self.blueprint_url):
-                std_out(f'blueprint_url in platform is not empty. Loading postprocessing blueprint from:\n{self.blueprint_url}')
-                nblueprint = basename(urlparse(self.blueprint_url).path).split('.')[0]
-            else:
-                std_out(f'blueprint_url in platform is not valid', 'WARNING')
-                std_out(f'Checking if there is a blueprint_url in hardware_description')
-                if self.hardware_description is None:
-                    std_out("Hardware description is not useful for blueprint", 'ERROR')
-                    return None
-                if 'blueprint_url' in self.hardware_description:
-                    std_out(f"Trying postprocessing blueprint from:\n{self.hardware_description['blueprint_url']}")
-                    nblueprint = basename(urlparse(self.hardware_description['blueprint_url']).path).split('.')[0]
-                    tentative_urls = url_checker(self.hardware_description['blueprint_url'])
-                    if len(tentative_urls)>0:
-                        self.blueprint_url = tentative_urls[0]
-                    else:
-                        std_out('Invalid blueprint', 'ERROR')
-                        return None
-                else:
-                    std_out('Postprocessing not possible without blueprint', 'ERROR')
-                    return None
-
-            std_out(f'Using hardware postprocessing blueprint: {nblueprint}')
-            lblueprint = get_json_from_url(self.blueprint_url)
-
-            if lblueprint is not None:
-                self.blueprint = nblueprint
-                self.blueprint_loaded_from_url = True
-                self.set_blueprint_attrs(lblueprint)
-                self.set_descriptor_attrs()
-                std_out('Blueprint loaded from url', 'SUCCESS')
-            else:
-                std_out('Blueprint in url is not valid', 'ERROR')
-                return None
-
-        return self.api_device.postprocessing
-
+    # TODO
     def validate(self):
-        if self.hardware_description is not None: return True
-        else: return False
+        return True
 
     def merge_sensor_metrics(self, ignore_empty = True):
         std_out('Merging sensor and metrics channels')
@@ -263,8 +143,8 @@ class Device(object):
         if ignore_empty:
             to_ignore = []
             for channel in all_channels.keys():
-                if channel not in self.readings: to_ignore.append(channel)
-                elif self.readings[channel].dropna().empty:
+                if channel not in self.data: to_ignore.append(channel)
+                elif self.data[channel].dropna().empty:
                     std_out (f'{channel} is empty')
                     to_ignore.append(channel)
 
@@ -272,12 +152,68 @@ class Device(object):
 
         return all_channels
 
-    def make_raw(self):
+    def add_metric(self, metric = dict()):
+        '''
+        Add a metric to the device to be processed by a callable function
+        Parameters
+        ----------
+            metric: dict
+            Empty dict
+            Description of the metric to be added. It only adds it to
+            Device.metrics, but does not calculate anything yet. The metric dict needs
+            to follow the format:
+                metric = {
+                            'metric_name': {'process': <function_name>
+                                            'args': <iterable>
+                                            'kwargs': <**kwargs for @function_name>
+                                            'from_list': <module to load function from>
+                            }
+                }
+            The 'from_list' parameter is optional, and onle needed if the process is not
+            already available in scdata.device.process.
 
-        self.processed_data_file = self.raw_data_file
+            For a list of available processes call help(scdata.device.process)
+
+            Example:
+            --------
+                metric = {'NO2_CLEAN': {'process': 'clean_ts',
+                                        'kwargs': {'name': pollutant,
+                                                   'limits': [0, 350],
+                                                    'window_size': 5}
+                        }}
+        Returns
+        ----------
+        True if added metric
+        '''
+
+        if 'metrics' not in vars(self):
+            std_out(f'Device {self.id} has no metrics yet. Adding')
+            self.metrics = dict()
+
+        try:
+            metricn = next(iter(metric.keys()))
+            self.metrics[metricn] = metric[metricn]
+        # TODO Except what?
+        except:
+            print_exc()
+            return False
+
+        std_out(f'Metric {metric} added to metrics', 'SUCCESS')
         return True
 
-    def load(self, options = None, path = '', convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
+    def del_metric(self, metricn = ''):
+        if 'metrics' not in vars(self): return
+        if metricn in self.metrics: self.metrics.pop(metricn, None)
+        if metricn in self.data.columns: self.data.__delitem__(metricn)
+
+        if metricn not in self.data and metricn not in self.metrics:
+            std_out(f'Metric {metricn} removed from metrics', 'SUCCESS')
+            return True
+        return False
+
+    # TODO Fix
+    # async def load(self, options = dict(), path = '', convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
+    async def load(self, convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
         '''
         Loads the device with some options
 
@@ -313,243 +249,168 @@ class Device(object):
             True if loaded correctly
         '''
 
-        # Add test overrides if we have them, otherwise set device defaults
-        if options is not None: self.check_overrides(options)
-        else: self.check_overrides()
+        # # Add overrides if we have them, otherwise set device defaults
+        # self.__check_overrides__(options)
+        # std_out(f'Using options for device: {options}')
 
-        std_out(f'Using options for device: {options}')
-        self.loaded = False
-
-        if self.source == 'csv':
+        if self.source['type'] == 'csv':
+            # TODO Review if this is necessary
             if follow_defaults:
                 index_name = config._csv_defaults['index_name']
                 sep = config._csv_defaults['sep']
                 skiprows = config._csv_defaults['skiprows']
             else:
-                index_name = self.sources[self.source]['index']
-                sep = self.sources[self.source]['sep']
-                skiprows = self.sources[self.source]['header_skip']
+                index_name = self.source['index_name']
+                sep = self.source['sep']
+                skiprows = self.source['skiprows']
 
+            # TODO Change this for a csv handler
             # here we don't use tzaware because we only load preprocessed data
             try:
-                self.readings = self.readings.combine_first(
-                                                    read_csv_file(
-                                                        file_path = join(path,
-                                                                         self.processed_data_file),
-                                                        timezone = self.timezone,
-                                                        frequency = self.options['frequency'],
-                                                        clean_na = self.options['clean_na'],
-                                                        index_name = index_name,
-                                                        sep = sep,
-                                                        skiprows = skiprows,
-                                                        resample = self.options['resample'])
-                                                    )
+                csv_data = read_csv_file(
+                        file_path = join(path, self.processed_data_file),
+                        timezone = self.timezone,
+                        frequency = self.frequency,
+                        clean_na = self.clean_na,
+                        resample = self.resample,
+                        index_name = index_name,
+                        sep = sep,
+                        skiprows = skiprows)
             except FileNotFoundError:
                 std_out(f'File not found for device {self.id} in {path}', 'ERROR')
-
-            if self.readings is not None:
-                self.__convert_names__()
-                self.__load_wrapup__(max_amount, convert_units)
-
-        elif 'api' in self.source:
-
-            # Get device location
-            # Location data should be standard for each new device
-            self.api_device.get_device_lat_long()
-            self.api_device.get_device_alt()
-
-            self.location = {
-                'longitude': self.api_device.long,
-                'latitude': self.api_device.lat,
-                'altitude': self.api_device.alt
-            }
-
-            self.timezone = self.api_device.get_device_timezone()
-
-            if path == '':
-                # Not chached case
-                if only_unprocessed:
-
-                    # Override dates for post-processing
-                    if self.latest_postprocessing is not None:
-                        hw_latest_postprocess = localise_date(self.latest_postprocessing,
-                                                              'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                        # Override min loading date
-                        self.options['min_date'] = hw_latest_postprocess
-
-                df = self.api_device.get_device_data(self.options['min_date'],
-                                                     self.options['max_date'],
-                                                     self.options['frequency'],
-                                                     self.options['clean_na'],
-                                                     resample = self.options['resample'])
-
-                # API Device is not aware of other csv index data, so make it here
-                if 'csv' in self.sources and df is not None:
-                    df = df.reindex(df.index.rename(self.sources['csv']['index']))
-
-                # Combine it with readings if possible
-                if df is not None:
-                    self.readings = self.readings.combine_first(df)
-                    self.__load_wrapup__(max_amount, convert_units)
-
             else:
-                # Cached case
-                try:
-                    self.readings = self.readings.combine_first(read_csv_file(join(path, str(self.id) + '.csv'),
-                                                            self.timezone, self.options['frequency'],
-                                                            self.options['clean_na'], self.sources['csv']['index'],
-                                                            resample = self.options['resample']))
-                except FileNotFoundError:
-                    std_out(f'No cached data file found for device {self.id} in {path}. Moving on', 'WARNING')
-                else:
-                    self.__load_wrapup__(max_amount, convert_units)
+                if csv_data is not None:
+                    self.data = self.data.combine_first(csv_data)
+                    self.__convert_names__()
+                    self.loaded = self.__load_wrapup__(max_amount, convert_units)
+
+        elif self.source['type'] == 'api':
+
+            if self.handler.method == 'async':
+                await self.handler.get_data(
+                    min_date = self.min_date,
+                    max_date = self.max_date,
+                    freq = self.frequency,
+                    clean_na = self.clean_na,
+                    resample = self.resample,
+                    only_unprocessed = only_unprocessed)
+                df = self.handler.data
+            else:
+                df = self.handler.get_data(
+                    min_date = self.min_date,
+                    max_date = self.max_date,
+                    freq = self.frequency,
+                    clean_na = self.clean_na,
+                    resample = self.resample,
+                    only_unprocessed = only_unprocessed)
+
+            # Combine it with data if possible
+            if df is not None:
+                self.data = self.data.combine_first(df)
+                self.loaded = self.__load_wrapup__(max_amount, convert_units)
+
+        elif self.source['type'] == 'kafka':
+            std_out('Not yet', 'ERROR')
+            raise NotImplementedError
 
         self.processed = False
         return self.loaded
 
     def __load_wrapup__(self, max_amount, convert_units):
-        if self.readings is not None:
+        if self.data is not None:
             self.__check_sensors__()
-            if not self.readings.empty:
+            if not self.data.empty:
                 if max_amount is not None:
+                    # TODO Dirty workaround
                     std_out(f'Trimming dataframe to {max_amount} rows')
-                    self.readings=self.readings.dropna(axis = 0, how='all').head(max_amount)
+                    self.data=self.data.dropna(axis = 0, how='all').head(max_amount)
                 # Only add metrics if there is something that can be potentially processed
                 self.__fill_metrics__()
-                self.loaded = True
-                if convert_units: self.__convert_units__()
+                # Convert units
+                if convert_units:
+                    self.__convert_units__()
+                return True
             else:
-                std_out('Empty dataframe in readings', 'WARNING')
+                std_out('Empty dataframe in data', 'WARNING')
+                return False
 
     def __fill_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')
 
-        if self.hardware_description is None:
+        if self.handler.hardware_postprocessing is None:
             std_out(f'No hardware url in device {self.id}, ignoring')
             return None
 
-        # Now go through sensor versions and add them to the metrics
-        if 'versions' in self.hardware_description:
-            for version in self.hardware_description['versions']:
+        for version in self.handler.hardware_postprocessing.versions:
 
-                from_date = version["from"]
-                to_date = version["to"]
-
-                # Do not add any metric if the from_date of the calibration is after the last_reading_at
-                # as there would be nothing to process
-                if from_date > self.api_device.last_reading_at:
+            # Do not add any metric if the from_date of the calibration is after the last_reading_at as there would be nothing to process
+            if version.from_date is not None:
+                if version.from_date > self.handler.last_reading_at:
                     std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
                     return None
 
-                for slot in version["ids"]:
-                    # Alphasense type - AAN 803-04
-                    if slot.startswith('AS'):
-                        sensor_id = version["ids"][slot]
-                        as_type = config._as_sensor_codes[sensor_id[0:3]]
-                        channel = as_type[as_type.index('_')+1:]
-                        pollutant = channel
-                        if channel == 'OX':
-                            pollutant = 'O3'
-
-                        # Get working and auxiliary electrode names
-                        wen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+1]}"
-                        aen = f"ADC_{slot.strip('AS_')[:slot.index('_')]}_{slot.strip('AS_')[slot.index('_')+2]}"
-                        if pollutant not in self.metrics:
-                            # Create Metric
-                            std_out(f'Metric {pollutant} not in blueprint, ignoring.', 'WARNING')
-                        else:
-                            # Simply fill it up
-                            std_out(f'{pollutant} found in blueprint metrics, filling up with hardware info')
-                            self.metrics[pollutant]['kwargs']['we'] = wen
-                            self.metrics[pollutant]['kwargs']['ae'] = aen
-                            self.metrics[pollutant]['kwargs']['timezone'] = self.timezone
-                            self.metrics[pollutant]['kwargs']['alphasense_id'] = str(sensor_id)
-                            self.metrics[pollutant]['kwargs']['from_date'] = from_date
-                            self.metrics[pollutant]['kwargs']['to_date'] = to_date
-                            # Add channel name for traceability
-                            self.metrics[f'{channel}_WE']['kwargs']['channel'] = wen
-                            self.metrics[f'{channel}_AE']['kwargs']['channel'] = aen
-
-                    # Alphasense type - AAN 803-04
-                    if slot.startswith('PT'):
-
-                        sensor_id = version["ids"][slot]
-
-                        # Get working and auxiliary electrode names
-                        pt1000plus = f"ADC_{slot.strip('PT_')[:slot.index('_')]}_{slot.strip('PT_')[slot.index('_')+1]}"
-                        pt1000minus = f"ADC_{slot.strip('PT_')[:slot.index('_')]}_{slot.strip('PT_')[slot.index('_')+2]}"
-
-                        metric = 'ASPT1000'
-                        if 'ASPT1000' not in self.metrics:
-                            # Create Metric
-                            std_out(f'Metric {metric} not in blueprint, ignoring.', 'WARNING')
-                        else:
-                            # Simply fill it up
-                            std_out(f'{metric} found in blueprint metrics, filling up with hardware info')
-                            self.metrics[metric]['kwargs']['pt1000plus'] = pt1000plus
-                            self.metrics[metric]['kwargs']['pt1000minus'] = pt1000minus
-                            self.metrics[metric]['kwargs']['afe_id'] = str(sensor_id)
-                            self.metrics[metric]['kwargs']['timezone'] = self.timezone
-                            self.metrics[metric]['kwargs']['from_date'] = from_date
-                            self.metrics[metric]['kwargs']['to_date'] = to_date
-                            # Add channel name for traceability
-                            self.metrics[f'PT1000_POS']['kwargs']['channel'] = pt1000plus
-
-                    # Other metric types will go here
-        else:
-            std_out('No hardware versions found, ignoring additional metrics', 'WARNING')
+            metrics = self.handler.get_metrics(version)
+            for metric in metrics:
+                if metric not in self.metrics:
+                    std_out(f'Metric {metric} not in blueprint, ignoring.', 'WARNING')
+                    continue
+                self.metrics[metric]['kwargs'] = metrics[metric]
 
     def __check_sensors__(self):
 
-        remove_sensors = list()
-        # Remove sensor from the list if it's not in self.readings.columns
+        extra_sensors = list()
+        # Check sensors from the list that are not in self.data.columns
         for sensor in self.sensors:
-            if sensor not in self.readings.columns:
-                std_out(f'{sensor} not in readings columns. Marked for removal', 'INFO')
-                remove_sensors.append(sensor)
-
-        if remove_sensors != []:
-            std_out(f'Removing sensors from device: {remove_sensors}', 'WARNING')
-            for sensor_to_remove in remove_sensors:
-                self.sensors.pop(sensor_to_remove, None)
+            if sensor not in self.data.columns:
+                std_out(f'{sensor} not in data columns', 'INFO')
+                extra_sensors.append(sensor)
 
         extra_columns = list()
-        for column in self.readings.columns:
-            if column not in self.sensors: extra_columns.append(column)
-        std_out(f'Data contains extra columns: {extra_columns}', 'INFO')
+        # Check columns from the data that are not in self.sensors
+        for column in self.data.columns:
+            if column not in self.sensors:
+                extra_columns.append(column)
+                std_out(f'Data contains extra columns: {extra_columns}', 'INFO')
 
         if config.data['strict_load']:
             std_out(f"config.data['strict_load'] is enabled. Removing extra columns")
-            self.readings.drop(extra_columns, axis=1, inplace=True)
+            if extra_sensors != []:
+                std_out(f'Removing sensors from device.sensors: {extra_sensors}', 'WARNING')
+                for sensor_to_remove in extra_sensors:
+                    self.sensors.pop(sensor_to_remove, None)
+            if extra_columns != []:
+                self.data.drop(extra_columns, axis=1, inplace=True)
         else:
             std_out(f"config.data['strict_load'] is disabled. Ignoring extra columns")
 
         std_out(f'Device sensors after checks: {list(self.sensors.keys())}')
 
+    # TODO Check
     def __convert_names__(self):
         rename = dict()
         for sensor in self.sensors:
             if 'id' in self.sensors[sensor]:
-                if self.sensors[sensor]['id'] in self.readings.columns:
+                if self.sensors[sensor]['id'] in self.data.columns:
                     rename[self.sensors[sensor]['id']] = sensor
-        self.readings.rename(columns=rename, inplace=True)
+        self.data.rename(columns=rename, inplace=True)
 
     def __convert_units__(self):
         '''
             Convert the units based on the UNIT_LUT and blueprint
             NB: what is read/written from/to the cache is not converted.
             The files are with original units, and then converted in the device only
-            for the readings but never chached like so.
+            for the data but never chached like so.
         '''
         std_out('Checking if units need to be converted')
         for sensor in self.sensors:
             factor = get_units_convf(sensor, from_units = self.sensors[sensor]['units'])
 
             if factor != 1:
-                self.readings.rename(columns={sensor: sensor + '_in_' + self.sensors[sensor]['units']}, inplace=True)
-                self.readings.loc[:, sensor] = self.readings.loc[:, sensor + '_in_' + self.sensors[sensor]['units']]*factor
+                self.data.rename(columns={sensor: sensor + '_in_' + self.sensors[sensor]['units']}, inplace=True)
+                self.data.loc[:, sensor] = self.data.loc[:, sensor + '_in_' + self.sensors[sensor]['units']]*factor
         std_out('Units check done', 'SUCCESS')
 
+    # TODO Check
     def process(self, only_new = False, lmetrics = None):
         '''
         Processes devices metrics, either added by the blueprint definition
@@ -560,7 +421,7 @@ class Device(object):
         ----------
         only_new: boolean
             False
-            To process or not the existing channels in the Device.readings that are
+            To process or not the existing channels in the Device.data that are
             defined in Device.metrics
         lmetrics: list
             None
@@ -587,7 +448,7 @@ class Device(object):
             std_out(f'---')
             std_out(f'Processing {metric}')
 
-            if only_new and metric in self.readings:
+            if only_new and metric in self.data:
                 std_out(f'Skipping. Already in device')
                 continue
 
@@ -595,6 +456,7 @@ class Device(object):
             if 'from_list' in metrics[metric]:
                 lazy_name = metrics[metric]['from_list']
             else:
+                # TODO make this open
                 lazy_name = f"scdata.device.process.{metrics[metric]['process']}"
 
             try:
@@ -610,7 +472,7 @@ class Device(object):
             if 'kwargs' in metrics[metric]: kwargs = metrics[metric]['kwargs']
 
             try:
-                result = funct(self.readings, *args, **kwargs)
+                result = funct(self.data, *args, **kwargs)
             except KeyError:
                 # print_exc()
                 std_out('Metric args not in dataframe', 'ERROR')
@@ -618,7 +480,7 @@ class Device(object):
                 pass
             else:
                 if result is not None:
-                    self.readings[metric] = result
+                    self.data[metric] = result
                     process_ok &= True
                 # If the metric is None, might be for many reasons and shouldn't collapse
                 # the process_ok
@@ -632,25 +494,57 @@ class Device(object):
 
         return self.processed
 
+    # TODO
+    def checks(self, level):
+        '''
+            Device checks
+        '''
+        # TODO Make checks dependent on each handler
+        if self.source == 'api':
+            # TODO normalise the functions accross all handlers
+            # Check status code from curl
+            response = self.api_device.checks()
+            response['status'] = 200
+
+        return response
+
+    # TODO Check
     def update_latest_postprocessing(self):
         # Sets latest postprocessing to latest reading
 
         if self.source == 'api':
+            # TODO
+            # Deprecation
+            if self.source['handler'] == 'ScApiDevice':
                 if self.api_device.get_device_postprocessing() is not None:
                     std_out('Updating postprocessing')
                     # Add latest postprocessing rounded up with
                     # frequency so that we don't end up in
                     # and endless loop processing only the latest data line
-                    # (minute vs. second precission of the readings)
-                    self.latest_postprocessing = localise_date(self.readings.index[-1]+\
+                    # (minute vs. second precission of the data)
+                    self.latest_postprocessing = localise_date(self.data.index[-1]+\
                         to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
                     self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
                     std_out(f"Updated latest_postprocessing to: {self.api_device.postprocessing['latest_postprocessing']}")
 
                     return True
+            else:
+                if self.api_device.json.postprocessing.id is not None:
+                    std_out('Updating postprocessing')
+                    # Add latest postprocessing rounded up with
+                    # frequency so that we don't end up in
+                    # and endless loop processing only the latest data line
+                    # (minute vs. second precission of the data)
+                    self.latest_postprocessing = localise_date(self.data.index[-1]+\
+                        to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
+                    self.api_device.json.postprocessing.latest_postprocessing = self.latest_postprocessing
+                    std_out(f"Updated latest_postprocessing to: {self.api_device.json.postprocessing['latest_postprocessing']}")
+
+                    return True
 
         return False
 
+    # TODO Check
     def forward(self, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Forwards data to another api.
@@ -719,7 +613,7 @@ class Device(object):
                              is {self.forwarding_params}. Updating')
 
         if self.forwarding_params is not None:
-            df = self.readings.copy()
+            df = self.data.copy()
             df = df[df.columns.intersection(list(self.merge_sensor_metrics(ignore_empty=True).keys()))]
             df = clean(df, 'drop', how = 'all')
 
@@ -745,67 +639,9 @@ class Device(object):
             std_out('Empty forwarding information', 'ERROR')
             return False
 
-    def add_metric(self, metric = dict()):
-        '''
-        Add a metric to the device to be processed by a callable function
-        Parameters
-        ----------
-            metric: dict
-            Empty dict
-            Description of the metric to be added. It only adds it to
-            Device.metrics, but does not calculate anything yet. The metric dict needs
-            to follow the format:
-                metric = {
-                            'metric_name': {'process': <function_name>
-                                            'args': <iterable>
-                                            'kwargs': <**kwargs for @function_name>
-                                            'from_list': <module to load function from>
-                            }
-                }
-            The 'from_list' parameter is optional, and onle needed if the process is not
-            already available in scdata.device.process.
-
-            For a list of available processes call help(scdata.device.process)
-
-            Example:
-            --------
-                metric = {'NO2_CLEAN': {'process': 'clean_ts',
-                                        'kwargs': {'name': pollutant,
-                                                   'limits': [0, 350],
-                                                    'window_size': 5}
-                        }}
-        Returns
-        ----------
-        True if added metric
-        '''
-
-        if 'metrics' not in vars(self):
-            std_out(f'Device {self.id} has no metrics yet. Adding')
-            self.metrics = dict()
-
-        try:
-            metricn = next(iter(metric.keys()))
-            self.metrics[metricn] = metric[metricn]
-        except:
-            print_exc()
-            return False
-
-        std_out(f'Metric {metric} added to metrics', 'SUCCESS')
-        return True
-
-    def del_metric(self, metricn = ''):
-        if 'metrics' not in vars(self): return
-        if metricn in self.metrics: self.metrics.pop(metricn, None)
-        if metricn in self.readings.columns: self.readings.__delitem__(metricn)
-
-        if metricn not in self.readings and metricn not in self.metrics:
-            std_out(f'Metric {metricn} removed from metrics', 'SUCCESS')
-            return True
-        return False
-
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
         '''
-        Exports Device.readings to file
+        Exports Device.data to file
         Parameters
         ----------
             path: String
@@ -823,11 +659,12 @@ class Device(object):
         '''
         # Export device
         if file_format == 'csv':
-            return export_csv_file(path, str(self.id), self.readings, forced_overwrite = forced_overwrite)
+            return export_csv_file(path, str(self.id), self.data, forced_overwrite = forced_overwrite)
         else:
             std_out('Not supported format' ,'ERROR')
             return False
 
+    # TODO Check
     def post_sensors(self, clean_na = 'drop', chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Posts devices sensors. Only available for parent of ScApiDevice
@@ -837,7 +674,7 @@ class Device(object):
                 'drop'
                 'drop', 'fill'
             chunk_size: integer
-                chunk size to split resulting pandas DataFrame for posting readings
+                chunk size to split resulting pandas DataFrame for posting data
             dry_run: boolean
                 False
                 Post the payload to the API or just return it
@@ -851,13 +688,10 @@ class Device(object):
         '''
 
         post_ok = True
-        if self.sources[self.source]['handler'] != 'ScApiDevice':
-            std_out('Only supported processing post is to SmartCitizen API', 'ERROR')
-            return False
 
         rd = dict()
-        df = self.readings.copy().dropna(axis = 0, how='all')
-        for col in self.readings:
+        df = self.data.copy().dropna(axis = 0, how='all')
+        for col in self.data:
             if col not in self.sensors:
                 std_out(f'Column ({col}) not in recognised IDs. Ignoring', 'WARNING')
                 df.drop(col, axis=1, inplace=True)
@@ -871,13 +705,14 @@ class Device(object):
             return False
 
         std_out(f'Trying to post {list(df.columns)}')
-        post_ok = self.api_device.post_data_to_device(df, clean_na = clean_na,
+        post_ok = self.handler.post_data_to_device(df, clean_na = clean_na,
             chunk_size = chunk_size, dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted data for {self.id}', 'SUCCESS')
         else: std_out(f'Error posting data for {self.id}', 'ERROR')
 
         return post_ok
 
+    # TODO Check
     def update_postprocessing(self, dry_run = False):
         '''
         Posts device postprocessing. Only available for parent of ScApiDevice
@@ -897,6 +732,7 @@ class Device(object):
         if post_ok: std_out(f"Postprocessing posted for device {self.id}", "SUCCESS")
         return post_ok
 
+    # TODO Check
     def post_metrics(self, with_postprocessing = False, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Posts devices metrics. Only available for parent of ScApiDevice
@@ -906,7 +742,7 @@ class Device(object):
                 False
                 Post the postprocessing_attributes too
             chunk_size: integer
-                chunk size to split resulting pandas DataFrame for posting readings
+                chunk size to split resulting pandas DataFrame for posting data
             dry_run: boolean
                 False
                 Post the payload to the API or just return it
@@ -927,11 +763,11 @@ class Device(object):
         rd = dict()
         std_out(f"Posting metrics for device {self.id}")
         # Make a copy of df
-        df = self.readings.copy().dropna(axis = 0, how='all')
+        df = self.data.copy().dropna(axis = 0, how='all')
         # Get metrics to post, only the ones that have True in 'post' field and a valid ID
         # Replace their name with the ID to post
         for metric in self.metrics:
-            if self.metrics[metric]['post'] == True and metric in self.readings.columns:
+            if self.metrics[metric]['post'] == True and metric in self.data.columns:
                 std_out(f"Adding {metric} for device {self.id} (ID: {self.metrics[metric]['id']})")
                 rd[metric] = self.metrics[metric]['id']
 
@@ -947,8 +783,7 @@ class Device(object):
             return False
 
         std_out(f'Trying to post {list(df.columns)}')
-        post_ok = self.api_device.post_data_to_device(df, chunk_size = chunk_size,
-            dry_run = dry_run, max_retries = max_retries)
+        post_ok = self.api_device.post_data_to_device(df, chunk_size = chunk_size, dry_run = dry_run, max_retries = max_retries)
         if post_ok: std_out(f'Posted metrics for {self.id}', 'SUCCESS')
         else: std_out(f'Error posting metrics for {self.id}', 'ERROR')
 
