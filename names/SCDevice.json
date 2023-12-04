@@ -1,0 +1,836 @@
+[
+    {
+        "name": "BATT",
+        "id": "10",
+        "description": "Battery",
+        "units": "%"
+    },
+    {
+        "name": "BATT_VOLT",
+        "id": "0",
+        "description": "Battery voltage",
+        "units": "V"
+    },
+    {
+        "name": "SDCARD",
+        "id": "0",
+        "description": "SDcard present",
+        "units": "Present"
+    },
+    {
+        "name": "LIGHT",
+        "id": "14",
+        "description": "Light",
+        "units": "Lux"
+    },
+    {
+        "name": "TEMP",
+        "id": "55",
+        "description": "Temperature",
+        "units": "C"
+    },
+    {
+        "name": "HUM",
+        "id": "56",
+        "description": "Humidity",
+        "units": "%rh"
+    },
+    {
+        "name": "NOISE_A",
+        "id": "53",
+        "description": "Noise dBA",
+        "units": "dBA"
+    },
+    {
+        "name": "NOISE_B",
+        "id": "0",
+        "description": "Noise dBC",
+        "units": "dBC"
+    },
+    {
+        "name": "NOISE_Z",
+        "id": "0",
+        "description": "Noise dBZ",
+        "units": "dB"
+    },
+    {
+        "name": "NOISE_FFT",
+        "id": "0",
+        "description": "Noise FFT",
+        "units": " "
+    },
+    {
+        "name": "ALT",
+        "id": "0",
+        "description": "Altitude",
+        "units": "M"
+    },
+    {
+        "name": "PRESS",
+        "id": "58",
+        "description": "Barometric pressure",
+        "units": "kPa"
+    },
+    {
+        "name": "PRESS_TEMP",
+        "id": "0",
+        "description": "Pressure internal temperature",
+        "units": "C"
+    },
+    {
+        "name": "CCS811_VOCS",
+        "id": "113",
+        "description": "VOC Gas CCS811",
+        "units": "ppb"
+    },
+    {
+        "name": "CCS811_ECO2",
+        "id": "112",
+        "description": "eCO2 Gas CCS811",
+        "units": "ppm"
+    },
+    {
+        "name": "PMS5003_PM_1",
+        "id": "89",
+        "description": "PM 1.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_PM_25",
+        "id": "87",
+        "description": "PM 2.5",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_PM_10",
+        "id": "88",
+        "description": "PM 10.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_PN_03",
+        "id": "165",
+        "description": "PN 0.3",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_PN_05",
+        "id": "166",
+        "description": "PN 0.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_PN_1",
+        "id": "167",
+        "description": "PN 1.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_PN_25",
+        "id": "168",
+        "description": "PN 2.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_PN_5",
+        "id": "169",
+        "description": "PN 5.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_PN_10",
+        "id": "170",
+        "description": "PN 10.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "GB_1A",
+        "id": "65",
+        "description": "Gases Board 1A",
+        "units": "mV"
+    },
+    {
+        "name": "GB_1W",
+        "id": "64",
+        "description": "Gases Board 1W",
+        "units": "mV"
+    },
+    {
+        "name": "GB_2A",
+        "id": "62",
+        "description": "Gases Board 2A",
+        "units": "mV"
+    },
+    {
+        "name": "GB_2W",
+        "id": "61",
+        "description": "Gases Board 2W",
+        "units": "mV"
+    },
+    {
+        "name": "GB_3A",
+        "id": "68",
+        "description": "Gases Board 3A",
+        "units": "mV"
+    },
+    {
+        "name": "GB_3W",
+        "id": "67",
+        "description": "Gases Board 3W",
+        "units": "mV"
+    },
+    {
+        "name": "GB_TEMP",
+        "id": "79",
+        "description": "Gases Board Temperature",
+        "units": "C"
+    },
+    {
+        "name": "GB_HUM",
+        "id": "80",
+        "description": "Gases Board Humidity",
+        "units": "%"
+    },
+    {
+        "name": "GR_ADC",
+        "id": "25",
+        "description": "Groove ADC",
+        "units": "V"
+    },
+    {
+        "name": "INA_VBUS",
+        "id": "0",
+        "description": "INA219 Bus voltage",
+        "units": "V"
+    },
+    {
+        "name": "INA_VSHUNT",
+        "id": "0",
+        "description": "INA219 Shunt voltage",
+        "units": "mV"
+    },
+    {
+        "name": "INA_CURR",
+        "id": "0",
+        "description": "INA219 Current",
+        "units": "mA"
+    },
+    {
+        "name": "INA_VLOAD",
+        "id": "0",
+        "description": "INA219 Load voltage",
+        "units": "V"
+    },
+    {
+        "name": "DS_WAT_TEMP",
+        "id": "42",
+        "description": "DS18B20 Water temperature",
+        "units": "C"
+    },
+    {
+        "name": "AS_TEMP",
+        "id": "51",
+        "description": "Atlas Temperature",
+        "units": "C"
+    },
+    {
+        "name": "AS_PH",
+        "id": "43",
+        "description": "Atlas PH",
+        "units": "pH"
+    },
+    {
+        "name": "AS_COND",
+        "id": "45",
+        "description": "Atlas Conductivity",
+        "units": "uS/cm"
+    },
+    {
+        "name": "AS_TDS",
+        "id": "122",
+        "description": "Atlas Total Dissolved Solids",
+        "units": "ppm"
+    },
+    {
+        "name": "AS_SAL",
+        "id": "123",
+        "description": "Atlas Salinity",
+        "units": "PSU(ppt)"
+    },
+    {
+        "name": "AS_SG",
+        "id": "46",
+        "description": "Atlas Specific gravity",
+        "units": ""
+    },
+    {
+        "name": "AS_DO",
+        "id": "48",
+        "description": "Atlas Dissolved Oxygen",
+        "units": "mg/L"
+    },
+    {
+        "name": "AS_DO_SAT",
+        "id": "49",
+        "description": "Atlas DO Saturation",
+        "units": "%"
+    },
+    {
+        "name": "AS_ORP",
+        "id": "164",
+        "description": "Atlas Redox potential",
+        "units": "mV"
+    },
+    {
+        "name": "CHRP_MOIS_RAW",
+        "id": "0",
+        "description": "Soil Moisture Raw",
+        "units": ""
+    },
+    {
+        "name": "CHRP_MOIS",
+        "id": "50",
+        "description": "Soil Moisture Percent",
+        "units": "%"
+    },
+    {
+        "name": "CHRP_TEMP",
+        "id": "0",
+        "description": "Soil Temperature",
+        "units": "C"
+    },
+    {
+        "name": "CHRP_LIGHT",
+        "id": "0",
+        "description": "Soil Light",
+        "units": ""
+    },
+    {
+        "name": "PMS5003_EXT_PM_A_1",
+        "id": "71",
+        "description": "Ext PM_A 1.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PM_A_25",
+        "id": "72",
+        "description": "Ext PM_A 2.5",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PM_A_10",
+        "id": "73",
+        "description": "Ext PM_A 10.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_03",
+        "id": "99",
+        "description": "Ext PN_A 0.3",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_05",
+        "id": "100",
+        "description": "Ext PN_A 0.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_1",
+        "id": "101",
+        "description": "Ext PN_A 1.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_25",
+        "id": "102",
+        "description": "Ext PN_A 2.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_5",
+        "id": "103",
+        "description": "Ext PN_A 5.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_A_10",
+        "id": "104",
+        "description": "Ext PN_A 10.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PM_B_1",
+        "id": "75",
+        "description": "Ext PM_B 1.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PM_B_25",
+        "id": "76",
+        "description": "Ext PM_B 2.5",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PM_B_10",
+        "id": "77",
+        "description": "Ext PM_B 10.0",
+        "units": "ug/m3"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_03",
+        "id": "105",
+        "description": "Ext PN_B 0.3",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_05",
+        "id": "106",
+        "description": "Ext PN_B 0.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_1",
+        "id": "107",
+        "description": "Ext PN_B 1.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_25",
+        "id": "108",
+        "description": "Ext PN_B 2.5",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_5",
+        "id": "109",
+        "description": "Ext PN_B 5.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PMS5003_EXT_PN_B_10",
+        "id": "110",
+        "description": "Ext PN_B 10.0",
+        "units": "#/0.1l"
+    },
+    {
+        "name": "PM_DALLAS_TEMP",
+        "id": "96",
+        "description": "PM board Dallas Temperature",
+        "units": "C"
+    },
+    {
+        "name": "DALLAS_TEMP",
+        "id": "96",
+        "description": "Direct Dallas Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SHT31_EXT_TEMP",
+        "id": "79",
+        "description": "Ext SHT31 Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SHT31_EXT_HUM",
+        "id": "80",
+        "description": "Ext SHT31 Humidity",
+        "units": "%"
+    },
+    {
+        "name": "SHT35_EXT_TEMP",
+        "id": "0",
+        "description": "Ext SHT35 Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SHT35_EXT_HUM",
+        "id": "0",
+        "description": "Ext SHT35 Humidity",
+        "units": "%"
+    },
+    {
+        "name": "EXT_RANGE_LIGHT",
+        "id": "0",
+        "description": "Ext Range Light",
+        "units": "Lux"
+    },
+    {
+        "name": "EXT_RANGE_DIST",
+        "id": "98",
+        "description": "Ext Range Distance",
+        "units": "mm"
+    },
+    {
+        "name": "BME680_TEMP",
+        "id": "0",
+        "description": "Temperature BME680",
+        "units": "C"
+    },
+    {
+        "name": "BME680_HUM",
+        "id": "0",
+        "description": "Humidity BME680",
+        "units": "%"
+    },
+    {
+        "name": "BME680_PRESS",
+        "id": "0",
+        "description": "Barometric pressure BME680",
+        "units": "kPa"
+    },
+    {
+        "name": "BME680_VOCS",
+        "id": "0",
+        "description": "VOC Gas BME680",
+        "units": "Ohms"
+    },
+    {
+        "name": "GPS_FIX",
+        "id": "128",
+        "description": "GPS Fix Quality",
+        "units": ""
+    },
+    {
+        "name": "GPS_LAT",
+        "id": "125",
+        "description": "GPS Latitude",
+        "units": "Deg"
+    },
+    {
+        "name": "GPS_LONG",
+        "id": "126",
+        "description": "GPS Longitude",
+        "units": "Deg"
+    },
+    {
+        "name": "GPS_ALT",
+        "id": "127",
+        "description": "GPS Altitude",
+        "units": "m"
+    },
+    {
+        "name": "GPS_SPEED",
+        "id": "129",
+        "description": "GPS Speed",
+        "units": "m/s"
+    },
+    {
+        "name": "GPS_HDOP",
+        "id": "131",
+        "description": "GPS Horizontal Dilution of Position",
+        "units": ""
+    },
+    {
+        "name": "GPS_SATNUM",
+        "id": "130",
+        "description": "GPS Traked Satellites",
+        "units": ""
+    },
+    {
+        "name": "ADC_48_0",
+        "id": "133",
+        "description": "ADS1x15 ADC 0x48 Ch0",
+        "units": "V"
+    },
+    {
+        "name": "ADC_48_1",
+        "id": "134",
+        "description": "ADS1x15 ADC 0x48 Ch1",
+        "units": "V"
+    },
+    {
+        "name": "ADC_48_2",
+        "id": "135",
+        "description": "ADS1x15 ADC 0x48 Ch2",
+        "units": "V"
+    },
+    {
+        "name": "ADC_48_3",
+        "id": "136",
+        "description": "ADS1x15 ADC 0x48 Ch3",
+        "units": "V"
+    },
+    {
+        "name": "ADC_49_0",
+        "id": "138",
+        "description": "ADS1x15 ADC 0x49 Ch0",
+        "units": "V"
+    },
+    {
+        "name": "ADC_49_1",
+        "id": "139",
+        "description": "ADS1x15 ADC 0x49 Ch1",
+        "units": "V"
+    },
+    {
+        "name": "ADC_49_2",
+        "id": "140",
+        "description": "ADS1x15 ADC 0x49 Ch2",
+        "units": "V"
+    },
+    {
+        "name": "ADC_49_3",
+        "id": "141",
+        "description": "ADS1x15 ADC 0x49 Ch3",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4A_0",
+        "id": "143",
+        "description": "ADS1x15 ADC 0x4A Ch0",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4A_1",
+        "id": "144",
+        "description": "ADS1x15 ADC 0x4A Ch1",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4A_2",
+        "id": "145",
+        "description": "ADS1x15 ADC 0x4A Ch2",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4A_3",
+        "id": "146",
+        "description": "ADS1x15 ADC 0x4A Ch3",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4B_0",
+        "id": "148",
+        "description": "ADS1x15 ADC 0x4B Ch0",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4B_1",
+        "id": "149",
+        "description": "ADS1x15 ADC 0x4B Ch1",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4B_2",
+        "id": "150",
+        "description": "ADS1x15 ADC 0x4B Ch2",
+        "units": "V"
+    },
+    {
+        "name": "ADC_4B_3",
+        "id": "151",
+        "description": "ADS1x15 ADC 0x4B Ch3",
+        "units": "V"
+    },
+    {
+        "name": "SCD30_CO2",
+        "id": "158",
+        "description": "SCD30 CO2",
+        "units": "ppm"
+    },
+    {
+        "name": "SCD30_TEMP",
+        "id": "160",
+        "description": "SCD30 Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SCD30_HUM",
+        "id": "161",
+        "description": "SCD30 Humidity",
+        "units": "%"
+    },
+    {
+        "name": "SFA30_HCHO",
+        "id": "212",
+        "description": "SFA30 HCHO",
+        "units": "ppb"
+    },
+    {
+        "name": "SFA30_TEMP",
+        "id": "211",
+        "description": "SFA30 Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SFA30_HUM",
+        "id": "210",
+        "description": "SFA30 Humidity",
+        "units": "%"
+    },
+    {
+        "name": "RSSI",
+        "id": "220",
+        "description": "Wi-Fi RSSI",
+        "units": "dBm"
+    },
+    {
+        "name": "SD-card",
+        "id": "221",
+        "description": "SD card presence",
+        "units": ""
+    },
+    {
+        "name": "GR_OLED",
+        "id": "0",
+        "description": "Groove OLED",
+        "units": ""
+    },
+    {
+        "name": ,"SPS30_PM_1"
+        "id": "182",
+         "description": "PM1 measurement from SPS30",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SPS30_PM_10"
+        "id": "185",
+         "description": "PM10 measurement from SPS30",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SPS30_PM_25"
+        "id": "183",
+         "description": "PM2.5 measurement from SPS30",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SPS30_PM_40"
+        "id": "184",
+         "description": "PM4.0 measurement from SPS30",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SPS30_PN_05"
+        "id": "186",
+         "description": "PN0.5 measurement from SPS30",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SPS30_PN_1"
+        "id": "187",
+         "description": "PN1.0 measurement from SPS30",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SPS30_PN_25"
+        "id": "188",
+         "description": "PN2.5 measurement from SPS30",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SPS30_PN_40"
+        "id": "189",
+         "description": "PN4.0 measurement from SPS30",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SPS30_PN_10"
+        "id": "190",
+         "description": "PN10.0 measurement from SPS30",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SPS30_TPS"
+        "id": "191",
+         "description": "Typical Particle Size from SPS30",
+         "units": "um"
+    },
+    {
+        "name": ,"SEN5X_PM_1"
+        "id": "193",
+         "description": "PM1 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SEN5X_PM_10"
+        "id": "196",
+         "description": "PM10 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SEN5X_PM_25"
+        "id": "194",
+         "description": "PM2.5 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SEN5X_PM_40"
+        "id": "195",
+         "description": "PM4.0 measurement from SEN5X",
+         "units": "ug/m3"
+    },
+    {
+        "name": ,"SEN5X_PN_05"
+        "id": "197",
+         "description": "PN0.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SEN5X_PN_1"
+        "id": "198",
+         "description": "PN1.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SEN5X_PN_25"
+        "id": "199",
+         "description": "PN2.5 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SEN5X_PN_40"
+        "id": "200",
+         "description": "PN4.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SEN5X_PN_10"
+        "id": "201",
+         "description": "PN10.0 measurement from SEN5X",
+         "units": "#/0.1l"
+    },
+    {
+        "name": ,"SEN5X_TPS"
+        "id": "202",
+         "description": "Typical Particle Size from SEN5X",
+         "units": "um"
+    },
+    {
+        "name": "SEN5X_TEMP",
+        "id": "204",
+        "description": "SEN5X Temperature",
+        "units": "C"
+    },
+    {
+        "name": "SEN5X_HUM",
+        "id": "203",
+        "description": "SEN5X Humidity",
+        "units": "%rh"
+    },
+    {
+        "name": "SEN5X_VOCS_IDX",
+        "id": "205",
+        "description": "SEN5X VOCs Index",
+        "units": ""
+    },
+    {
+        "name": "SEN5X_NOX_IDX",
+        "id": "206",
+        "description": "SEN5X NOX Index",
+        "units": ""
+    },
+    {
+        "name": "SEN5X_VOCS_RAW",
+        "id": "207",
+        "description": "SEN5X VOCs raw",
+        "units": ""
+    },
+    {
+        "name": "SEN5X_NOX_RAW",
+        "id": "208",
+        "description": "SEN5X NOX raw",
+        "units": ""
+    }
+]
