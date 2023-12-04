@@ -70,20 +70,25 @@ class Device(object):
         # Set blueprint
         if blueprint is not None:
             self.blueprint = blueprint
+            if self.blueprint not in config.blueprints:
+                raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
+            self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
         else:
             if url_checker(self.handler.blueprint_url):
                 std_out(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
                 self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
+            else:
+                raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
+            self.__set_blueprint_attrs__(self.handler.blueprint)
 
-        if self.blueprint not in config.blueprints:
-            raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
-
-        self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
+        # TODO Remove
+        # self.__fill_handler_metrics__()
 
         # Init the rest of the stuff
         self.data = DataFrame()
         self.loaded = False
         self.processed = False
+        self.postprocessing_updated = False
         std_out(f'Device {self.id} initialised', 'SUCCESS')
 
     def __set_handler__(self):
@@ -211,8 +216,6 @@ class Device(object):
             return True
         return False
 
-    # TODO Fix
-    # async def load(self, options = dict(), path = '', convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
     async def load(self, convert_units = True, only_unprocessed = False, max_amount = None, follow_defaults = False):
         '''
         Loads the device with some options
@@ -294,20 +297,19 @@ class Device(object):
                     clean_na = self.clean_na,
                     resample = self.resample,
                     only_unprocessed = only_unprocessed)
-                df = self.handler.data
             else:
-                df = self.handler.get_data(
+                self.handler.get_data(
                     min_date = self.min_date,
                     max_date = self.max_date,
                     freq = self.frequency,
                     clean_na = self.clean_na,
                     resample = self.resample,
                     only_unprocessed = only_unprocessed)
+            # In principle this makes both dataframes as they are unmutable
+            self.data = self.handler.data
 
-            # Combine it with data if possible
-            if df is not None:
-                self.data = self.data.combine_first(df)
-                self.loaded = self.__load_wrapup__(max_amount, convert_units)
+            # Wrap it all up
+            self.loaded = self.__load_wrapup__(max_amount, convert_units)
 
         elif self.source['type'] == 'kafka':
             std_out('Not yet', 'ERROR')
@@ -324,37 +326,31 @@ class Device(object):
                     # TODO Dirty workaround
                     std_out(f'Trimming dataframe to {max_amount} rows')
                     self.data=self.data.dropna(axis = 0, how='all').head(max_amount)
-                # Only add metrics if there is something that can be potentially processed
-                self.__fill_metrics__()
                 # Convert units
                 if convert_units:
                     self.__convert_units__()
+                self.postprocessing_updated = False
                 return True
             else:
                 std_out('Empty dataframe in data', 'WARNING')
                 return False
+        else:
+            return False
 
-    def __fill_metrics__(self):
+    # TODO remove
+    def __fill_handler_metrics__(self):
         std_out('Checking if metrics need to be added based on hardware info')
 
         if self.handler.hardware_postprocessing is None:
             std_out(f'No hardware url in device {self.id}, ignoring')
             return None
 
-        for version in self.handler.hardware_postprocessing.versions:
-
-            # Do not add any metric if the from_date of the calibration is after the last_reading_at as there would be nothing to process
-            if version.from_date is not None:
-                if version.from_date > self.handler.last_reading_at:
-                    std_out('Postprocessing from_date is later than device last_reading_at', 'ERROR')
-                    return None
-
-            metrics = self.handler.get_metrics(version)
-            for metric in metrics:
-                if metric not in self.metrics:
-                    std_out(f'Metric {metric} not in blueprint, ignoring.', 'WARNING')
-                    continue
-                self.metrics[metric]['kwargs'] = metrics[metric]
+        for metric in self.handler.metrics:
+            metricn = next(iter(metric))
+            if metricn not in self.metrics:
+                std_out(f'Metric {metricn} from handler not in blueprint, ignoring.', 'WARNING')
+                continue
+            self.metrics[metricn]['kwargs'] = metric[metricn]['kwargs']
 
     def __check_sensors__(self):
 
@@ -385,13 +381,14 @@ class Device(object):
 
         std_out(f'Device sensors after checks: {list(self.sensors.keys())}')
 
-    # TODO Check
     def __convert_names__(self):
         rename = dict()
         for sensor in self.sensors:
             if 'id' in self.sensors[sensor]:
                 if self.sensors[sensor]['id'] in self.data.columns:
                     rename[self.sensors[sensor]['id']] = sensor
+            else:
+                std_out(f'No id in {self.sensors[sensor]}', 'WARNING')
         self.data.rename(columns=rename, inplace=True)
 
     def __convert_units__(self):
@@ -410,7 +407,6 @@ class Device(object):
                 self.data.loc[:, sensor] = self.data.loc[:, sensor + '_in_' + self.sensors[sensor]['units']]*factor
         std_out('Units check done', 'SUCCESS')
 
-    # TODO Check
     def process(self, only_new = False, lmetrics = None):
         '''
         Processes devices metrics, either added by the blueprint definition
@@ -433,6 +429,7 @@ class Device(object):
         '''
 
         process_ok = True
+        self.postprocessing_updated = False
 
         if 'metrics' not in vars(self):
             std_out(f'Device {self.id} has nothing to process. Skipping', 'WARNING')
@@ -456,13 +453,11 @@ class Device(object):
             if 'from_list' in metrics[metric]:
                 lazy_name = metrics[metric]['from_list']
             else:
-                # TODO make this open
                 lazy_name = f"scdata.device.process.{metrics[metric]['process']}"
 
             try:
                 funct = LazyCallable(lazy_name)
             except ModuleNotFoundError:
-                #print_exc()
                 process_ok &= False
                 std_out('Problem adding lazy callable to metrics list', 'ERROR')
                 pass
@@ -474,25 +469,31 @@ class Device(object):
             try:
                 result = funct(self.data, *args, **kwargs)
             except KeyError:
-                # print_exc()
-                std_out('Metric args not in dataframe', 'ERROR')
+                std_out('Cannot process requested function with data provided', 'ERROR')
                 process_ok = False
                 pass
             else:
                 if result is not None:
                     self.data[metric] = result
                     process_ok &= True
-                # If the metric is None, might be for many reasons and shouldn't collapse
-                # the process_ok
+                # If the metric is None, might be for many reasons and shouldn't collapse the process_ok
 
         if process_ok:
-            if self.source == 'api':
-                self.update_latest_postprocessing()
             std_out(f"Device {self.id} processed", "SUCCESS")
-
-        self.processed = process_ok
+            self.processed = process_ok & self.update_postprocessing_date()
 
         return self.processed
+
+    def update_postprocessing_date(self):
+
+        latest_postprocessing = localise_date(self.data.index[-1]+\
+            to_timedelta(self.frequency), 'UTC')
+        if self.handler.update_latest_postprocessing(latest_postprocessing):
+            if latest_postprocessing.to_pydatetime() == self.handler.latest_postprocessing:
+                self.postprocessing_updated = True
+            else:
+                self.postprocessing_updated = False
+        return self.postprocessing_updated
 
     # TODO
     def checks(self, level):
@@ -508,43 +509,7 @@ class Device(object):
 
         return response
 
-    # TODO Check
-    def update_latest_postprocessing(self):
-        # Sets latest postprocessing to latest reading
-
-        if self.source == 'api':
-            # TODO
-            # Deprecation
-            if self.source['handler'] == 'ScApiDevice':
-                if self.api_device.get_device_postprocessing() is not None:
-                    std_out('Updating postprocessing')
-                    # Add latest postprocessing rounded up with
-                    # frequency so that we don't end up in
-                    # and endless loop processing only the latest data line
-                    # (minute vs. second precission of the data)
-                    self.latest_postprocessing = localise_date(self.data.index[-1]+\
-                        to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                    self.api_device.postprocessing['latest_postprocessing'] = self.latest_postprocessing
-                    std_out(f"Updated latest_postprocessing to: {self.api_device.postprocessing['latest_postprocessing']}")
-
-                    return True
-            else:
-                if self.api_device.json.postprocessing.id is not None:
-                    std_out('Updating postprocessing')
-                    # Add latest postprocessing rounded up with
-                    # frequency so that we don't end up in
-                    # and endless loop processing only the latest data line
-                    # (minute vs. second precission of the data)
-                    self.latest_postprocessing = localise_date(self.data.index[-1]+\
-                        to_timedelta(self.options['frequency']), 'UTC').strftime('%Y-%m-%dT%H:%M:%S')
-                    self.api_device.json.postprocessing.latest_postprocessing = self.latest_postprocessing
-                    std_out(f"Updated latest_postprocessing to: {self.api_device.json.postprocessing['latest_postprocessing']}")
-
-                    return True
-
-        return False
-
-    # TODO Check
+    # TODO Remove
     def forward(self, chunk_size = 500, dry_run = False, max_retries = 2):
         '''
         Forwards data to another api.
@@ -726,6 +691,9 @@ class Device(object):
             boolean
             True if posted ok, False otherwise
         '''
+        if not self.postprocessing_updated:
+            std_out(f'Postprocessing is not up to date', 'ERROR')
+            return False
 
         post_ok = self.api_device.patch_postprocessing(dry_run=dry_run)
 
