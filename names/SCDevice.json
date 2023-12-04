@@ -678,124 +678,124 @@
         "units": ""
     },
     {
-        "name": ,"SPS30_PM_1"
+        "name": "SPS30_PM_1",
         "id": "182",
-         "description": "PM1 measurement from SPS30",
-         "units": "ug/m3"
+        "description": "PM1 measurement from SPS30",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SPS30_PM_10"
+        "name": "SPS30_PM_10",
         "id": "185",
-         "description": "PM10 measurement from SPS30",
-         "units": "ug/m3"
+        "description": "PM10 measurement from SPS30",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SPS30_PM_25"
+        "name": "SPS30_PM_25",
         "id": "183",
-         "description": "PM2.5 measurement from SPS30",
-         "units": "ug/m3"
+        "description": "PM2.5 measurement from SPS30",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SPS30_PM_40"
+        "name": "SPS30_PM_40",
         "id": "184",
-         "description": "PM4.0 measurement from SPS30",
-         "units": "ug/m3"
+        "description": "PM4.0 measurement from SPS30",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SPS30_PN_05"
+        "name": "SPS30_PN_05",
         "id": "186",
-         "description": "PN0.5 measurement from SPS30",
-         "units": "#/0.1l"
+        "description": "PN0.5 measurement from SPS30",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SPS30_PN_1"
+        "name": "SPS30_PN_1",
         "id": "187",
-         "description": "PN1.0 measurement from SPS30",
-         "units": "#/0.1l"
+        "description": "PN1.0 measurement from SPS30",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SPS30_PN_25"
+        "name": "SPS30_PN_25",
         "id": "188",
-         "description": "PN2.5 measurement from SPS30",
-         "units": "#/0.1l"
+        "description": "PN2.5 measurement from SPS30",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SPS30_PN_40"
+        "name": "SPS30_PN_40",
         "id": "189",
-         "description": "PN4.0 measurement from SPS30",
-         "units": "#/0.1l"
+        "description": "PN4.0 measurement from SPS30",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SPS30_PN_10"
+        "name": "SPS30_PN_10",
         "id": "190",
-         "description": "PN10.0 measurement from SPS30",
-         "units": "#/0.1l"
+        "description": "PN10.0 measurement from SPS30",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SPS30_TPS"
+        "name": "SPS30_TPS",
         "id": "191",
-         "description": "Typical Particle Size from SPS30",
-         "units": "um"
+        "description": "Typical Particle Size from SPS30",
+        "units": "um"
     },
     {
-        "name": ,"SEN5X_PM_1"
+        "name": "SEN5X_PM_1",
         "id": "193",
-         "description": "PM1 measurement from SEN5X",
-         "units": "ug/m3"
+        "description": "PM1 measurement from SEN5X",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SEN5X_PM_10"
+        "name": "SEN5X_PM_10",
         "id": "196",
-         "description": "PM10 measurement from SEN5X",
-         "units": "ug/m3"
+        "description": "PM10 measurement from SEN5X",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SEN5X_PM_25"
+        "name": "SEN5X_PM_25",
         "id": "194",
-         "description": "PM2.5 measurement from SEN5X",
-         "units": "ug/m3"
+        "description": "PM2.5 measurement from SEN5X",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SEN5X_PM_40"
+        "name": "SEN5X_PM_40",
         "id": "195",
-         "description": "PM4.0 measurement from SEN5X",
-         "units": "ug/m3"
+        "description": "PM4.0 measurement from SEN5X",
+        "units": "ug/m3"
     },
     {
-        "name": ,"SEN5X_PN_05"
+        "name": "SEN5X_PN_05",
         "id": "197",
-         "description": "PN0.5 measurement from SEN5X",
-         "units": "#/0.1l"
+        "description": "PN0.5 measurement from SEN5X",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SEN5X_PN_1"
+        "name": "SEN5X_PN_1",
         "id": "198",
-         "description": "PN1.0 measurement from SEN5X",
-         "units": "#/0.1l"
+        "description": "PN1.0 measurement from SEN5X",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SEN5X_PN_25"
+        "name": "SEN5X_PN_25",
         "id": "199",
-         "description": "PN2.5 measurement from SEN5X",
-         "units": "#/0.1l"
+        "description": "PN2.5 measurement from SEN5X",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SEN5X_PN_40"
+        "name": "SEN5X_PN_40",
         "id": "200",
-         "description": "PN4.0 measurement from SEN5X",
-         "units": "#/0.1l"
+        "description": "PN4.0 measurement from SEN5X",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SEN5X_PN_10"
+        "name": "SEN5X_PN_10",
         "id": "201",
-         "description": "PN10.0 measurement from SEN5X",
-         "units": "#/0.1l"
+        "description": "PN10.0 measurement from SEN5X",
+        "units": "#/0.1l"
     },
     {
-        "name": ,"SEN5X_TPS"
+        "name": "SEN5X_TPS",
         "id": "202",
-         "description": "Typical Particle Size from SEN5X",
-         "units": "um"
+        "description": "Typical Particle Size from SEN5X",
+        "units": "um"
     },
     {
         "name": "SEN5X_TEMP",
