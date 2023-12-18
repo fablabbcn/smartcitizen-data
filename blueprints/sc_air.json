@@ -10,106 +10,6 @@
   "source": null,
   "metrics": [
     {
-      "name": "CCS811_ECO2_CLEAN",
-      "description": "eCO2 cleaned data",
-      "kwargs": {
-        "limits": [
-          400,
-          65000
-        ],
-        "channel": "CCS811_ECO2",
-        "window_size": 5,
-        "window_type": null
-      },
-      "process": "clean_ts",
-      "units": "ppm",
-      "post": false,
-      "id": null
-    },
-    {
-      "name":"CCS811_VOCS_CLEAN",
-      "description": "Volatile Organic Compounds cleaned data",
-      "kwargs": {
-        "limits": [
-          0,
-          65000
-        ],
-        "channel": "CCS811_VOCS",
-        "window_size": 5,
-        "window_type": null
-      },
-      "process": "clean_ts",
-      "units": "ppb",
-      "post": false,
-      "id": null
-    },
-    {
-      "name": "EXT_PM_10_CLEAN",
-      "description": "PM10 calculated based on both PMS5003 PM10 inputs",
-      "kwargs": {
-        "factor": 0.3,
-        "limits": [
-          0,
-          1000
-        ],
-        "channels": [
-          "EXT_PM_A_10",
-          "EXT_PM_B_10"
-        ],
-        "pick": "min",
-        "window_size": 5,
-        "window_type": null
-      },
-      "process": "merge_ts",
-      "units": "ug/m3",
-      "post": true,
-      "id": 88
-    },
-    {
-      "name":"EXT_PM_1_CLEAN",
-      "description": "PM1 calculated based on both PMS5003 PM1 inputs",
-      "kwargs": {
-        "factor": 0.3,
-        "limits": [
-          0,
-          1000
-        ],
-        "channels": [
-          "EXT_PM_A_1",
-          "EXT_PM_B_1"
-        ],
-        "pick": "min",
-        "window_size": 5,
-        "window_type": null
-      },
-      "process": "merge_ts",
-      "units": "ug/m3",
-      "post": true,
-      "id": 89
-    },
-    {
-      "name": "EXT_PM_25_CLEAN",
-      "description": "PM2.5 calculated based on both PMS5003 PM2.5 inputs",
-      "kwargs": {
-        "factor": 0.3,
-        "limits": [
-          0,
-          1000
-        ],
-        "channels": [
-          "EXT_PM_A_25",
-          "EXT_PM_B_25"
-        ],
-        "pick": "min",
-        "window_size": 5,
-        "window_type": null
-      },
-      "process": "merge_ts",
-      "units": "ug/m3",
-      "post": true,
-      "id": 87
-    },
-    {
       "name": "PT1000_POS",
       "description": "PT1000 raw value",
       "id": null,
@@ -117,8 +17,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "ASPT1000",
@@ -130,8 +30,8 @@
         "afe_id": null
       },
       "post": false,
-      "process": "alphasense_pt1000",
-      "units": "degC"
+      "function": "alphasense_pt1000",
+      "unit": "degC"
     },
     {
       "name": "EC_SENSOR_TEMP",
@@ -141,8 +41,8 @@
         "priority": "ASPT1000"
       },
       "post": false,
-      "process": "ec_sensor_temp",
-      "units": "degC"
+      "function": "ec_sensor_temp",
+      "unit": "degC"
     },
     {
       "name": "CO_WE",
@@ -152,8 +52,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "CO_AE",
@@ -163,8 +63,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "NO2_WE",
@@ -174,8 +74,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "NO2_AE",
@@ -185,8 +85,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "NO_WE",
@@ -196,8 +96,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "NO_AE",
@@ -207,8 +107,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "SO2_WE",
@@ -218,8 +118,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "SO2_AE",
@@ -229,8 +129,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "H2S_WE",
@@ -240,8 +140,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "H2S_AE",
@@ -251,8 +151,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "OX_WE",
@@ -262,8 +162,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name": "OX_AE",
@@ -273,8 +173,8 @@
         "channel": null
       },
       "post": false,
-      "process": "channel_names",
-      "units": "V"
+      "function": "channel_names",
+      "unit": "V"
     },
     {
       "name":"CO",
@@ -287,8 +187,8 @@
         "we": null
       },
       "post": true,
-      "process": "alphasense_803_04",
-      "units": "ppb"
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     },
     {
       "name":"NO2",
@@ -301,65 +201,65 @@
         "we": null
       },
       "post": true,
-      "process": "alphasense_803_04",
-      "units": "ppb"
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     },
     {
       "name":"O3",
       "description": "Calculation of O3 based on AAN 803-04",
       "id": 157,
-        "kwargs": {
-          "ae": null,
-          "alphasense_id": null,
-          "t": "EC_SENSOR_TEMP",
-          "we": null
-        },
-        "post": true,
-        "process": "alphasense_803_04",
-        "units": "ppb"
+      "kwargs": {
+        "ae": null,
+        "alphasense_id": null,
+        "t": "EC_SENSOR_TEMP",
+        "we": null
+      },
+      "post": true,
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     },
     {
       "name":"SO2",
       "description": "Calculation of SO2 based on AAN 803-04",
       "id": 155,
-        "kwargs": {
-          "ae": null,
-          "alphasense_id": null,
-          "t": "EC_SENSOR_TEMP",
-          "we": null,
-          "use_alternative": true
-        },
-        "post": true,
-        "process": "alphasense_803_04",
-        "units": "ppb"
+      "kwargs": {
+        "ae": null,
+        "alphasense_id": null,
+        "t": "EC_SENSOR_TEMP",
+        "we": null,
+        "use_alternative": true
+      },
+      "post": true,
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     },
 {
       "name": "NO",
       "description": "Calculation of NO based on AAN 803-04",
       "id": 154,
-        "kwargs": {
-          "ae": null,
-          "alphasense_id": null,
-          "t": "EC_SENSOR_TEMP",
-          "we": null
-        },
-        "post": true,
-        "process": "alphasense_803_04",
-        "units": "ppb"
+      "kwargs": {
+        "ae": null,
+        "alphasense_id": null,
+        "t": "EC_SENSOR_TEMP",
+        "we": null
+      },
+      "post": true,
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     },
     {
       "name": "H2S",
       "description": "Calculation of H2S based on AAN 803-04",
       "id": 156,
-        "kwargs": {
-          "ae": null,
-          "alphasense_id": null,
-          "t": "EC_SENSOR_TEMP",
-          "we": null
-        },
-        "post": true,
-        "process": "alphasense_803_04",
-        "units": "ppb"
+      "kwargs": {
+        "ae": null,
+        "alphasense_id": null,
+        "t": "EC_SENSOR_TEMP",
+        "we": null
+      },
+      "post": true,
+      "function": "alphasense_803_04",
+      "unit": "ppb"
     }
   ],
   "sources": [
