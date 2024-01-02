@@ -1,17 +1,7 @@
 {
   "meta": {
-    "timezone": null,
     "documentation": "https://docs.smartcitizen.me/"
   },
-  "params": {
-    "id": null,
-    "clean_na": null,
-    "frequency": null,
-    "max_date": null,
-    "min_date": null,
-    "resample": false
-  },
-  "source": null,
   "metrics": [
     {
       "name": "PT1000_POS",
@@ -266,30 +256,9 @@
       "unit": "ppb"
     }
   ],
-  "sources": [
-    {
+  "source":{
       "type": "api",
       "handler": "SCDevice",
       "module": "smartcitizen_connector"
-    },
-    {
-      "type": "csv",
-      "module": "scdata.io.csv",
-      "handler": "csv_handler",
-      "params": {
-        "header_skip": [
-          1,
-          2,
-          3
-        ],
-        "index": "TIME",
-        "sep": ",",
-        "tz-aware": true
-      },
-      "files": {
-        "processed-data-file": null,
-        "raw-data-file": null
-      }
     }
-  ]
 }
