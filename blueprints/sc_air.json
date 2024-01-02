@@ -1,12 +1,16 @@
 {
-  "documentation": "https://docs.smartcitizen.me/",
-  "id": null,
-  "clean_na": null,
-  "timezone": null,
-  "frequency": null,
-  "max_date": null,
-  "min_date": null,
-  "resample": false,
+  "meta": {
+    "timezone": null,
+    "documentation": "https://docs.smartcitizen.me/"
+  },
+  "params": {
+    "id": null,
+    "clean_na": null,
+    "frequency": null,
+    "max_date": null,
+    "min_date": null,
+    "resample": false
+  },
   "source": null,
   "metrics": [
     {
