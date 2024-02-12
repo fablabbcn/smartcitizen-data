@@ -105,22 +105,6 @@ class Config(object):
     # Plot out level (priority of the plot to show - 'DEBUG' or 'NORMAL')
     _plot_out_level = 'DEBUG'
 
-    # Alphasense sensor codes
-    _as_sensor_codes =  {
-        '132':  'ASA4_CO',
-        '133':  'ASA4_H2S',
-        '130':  'ASA4_NO',
-        '212':  'ASA4_NO2',
-        '214':  'ASA4_OX',
-        '134':  'ASA4_SO2',
-        '162':  'ASB4_CO',
-        '133':  'ASB4_H2S',#
-        '130':  'ASB4_NO', #
-        '202':  'ASB4_NO2',
-        '204':  'ASB4_OX',
-        '164':  'ASB4_SO2'
-    }
-
     ### ---------------------------------------
     ### ----------------ZENODO-----------------
     ### ---------------------------------------
@@ -192,6 +176,29 @@ class Config(object):
         'PM': [-inf, 10, 20, 30, 40, 50, 75, 100, 150, 200, inf],
         'GPS_HDOP': [-inf, 0, 40, 80, 120, 160, 200, 240, 260, 300, inf]
     }
+
+    _as_sensor_codes =  {
+        '132':  'ASA4_CO',
+        '133':  'ASA4_H2S',
+        '130':  'ASA4_NO',
+        '212':  'ASA4_NO2',
+        '214':  'ASA4_OX',
+        '134':  'ASA4_SO2',
+        '162':  'ASB4_CO',
+        '133':  'ASB4_H2S',#
+        '130':  'ASB4_NO', #
+        '202':  'ASB4_NO2',
+        '204':  'ASB4_OX',
+        '164':  'ASB4_SO2'
+    }
+
+    # Alphasense temperature channels (in order of priority)
+    _as_temp_channel = [
+        "ASPT1000",
+        "SHT31_EXT_TEMP",
+        "SHT35_EXT_TEMP",
+        "PM_DALLAS_TEMP",
+    ]
 
     _channel_bin_n = 11
 

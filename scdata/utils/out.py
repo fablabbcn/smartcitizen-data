@@ -1,6 +1,13 @@
 from termcolor import colored
 from scdata._config import config
 from datetime import datetime
+import sys
+
+def block_print():
+    sys.stdout = open(os.devnull, 'w')
+
+def enable_print():
+    sys.stdout = sys.__stdout__
 
 def std_out(msg, mtype = None, force = False):
     out_level = config._out_level
@@ -9,7 +16,7 @@ def std_out(msg, mtype = None, force = False):
     else:
         stamp = ''
     # Output levels:
-    # 'QUIET': nothing, 
+    # 'QUIET': nothing,
     # 'NORMAL': warn, err
     # 'DEBUG': info, warn, err, success
     if force == True: priority = 2
@@ -17,11 +24,11 @@ def std_out(msg, mtype = None, force = False):
     elif out_level == 'NORMAL': priority = 1
     elif out_level == 'DEBUG': priority = 2
 
-    if mtype is None and priority>1: 
+    if mtype is None and priority>1:
         print(f'[{stamp}] - ' + '[INFO] ' + msg)
-    elif mtype == 'SUCCESS' and priority>0: 
+    elif mtype == 'SUCCESS' and priority>0:
         print(f'[{stamp}] - ' + colored('[SUCCESS] ', 'green') + msg)
-    elif mtype == 'WARNING' and priority>0: 
+    elif mtype == 'WARNING' and priority>0:
         print(f'[{stamp}] - ' + colored('[WARNING] ', 'yellow') + msg)
-    elif mtype == 'ERROR' and priority>0: 
+    elif mtype == 'ERROR' and priority>0:
         print(f'[{stamp}] - ' + colored('[ERROR] ', 'red') + msg)
