@@ -1,4 +1,4 @@
-from scdata.utils import std_out
+from scdata.utils import logger
 from scdata._config import config
 import matplotlib.pyplot as plt
 import matplotlib.colors
@@ -15,7 +15,7 @@ def ts_dispersion_plot(self, **kwargs):
     ----------
         channel: string
             Channel
-        options: dict 
+        options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
         formatting: dict
             Formatting dict. Defaults in config._ts_plot_def_fmt
@@ -25,62 +25,62 @@ def ts_dispersion_plot(self, **kwargs):
     '''
 
     if 'channel' not in kwargs:
-        std_out('Needs at least one channel to plot')
+        logger.info('Needs at least one channel to plot')
         return None
     else:
         channel = kwargs['channel']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._ts_plot_def_fmt['mpl']
     else:
-        formatting = dict_fmerge(config._ts_plot_def_fmt['mpl'], kwargs['formatting'])        
+        formatting = dict_fmerge(config._ts_plot_def_fmt['mpl'], kwargs['formatting'])
 
     if self.dispersion_df is None:
-        std_out('Perform dispersion analysis first!', 'ERROR')
+        logger.error('Perform dispersion analysis first!')
         return None
 
     if self.common_channels == []: self.get_common_channels()
     if channel not in self.common_channels:
-        std_out(f'Channel {channel} not in common_channels')
+        logger.info(f'Channel {channel} not in common_channels')
         return None
     if channel in config._dispersion['ignore_channels']:
-        std_out(f'Channel {channel} ignored per config')
+        logger.info(f'Channel {channel} ignored per config')
         return None
 
     if len(self.devices)>config._dispersion['nt_threshold']:
         distribution = 'normal'
-        std_out('Using normal distribution')
-        std_out(f"Using limit for sigma confidence: {config._dispersion['limit_confidence_sigma']}")
+        logger.info('Using normal distribution')
+        logger.info(f"Using limit for sigma confidence: {config._dispersion['limit_confidence_sigma']}")
     else:
         distribution = 't-student'
-        std_out(f'Using t-student distribution.')
+        logger.info(f'Using t-student distribution.')
 
     # Size sanity check
-    if formatting['width'] > 50: 
-        std_out('Reducing width to 12')
+    if formatting['width'] > 50:
+        logger.info('Reducing width to 12')
         formatting['width'] = 12
     if formatting['height'] > 50:
-        std_out('Reducing height to 10')
-        formatting['height'] = 10        
+        logger.info('Reducing height to 10')
+        formatting['height'] = 10
 
     # Make subplot
-    figure, (ax_tbr, ax_ok) = plt.subplots(nrows = 2, 
+    figure, (ax_tbr, ax_ok) = plt.subplots(nrows = 2,
                                 sharex = formatting['sharex'],
                                 figsize = (formatting['width'],
                                            formatting['height'])
                                 );
     # cmap = plt.cm.Reds
-    norm = matplotlib.colors.Normalize(vmin=0, 
+    norm = matplotlib.colors.Normalize(vmin=0,
             vmax=config._dispersion['limit_errors']/2)
     ch_index = self.common_channels.index(channel)+1
-    
+
     # Style
     if formatting['style'] is not None: style.use(formatting['style'])
     else: style.use(config._plot_style)
@@ -106,13 +106,13 @@ def ts_dispersion_plot(self, **kwargs):
             lower_bound = self.dispersion_df[channel + '_AVG']\
                         - abs(limit_confidence * dispersion_avg)
     else:
-        limit_confidence = t.interval(config._dispersion['t_confidence_level']/100.0, len(self.devices), 
+        limit_confidence = t.interval(config._dispersion['t_confidence_level']/100.0, len(self.devices),
                                         loc=self.dispersion_df[channel + '_AVG'], scale=dispersion_avg)
         upper_bound = limit_confidence[1]
         lower_bound = limit_confidence[0]
 
     for device in self.devices:
-        ncol = channel + '-' + device 
+        ncol = channel + '-' + device
         if ncol in self.dispersion_df.columns:
 
             # Count how many times we go above the upper bound or below the lower one
@@ -128,19 +128,19 @@ def ts_dispersion_plot(self, **kwargs):
             max_number_errors = len(count_problems)
 
             if number_errors/max_number_errors > config._dispersion['limit_errors']/100:
-                std_out (f"Device {device} out of {config._dispersion['limit_errors']}% limit\
-                         - {np.round(number_errors/max_number_errors*100, 1)}% out", 'WARNING')
+                logger.warning (f"Device {device} out of {config._dispersion['limit_errors']}% limit\
+                         - {np.round(number_errors/max_number_errors*100, 1)}% out")
                 alpha = 1
-                ax_tbr.plot(self.dispersion_df.index, 
-                         self.dispersion_df[ncol], 
+                ax_tbr.plot(self.dispersion_df.index,
+                         self.dispersion_df[ncol],
                          color = 'r',
                          label = device, alpha = alpha)
             else:
                 alpha = 1
                 color = 'g'
-                ax_ok.plot(self.dispersion_df.index, 
-                         self.dispersion_df[ncol], 
-                         color = color, 
+                ax_ok.plot(self.dispersion_df.index,
+                         self.dispersion_df[ncol],
+                         color = color,
                          label = device, alpha = alpha)
 
     # Add upper and low bound bound to subplot 1

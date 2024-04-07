@@ -1,4 +1,4 @@
-from scdata.utils import std_out
+from scdata.utils import logger
 from numpy import arange
 from pandas import cut, DataFrame, to_datetime, option_context, to_numeric
 import io
@@ -67,7 +67,7 @@ def to_png_b64(fig, dpi = 150):
 
 def prepare_data(test, traces, options):
 
-    std_out('Preparing data for plot')
+    logger.info('Preparing data for plot')
 
     # Dataframe to return
     df = DataFrame()
@@ -79,9 +79,9 @@ def prepare_data(test, traces, options):
         if 'subplot' in traces[trace].keys():
             n_subplots = max(n_subplots, traces[trace]['subplot'])
         else:
-            std_out (f'Trace {trace} not assigned to subplot. Skipping', 'WARNING')
+            logger.warning (f'Trace {trace} not assigned to subplot. Skipping')
 
-    std_out (f'Making {n_subplots} subplots')
+    logger.info (f'Making {n_subplots} subplots')
 
     # Generate list of subplots
     subplots = [[] for x in range(n_subplots)]
@@ -90,52 +90,51 @@ def prepare_data(test, traces, options):
     for trace in traces.keys():
 
         if 'subplot' not in traces[trace].keys():
-            std_out(f'The trace {traces[trace]} was not placed in any subplot. Assuming subplot #1', 'WARNING')
+            logger.warning(f'The trace {traces[trace]} was not placed in any subplot. Assuming subplot #1')
             traces[trace]['subplot'] = 1
 
         ndevs = traces[trace]['devices']
         nchans = traces[trace]['channel']
 
         # Make them lists always
-        if ndevs == 'all': devices = list(test.devices.keys())
+        if ndevs == 'all': devices = [device.id for device in test.devices]
         elif type(ndevs) == str or type(ndevs) == int: devices = [ndevs]
         else: devices = ndevs
+        print (devices)
 
-        for device in devices:
-
-            ndev = str(device)
+        for ndev in devices:
 
             # Make them lists always
-            if nchans == 'all': channels = list(test.devices[ndev].readings.columns)
+            if nchans == 'all': channels = list(test.get_device(ndev).data.columns)
             elif type(nchans) == str: channels = [nchans]
             else: channels = nchans
 
             for channel in channels:
                 # Check if device is in columns
-                if channel not in test.devices[ndev].readings.columns:
-                    std_out(f'The device {ndev} does not contain {channel}. Ignoring', 'WARNING')
+                if channel not in test.get_device(ndev).data.columns:
+                    logger.warning(f'The device {ndev} does not contain {channel}. Ignoring')
                     continue
 
                 # Put channel in subplots
-                subplots[traces[trace]['subplot']-1].append(channel + '_' + ndev)
+                subplots[traces[trace]['subplot']-1].append(f'{channel}_{ndev}')
 
                 column_orig = [channel]
-                columns_add = [channel + '_' + ndev]
+                columns_add = [f'{channel}_{ndev}']
 
                 # Add filtering name to dfdev
                 if 'filter' in traces[trace]:
                     col_name = traces[trace]['filter']['col']
 
-                    if col_name not in test.devices[ndev].readings.columns:
-                        std_out(f'Column {col_name} not in dataframe. Ignoring filtering', 'WARNING')
+                    if col_name not in test.get_device(ndev).data.columns:
+                        logger.warning(f'Column {col_name} not in dataframe. Ignoring filtering')
                     else:
                         column_orig.append(col_name)
                         columns_add.append(col_name)
 
                 # Device dataframe
-                dfdev = DataFrame(test.devices[ndev].readings[column_orig].values,
+                dfdev = DataFrame(test.get_device(ndev).data[column_orig].values,
                                     columns = columns_add,
-                                    index = test.devices[ndev].readings.index)
+                                    index = test.get_device(ndev).data.index)
 
                 # Add filtering function
                 if 'filter' in traces[trace]:
@@ -154,7 +153,7 @@ def prepare_data(test, traces, options):
                         elif relationship == '>':
                             dfdev.loc[dfdev[col_name]>value]
                         else:
-                            std_out(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'", 'ERROR')
+                            logger.error(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'")
                             continue
                         # Remove column for filtering from dfdev
                         dfdev.drop(columns=[col_name], inplace = True)
@@ -170,7 +169,7 @@ def prepare_data(test, traces, options):
                 nextras = list()
                 for device in traces[trace]['devices']:
                     for channel in traces[trace]['channel']:
-                        nextras.append(channel + '_' + str(device))
+                        nextras.append(f'{channel}_{ndev}')
 
                 if extra == 'bands':
                     ubn = channel + f"-{trace}-{'UPPER-BAND'}"
@@ -207,11 +206,11 @@ def prepare_data(test, traces, options):
     df = df.astype(float, errors='ignore')
 
     if df.empty:
-        std_out('Empty dataframe for plot', 'ERROR')
+        logger.error('Empty dataframe for plot')
         return None, None
     # Resample it
     if options['frequency'] is not None:
-        std_out(f"Resampling at {options['frequency']}", "INFO")
+        logger.info(f"Resampling at {options['frequency']}")
 
         if 'resample' in options:
 
@@ -229,7 +228,7 @@ def prepare_data(test, traces, options):
         if options['clean_na'] == 'drop':
             df.dropna(axis = 0, how='any')
 
-    if df.empty: std_out('Dataframe for selected options is empty', 'WARNING')
+    if df.empty: logger.warning('Dataframe for selected options is empty')
 
     return df, subplots
 

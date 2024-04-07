@@ -1,5 +1,5 @@
 from scdata._config import config
-from scdata.utils import std_out, dict_fmerge, clean
+from scdata.utils import logger, dict_fmerge, clean
 from pandas import DataFrame
 from numpy import array
 
@@ -34,12 +34,12 @@ def apply_regressor(dataframe, **kwargs):
 		inputdf = dataframe[inputs].copy()
 		inputdf = inputdf.reindex(sorted(inputdf.columns), axis=1)
 	except KeyError:
-		std_out('Inputs not in dataframe', 'ERROR')
+		logger.error('Inputs not in dataframe')
 		pass
 		return None
 
 	if 'model' not in kwargs:
-		std_out('Model not in inputs', 'ERROR')
+		logger.error('Model not in inputs')
 	else:
 		model = kwargs['model']
 
@@ -47,9 +47,9 @@ def apply_regressor(dataframe, **kwargs):
 		options = config._model_def_opt
 	else:
 		options = dict_fmerge(config._model_def_opt, kwargs['options'])
-	
+
 	# Remove na
-	inputdf = clean(inputdf, options['clean_na'], how = 'any') 
+	inputdf = clean(inputdf, options['clean_na'], how = 'any')
 
 	features = array(inputdf)
 	result = DataFrame(model.predict(features)).set_index(inputdf.index)

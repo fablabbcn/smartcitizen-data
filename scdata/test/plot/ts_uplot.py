@@ -1,4 +1,4 @@
-from scdata.utils import std_out, dict_fmerge
+from scdata.utils import logger, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, colors
 
@@ -68,29 +68,29 @@ def ts_uplot(self, **kwargs):
         '''
 
     if 'traces' not in kwargs:
-        std_out('No traces defined', 'ERROR')
+        logger.info('No traces defined', 'ERROR')
         return None
     else:
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._ts_plot_def_fmt['uplot']
     else:
         formatting = dict_fmerge(config._ts_plot_def_fmt['uplot'], kwargs['formatting'])
 
     # Size sanity check
     if formatting['width'] < 100:
-        std_out('Setting width to 800')
+        logger.info('Setting width to 800')
         formatting['width'] = 800
     if formatting['height'] < 100:
-        std_out('Reducing height to 600')
+        logger.info('Reducing height to 600')
         formatting['height'] = 600
 
     if 'html' not in options:

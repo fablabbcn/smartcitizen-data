@@ -1,5 +1,5 @@
 from re import search
-from scdata.utils.out import std_out
+from scdata.utils import logger
 from scdata._config import config
 
 def get_units_convf(sensor, from_units):
@@ -18,7 +18,7 @@ def get_units_convf(sensor, from_units):
         factor (float)
         factor = unit_convertion_factor/molecular_weight
     Note:
-        This would need to be changed if all pollutants were to be expresed in 
+        This would need to be changed if all pollutants were to be expresed in
         mass units, instead of ppm/b
     """
 
@@ -28,32 +28,31 @@ def get_units_convf(sensor, from_units):
         if not (search(channel, sensor)): continue
         # Molecular weight in case of pollutants
         for pollutant in config._molecular_weights.keys():
-            if search(channel, pollutant): 
+            if search(channel, pollutant):
                 molecular_weight = config._molecular_weights[pollutant]
                 break
             else: molecular_weight = 1
-        
+
         # Check if channel is in look-up table
-        if config._channel_lut[channel] != from_units and from_units != "": 
-            std_out(f"Converting units for {sensor}. From {from_units} to {config._channel_lut[channel]}")
+        if config._channel_lut[channel] != from_units and from_units != "":
+            logger.info(f"Converting units for {sensor}. From {from_units} to {config._channel_lut[channel]}")
             for unit in config._unit_convertion_lut:
                 # Get units
-                if unit[0] == from_units and unit[1] == config._channel_lut[channel]: 
+                if unit[0] == from_units and unit[1] == config._channel_lut[channel]:
                     factor = unit[2]
                     requires_conc = unit[3]
                     break
-                elif unit[1] == from_units and unit[0] == config._channel_lut[channel]: 
+                elif unit[1] == from_units and unit[0] == config._channel_lut[channel]:
                     factor = 1/unit[2]
                     requires_conc = unit[3]
                     break
             if requires_conc: rfactor = factor/molecular_weight
             else: rfactor = factor
-            std_out(f"Factor: {rfactor}")
-        else: 
-            std_out(f"No units conversion needed for {sensor}")
+        else:
+            logger.info(f"No units conversion needed for {sensor}. Same units")
             if from_units == "":
-                std_out("Empty units in blueprint is placeholder for keep")
+                logger.info("Empty units in blueprint is placeholder for keep")
             rfactor = 1
         if rfactor != 1: break
-    
+
     return rfactor

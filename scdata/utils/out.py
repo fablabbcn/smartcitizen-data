@@ -3,32 +3,37 @@ from scdata._config import config
 from datetime import datetime
 import sys
 
-def block_print():
-    sys.stdout = open(os.devnull, 'w')
+import logging
 
-def enable_print():
-    sys.stdout = sys.__stdout__
+class CutsomLoggingFormatter(logging.Formatter):
 
-def std_out(msg, mtype = None, force = False):
-    out_level = config._out_level
-    if config._timestamp == True:
-        stamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    else:
-        stamp = ''
-    # Output levels:
-    # 'QUIET': nothing,
-    # 'NORMAL': warn, err
-    # 'DEBUG': info, warn, err, success
-    if force == True: priority = 2
-    elif out_level == 'QUIET': priority = 0
-    elif out_level == 'NORMAL': priority = 1
-    elif out_level == 'DEBUG': priority = 2
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format_min = "[%(asctime)s] - %(name)s - %(levelname)s - %(message)s"
+    format_deb = "[%(asctime)s] - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
 
-    if mtype is None and priority>1:
-        print(f'[{stamp}] - ' + '[INFO] ' + msg)
-    elif mtype == 'SUCCESS' and priority>0:
-        print(f'[{stamp}] - ' + colored('[SUCCESS] ', 'green') + msg)
-    elif mtype == 'WARNING' and priority>0:
-        print(f'[{stamp}] - ' + colored('[WARNING] ', 'yellow') + msg)
-    elif mtype == 'ERROR' and priority>0:
-        print(f'[{stamp}] - ' + colored('[ERROR] ', 'red') + msg)
+    FORMATS = {
+        logging.DEBUG: grey + format_min + reset,
+        logging.INFO: grey + format_min + reset,
+        logging.WARNING: yellow + format_min + reset,
+        logging.ERROR: red + format_deb + reset,
+        logging.CRITICAL: bold_red + format_deb + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+logger = logging.getLogger('scdata')
+logger.setLevel(config.log_level)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(config.log_level)
+ch.setFormatter(CutsomLoggingFormatter())
+logger.addHandler(ch)
+
+def set_logger_level(level=logging.DEBUG):
+    logger.setLevel(level)

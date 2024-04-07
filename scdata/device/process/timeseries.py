@@ -1,7 +1,7 @@
 from numpy import nan, full, power, ones, diff, convolve, append
 from scipy import ndimage
 from scdata.device.process import is_within_circle
-from scdata.utils import std_out
+from scdata.utils import logger
 
 def delta_index_ts(dataframe, **kwargs):
     result = dataframe.index.to_series().diff().astype('timedelta64[s]')
@@ -25,7 +25,7 @@ def poly_ts(dataframe, **kwargs):
     -------
         result = sum(coefficients[i]*channels[i]^exponents[i] + extra_term)
     """
-    
+
     if 'channels' not in kwargs: return None
     else: channels = kwargs['channels']
     n_channels = len(channels)
@@ -34,10 +34,10 @@ def poly_ts(dataframe, **kwargs):
 
     if 'coefficients' not in kwargs: coefficients = ones(n_channels)
     else: coefficients = kwargs['coefficients']
-    
+
     if 'exponents' not in kwargs: exponents = ones(n_channels)
     else: exponents = kwargs['exponents']
-    
+
     if 'extra_term' not in kwargs: extra_term = 0
     else: extra_term = kwargs['extra_term']
 
@@ -54,10 +54,10 @@ def clean_ts(dataframe, **kwargs):
     ----------
         name: string
             column to clean to apply.
-        limits: list, optional 
+        limits: list, optional
             (0, 99999)
             Sensor limits. The function will fill with NaN in the values that exceed the band
-        window_size: int, optional 
+        window_size: int, optional
             3
             If not None, will smooth the time series by applying a rolling window of that size
         window_type: str, optional
@@ -82,7 +82,7 @@ def clean_ts(dataframe, **kwargs):
     result[result < lower_limit] = nan
 
     # Smoothing
-    if 'window_size' in kwargs: window = kwargs['window_size'] 
+    if 'window_size' in kwargs: window = kwargs['window_size']
     else: window = 3
 
     if 'window_type' in kwargs: win_type = kwargs['window_type']
@@ -95,7 +95,7 @@ def clean_ts(dataframe, **kwargs):
 
 def merge_ts(dataframe, **kwargs):
     """
-    Merges readings from sensors into one clean ts. The function checks the dispersion and 
+    Merges readings from sensors into one clean ts. The function checks the dispersion and
     picks the desired one (min, max, min_nonzero, avg)
     Parameters
     ----------
@@ -104,19 +104,19 @@ def merge_ts(dataframe, **kwargs):
         pick: string
             'min'
             One of the following 'min', 'max', 'avg', 'min_nonzero'
-            Which one two pick in case of high deviation between the metrics. Picks the avg 
+            Which one two pick in case of high deviation between the metrics. Picks the avg
             otherwise
         factor: float (factor > 0)
             0.3
             Maximum allowed deviation of the difference with respect to the each of signals.
             It creates a window of [factor*signal_X, -factor*signal_X] for X being each signal
-            out of which there will be a flag where one of the signals will be picked. This 
+            out of which there will be a flag where one of the signals will be picked. This
             factor should be set to a value that is similar to the sensor typical deviation
         Same parameters as clean_ts apply below:
-        limits: list, optional 
+        limits: list, optional
             (0, 99999)
             Sensor limits. The function will fill with NaN in the values that exceed the band
-        window_size: int, optional 
+        window_size: int, optional
             3
             If not None, will smooth the time series by applying a rolling window of that size
         window_type: str, optional
@@ -139,15 +139,15 @@ def merge_ts(dataframe, **kwargs):
     else: factor = kwargs['factor']
 
     # Clean them
-    for name in kwargs['names']: 
-        subkwargs = {'name': name, 
-                    'limits': kwargs['limits'], 
-                    'window_size': kwargs['window_size'], 
+    for name in kwargs['names']:
+        subkwargs = {'name': name,
+                    'limits': kwargs['limits'],
+                    'window_size': kwargs['window_size'],
                     'window_type': kwargs['window_type']
                     }
         df[name + '_CLEAN'] = clean_ts(df, **subkwargs)
 
-    
+
     df['flag'] = full((df.shape[0], 1), False, dtype=bool)
     df['diff'] = df[kwargs['names'][0] + '_CLEAN'] - df[kwargs['names'][1] + '_CLEAN']
 
@@ -159,9 +159,9 @@ def merge_ts(dataframe, **kwargs):
         lnames.append(name + '_CLEAN')
 
     df['result'] = df.loc[:, lnames].mean(skipna=True, axis = 1)
-    
+
     # Pick
-    if pick == 'min': 
+    if pick == 'min':
         df.loc[df['flag'] == True, 'result'] = df.loc[df['flag'] == True, lnames].min(skipna=True, axis = 1)
     elif pick == 'max':
         df.loc[df['flag'] == True, 'result'] = df.loc[df['flag'] == True, lnames].max(skipna=True, axis = 1)
@@ -177,7 +177,7 @@ def rolling_avg(dataframe, **kwargs):
     ----------
         name: string
             column to clean to apply.
-        window_size: int, optional 
+        window_size: int, optional
             3
             If not None, will smooth the time series by applying a rolling window of that size
         window_type: str, optional
@@ -192,22 +192,22 @@ def rolling_avg(dataframe, **kwargs):
     Returns
     -------
         pandas series containing the rolling average
-    """   
+    """
 
     if 'name' not in kwargs:
-        std_out (f'{kwargs[name]} not in kwargs', 'ERROR')
+        logger.error (f'{kwargs[name]} not in kwargs')
         return None
 
     result = dataframe[kwargs['name']].copy()
 
     # Smoothing
-    if 'window_size' in kwargs: window = kwargs['window_size'] 
+    if 'window_size' in kwargs: window = kwargs['window_size']
     else: window = 3
 
     if 'window_type' in kwargs: win_type = kwargs['window_type']
     else: win_type = None
 
-    if 'type' in kwargs: 
+    if 'type' in kwargs:
         if kwargs['type'] == 'mean': return result.rolling(window = window, win_type = win_type).mean()
         if kwargs['type'] == 'max': return result.rolling(window = window, win_type = win_type).max()
         if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()

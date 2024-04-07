@@ -13,13 +13,10 @@ import sys
 from math import inf
 from numpy import array
 
-class Config(object):
+import logging
 
-    # Output level
-    #   'QUIET': nothing
-    #   'NORMAL': warn, err,
-    #   'DEBUG': info, warn, err
-    _out_level = 'NORMAL'
+class Config(object):
+    log_level = logging.INFO
 
     # Timestamp for log output
     _timestamp = True

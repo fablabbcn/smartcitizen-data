@@ -1,5 +1,5 @@
 import sys
-from .out import std_out
+from .out import logger
 
 class LazyCallable(object):
     '''
@@ -11,7 +11,7 @@ class LazyCallable(object):
         self.f = None
     def __call__(self, *a, **k):
         if self.f is None:
-            std_out(f"Loading {self.n.rsplit('.', 1)[1]} from {self.n.rsplit('.', 1)[0]}")
+            logger.info(f"Loading {self.n.rsplit('.', 1)[1]} from {self.n.rsplit('.', 1)[0]}")
             modn, funcn = self.n.rsplit('.', 1)
             if modn not in sys.modules:
                 __import__(modn)
