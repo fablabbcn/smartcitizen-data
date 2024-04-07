@@ -1,4 +1,4 @@
-from scdata.utils import std_out, dict_fmerge, clean
+from scdata.utils import logger, dict_fmerge, clean
 from scdata._config import config
 from numpy import array
 from pandas import DataFrame
@@ -40,7 +40,7 @@ def prepare(self, measurand, inputs, options = dict()):
         common_channels = inputs[list(inputs.keys())[0]]
         for input_device in inputs.keys():
             common_channels = list(set(common_channels).intersection(set(inputs[input_device])))
-        std_out(f'Performing avg in common columns {common_channels}')
+        logger.info(f'Performing avg in common columns {common_channels}')
         for channel in common_channels:
             columns_list = [channel + '_' + device for device in list(inputs.keys())]
             df[channel + '_AVG'] = df[columns_list].mean(axis = 1)
