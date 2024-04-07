@@ -41,21 +41,10 @@ class Config(object):
 
     # Timeout for http requests
     _timeout = 3
+    _max_http_retries = 2
 
-    ### ---------------------------------------
-    ### ----------------CRONTAB----------------
-    ### ---------------------------------------
-    # Tabfile for cronjobs
-    _tabfile = 'tabfile'
-
-    # Scheduler
-    _scheduler_interval_days = 1
-    _device_scheduler = 'dschedule'
-    _scheduler_log = 'scheduler.log'
-    # Tasks
-    _postprocessing_interval_hours = 1
-    _device_processor = 'dprocess'
-    _max_forward_retries = 2
+    # Max concurrent requests
+    _max_concurrent_requests = 30
 
     ### ---------------------------------------
     ### -----------------DATA------------------
@@ -114,7 +103,7 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
+    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhacement/flexible-handlers/'
     _default_file_type = 'json'
 
     calibrations_urls = [
@@ -122,23 +111,24 @@ class Config(object):
     ]
 
     blueprints_urls = [
-        f'{_base_postprocessing_url}blueprints/base.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/csic_station.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/muv_station.{_default_file_type}',
-        # f'{_base_postprocessing_url}blueprints/parrot_soil.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_20_station_iscape.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_21_station_iscape.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/base.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/csic_station.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/muv_station.{_default_file_type}',
+        # # f'{_base_postprocessing_url}blueprints/parrot_soil.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sc_20_station_iscape.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sc_21_station_iscape.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sc_21_station_module.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_sps30.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_sen5x.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sck_21_co2.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_21_water.{_default_file_type}'
+        # f'{_base_postprocessing_url}blueprints/sck.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_air_api.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_air_csv.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_21_sps30.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_21_sen5x.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_21_nilu.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sck_21_co2.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sc_21_water.{_default_file_type}'
     ]
 
     connectors_urls = [
@@ -146,7 +136,8 @@ class Config(object):
     ]
 
     names_urls = [
-        f'{_base_postprocessing_url}names/sc_sensor_names.{_default_file_type}'
+        # f'{_base_postprocessing_url}names/SCDevice.json'
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhacement/flexible-handlers/names/SCDevice.json'
     ]
 
     # Convertion table from API SC to Pandas
@@ -162,7 +153,6 @@ class Config(object):
         ['s','S'],
         ['ms','ms']
     )
-
 
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
@@ -242,6 +232,8 @@ class Config(object):
     # It accepts reverse operations - you don't need to put them twice but in reverse
 
     _unit_convertion_lut = (
+        ['%rh', '%', 1, False],
+        ['ºC', 'degC', 1, False],
         ['ppm', 'ppb', 1000, False],
         ['mg/m3', 'ug/m3', 1000, False],
         ['mgm3', 'ugm3', 1000, False],
@@ -550,7 +542,8 @@ class Config(object):
         'description',
         'latest_postprocessing',
         'blueprint_loaded_from_url',
-        'hardware_loaded_from_url'
+        'hardware_loaded_from_url',
+        'data'
     ]
 
     _csv_defaults = {
@@ -613,12 +606,11 @@ class Config(object):
         namespath = join(self.paths['interim'], 'names.json')
         if self.data['reload_metadata'] or not exists(namespath):
             names = load_names(self.names_urls)
-            # sc_sensor_names = load_firmware_names(self.sensor_names_url_21)
-            # sc_sensor_names = load_api_names(self.sensors_api_names_url)
             namesreload = True
-        else:
-            with open(namespath, 'r') as file: names = json.load(file)
-            namesreload = False
+        # else:
+            # TODO Implement load of serialised model
+            # with open(namespath, 'r') as file: names = json.load(file)
+            # namesreload = False
 
         if blueprints is not None:
             self.blueprints = blueprints
@@ -634,16 +626,15 @@ class Config(object):
                 with open(conpath, 'w') as file: json.dump(connectors, file)
         if names is not None:
             self.names = names
-            if namesreload:
-                with open(namespath, 'w') as file: json.dump(names, file)
+            # if namesreload:
+                # TODO Implement dump of serialised model
+                # with open(namespath, 'w') as file: json.dump(names, file)
 
         # Find environment file in root or in scdata/ for clones
         if exists(join(self.paths['data'],'.env')):
             env_file = join(self.paths['data'],'.env')
         else:
-            print (f'No environment file found. \
-                    If you had an environment file (.env) before, \
-                    make sure its now here:')
+            print(f'No environment file found. If you had an environment file (.env) before, make sure its now here')
             print(join(self.paths['data'],'.env'))
             env_file = None
 
@@ -682,24 +673,3 @@ class Config(object):
         with open(_sccpath, "w") as cf:
             yaml.dump(c, cf)
 
-    def set_testing(self, env_file = None):
-        '''
-        Convenience method for setting variables as development
-        in jupyterlab
-        Parameters
-        ----------
-            None
-        Returns
-        ----------
-            None
-        '''
-
-        print ('Setting test mode')
-        self._out_level = 'DEBUG'
-        self.framework = 'jupyterlab'
-        self._intermediate_plots = True
-        self._plot_out_level = 'DEBUG'
-
-        # Load Environment
-        if env_file is not None and not self._env_file:
-            if load_env(env_file): self._env_file = True
