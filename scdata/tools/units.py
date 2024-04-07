@@ -1,5 +1,5 @@
 from re import search
-from scdata.utils import logger
+from scdata.tools import logger
 from scdata._config import config
 
 def get_units_convf(sensor, from_units):

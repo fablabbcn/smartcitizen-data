@@ -1,6 +1,6 @@
 from scipy.cluster import hierarchy as hc
 from pandas import DataFrame
-from scdata.utils import logger, dict_fmerge, clean
+from scdata.tools import logger, dict_fmerge, clean
 from scdata._config import config
 import matplotlib.pyplot as plt
 from matplotlib import rcParams

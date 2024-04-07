@@ -1,4 +1,4 @@
-from .out import logger
+from .out import logger, set_logger_level
 from .date import localise_date, find_dates
 from .units import get_units_convf
 from .dictmerge import dict_fmerge

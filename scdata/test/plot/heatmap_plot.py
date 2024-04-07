@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import style
 from seaborn import set_palette, heatmap
-from scdata.utils import logger, dict_fmerge
+from scdata.tools import logger, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, groupby_session
 

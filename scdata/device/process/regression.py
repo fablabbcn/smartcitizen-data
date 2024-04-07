@@ -1,5 +1,5 @@
 from scdata._config import config
-from scdata.utils import logger, dict_fmerge, clean
+from scdata.tools import logger, dict_fmerge, clean
 from pandas import DataFrame
 from numpy import array
 

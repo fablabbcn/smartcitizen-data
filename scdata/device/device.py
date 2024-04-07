@@ -1,9 +1,9 @@
 ''' Main implementation of class Device '''
 
-from scdata.utils import logger, localise_date, \
+from scdata.tools import logger, localise_date, \
     dict_fmerge, get_units_convf
 from scdata.io import read_csv_file, export_csv_file
-from scdata.utils import LazyCallable, url_checker, \
+from scdata.tools import LazyCallable, url_checker, \
     get_json_from_url, find_by_field
 from scdata._config import config
 from scdata.io.device_api import *
@@ -53,7 +53,7 @@ class Device(BaseModel):
             Default: 'sck_21'
             Defines the type of device. For instance: sck_21, sck_20, csic_station, muv_station
             parrot_soil, sc_20_station, sc_21_station... A list of all the blueprints is found in
-            config.blueprints_urls and accessible via the scdata.utils.load_blueprints(urls) function.
+            config.blueprints_urls and accessible via the scdata.tools.load_blueprints(urls) function.
             The blueprint can also be defined from the postprocessing info in SCAPI.
             The manual parameter passed here overrides that of the API.
 

@@ -1,7 +1,7 @@
 from numpy import nan, full, power, ones, diff, convolve, append
 from scipy import ndimage
 from scdata.device.process import is_within_circle
-from scdata.utils import logger
+from scdata.tools import logger
 
 def delta_index_ts(dataframe, **kwargs):
     result = dataframe.index.to_series().diff().astype('timedelta64[s]')

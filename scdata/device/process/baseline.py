@@ -7,7 +7,7 @@ from numpy import min as npmin
 from numpy import max as npmax
 from numpy import abs as npabs
 from numpy import argmax, argmin, arange, exp
-from scdata.utils import logger
+from scdata.tools import logger
 from scdata._config import config
 from math import isnan
 from .formulae import exp_f

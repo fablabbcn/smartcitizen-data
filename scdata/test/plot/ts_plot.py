@@ -1,4 +1,4 @@
-from scdata.utils import logger, dict_fmerge
+from scdata.tools import logger, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data
 from pandas import to_datetime

@@ -10,7 +10,7 @@ import json
 from re import sub
 from pydantic import TypeAdapter
 from typing import List
-from scdata.utils.headers import process_headers
+from scdata.tools.headers import process_headers
 from scdata.models import Name, Blueprint, Metric
 
 def get_paths():

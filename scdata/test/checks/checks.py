@@ -1,10 +1,10 @@
-from scdata.utils import logger
+from scdata.tools import logger
 import matplotlib.pyplot as plt
 import missingno as msno
 from pandas import to_datetime, DataFrame
 from scdata.test.plot.plot_tools import prepare_data
 from scdata._config import config
-from scdata.utils.dictmerge import dict_fmerge
+from scdata.tools.dictmerge import dict_fmerge
 
 def gaps_check(self, devices = None, channels = None, groupby = 'channel', **kwargs):
     if config.framework == 'jupyterlab': plt.ioff();

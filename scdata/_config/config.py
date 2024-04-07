@@ -1,8 +1,8 @@
 import yaml
 import json
 
-from scdata.utils.dictmerge import dict_fmerge
-from scdata.utils.meta import (get_paths, load_blueprints,
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.meta import (get_paths, load_blueprints,
                                 load_calibrations, load_connectors,
                                 load_env, load_names)
 

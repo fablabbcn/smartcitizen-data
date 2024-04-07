@@ -1,4 +1,4 @@
-from scdata.utils import logger
+from scdata.tools import logger
 from scdata._config import config
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm

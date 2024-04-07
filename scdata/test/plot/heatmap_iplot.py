@@ -1,5 +1,5 @@
 from plotly.graph_objs import Heatmap, Layout, Figure
-from scdata.utils import logger, dict_fmerge
+from scdata.tools import logger, dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, groupby_session
 from plotly.offline import iplot
