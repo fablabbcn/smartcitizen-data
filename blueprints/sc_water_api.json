@@ -5,7 +5,7 @@
   "metrics": [],
   "source":{
       "type": "api",
-      "handler": "SCDevice",
-      "module": "smartcitizen_connector"
+      "module": "smartcitizen_connector",
+      "handler": "SCDevice"
     }
 }
