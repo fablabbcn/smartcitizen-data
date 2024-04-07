@@ -257,9 +257,9 @@
     }
   ],
   "source": {
-      "type": "csv",
-      "module": "scdata.io.csv",
-      "handler": "csv_handler",
+      "type": "file",
+      "module": "scdata.io.device_file",
+      "handler": "CSVHandler",
       "params": {
         "header_skip": [
           1,
@@ -267,12 +267,9 @@
           3
         ],
         "index": "TIME",
-        "sep": ",",
-        "tz-aware": true
-      },
-      "files": {
-        "processed-data-file": null,
-        "raw-data-file": null
+        "separator": ",",
+        "tzaware": true,
+        "timezone": "UTC"
       }
     }
 }
