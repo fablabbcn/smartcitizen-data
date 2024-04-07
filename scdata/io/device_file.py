@@ -1,10 +1,28 @@
 from os import makedirs, listdir
 from os.path import exists, join, splitext
-from scdata.utils import std_out, localise_date, clean
+from scdata.utils import logger, localise_date, clean
 from pandas import read_csv, to_datetime, DataFrame
 from scdata._config import config
 import csv
+# from scdata.models import CSVParams, CSVFiles
+from pydantic import BaseModel, ConfigDict
 
+
+# class CSVHandler(BaseModel):
+#     ''' Main implementation of the device class '''
+#     model_config = ConfigDict(arbitrary_types_allowed = True)
+
+#     params: CSVParams = CSVParams()
+#     files: CSVFiles = CSVFiles()
+#     method: 'sync'
+
+#     # TODO - Fix
+#     def export(self):
+#         return True
+
+#     # TODO - Fix
+#     def get_data(self):
+#         return True
 
 def export_csv_file(path, file_name, df, forced_overwrite=False):
     '''
@@ -32,20 +50,18 @@ def export_csv_file(path, file_name, df, forced_overwrite=False):
     # If file does not exist
     if not exists(path + '/' + str(file_name) + '.csv') or forced_overwrite:
         df.to_csv(path + '/' + str(file_name) + '.csv', sep=",")
-        std_out('File saved to: \n' + path + '/' + str(file_name) + '.csv', 'SUCCESS')
+        logger.info('File saved to: \n' + path + '/' + str(file_name) + '.csv')
     else:
-        std_out("File Already exists - delete it first, I was not asked to overwrite anything!", 'ERROR')
+        logger.error("File Already exists - delete it first, I was not asked to overwrite anything!")
         return False
-
     return True
 
-
-def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name='', skiprows=None, sep=',', encoding='utf-8', tzaware=True, resample=True):
+def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', skiprows=None, sep=',', encoding='utf-8', tzaware=True, resample=True):
     """
     Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
     Parameters
     ----------
-        file_path: String
+        path: String
             File path for csv file
         timezone: String
             Time zone for the csv file
@@ -74,8 +90,8 @@ def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name
 
     # Read pandas dataframe
 
-    df = read_csv(file_path, verbose=False, skiprows=skiprows, sep=sep,
-                  encoding=encoding, encoding_errors='ignore')
+    df = read_csv(path, verbose=False, skiprows=skiprows, sep=sep,
+                encoding=encoding, encoding_errors='ignore')
 
     flag_found = False
     if type(index_name) == str:
@@ -89,7 +105,7 @@ def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name
         # Composite index (for instance, DATE and TIME in different columns)
         for iname in index_name:
             if iname not in df.columns:
-                std_out(f'{iname} not found in columns', 'ERROR')
+                logger.error(f'{iname} not found in columns')
                 return None
         joint_index_name = '_'.join(index_name)
         df[joint_index_name] = df[index_name].agg(' '.join, axis=1)
@@ -98,7 +114,7 @@ def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name
         flag_found = True
 
     if not flag_found:
-        std_out('Index not found. Cannot reindex', 'ERROR')
+        logger.error('Index not found. Cannot reindex')
         return None
 
     # Set index
@@ -118,7 +134,7 @@ def read_csv_file(file_path, timezone, frequency=None, clean_na=None, index_name
 
     # Resample
     if (resample):
-        std_out ('Resampling', 'INFO')
+        logger.info ('Resampling', 'INFO')
         df = df.resample(frequency).mean()
 
     # Remove na
@@ -158,7 +174,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
 
     for file in listdir(path):
         if file != output and file not in ignore:
-            std_out(f'Loading file: {file}')
+            logger.info(f'Loading file: {file}')
             filename, _ = splitext(file)
             src_path = join(path, file)
 
@@ -167,7 +183,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                     header = csv_file.readlines()[0:4]
             except:
                 ignore_file = True
-                std_out(f'Ignoring file: {file}', 'WARNING')
+                logger.warning(f'Ignoring file: {file}')
                 pass
             else:
                 ignore_file = False
@@ -209,14 +225,14 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
     if 'blueprint' in kwargs:
         rename_bp = kwargs['blueprint']
         if rename_bp not in config.blueprints:
-            std_out('Blueprint not in config. Cannot rename', 'WARNING')
+            logger.warning('Blueprint not in config. Cannot rename')
             rename = False
     else:
-        std_out('No blueprint specified', 'INFO')
+        logger.info('No blueprint specified')
         rename = False
 
     if rename:
-        std_out('Keep in mind that renaming doesnt change the units', 'WARNING')
+        logger.warning('Keep in mind that renaming doesnt change the units')
         rename_d = dict()
         for old_key in header_tokenized:
             for key, value in config.blueprints[rename_bp]['sensors'].items():
@@ -225,7 +241,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                     break
 
         for old_key in rename_d:
-            std_out(f'Renaming {old_key} to {rename_d[old_key]}')
+            logger.info(f'Renaming {old_key} to {rename_d[old_key]}')
             header_tokenized[rename_d[old_key]] = header_tokenized.pop(old_key)
             concat.rename(columns=rename_d, inplace=True)
 
