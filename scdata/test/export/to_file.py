@@ -2,7 +2,7 @@
 
 from os.path import join, dirname, exists
 from os import makedirs
-from scdata.utils import std_out
+from scdata.utils import logger
 import flask
 from re import sub
 
@@ -20,7 +20,7 @@ def to_csv(self, path = None, forced_overwrite = False):
     Returns
     -------
         True if export successul
-    """	
+    """
     export_ok = True
 
     if path is None: epath = join(self.path, 'processed')
@@ -30,8 +30,8 @@ def to_csv(self, path = None, forced_overwrite = False):
     for device in self.devices.keys():
         export_ok &= self.devices[device].export(epath, forced_overwrite = forced_overwrite)
 
-    if export_ok: std_out(f'Test {self.full_name} exported successfully', 'SUCCESS')
-    else: std_out(f'Test {self.full_name} not exported successfully', 'ERROR')
+    if export_ok: logger.info(f'Test {self.full_name} exported successfully')
+    else: logger.error(f'Test {self.full_name} not exported successfully')
 
     return export_ok
 
@@ -65,7 +65,7 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
             Whether to include a header or not
     Returns
     ----------
-        rendered: 
+        rendered:
             flask rendered template
     '''
 
@@ -74,12 +74,12 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
 
     if path is None: path = join(self.path, 'export')
 
-    if not exists(path): 
-        std_out('Creating folder for test export')
+    if not exists(path):
+        logger.info('Creating folder for test export')
         makedirs(path)
 
     filename = join(path, f'{self.full_name}.html')
-    
+
     docname = sub('.','_', self.full_name)
     app = flask.Flask(docname, template_folder = template_folder)
 
@@ -97,7 +97,7 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
 
     with open(filename, 'w') as handle:
         handle.write(rendered)
-        
-    std_out (f'File saved to: {filename}', 'SUCCESS')
+
+    logger.info (f'File saved to: {filename}')
 
     return filename, rendered
