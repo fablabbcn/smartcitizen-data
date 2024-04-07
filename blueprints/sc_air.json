@@ -255,10 +255,5 @@
       "function": "alphasense_803_04",
       "unit": "ppb"
     }
-  ],
-  "source":{
-      "type": "api",
-      "module": "smartcitizen_connector",
-      "handler": "SCDevice"
-    }
+  ]
 }
