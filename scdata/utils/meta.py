@@ -8,6 +8,10 @@ from requests import get
 from traceback import print_exc
 import json
 from re import sub
+from pydantic import TypeAdapter
+from typing import List
+from scdata.utils.headers import process_headers
+from scdata.models import Name, Blueprint, Metric
 
 def get_paths():
 
@@ -119,7 +123,6 @@ def load_env(env_file):
         return True
 
 def load_blueprints(urls):
-
     blueprints = dict()
     for url in urls:
         if url is None: continue
@@ -127,7 +130,7 @@ def load_blueprints(urls):
         _blueprint = get_json_from_url(url)
 
         if _nblueprint not in blueprints:
-            blueprints[_nblueprint] = _blueprint
+            blueprints[_nblueprint] = TypeAdapter(Blueprint).validate_python(_blueprint).dict()
 
     return blueprints
 
@@ -209,35 +212,24 @@ def load_connectors(urls):
     return connectors
 
 def load_names(urls):
-    '''
-        Loads names from urls. Names have to be unique in each
-        {
-            "SCD30_CO2":
-            {
-                "id": "158",
-                "title": "SCD30 CO2",
-                "unit": "ppm"
-            },
-            ...
-        }
-        Parameters
-        ----------
-            urls: [String]
-                json file urls
-        Returns
-        ---------
-            Dictionary containing names, otherwise None
-    '''
-
+    isn = True
     names = dict()
+
     for url in urls:
-        try:
-            c = get_json_from_url(url)
-            _nc = basename(urlparse(str(url)).path).split('.')[0]
-            names[_nc] = c
-        except:
-            print(f'Problem loading names from {url}')
-            print_exc()
-            return None
+        result = list()
+        _nc = basename(urlparse(str(url)).path).split('.')[0]
+        while isn:
+            r = get(url)
+            r.raise_for_status()
+            # If status code OK, retrieve data
+            h = process_headers(r.headers)
+            result += TypeAdapter(List[Name]).validate_python(r.json())
+
+            if 'next' in h:
+                if h['next'] == url: isn = False
+                elif h['next'] != url: url = h['next']
+            else:
+                isn = False
+        names[_nc] = result
 
     return names
