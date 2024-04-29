@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 from scdata.device import Device
 
 def combine(self, devices = None, readings = None):

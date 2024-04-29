@@ -1,4 +1,6 @@
-from scdata.tools import logger, dict_fmerge, clean
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.cleaning import  clean
 from scdata._config import config
 from numpy import array
 from pandas import DataFrame

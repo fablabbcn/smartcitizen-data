@@ -1,25 +1,31 @@
 import yaml
 import json
-
-from scdata.tools.dictmerge import dict_fmerge
-from scdata.tools.meta import (get_paths, load_blueprints,
-                                load_calibrations, load_connectors,
-                                load_env, load_names)
-
 from os import pardir, environ
 from os.path import join, abspath, dirname, exists
 import sys
-
 from math import inf
 from numpy import array
-
 import logging
+from os import pardir, environ, name, makedirs
+from os.path import join, dirname, expanduser, exists, basename
+from urllib.parse import urlparse
+import os
+from shutil import copyfile
+from requests import get
+# from traceback import print_exc
+import json
+from pydantic import TypeAdapter
+from typing import List
+
+from scdata.models import Name, Blueprint, Metric
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.gets import get_json_from_url
 
 class Config(object):
-    log_level = logging.INFO
-
-    # Timestamp for log output
-    _timestamp = True
+    ### ---------------------------------------
+    ### ---------------LOG-LEVEL---------------
+    ### ---------------------------------------
+    _log_level = logging.INFO
 
     # Framework option
     # For renderer plots and config files
@@ -27,14 +33,10 @@ class Config(object):
     # - 'script': no plots in jupyter, updates config
     # - 'jupyterlab': for plots, updates config
     # - 'chupiflow': no plots in jupyter, does not update config
-    framework = 'script'
+    _framework = 'script'
 
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
-
-    # Default timezone
-    _timezone = 'Europe/Madrid'
-    _epsg = 4326
 
     # Returns when iterables cannot be fully processed
     _strict = False
@@ -49,9 +51,6 @@ class Config(object):
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------
-
-    ## Place here options for data load and handling
-    _combined_devices_name = 'COMBINED_DEVICES'
 
     data = {
         # Whether or not to reload metadata from git repo
@@ -68,14 +67,8 @@ class Config(object):
         'strict_load': False
     }
 
-    # If using multiple training datasets, how to call the joint df
-    _name_multiple_training_data = 'CDEV'
-
     # Maximum amount of points to load when postprocessing data
     _max_load_amount = 500
-
-    # Ignore duplicate sensor ids
-    _sc_ignore_keys = ['DALLAS_TEMP', 'GB_TEMP', 'GB_HUM']
 
     # Ingore Nas when loading data (for now only in CSVs)
     # Similar to na_values in https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
@@ -85,6 +78,7 @@ class Config(object):
     ### --------------ALGORITHMS---------------
     ### ---------------------------------------
 
+    ## TODO - move out from here
     # Whether or not to plot intermediate debugging visualisations in the algorithms
     _intermediate_plots = False
 
@@ -117,12 +111,12 @@ class Config(object):
         # # f'{_base_postprocessing_url}blueprints/parrot_soil.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sc_20_station_iscape.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sc_21_station_iscape.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_21_station_module.{_default_file_type}',
+        # f'{_base_postprocessing_url}blueprints/sc_21_station_module.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_air_api.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_air_csv.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_air.{_default_file_type}',
+        f'{_base_postprocessing_url}blueprints/sc_water.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_sps30.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_sen5x.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',
@@ -131,28 +125,16 @@ class Config(object):
         # f'{_base_postprocessing_url}blueprints/sc_21_water.{_default_file_type}'
     ]
 
-    connectors_urls = [
-        f'{_base_postprocessing_url}connectors/nilu.{_default_file_type}'
-    ]
+    # connectors_urls = [
+    #     f'{_base_postprocessing_url}connectors/nilu.{_default_file_type}'
+    # ]
 
     names_urls = [
+        # Revert to base postprocessing url
         # f'{_base_postprocessing_url}names/SCDevice.json'
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhacement/flexible-handlers/names/SCDevice.json'
     ]
 
-    # Convertion table from API SC to Pandas
-    # https://stackoverflow.com/questions/35339139/where-is-the-documentation-on-pandas-freq-tags
-    # https://developer.smartcitizen.me/#get-historical-readings
-    _freq_conv_lut = (
-        ['y','A'],
-        ['M','M'],
-        ['w','W'],
-        ['d','D'],
-        ['h','H'],
-        ['m','Min'],
-        ['s','S'],
-        ['ms','ms']
-    )
 
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
@@ -164,88 +146,8 @@ class Config(object):
         'GPS_HDOP': [-inf, 0, 40, 80, 120, 160, 200, 240, 260, 300, inf]
     }
 
-    _as_sensor_codes =  {
-        '132':  'ASA4_CO',
-        '133':  'ASA4_H2S',
-        '130':  'ASA4_NO',
-        '212':  'ASA4_NO2',
-        '214':  'ASA4_OX',
-        '134':  'ASA4_SO2',
-        '162':  'ASB4_CO',
-        '133':  'ASB4_H2S',#
-        '130':  'ASB4_NO', #
-        '202':  'ASB4_NO2',
-        '204':  'ASB4_OX',
-        '164':  'ASB4_SO2'
-    }
-
-    # Alphasense temperature channels (in order of priority)
-    _as_temp_channel = [
-        "ASPT1000",
-        "SHT31_EXT_TEMP",
-        "SHT35_EXT_TEMP",
-        "PM_DALLAS_TEMP",
-    ]
 
     _channel_bin_n = 11
-
-    # Molecular weights of certain pollutants for unit convertion
-    _molecular_weights = {
-        'CO':   28,
-        'NO':   30,
-        'NO2':  46,
-        'O3':   48,
-        'C6H6': 78,
-        'SO2':  64,
-        'H2S':  34
-    }
-
-    # This look-up table is comprised of channels you want always want to have with the same units and that might come from different sources
-    # i.e. pollutant data in various units (ppm or ug/m3) from different analysers
-    # The table should be used as follows:
-    # 'key': 'units',
-    # - 'key' is the channel that will lately be used in the analysis. It supports regex
-    # - target_unit is the unit you want this channel to be and that will be converted in case of it being found in the channels list of your source
-
-    _channel_lut = {
-        "TEMP": "degC",
-        "HUM": "%rh",
-        "PRESS": "kPa",
-        "PM_(\d|[A,B]_\d)": "ug/m3",
-        "^CO2": "ppm",
-        "^CO": "ppb", # Always start with CO
-        "NOISE_A": "dBA",
-        "NO\Z": "ppb",
-        "NO2": "ppb",
-        "NOX": "ppb",
-        "O3": "ppb",
-        "C6H6": "ppb",
-        "H2S": "ppb",
-        "SO2": "ppb",
-        "CO2": "ppm"
-    }
-
-    # This table is used to convert units
-    # ['from_unit', 'to_unit', 'multiplicative_factor', 'requires_M']
-    # - 'from_unit'/'to_unit' = 'multiplicative_factor'
-    # - 'requires_M' = whether it
-    # It accepts reverse operations - you don't need to put them twice but in reverse
-
-    _unit_convertion_lut = (
-        ['%rh', '%', 1, False],
-        ['ºC', 'degC', 1, False],
-        ['ppm', 'ppb', 1000, False],
-        ['mg/m3', 'ug/m3', 1000, False],
-        ['mgm3', 'ugm3', 1000, False],
-        ['mg/m3', 'ppm', 24.45, True],
-        ['mgm3', 'ppm', 24.45, True],
-        ['ug/m3', 'ppb', 24.45, True],
-        ['ugm3', 'ppb', 24.45, True],
-        ['mg/m3', 'ppb', 1000*24.45, True],
-        ['mgm3', 'ppb', 1000*24.45, True],
-        ['ug/m3', 'ppm', 1./1000*24.45, True],
-        ['ugm3', 'ppm', 1./1000*24.45, True]
-    )
 
     ### ---------------------------------------
     ### ----------------PLOTS------------------
@@ -278,7 +180,6 @@ class Config(object):
     _map_colors_palette = array(['#053061','#2166ac','#4393c3','#92c5de',
                                  '#d1e5f0','#fddbc7','#f4a582','#d6604d',
                                  '#b2182b','#67001f'])
-
 
     _plot_style = "seaborn-whitegrid"
 
@@ -522,29 +423,8 @@ class Config(object):
     }
 
     ### ---------------------------------------
-    ### ----------------DISCARD----------------
+    ### ----------------CSV--------------------
     ### ---------------------------------------
-
-    _discvars = [
-        'readings',
-        'api_device',
-        'options',
-        'loaded',
-        'hw_id',
-        'blueprint_url',
-        'hardware_url',
-        'processed',
-        'forwarding_params',
-        'meta',
-        'processed',
-        'postprocessing_info',
-        'hw_updated_at',
-        'description',
-        'latest_postprocessing',
-        'blueprint_loaded_from_url',
-        'hardware_loaded_from_url',
-        'data'
-    ]
 
     _csv_defaults = {
         'index_name': 'TIME',
@@ -552,11 +432,16 @@ class Config(object):
         'skiprows': None
     }
 
+    ### ---------------------------------------
+    ### ---------------------------------------
+    ### ---------------------------------------
+
     def __init__(self):
-        self._env_file = False
-        self.paths = get_paths()
+        self._env_file = None
+        self.paths = self.get_paths()
         self.load()
         self.get_meta_data()
+
 
     def __getattr__(self, name):
         try:
@@ -575,13 +460,209 @@ class Config(object):
     def __iter__(self):
         return (i for i in dir(self))
 
+    def load_env(self):
+        with open(self._env_file) as f:
+            for line in f:
+                # Ignore empty lines or lines that start with #
+                if line.startswith('#') or not line.strip():
+                    continue
+                # Load to local environ
+                key, value = line.strip().split('=', 1)
+                environ[key] = value
+
+    def load_calibrations(self, urls):
+        '''
+            Loads calibrations from urls.
+            The calibrations are meant for alphasense's 4 electrode sensors. The files contains:
+            {
+            "162031254": {
+                "ae_electronic_zero_mv": "",
+                "ae_sensor_zero_mv": "-16.64",
+                "ae_total_zero_mv": "",
+                "pcb_gain_mv_na": "0.8",
+                "we_cross_sensitivity_no2_mv_ppb": "0",
+                "we_cross_sensitivity_no2_na_ppb": "0",
+                "we_electronic_zero_mv": "",
+                "we_sensitivity_mv_ppb": "0.45463999999999993",
+                "we_sensitivity_na_ppb": "0.5682999999999999",
+                "we_sensor_zero_mv": "-27.200000000000003",
+                "we_total_zero_mv": ""
+            },
+            ...
+            }
+            Parameters
+            ----------
+                urls: [String]
+                    json file urls
+            Returns
+            ---------
+                Dictionary containing calibrations otherwise None
+        '''
+
+        calibrations = dict()
+        for url in urls:
+            try:
+                rjson, _ = get_json_from_url(url)
+                calibrations = dict_fmerge(rjson, calibrations)
+            except:
+                print(f'Problem loading calibrations from {url}')
+                return None
+
+        return calibrations
+
+    # def load_connectors(self, urls):
+    #     connectors = dict()
+    #     for url in urls:
+    #         try:
+    #             c = get_json_from_url(url)
+    #             _nc = basename(urlparse(str(url)).path).split('.')[0]
+    #             connectors[_nc] = c
+    #         except:
+    #             print(f'Problem loading connectors from {url}')
+    #             print_exc()
+    #             return None
+
+    #     return connectors
+
+    def load_blueprints(self, urls):
+        blueprints = dict()
+        for url in urls:
+            if url is None: continue
+            _nblueprint = basename(urlparse(str(url)).path).split('.')[0]
+            rjson, _ = get_json_from_url(url)
+
+            if rjson is None:
+                continue
+            if _nblueprint not in blueprints:
+                blueprints[_nblueprint] = TypeAdapter(Blueprint).validate_python(rjson).dict()
+
+        return blueprints
+
+    def load_names(self, urls):
+        isn = True
+        names = dict()
+
+        for url in urls:
+            result = list()
+            _nc = basename(urlparse(str(url)).path).split('.')[0]
+
+            while isn:
+                try:
+                    rjson, rheaders = get_json_from_url(url)
+                    result += TypeAdapter(List[Name]).validate_python(rjson)
+                except:
+                    isn = False
+                    pass
+                else:
+                    if 'next' in rheaders:
+                        if rheaders['next'] == url: isn = False
+                        elif rheaders['next'] != url: url = rheaders['next']
+                    else:
+                        isn = False
+            names[_nc] = result
+
+        return names
+
+    def get_paths(self):
+
+        # Check if windows
+        _mswin = name == "nt"
+        # Get user_home
+        _user_home = expanduser("~")
+
+        # Get .config dir
+        if _mswin:
+            _cdir = environ["APPDATA"]
+        elif 'XDG_CONFIG_HOME' in environ:
+            _cdir = environ['XDG_CONFIG_HOME']
+        else:
+            _cdir = join(expanduser("~"), '.config')
+
+        # Get .cache dir - maybe change it if found in config.json
+        if _mswin:
+            _ddir = environ["APPDATA"]
+        elif 'XDG_CACHE_HOME' in environ:
+            _ddir = environ['XDG_CACHE_HOME']
+        else:
+            _ddir = join(expanduser("~"), '.cache')
+
+        # Set config and cache (data) dirs
+        _sccdir = join(_cdir, 'scdata')
+        _scddir = join(_ddir, 'scdata')
+
+        makedirs(_sccdir, exist_ok=True)
+        makedirs(_scddir, exist_ok=True)
+
+        _paths = dict()
+
+        _paths['config'] = _sccdir
+        _paths['data'] = _scddir
+
+        # Auxiliary folders
+
+        # - Processed data
+        _paths['processed'] = join(_paths['data'], 'processed')
+        makedirs(_paths['processed'], exist_ok=True)
+
+        # - Internal data: blueprints and calibrations
+        _paths['interim'] = join(_paths['data'], 'interim')
+        makedirs(_paths['interim'], exist_ok=True)
+
+        # Check for blueprints and calibrations
+        # Find the path to the interim folder
+        _dir = dirname(__file__)
+        _idir = join(_dir, 'interim')
+
+        # - Models and local tests
+        _paths['models'] = join(_paths['data'], 'models')
+        makedirs(_paths['models'], exist_ok=True)
+
+        # - Exports
+        _paths['export'] = join(_paths['data'], 'export')
+        makedirs(_paths['export'], exist_ok=True)
+
+        # - Raw
+        _paths['raw'] = join(_paths['data'], 'raw')
+        makedirs(_paths['raw'], exist_ok=True)
+        # Copy example csvs
+        _enames = ['example.csv', 'geodata.csv']
+        for _ename in _enames:
+            s = join(_idir, _ename)
+            d = join(_paths['raw'], _ename)
+            if not exists(join(_paths['raw'], _ename)): copyfile(s, d)
+
+        # - Reports
+        _paths['reports'] = join(_paths['data'], 'reports')
+        makedirs(_paths['reports'], exist_ok=True)
+
+        # - Tasks
+        _paths['tasks'] = join(_paths['data'], 'tasks')
+        makedirs(_paths['tasks'], exist_ok=True)
+
+        # - Uploads
+        _paths['uploads'] = join(_paths['data'], 'uploads')
+        makedirs(_paths['uploads'], exist_ok=True)
+
+        # Check for uploads
+        _example_uploads = ['example_upload_1.json', 'example_zenodo_upload.yaml']
+        _udir = join(_dir, 'uploads')
+        for item in _example_uploads:
+            s = join(_udir, item)
+            d = join(_paths['uploads'], item)
+            if not exists(d): copyfile(s, d)
+
+        # Inventory (normally not used by user)
+        _paths['inventory'] = ''
+
+        return _paths
+
     def get_meta_data(self):
         """ Get meta data from blueprints and _calibrations """
 
-        # (re)load calibrations
+        # Load blueprints, calibrations and names
         bppath = join(self.paths['interim'], 'blueprints.json')
         if self.data['reload_metadata'] or not exists(bppath):
-            blueprints = load_blueprints(self.blueprints_urls)
+            blueprints = self.load_blueprints(self.blueprints_urls)
             bpreload = True
         else:
             with open(bppath, 'r') as file: blueprints = json.load(file)
@@ -589,59 +670,53 @@ class Config(object):
 
         calpath = join(self.paths['interim'], 'calibrations.json')
         if self.data['reload_metadata'] or not exists(calpath):
-            calibrations = load_calibrations(self.calibrations_urls)
+            calibrations = self.load_calibrations(self.calibrations_urls)
             calreload = True
         else:
             with open(calpath, 'r') as file: calibrations = json.load(file)
             calreload = False
 
-        conpath = join(self.paths['interim'], 'connectors.json')
-        if self.data['reload_metadata'] or not exists(conpath):
-            connectors = load_connectors(self.connectors_urls)
-            conreload = True
-        else:
-            with open(conpath, 'r') as file: connectors = json.load(file)
-            conreload = False
-
         namespath = join(self.paths['interim'], 'names.json')
         if self.data['reload_metadata'] or not exists(namespath):
-            names = load_names(self.names_urls)
+            names = self.load_names(self.names_urls)
             namesreload = True
-        # else:
-            # TODO Implement load of serialised model
-            # with open(namespath, 'r') as file: names = json.load(file)
-            # namesreload = False
+        else:
+            names = dict()
+            with open(namespath, 'r') as file:
+                names_load = json.load(file)
+            for item in names_load:
+                names[item] = TypeAdapter(List[Name]).validate_python(names_load[item])
+            namesreload = False
 
+        # Dump blueprints, calibrations and names
         if blueprints is not None:
             self.blueprints = blueprints
             if bpreload:
-                with open(bppath, 'w') as file: json.dump(blueprints, file)
+                with open(bppath, 'w') as file:
+                    json.dump(blueprints, file)
+
         if calibrations is not None:
             self.calibrations = calibrations
             if calreload:
-                with open(calpath, 'w') as file: json.dump(calibrations, file)
-        if connectors is not None:
-            self.connectors = connectors
-            if conreload:
-                with open(conpath, 'w') as file: json.dump(connectors, file)
+                with open(calpath, 'w') as file:
+                    json.dump(calibrations, file)
+
         if names is not None:
             self.names = names
-            # if namesreload:
-                # TODO Implement dump of serialised model
-                # with open(namespath, 'w') as file: json.dump(names, file)
+            if namesreload:
+                for item in self.names:
+                    names_dump = {item: [name.model_dump() for name in self.names[item]]}
+                with open(namespath, 'w') as file:
+                    json.dump(names_dump, file)
 
         # Find environment file in root or in scdata/ for clones
         if exists(join(self.paths['data'],'.env')):
-            env_file = join(self.paths['data'],'.env')
+            self._env_file = join(self.paths['data'],'.env')
+            print(f'Found Environment file at: {self._env_file}')
+            self.load_env()
         else:
             print(f'No environment file found. If you had an environment file (.env) before, make sure its now here')
             print(join(self.paths['data'],'.env'))
-            env_file = None
-
-        # Load .env for tokens and stuff if found
-        if env_file is not None and not self._env_file:
-            print(f'Found Environment file at: {env_file}')
-            if load_env(env_file): self._env_file = True
 
     def load(self):
         """ Override config if config file exists. """
@@ -659,7 +734,8 @@ class Config(object):
 
                 except KeyError:  # Ignore unrecognised data in config
                     print ("Unrecognised config item: %s", k)
-        if self.framework != 'chupiflow':
+
+        if self._framework != 'chupiflow':
             self.save()
 
     def save(self):

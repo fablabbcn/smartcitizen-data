@@ -13,10 +13,12 @@ from re import sub
 from pydantic import TypeAdapter, BaseModel, ConfigDict, model_serializer
 from typing import Optional, List, Dict, Any
 
-from scdata.tools import logger, localise_date, find_by_field
+from scdata.tools.custom_logger import logger
+from scdata.tools.date import localise_date
+from scdata.tools.find import find_by_field
 from scdata.io import read_csv_file, export_csv_file
 from scdata._config import config
-from scdata.device import Device
+from scdata import Device
 from scdata.models import TestOptions#, TestResult
 
 class Test(BaseModel):

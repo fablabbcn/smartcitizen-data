@@ -1,10 +1,36 @@
-from scdata.tools import logger, get_units_convf, find_dates, localise_date
+from scdata.tools.custom_logger import logger
+from scdata.tools.units import get_units_convf
+from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
 from scdata.device.process import baseline_calc, clean_ts
 from scipy.stats.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
+
+# Alphasense sensor codes
+alphasense_sensor_codes =  {
+    '132':  'ASA4_CO',
+    '133':  'ASA4_H2S',
+    '130':  'ASA4_NO',
+    '212':  'ASA4_NO2',
+    '214':  'ASA4_OX',
+    '134':  'ASA4_SO2',
+    '162':  'ASB4_CO',
+    '133':  'ASB4_H2S',#
+    '130':  'ASB4_NO', #
+    '202':  'ASB4_NO2',
+    '204':  'ASB4_OX',
+    '164':  'ASB4_SO2'
+}
+
+# Alphasense temperature channels (in order of priority)
+alphasense_temp_channel = [
+    "ASPT1000",
+    "SHT31_EXT_TEMP",
+    "SHT35_EXT_TEMP",
+    "PM_DALLAS_TEMP",
+]
 
 def alphasense_803_04(dataframe, **kwargs):
     """
@@ -71,7 +97,7 @@ def alphasense_803_04(dataframe, **kwargs):
     df = dataframe.copy()
 
     # Get sensor type
-    as_type = config._as_sensor_codes[kwargs['alphasense_id'][0:3]]
+    as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
     if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
@@ -148,7 +174,7 @@ def ec_sensor_temp(dataframe, **kwargs):
     """
     if 'priority' in kwargs:
         if kwargs['priority'] in dataframe.columns: return dataframe[kwargs['priority']]
-    for option in config._as_temp_channel:
+    for option in alphasense_temp_channel:
         if option in dataframe.columns: return dataframe[option]
     logger.error('Problem with input data')
     return None

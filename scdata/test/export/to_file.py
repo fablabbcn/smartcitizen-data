@@ -2,7 +2,7 @@
 
 from os.path import join, dirname, exists
 from os import makedirs
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 import flask
 from re import sub
 

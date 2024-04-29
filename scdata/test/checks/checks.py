@@ -1,4 +1,4 @@
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 import matplotlib.pyplot as plt
 import missingno as msno
 from pandas import to_datetime, DataFrame

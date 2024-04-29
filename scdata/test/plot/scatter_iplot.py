@@ -1,4 +1,5 @@
-from scdata.tools import logger, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 from .scatter_plot import scatter_plot
 from scdata._config import config
 from plotly.io import renderers

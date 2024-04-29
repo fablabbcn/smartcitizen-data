@@ -2,7 +2,6 @@ from termcolor import colored
 from scdata._config import config
 from datetime import datetime
 import sys
-
 import logging
 
 class CutsomLoggingFormatter(logging.Formatter):
@@ -29,9 +28,9 @@ class CutsomLoggingFormatter(logging.Formatter):
         return formatter.format(record)
 
 logger = logging.getLogger('scdata')
-logger.setLevel(config.log_level)
+logger.setLevel(config._log_level)
 ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(config.log_level)
+ch.setLevel(config._log_level)
 ch.setFormatter(CutsomLoggingFormatter())
 logger.addHandler(ch)
 

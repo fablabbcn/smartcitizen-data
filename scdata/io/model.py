@@ -1,4 +1,4 @@
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 from joblib import dump, load
 from scdata._config import config
 from os.path import join, exists

@@ -3,7 +3,8 @@ from matplotlib import rcParams
 from matplotlib import style
 from seaborn import set_palette, boxplot
 # import seaborn as sns
-from scdata.tools import logger, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, groupby_session
 

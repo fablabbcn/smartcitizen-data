@@ -1,6 +1,6 @@
 from requests import get
 from pandas import json_normalize
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 from scdata._config import config
 
 def get_elevation(_lat = None, _long = None):

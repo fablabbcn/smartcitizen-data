@@ -1,4 +1,5 @@
-from scdata.tools import logger, localise_date
+from scdata.tools.custom_logger import logger
+from scdata.tools.date import localise_date
 from pandas import DataFrame
 from scdata._config import config
 

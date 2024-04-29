@@ -7,7 +7,9 @@ from folium.plugins import MiniMap, TimestampedGeoJson
 from math import isnan, floor, ceil
 from traceback import print_exc
 from pandas import cut, date_range
-from scdata.tools import dict_fmerge, clean, logger
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.cleaning import clean
+from scdata.tools.custom_logger import logger
 from scdata._config import config
 from numpy import linspace, nan
 from branca import element

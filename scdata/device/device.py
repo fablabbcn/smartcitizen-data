@@ -1,10 +1,13 @@
 ''' Main implementation of class Device '''
 
-from scdata.tools import logger, localise_date, \
-    dict_fmerge, get_units_convf
+from scdata.tools.custom_logger import logger
 from scdata.io import read_csv_file, export_csv_file
-from scdata.tools import LazyCallable, url_checker, \
-    get_json_from_url, find_by_field
+from scdata.tools.lazy import LazyCallable
+from scdata.tools.url_check import url_checker
+from scdata.tools.date import localise_date
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.units import get_units_convf
+from scdata.tools.find import find_by_field
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, FileParams, DeviceOptions, Sensor

@@ -10,7 +10,12 @@ from io import StringIO
 
 from geopy.distance import distance
 from scdata._config import config
-from scdata.tools import logger, localise_date, clean, get_elevation, url_checker, process_headers
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.date import localise_date
+from scdata.tools.cleaning import clean
+from scdata.tools.url_check import url_checker
+from scdata.tools.gets import process_headers
 # from tzwhere import tzwhere
 from timezonefinder import TimezoneFinder
 from datetime import date, datetime

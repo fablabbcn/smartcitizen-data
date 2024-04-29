@@ -1,3 +1,5 @@
+from requests import get
+
 def process_headers(headers):
     result = {}
     if 'total' in headers: result['total_pages'] = headers['total']
@@ -16,3 +18,23 @@ def process_headers(headers):
                 elif which == 'first':
                     result['first'] = chunk[0].strip('<').strip('>')
     return result
+
+def get_json_from_url(url):
+
+    # Gets a json from an url and returns it as a dict
+    rjson = None
+    rheaders = None
+    try:
+        r = get(url)
+        r.raise_for_status()
+        rjson = r.json()
+        rheaders = process_headers(r.headers)
+    except ConnectionError:
+        print (f'Failed request. Response {r.status_code}')
+        pass
+    except:
+        pass
+
+    return rjson, rheaders
+
+

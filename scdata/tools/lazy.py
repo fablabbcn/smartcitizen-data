@@ -1,5 +1,5 @@
 import sys
-from .out import logger
+from .custom_logger import logger
 
 class LazyCallable(object):
     '''

@@ -1,4 +1,4 @@
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 from numpy import arange
 from pandas import cut, DataFrame, to_datetime, option_context, to_numeric
 import io

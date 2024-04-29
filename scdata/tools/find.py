@@ -1,4 +1,4 @@
-from scdata.tools import logger
+from scdata.tools.custom_logger import logger
 
 def find_by_field(models, value, field):
     try:
