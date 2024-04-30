@@ -356,18 +356,14 @@ class Test(BaseModel):
         '''
         logger.info('Loading test...')
 
-        tasks = []
-        semaphore = asyncio.Semaphore(config._max_concurrent_requests)
-
         for device in self.devices:
             # Check for cached data
             cached_file_path = ''
             if self.options.cache:
                 tentative_path = join(self.path, 'cached', f'{device.id}.csv')
                 if exists(tentative_path): cached_file_path = tentative_path
-            # Append task
-            tasks.append(asyncio.ensure_future(device.load(cache=cached_file_path)))
-        await asyncio.gather(*tasks)
+            # Load device (no need to go async, it's fast enough)
+            await device.load(cache=cached_file_path)
 
         logger.info('Test load done')
         if self.options.cache: self.cache()
