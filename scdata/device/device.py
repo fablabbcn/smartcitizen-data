@@ -348,9 +348,10 @@ class Device(BaseModel):
                     self.__convert_units__()
                 self.postprocessing_updated = False
             else:
-                logger.warning('Empty dataframe in data')
+                logger.info('Empty dataframe in loaded data. Waiting for cache...')
 
         if not cached_data.empty:
+            logger.info('Cache exists')
             self.data = self.data.combine_first(cached_data)
 
         return not self.data.empty
