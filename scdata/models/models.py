@@ -31,14 +31,15 @@ class APIParams(BaseModel):
     id: int
 
 class FileParams(BaseModel):
-    id: str # Compatible with API id
-    header_skip: Optional[List[int]] = []
+    id: int # To be compatible with API id
+    path: str
+
+class CSVParams(FileParams):
+    header_skip: Optional[List[int]] = [1,2,3]
     index: Optional[str] = 'TIME'
     separator: Optional[str] = ','
     tzaware: Optional[bool] = True
     timezone: Optional[str] = "UTC"
-    processed: Optional[str] = None
-    raw: Optional[str] = None
 
 class DeviceOptions(BaseModel):
     clean_na: Optional[bool] = None
@@ -50,11 +51,9 @@ class DeviceOptions(BaseModel):
 class Blueprint(BaseModel):
     meta: dict = dict()
     metrics: List[Metric] = []
-    source: Source = Source()
 
 class Name(BaseModel):
     id: int
     name: str
     description: str
     unit: str
-

@@ -27,11 +27,13 @@ def to_csv(self, path = None, forced_overwrite = False):
     else: epath = path
 
     # Export to csv
-    for device in self.devices.keys():
-        export_ok &= self.devices[device].export(epath, forced_overwrite = forced_overwrite)
+    for device in self.devices:
+        export_ok &= device.export(epath, forced_overwrite = forced_overwrite)
 
-    if export_ok: logger.info(f'Test {self.full_name} exported successfully')
-    else: logger.error(f'Test {self.full_name} not exported successfully')
+    if export_ok:
+        logger.info(f'Test {self.name} exported successfully')
+    else:
+        logger.error(f'Error while exporting test: {self.name}')
 
     return export_ok
 

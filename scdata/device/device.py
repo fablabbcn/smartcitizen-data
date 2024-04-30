@@ -10,7 +10,7 @@ from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
 from scdata._config import config
 from scdata.io.device_api import *
-from scdata.models import Blueprint, Metric, Source, APIParams, FileParams, DeviceOptions, Sensor
+from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
 
 from os.path import join, basename
 from urllib.parse import urlparse
@@ -32,9 +32,9 @@ class Device(BaseModel):
 
     blueprint: str = None
     source: Source = Source()
-    # Convert this to Options
     options: DeviceOptions = DeviceOptions()
     params: object = None
+    paramsParsed: object = None
     metrics: List[Metric] = []
     meta: dict = dict()
     hclass: object = None
@@ -75,7 +75,6 @@ class Device(BaseModel):
 
         # Set handler
         self.__set_handler__()
-
         # Set blueprint
         if self.blueprint is not None:
             if self.blueprint not in config.blueprints:
@@ -89,7 +88,7 @@ class Device(BaseModel):
             else:
                 raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
 
-        logger.info(f'Device {self.params.id} initialised')
+        logger.info(f'Device {self.paramsParsed.id} initialised')
 
     def __set_handler__(self):
         # Add handlers here
@@ -112,12 +111,14 @@ class Device(BaseModel):
                 self.hclass = getattr(hmod, self.source.handler)
                 logger.info(f'Setting handler as {self.hclass}')
 
-        elif self.source.type == 'file':
+            self.paramsParsed = TypeAdapter(APIParams).validate_python(self.params)
+
+        elif self.source.type == 'csv':
             try:
                 module = self.source.module
             except:
                 # Default to device_file if not specified
-                module = 'scdata.io.device_file'
+                module = 'scdata.io.device_file.CSVHandler'
                 logger.warning(f'Module not specified. Defaulting to {module}')
                 pass
 
@@ -130,13 +131,14 @@ class Device(BaseModel):
                 self.hclass = getattr(hmod, self.source.handler)
                 logger.info(f'Setting handler as {self.hclass}')
 
+            self.paramsParsed = TypeAdapter(CSVParams).validate_python(self.params)
         elif self.source.type == 'stream':
             # TODO Add handler here
             raise NotImplementedError('No handler for stream yet')
 
         # TODO - Fix to be able to pass other things that are not IDs
         if self.hclass is not None:
-            self.handler = self.hclass(self.params.id)
+            self.handler = self.hclass(params = self.paramsParsed)
         else:
             raise ValueError("Devices need one handler")
 
@@ -146,7 +148,7 @@ class Device(BaseModel):
             if item not in vars(self):
                 raise ValueError(f'Invalid blueprint item {item}')
             else:
-                # Small workaround for postponed fields
+                # Workaround for postponed fields
                 item_type = self.model_fields[item].annotation
                 self.__setattr__(item, TypeAdapter(item_type).validate_python(blueprint[item]))
 
@@ -617,7 +619,7 @@ class Device(BaseModel):
             logger.error('Cannot export null data')
             return False
         if file_format == 'csv':
-            return export_csv_file(path, str(self.params.id), self.data, forced_overwrite = forced_overwrite)
+            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite)
         else:
             # TODO Make a list of supported formats
             return NotImplementedError (f'Not supported format. Formats: [csv]')

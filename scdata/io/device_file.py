@@ -1,30 +1,66 @@
 from os import makedirs, listdir
 from os.path import exists, join, splitext
+import csv
+
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.cleaning import clean
 from pandas import read_csv, to_datetime, DataFrame
 from scdata._config import config
-import csv
-# from scdata.models import CSVParams, CSVFiles
-from pydantic import BaseModel, ConfigDict
+from scdata.models import Metric
 
+class CSVHandler:
+    ''' Main implementation of the CSV data class '''
 
-# class CSVHandler(BaseModel):
-#     ''' Main implementation of the device class '''
-#     model_config = ConfigDict(arbitrary_types_allowed = True)
+    def __init__(self, params):
+        self.id = params.id
+        self.params = params
+        self.method = 'sync'
+        self.data = DataFrame()
+        self._metrics: List[Metric] = []
+        self.latest_postprocessing = None
+        if not self.__check__():
+            raise FileExistsError(f'File not found: {self.params.path}')
 
-#     params: CSVParams = CSVParams()
-#     files: CSVFiles = CSVFiles()
-#     method: 'sync'
+    def __check__(self):
+        return exists(self.params.path)
 
-#     # TODO - Fix
-#     def export(self):
-#         return True
+    @property
+    def timezone(self):
+        return self.params.timezone
 
-#     # TODO - Fix
-#     def get_data(self):
-#         return True
+    # This returns an empty list to avoid renaming CSVs
+    @property
+    def sensors(self):
+        return []
+
+    def update_latest_postprocessing(self, date):
+
+        try:
+            self.latest_postprocessing = date.to_pydatetime()
+        except:
+            return False
+        else:
+            logger.info(f"Updated latest_postprocessing to: {self.latest_postprocessing}")
+            return True
+
+        logger.info('Nothing to update')
+
+        return True
+
+    def get_data(self, **kwargs):
+        self.data = read_csv_file(self.params.path,
+            timezone= self.timezone,
+            frequency= kwargs['frequency'],
+            clean_na= kwargs['clean_na'],
+            index_name= self.params.index,
+            skiprows=self.params.header_skip,
+            sep=self.params.separator,
+            tzaware=self.params.tzaware,
+            resample=kwargs['resample']
+        )
+
+        return self.data
 
 def export_csv_file(path, file_name, df, forced_overwrite=False):
     '''
