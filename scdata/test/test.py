@@ -65,7 +65,8 @@ class Test(BaseModel):
                 tj = json.load(file)
 
             self.devices = TypeAdapter(List[Device]).validate_python(tj['devices'])
-            self.options = TypeAdapter(Options).validate_python(tj['options'])
+            self.options = TypeAdapter(TestOptions).validate_python(tj['options'])
+            print (tj['meta'])
             self.type = tj['meta']['type']
             if self.name != tj['meta']['name']:
                 raise ValueError('Name not matching')
@@ -78,6 +79,8 @@ class Test(BaseModel):
         # self.dispersion_df = None
         # self._dispersion_summary = None
         # self.common_channels = None
+
+        logger.info(f'Test {self.name} initialized')
 
     def __str__(self):
         return self.__full_name__
