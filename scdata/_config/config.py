@@ -33,7 +33,7 @@ class Config(object):
     # - 'script': no plots in jupyter, updates config
     # - 'jupyterlab': for plots, updates config
     # - 'chupiflow': no plots in jupyter, does not update config
-    _framework = 'script'
+    framework = 'script'
 
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
@@ -735,14 +735,14 @@ class Config(object):
                 except KeyError:  # Ignore unrecognised data in config
                     print ("Unrecognised config item: %s", k)
 
-        if self._framework != 'chupiflow':
+        if self.framework != 'chupiflow':
             self.save()
 
     def save(self):
         """ Save current config to file. """
         c = dict()
         for setting in self:
-            if not setting.startswith('_') and not callable(self.__getitem__(setting)):
+            if not setting.startswith('_') and not callable(self.__getitem__(setting)) and setting not in ['blueprints', 'names', 'calibrations']:
                 c[setting] = self[setting]
 
         _sccpath = join(self.paths['config'], 'config.yaml')
