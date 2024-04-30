@@ -181,7 +181,7 @@ class Device(BaseModel):
 
     @property
     def id(self):
-        return self.params.id
+        return self.paramsParsed.id
 
     def add_metric(self, metric = dict()):
         '''
