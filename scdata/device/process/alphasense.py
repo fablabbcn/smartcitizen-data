@@ -173,9 +173,11 @@ def ec_sensor_temp(dataframe, **kwargs):
         Temperature series
     """
     if 'priority' in kwargs:
-        if kwargs['priority'] in dataframe.columns: return dataframe[kwargs['priority']]
+        if kwargs['priority'] in dataframe.columns:
+            return dataframe[kwargs['priority']]
     for option in alphasense_temp_channel:
-        if option in dataframe.columns: return dataframe[option]
+        if option in dataframe.columns:
+            return dataframe[option]
     logger.error('Problem with input data')
     return None
 
