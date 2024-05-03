@@ -1,7 +1,7 @@
 ''' Implementation of zenodo export '''
 
 from scdata._config import config
-from scdata.tools import logger, get_tests_log
+from scdata.tools.custom_logger import logger
 from scdata.tools.report import include_footer
 from scdata import Test
 import json, yaml
@@ -37,6 +37,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 		True if all data is uploaded, False otherwise
 
 	'''
+	raise NotImplementedError
 
 	def fill_template(individual_descriptor, descriptor_file_name, upload_type = 'dataset'):
 		# Open base template with all keys
@@ -213,7 +214,7 @@ def zenodo_upload(upload_descritor, sandbox = True, dry_run = True):
 									files = {'file': open(file_path, 'rb')}
 									file_size = getsize(file_path)/(1024*1024.0*1024)
 
-									if file_size > 50: logger.warning(f'File size for {file_name} over 50Gb ({fi 'WARNING')
+									if file_size > 50: logger.warning(f'File size for {file_name} over 50Gb')
 
 									if not dry_run: status_code = upload_file(url, upload_metadata, files)
 									else: status_code = 200
