@@ -3,6 +3,6 @@ include LICENSE
 include setup.py
 include setup.cfg
 include scdata/test/export/templates/sc_template.html
-include scdata/utils/interim/*.csv
-include scdata/utils/zenodo_templates/*.*
-include scdata/utils/uploads/*.*
+include scdata/tools/interim/*.csv
+include scdata/tools/zenodo_templates/*.*
+include scdata/tools/uploads/*.*
