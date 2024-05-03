@@ -136,7 +136,6 @@ class Device(BaseModel):
             # TODO Add handler here
             raise NotImplementedError('No handler for stream yet')
 
-        # TODO - Fix to be able to pass other things that are not IDs
         if self.hclass is not None:
             self.handler = self.hclass(params = self.paramsParsed)
         else:
@@ -229,7 +228,7 @@ class Device(BaseModel):
         '''
 
         if 'metrics' not in vars(self):
-            logger.info(f'Device {self.params.id} has no metrics yet. Adding')
+            logger.info(f'Device {self.paramsParsed.id} has no metrics yet. Adding')
             self.metrics = list()
 
         _metric = TypeAdapter(Metric).validate_python(metric)
@@ -431,11 +430,11 @@ class Device(BaseModel):
         self.postprocessing_updated = False
 
         if 'metrics' not in vars(self):
-            logger.warning(f'Device {self.params.id} has nothing to process. Skipping')
+            logger.warning(f'Device {self.paramsParsed.id} has nothing to process. Skipping')
             return process_ok
 
         logger.info('---------------------------')
-        logger.info(f'Processing device {self.params.id}')
+        logger.info(f'Processing device {self.paramsParsed.id}')
         if lmetrics is None:
             _lmetrics = [metric.name for metric in self.metrics]
         else: _lmetrics = lmetrics
@@ -479,7 +478,7 @@ class Device(BaseModel):
                 # If the metric is None, might be for many reasons and shouldn't collapse the process_ok
 
         if process_ok:
-            logger.info(f"Device {self.params.id} processed")
+            logger.info(f"Device {self.paramsParsed.id} processed")
             self.processed = process_ok & self.update_postprocessing_date()
 
         return self.processed
@@ -658,8 +657,8 @@ class Device(BaseModel):
             rename = self._rename, clean_na = clean_na, chunk_size = chunk_size, \
             dry_run = dry_run, max_retries = max_retries)
 
-        if post_ok: logger.info(f'Posted data for {self.params.id}')
-        else: logger.error(f'Error posting data for {self.params.id}')
+        if post_ok: logger.info(f'Posted data for {self.paramsParsed.id}')
+        else: logger.error(f'Error posting data for {self.paramsParsed.id}')
 
         # Post info if requested. It should be updated elsewhere
         if with_postprocessing and post_ok and not dry_run:
@@ -686,5 +685,5 @@ class Device(BaseModel):
 
         post_ok = self.handler.patch_postprocessing(dry_run=dry_run)
 
-        if post_ok: logger.info(f"Postprocessing posted for device {self.params.id}")
+        if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
