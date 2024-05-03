@@ -70,6 +70,8 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
         rendered:
             flask rendered template
     '''
+    # TODO - Update or remove
+    raise NotImplementedError
 
     # Find the path to the html templates directory
     template_folder = join(dirname(__file__), 'templates')
@@ -80,9 +82,9 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
         logger.info('Creating folder for test export')
         makedirs(path)
 
-    filename = join(path, f'{self.full_name}.html')
+    filename = join(path, f'{self.name}.html')
 
-    docname = sub('.','_', self.full_name)
+    docname = sub('.','_', self.name)
     app = flask.Flask(docname, template_folder = template_folder)
 
     with app.app_context():
