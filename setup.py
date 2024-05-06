@@ -57,7 +57,7 @@ setup(
                         'tqdm~=4.50.2',
                         'timezonefinder~=6.1.9',
                         'urllib3==1.25.9',
-                        'Werkzeug==2.2.2'
+                        'Werkzeug==3.0.3'
                     ],
     setup_requires=['wheel'],
     python_requires=">=3.6",
