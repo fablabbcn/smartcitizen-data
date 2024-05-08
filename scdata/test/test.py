@@ -370,4 +370,5 @@ class Test(BaseModel):
         logger.info('Test load done')
         if self.options.cache: self.cache()
 
-        return all([d.loaded for d in self.devices])
+        self.loaded = all([d.loaded for d in self.devices])
+        return self.loaded
