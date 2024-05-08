@@ -611,7 +611,7 @@ class Config(object):
         # Check for blueprints and calibrations
         # Find the path to the interim folder
         _dir = dirname(__file__)
-        _idir = join(_dir, 'interim')
+        _idir = join(_dir, '../tools/interim')
 
         # - Models and local tests
         _paths['models'] = join(_paths['data'], 'models')
@@ -645,7 +645,7 @@ class Config(object):
 
         # Check for uploads
         _example_uploads = ['example_upload_1.json', 'example_zenodo_upload.yaml']
-        _udir = join(_dir, 'uploads')
+        _udir = join(_dir, '../tools/uploads')
         for item in _example_uploads:
             s = join(_udir, item)
             d = join(_paths['uploads'], item)

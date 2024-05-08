@@ -23,9 +23,10 @@ from scdata.models import TestOptions
 
 class Test(BaseModel):
 
-    from .plot import (ts_plot, ts_iplot, device_metric_map, path_plot,
-        scatter_plot, scatter_iplot, ts_scatter,
-        heatmap_plot, heatmap_iplot,
+    from .plot import (ts_plot, device_metric_map, path_plot,
+        scatter_plot, ts_scatter,
+        # ts_iplot, scatter_iplot, heatmap_iplot,
+        heatmap_plot,
         box_plot, ts_dendrogram,
         ts_dispersion_plot, ts_dispersion_grid,
         scatter_dispersion_grid)

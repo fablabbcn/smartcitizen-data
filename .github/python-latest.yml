@@ -10,11 +10,11 @@ on:
    branches: [ "master" ]
 
 jobs:
-  build:
+  build-latest:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9"]
+        python-version: ["3.11"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -37,31 +37,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
-    - name: Build package
-      run: |
-        python setup.py sdist bdist_wheel
-    - name: Archive artifacts
-      uses: actions/upload-artifact@v1
-      with:
-        name: scdata-pkg
-        path: dist
-  pypi-publish:
-    name: Upload release to PyPI
-    if: startsWith(github.ref, 'refs/tags/')
-    needs:
-    - build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/scdata
-    permissions:
-      id-token: write
-    steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v3
-      with:
-        name: python-package-distributions
-        path: dist/
-    - name: Publish distribution 📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+        pytest tests/all

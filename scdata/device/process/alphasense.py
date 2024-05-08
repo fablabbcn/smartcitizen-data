@@ -4,7 +4,7 @@ from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
 from scdata.device.process import baseline_calc, clean_ts
-from scipy.stats.stats import linregress
+from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
 

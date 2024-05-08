@@ -492,7 +492,7 @@ class Device(BaseModel):
             to_timedelta(self.options.frequency), 'UTC')
         if self.handler.update_latest_postprocessing(latest_postprocessing):
             # Consider the case of no postprocessing, to avoid making the whole thing false
-            if latest_postprocessing.to_pydatetime() == self.handler.latest_postprocessing or self.json.postprocessing is None:
+            if latest_postprocessing.to_pydatetime() == self.handler.latest_postprocessing or self.handler.json.postprocessing is None:
                 self.postprocessing_updated = True
             else:
                 self.postprocessing_updated = False

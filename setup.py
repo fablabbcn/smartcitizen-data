@@ -15,6 +15,8 @@ PROJECT_URLS = {
     "Source Code": "https://github.com/fablabbcn/smartcitizen-data",
 }
 
+REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
+
 setup(
     name='scdata',
     version='0.9.1',
@@ -36,29 +38,7 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3',
     ],
-    install_requires=[
-                        'branca~=0.4.0',
-                        'Flask~=2.2.2',
-                        'folium~=0.12.1',
-                        'geopy~=1.21.0',
-                        'Jinja2~=3.1.2',
-                        'matplotlib~=3.2.1',
-                        'missingno~=0.5.2',
-                        'numpy~=1.20.0',
-                        'pandas~=1.5.0',
-                        'plotly~=4.14.3',
-                        'pytest',
-                        'PyYAML==5.3.1',
-                        'requests==2.23.0',
-                        'scipy~=1.5.0',
-                        'scikit-learn~=1.0.1',
-                        'seaborn~=0.11.2',
-                        'termcolor==1.1.0',
-                        'tqdm~=4.50.2',
-                        'timezonefinder~=6.1.9',
-                        'urllib3==1.25.9',
-                        'Werkzeug==2.2.2'
-                    ],
+    install_requires=[REQUIREMENTS],
     setup_requires=['wheel'],
     python_requires=">=3.6",
     include_package_data=True,
