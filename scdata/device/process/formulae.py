@@ -1,5 +1,6 @@
 from numpy import exp, log, transpose
 from scipy.stats import linregress
+from scdata.device.process.codes import StatusCode
 
 # TODO REVIEW
 def absolute_humidity(dataframe, **kwargs):
@@ -21,13 +22,13 @@ def absolute_humidity(dataframe, **kwargs):
         pandas series containing the absolute humidity calculation in mg/m3?
     """
     # Check
-    if 'temperature' not in kwargs: return None
-    if 'rel_h' not in kwargs: return None
-    if 'pressure' not in kwargs: return None
+    if 'temperature' not in kwargs: return StatusCode(1), None
+    if 'rel_h' not in kwargs: return StatusCode(1), None
+    if 'pressure' not in kwargs: return StatusCode(1), None
 
-    if kwargs['temperature'] not in dataframe.columns: return None
-    if kwargs['rel_h'] not in dataframe.columns: return None
-    if kwargs['pressure'] not in dataframe.columns: return None
+    if kwargs['temperature'] not in dataframe.columns: return StatusCode(5), None
+    if kwargs['rel_h'] not in dataframe.columns: return StatusCode(5), None
+    if kwargs['pressure'] not in dataframe.columns: return StatusCode(5), None
 
     temp = dataframe[kwargs['temperature']].values
     rel_h = dataframe[kwargs['rel_h']].values
@@ -38,7 +39,7 @@ def absolute_humidity(dataframe, **kwargs):
 
     abs_humidity = rel_h * vap_eq
 
-    return abs_humidity
+    return StatusCode(100), abs_humidity
 
 def exp_f(x, A, B, C):
     """
@@ -56,8 +57,8 @@ def exp_f(x, A, B, C):
     Returns
     -------
         pandas series
-    """    
-    return A * exp(B * x) + C
+    """
+    return StatusCode(100), A * exp(B * x) + C
 
 def fit_exp_f(y, x):
     """
@@ -66,16 +67,16 @@ def fit_exp_f(y, x):
     Parameters
     ----------
         y: pd.Series
-            Variable y in the formula    
+            Variable y in the formula
         x: pd.Series
             Variable x in the formula
     Returns
     -------
         Parameters A and B
-    """    
+    """
 
     ## Fit with y = Ae^(Bx) -> logy = logA + Bx
     # Returns A and B of a function as: y = A*e^(Bx)
     B, logA, r_value, p_value, std_err = linregress(transpose(x.values), log(y))
-    
-    return exp(logA), B
+
+    return StatusCode(100), exp(logA), B

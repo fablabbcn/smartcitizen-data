@@ -2,7 +2,7 @@ from geopy.distance import distance
 from math import isnan
 
 def is_within_circle(x, within, _lat_name = 'GPS_LAT', _long_name = 'GPS_LONG'):
-    ''' 
+    '''
     Returns whether or not a line in pd.DataFrame() is geolocated within a circle
     Parameters
     ----------
@@ -10,7 +10,7 @@ def is_within_circle(x, within, _lat_name = 'GPS_LAT', _long_name = 'GPS_LONG'):
             Empty tuple
             Gets the devices within a circle center on lat, long with a radius_meters
             within = tuple(lat, long, radius_meters)
-        _lat_name: str, optional 
+        _lat_name: str, optional
             GPS_LAT
             Column name for latitude in dataframe
         _long_name: str, optional

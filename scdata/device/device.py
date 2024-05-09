@@ -466,7 +466,7 @@ class Device(BaseModel):
                 if metric.kwargs is not None: kwargs = metric.kwargs
 
             try:
-                result = funct(self.data, *args, **kwargs)
+                code, result = funct(self.data, *args, **kwargs)
             except KeyError:
                 logger.error('Cannot process requested function with data provided')
                 process_ok = False
@@ -475,7 +475,7 @@ class Device(BaseModel):
                 if result is not None:
                     self.data[metric.name] = result
                     process_ok &= True
-                # If the metric is None, might be for many reasons and shouldn't collapse the process_ok
+                    # TODO Add Status codes
 
         if process_ok:
             logger.info(f"Device {self.paramsParsed.id} processed")
