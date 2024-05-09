@@ -8,7 +8,7 @@ import os
 config._log_level = 'DEBUG'
 config.data['strict_load'] = False
 
-def test_csv_device():
+def test_csv_device_all():
     id = 16838
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../..', 'scdata/tools/interim/example.csv')
     frequency = '5Min'

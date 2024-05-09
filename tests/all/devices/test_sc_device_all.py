@@ -7,7 +7,7 @@ import asyncio
 config._log_level = 'DEBUG'
 config.data['strict_load'] = False
 
-def test_api_device():
+def test_sc_device_all():
     id = 16838
     frequency = '1Min'
     uuid = "80e684e5-359f-4755-aec9-30fc0c84415f"

@@ -10,7 +10,7 @@ from scdata.tools.date import localise_date
 config._out_level = 'DEBUG'
 config.data['strict_load'] = False
 
-def test_test():
+def test_sc_test():
     # Test couple of weirded format dates
     min_date = '2023-09-20 08:19:10-0700'
     now = time.localtime()
