@@ -7,47 +7,48 @@ from scdata._config import config
 from scdata.tools.dictmerge import dict_fmerge
 
 def gaps_check(self, devices = None, channels = None, groupby = 'channel', **kwargs):
-    if config.framework == 'jupyterlab': plt.ioff();
-    plt.clf();
+    return None
+#     if config.framework == 'jupyterlab': plt.ioff()
+#     plt.clf()
 
-    if 'formatting' not in kwargs:
-        logger.info('Using default formatting')
-        formatting = config._missingno_def_fmt
-    else:
-        formatting = dict_fmerge(config._missingno_def_fmt, kwargs['formatting'])
+#     if 'formatting' not in kwargs:
+#         logger.info('Using default formatting')
+#         formatting = config._missingno_def_fmt
+#     else:
+#         formatting = dict_fmerge(config._missingno_def_fmt, kwargs['formatting'])
 
-	# Get list of devices
-    if devices is None:
-        _devices = list(self.devices.keys())
-    else:
-        _devices = devices
+# 	# Get list of devices
+#     if devices is None:
+#         _devices = list(self.devices.keys())
+#     else:
+#         _devices = devices
 
-    if channels is None:
-        logger.error('Need some channels to check gaps for')
-        return
+#     if channels is None:
+#         logger.error('Need some channels to check gaps for')
+#         return
 
-    if groupby == 'device':
+#     if groupby == 'device':
 
-        for device in _devices:
-            if device not in self.devices:
-                logger.warning('Device not found in test')
-                continue
-            msno.matrix(self.devices[device].readings)
+#         for device in _devices:
+#             if device not in self.devices:
+#                 logger.warning('Device not found in test')
+#                 continue
+#             msno.matrix(self.devices[device].readings)
 
-    elif groupby == 'channel':
+#     elif groupby == 'channel':
 
-        for channel in channels:
-            traces = {"1": {"devices": _devices, "channel": channel, "subplot": 1}}
-            options = config._plot_def_opt
-            df, _ = prepare_data(self, traces, options)
-            fig, ax = plt.subplots(1, len(_devices), figsize=(formatting['width'], formatting['height']))
-            for device in _devices:
-                if device not in self.devices:
-                    logger.warning('Device not found in test')
-                    continue
-                msno.matrix(df = DataFrame(df[f'{channel}_{device}']), sparkline=False, ax = ax[_devices.index(device)], fontsize=formatting['fontsize'])
-                ax[_devices.index(device)].set_yticks([i for i in range(len(df))], [i for i in df.index.values])
-            plt.show()
+#         for channel in channels:
+#             traces = {"1": {"devices": _devices, "channel": channel, "subplot": 1}}
+#             options = config._plot_def_opt
+#             df, _ = prepare_data(self, traces, options)
+#             fig, ax = plt.subplots(1, len(_devices), figsize=(formatting['width'], formatting['height']))
+#             for device in _devices:
+#                 if device not in self.devices:
+#                     logger.warning('Device not found in test')
+#                     continue
+#                 msno.matrix(df = DataFrame(df[f'{channel}_{device}']), sparkline=False, ax = ax[_devices.index(device)], fontsize=formatting['fontsize'])
+#                 ax[_devices.index(device)].set_yticks([i for i in range(len(df))], [i for i in df.index.values])
+#             plt.show()
 
 def get_common_channels(self, devices = None, ignore_missing_channels = False, pop_zero_readings_devices = False, detailed = False, verbose = True):
     '''
@@ -71,7 +72,7 @@ def get_common_channels(self, devices = None, ignore_missing_channels = False, p
 
 	# Get list of devices
     if devices is None:
-        list_devices = list(self.devices.keys())
+        list_devices = [device.id for device in self.devices]
         return_all = True
     else:
         list_devices = devices
