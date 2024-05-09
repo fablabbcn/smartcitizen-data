@@ -7,8 +7,7 @@ folium~=0.12.1
 geopy~=1.21.0
 # TODO To be updated?
 Jinja2~=3.1.2
-# TODO To be updated?
-matplotlib~=3.2.1
+matplotlib
 # TODO To be updated?
 missingno~=0.5.2
 numpy~=1.25.2
