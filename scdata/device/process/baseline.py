@@ -1,5 +1,5 @@
 from numpy import ones, transpose, log
-from scipy.stats.stats import linregress
+from scipy.stats import linregress
 from scipy.sparse import (diags, spdiags)
 from scipy.sparse.linalg import spsolve
 from pandas import date_range

@@ -1,5 +1,5 @@
 from numpy import exp, log, transpose
-from scipy.stats.stats import linregress
+from scipy.stats import linregress
 
 # TODO REVIEW
 def absolute_humidity(dataframe, **kwargs):
