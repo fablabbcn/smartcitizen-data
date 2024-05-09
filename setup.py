@@ -19,7 +19,7 @@ REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
 setup(
     name='scdata',
-    version='0.9.1',
+    version='1.0.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -40,7 +40,7 @@ setup(
     ],
     install_requires=[REQUIREMENTS],
     setup_requires=['wheel'],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     include_package_data=True,
     zip_safe=False
 )
