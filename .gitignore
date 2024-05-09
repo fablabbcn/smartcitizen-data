@@ -25,6 +25,7 @@ connectors/clean.py
 connectors/sensors.py
 references
 notebooks/delivery_report_template.ipynb
+*/*/todo/
 
 TODO.md
 secrets.py
