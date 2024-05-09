@@ -4,7 +4,7 @@ Smart Citizen Data
 [![DOI](https://zenodo.org/badge/97752018.svg)](https://zenodo.org/badge/latestdoi/97752018)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks)
 [![PyPI version](https://badge.fury.io/py/scdata.svg)](https://badge.fury.io/py/scdata)
-[![Python application](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-app.yml/badge.svg)](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-app.yml)
+[![Python application](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-multiple-versions.yml/badge.svg)](https://github.com/fablabbcn/smartcitizen-data/actions/workflows/python-multiple-versions.yml)
 
 Welcome to **SmartCitizen Data**. This is a data analysis framework for working with sensor data in different ways:
 
