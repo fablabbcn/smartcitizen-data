@@ -6,3 +6,4 @@ include scdata/test/export/templates/sc_template.html
 include scdata/tools/interim/*.csv
 include scdata/tools/zenodo_templates/*.*
 include scdata/tools/uploads/*.*
+include requirements.txt
