@@ -534,7 +534,7 @@ class Config(object):
             if rjson is None:
                 continue
             if _nblueprint not in blueprints:
-                blueprints[_nblueprint] = TypeAdapter(Blueprint).validate_python(rjson).dict()
+                blueprints[_nblueprint] = TypeAdapter(Blueprint).validate_python(rjson).model_dump()
 
         return blueprints
 
