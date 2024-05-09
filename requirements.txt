@@ -1,6 +1,7 @@
 # TODO To be updated?
 branca~=0.4.0
-# Flask, # TODO Add once finished with file reports
+# TODO Add once finished with file reports
+Flask~=2.2.2
 # TODO To be updated?
 folium~=0.12.1
 # TODO To be updated?

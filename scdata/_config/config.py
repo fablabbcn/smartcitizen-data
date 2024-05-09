@@ -181,7 +181,7 @@ class Config(object):
                                  '#d1e5f0','#fddbc7','#f4a582','#d6604d',
                                  '#b2182b','#67001f'])
 
-    _plot_style = "seaborn-whitegrid"
+    _plot_style = "seaborn-v0_8-whitegrid"
 
     _ts_plot_def_fmt = {
         'mpl': {

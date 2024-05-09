@@ -5,7 +5,7 @@ import matplotlib.cm as cm
 from math import ceil
 from matplotlib import gridspec
 
-plt.style.use('seaborn-white')
+plt.style.use(config._plot_style)
 
 def scatter_dispersion_grid(self, **kwargs):
     '''
