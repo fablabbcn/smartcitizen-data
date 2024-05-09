@@ -11,14 +11,12 @@ Welcome to **SmartCitizen Data**. This is a data analysis framework for working 
 - Interacting with several sensors APIs
 - Clean data, export and calculate metrics
 - Model sensor data and calibrate sensors
-- Generate data visualisations - matplotlib, [plotly](https://plotly.com/) or [uplot](https://leeoniya.github.io/uPlot)
+- Generate data visualisations - matplotlib, ~[plotly](https://plotly.com/)~ or [uplot](https://leeoniya.github.io/uPlot)
 - Generate analysis reports in html or pdf and upload them to [Zenodo](http://zenodo.org)
-
-A full documentation of the framework is detailed in [the Smart Citizen Docs](https://docs.smartcitizen.me/Data/Data%20Analysis/).
 
 ## Installation
 
-You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with `Python 3.*` (tested until `python 3.9.5`).
+You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with `Python 3.*` (tested between 3.9 and 3.11).
 
 You can just run:
 
