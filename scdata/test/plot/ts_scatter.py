@@ -1,4 +1,5 @@
-from scdata.utils import std_out, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data
 
@@ -36,23 +37,24 @@ def ts_scatter(self, **kwargs):
         Matplotlib figure containing timeseries and scatter plot with correlation
         coefficients on it
     """
-    if config.framework == 'jupyterlab': plt.ioff();
-    plt.clf();
+    if config.framework == 'jupyterlab':
+        plt.ioff()
+    plt.clf()
 
     if 'traces' not in kwargs:
-        std_out('No traces defined', 'ERROR')
+        logger.error('No traces defined')
         return None
     else:
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._ts_scatter_def_fmt['mpl']
     else:
         formatting = dict_fmerge(config._ts_scatter_def_fmt['mpl'], kwargs['formatting'])
@@ -96,9 +98,9 @@ def ts_scatter(self, **kwargs):
     pearsonCorr = list(df.corr('pearson')[list(df.columns)[0]])[-1]
     rmse = sqrt(mean_squared_error(df[feature_trace].fillna(0), df[ref_trace].fillna(0)))
 
-    std_out (f'Pearson correlation coefficient: {pearsonCorr}')
-    std_out (f'Coefficient of determination R²: {pearsonCorr*pearsonCorr}')
-    std_out (f'RMSE: {rmse}')
+    logger.info (f'Pearson correlation coefficient: {pearsonCorr}')
+    logger.info (f'Coefficient of determination R²: {pearsonCorr*pearsonCorr}')
+    logger.info (f'RMSE: {rmse}')
 
     # Time Series plot
     ax1.plot(df.index, df[feature_trace], color = 'g', label = feature_trace, linewidth = 1, alpha = 0.9)

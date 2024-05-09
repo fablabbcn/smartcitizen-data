@@ -1,4 +1,5 @@
-from scdata.utils import std_out, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data
 
@@ -36,19 +37,19 @@ def ts_iplot(self, **kwargs):
     if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs:
-        std_out('No traces defined', 'ERROR')
+        logger.error('No traces defined')
         return None
     else:
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options', 'WARNING')
+        logger.warning('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting', 'WARNING')
+        logger.warning('Using default formatting')
         formatting = config._ts_plot_def_fmt['plotly']
     else:
         formatting = dict_fmerge(config._ts_plot_def_fmt['plotly'], kwargs['formatting'])
@@ -64,10 +65,10 @@ def ts_iplot(self, **kwargs):
 
     # Size sanity check
     if formatting['width'] < 100:
-        std_out('Setting width to 800')
+        logger.info('Setting width to 800')
         formatting['width'] = 800
     if formatting['height'] < 100:
-        std_out('Reducing height to 600')
+        logger.info('Reducing height to 600')
         formatting['height'] = 600
 
     figure = make_subplots(rows = n_subplots, cols=1,

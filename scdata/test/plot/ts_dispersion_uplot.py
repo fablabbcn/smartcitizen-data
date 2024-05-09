@@ -1,4 +1,6 @@
-from scdata.utils import std_out, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+
 from scdata._config import config
 from .plot_tools import colors
 from scipy.stats import t
@@ -58,19 +60,19 @@ def ts_dispersion_uplot(self, **kwargs):
         '''
 
     if 'channel' not in kwargs:
-        std_out('Needs at least one channel to plot')
+        logger.info('Needs at least one channel to plot')
         return None
     else:
         channel = kwargs['channel']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._ts_plot_def_fmt['uplot']
     else:
         formatting = dict_fmerge(config._ts_plot_def_fmt['uplot'],
@@ -78,36 +80,36 @@ def ts_dispersion_uplot(self, **kwargs):
 
     # Size sanity check
     if formatting['width'] < 100:
-        std_out('Setting width to 800')
+        logger.info('Setting width to 800')
         formatting['width'] = 800
     if formatting['height'] < 100:
-        std_out('Reducing height to 600')
+        logger.info('Reducing height to 600')
         formatting['height'] = 600
 
     if 'html' not in options:
         options['html'] = False
 
     if self.dispersion_df is None:
-        std_out('Perform dispersion analysis first!', 'ERROR')
+        logger.error('Perform dispersion analysis first!')
         return None
 
     if self.common_channels == []: self.get_common_channels()
 
     if channel not in self.common_channels:
-        std_out(f'Channel {channel} not in common_channels')
+        logger.info(f'Channel {channel} not in common_channels')
         return None
     if channel in config._dispersion['ignore_channels']:
-        std_out(f'Channel {channel} ignored per config')
+        logger.info(f'Channel {channel} ignored per config')
         return None
 
     if len(self.devices)>config._dispersion['nt_threshold']:
         distribution = 'normal'
-        std_out('Using normal distribution')
-        std_out(f"Using limit for sigma confidence:\
+        logger.info('Using normal distribution')
+        logger.info(f"Using limit for sigma confidence:\
                 {config._dispersion['limit_confidence_sigma']}")
     else:
         distribution = 't-student'
-        std_out(f'Using t-student distribution.')
+        logger.info(f'Using t-student distribution.')
 
     ch_index = self.common_channels.index(channel)+1
     total_number = len(self.common_channels)
@@ -169,8 +171,8 @@ def ts_dispersion_uplot(self, **kwargs):
 
             # TBR
             if number_errors/max_number_errors > config._dispersion['limit_errors']/100:
-                std_out (f"Device {device} out of {config._dispersion['limit_errors']}% limit\
-                         - {np.round(number_errors/max_number_errors*100, 1)}% out", 'WARNING')
+                logger.warning (f"Device {device} out of {config._dispersion['limit_errors']}% limit\
+                         - {np.round(number_errors/max_number_errors*100, 1)}% out")
                 subplots[0].append(ncol)
             #OK
             else:

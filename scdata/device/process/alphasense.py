@@ -1,10 +1,36 @@
-from scdata.utils import std_out, get_units_convf, find_dates, localise_date
+from scdata.tools.custom_logger import logger
+from scdata.tools.units import get_units_convf
+from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
 from scdata.device.process import baseline_calc, clean_ts
-from scipy.stats.stats import linregress
+from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
+
+# Alphasense sensor codes
+alphasense_sensor_codes =  {
+    '132':  'ASA4_CO',
+    '133':  'ASA4_H2S',
+    '130':  'ASA4_NO',
+    '212':  'ASA4_NO2',
+    '214':  'ASA4_OX',
+    '134':  'ASA4_SO2',
+    '162':  'ASB4_CO',
+    '133':  'ASB4_H2S',#
+    '130':  'ASB4_NO', #
+    '202':  'ASB4_NO2',
+    '204':  'ASB4_OX',
+    '164':  'ASB4_SO2'
+}
+
+# Alphasense temperature channels (in order of priority)
+alphasense_temp_channel = [
+    "ASPT1000",
+    "SHT31_EXT_TEMP",
+    "SHT35_EXT_TEMP",
+    "PM_DALLAS_TEMP",
+]
 
 def alphasense_803_04(dataframe, **kwargs):
     """
@@ -13,10 +39,6 @@ def alphasense_803_04(dataframe, **kwargs):
     based on AAN803-04
     Parameters
     ----------
-        from_date: string, datetime object
-            Date from which this calibration id is valid from
-        to_date: string, datetime object
-            Date until which this calibration id is valid to. None if current
         alphasense_id: string
             Alphasense sensor ID (must be in calibrations.json)
         we: string
@@ -28,8 +50,6 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
-        timezone: string
-            Valid timezone for date localisation
     Returns
     -------
         calculation of pollutant in ppb
@@ -61,41 +81,23 @@ def alphasense_803_04(dataframe, **kwargs):
     if 't' not in kwargs: flag_error = True
 
     if flag_error:
-        std_out('Problem with input data', 'ERROR')
+        logger.warning('Problem with input data')
         return None
 
     if kwargs['alphasense_id'] is None:
-        std_out(f"Empty ID. Ignoring", 'WARNING')
+        logger.warning(f"Empty ID. Ignoring")
         return None
 
     # Get Sensor data
     if kwargs['alphasense_id'] not in config.calibrations:
-        std_out(f"Sensor {kwargs['alphasense_id']} not in calibration data", 'ERROR')
+        logger.warning(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return None
-
-    # Process input dates
-    if 'from_date' not in kwargs: from_date = None
-    else:
-        if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone')
-            return None
-        from_date = localise_date(kwargs['from_date'], kwargs['timezone'])
-
-    if 'to_date' not in kwargs: to_date = None
-    else:
-        if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone')
-            return None
-        to_date = localise_date(kwargs['to_date'], kwargs['timezone'])
 
     # Make copy
     df = dataframe.copy()
-    # Trim data
-    if from_date is not None: df = df[df.index > from_date]
-    if to_date is not None: df = df[df.index < to_date]
 
     # Get sensor type
-    as_type = config._as_sensor_codes[kwargs['alphasense_id'][0:3]]
+    as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
     if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
@@ -113,13 +115,13 @@ def alphasense_803_04(dataframe, **kwargs):
         try:
             cal_data[item] = float (cal_data[item])
         except:
-            std_out(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct", 'ERROR')
-            std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
+            logger.error(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct")
+            logger.error(f'Error on {item}: \'{cal_data[item]}\'')
             return
 
     # Remove spurious voltages (0V < electrode < 5V)
     for electrode in ['we', 'ae']:
-        subkwargs = {'name': kwargs[electrode], 
+        subkwargs = {'name': kwargs[electrode],
                         'limits': (0, 5), # In V
                         'window_size': None
                     }
@@ -171,11 +173,12 @@ def ec_sensor_temp(dataframe, **kwargs):
         Temperature series
     """
     if 'priority' in kwargs:
-        if kwargs['priority'] in dataframe.columns: return dataframe[kwargs['priority']]
-    if 'ASPT1000' in dataframe.columns: return dataframe['ASPT1000']
-    if 'PM_DALLAS_TEMP' in dataframe.columns: return dataframe['PM_DALLAS_TEMP']
-    if 'SHT31_EXT_TEMP' in dataframe.columns: return dataframe['SHT31_EXT_TEMP']
-    std_out('Problem with input data', 'ERROR')
+        if kwargs['priority'] in dataframe.columns:
+            return dataframe[kwargs['priority']]
+    for option in alphasense_temp_channel:
+        if option in dataframe.columns:
+            return dataframe[option]
+    logger.error('Problem with input data')
     return None
 
 def alphasense_pt1000(dataframe, **kwargs):
@@ -206,32 +209,17 @@ def alphasense_pt1000(dataframe, **kwargs):
     if 'pt1000minus' not in kwargs: flag_error = True
 
     if flag_error:
-        std_out('Problem with input data', 'ERROR')
+        logger.error('Problem with input data')
         return None
 
     if kwargs['afe_id'] is None:
-        std_out(f"Empty ID. Ignoring", 'WARNING')
+        logger.warning(f"Empty ID. Ignoring")
         return None
 
     # Get Sensor data
     if kwargs['afe_id'] not in config.calibrations:
-        std_out(f"AFE {kwargs['afe_id']} not in calibration data", 'ERROR')
+        logger.error(f"AFE {kwargs['afe_id']} not in calibration data")
         return None
-
-    # Process input dates
-    if 'from_date' not in kwargs: from_date = None
-    else:
-        if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone', 'ERROR')
-            return None
-        from_date = localise_date(kwargs['from_date'], kwargs['timezone'])
-
-    if 'to_date' not in kwargs: to_date = None
-    else:
-        if 'timezone' not in kwargs:
-            std_out('Cannot localise date without timezone', 'ERROR')
-            return None
-        to_date = localise_date(kwargs['to_date'], kwargs['timezone'])
 
     # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['afe_id']]
@@ -239,15 +227,12 @@ def alphasense_pt1000(dataframe, **kwargs):
         try:
             cal_data[item] = float (cal_data[item])
         except:
-            std_out(f"Alphasense calibration data for {kwargs['afe_id']} is not correct", 'ERROR')
-            std_out(f'Error on {item}: \'{cal_data[item]}\'', 'ERROR')
+            logger.error(f"Alphasense calibration data for {kwargs['afe_id']} is not correct")
+            logger.error(f'Error on {item}: \'{cal_data[item]}\'')
             return
 
     # Make copy
     df = dataframe.copy()
-    # Trim data
-    if from_date is not None: df = df[df.index > from_date]
-    if to_date is not None: df = df[df.index < to_date]
 
     # Calculate temperature
     df['v20'] = cal_data['v20'] - (cal_data['t20'] - 20.0) / 1000.0
@@ -276,11 +261,11 @@ def channel_names(dataframe, **kwargs):
     flag_error = False
     if 'channel' not in kwargs: flag_error = True
     if kwargs['channel'] not in dataframe:
-        std_out(f"Channel {kwargs['channel']} not in dataframe. Ignoring", 'WARNING')
+        logger.warning(f"Channel {kwargs['channel']} not in dataframe. Ignoring")
         return None
 
     if flag_error:
-        std_out('Problem with input data', 'ERROR')
+        logger.error('Problem with input data')
         return None
 
     # Make copy
@@ -297,7 +282,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
             Name of working electrode found in dataframe
         auxiliary: string
             Name of auxiliary electrode found in dataframe
-        id: int 
+        id: int
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
@@ -314,13 +299,13 @@ def basic_4electrode_alg(dataframe, **kwargs):
     if 'id' not in kwargs: flag_error = True
     if 'pollutant' not in kwargs: flag_error = True
 
-    if flag_error: 
-        std_out('Problem with input data', 'ERROR')
+    if flag_error:
+        logger.error('Problem with input data')
         return None
 
     # Get Sensor data
-    if kwargs['id'] not in config.calibrations: 
-        std_out(f"Sensor {kwargs['id']} not in calibration data", 'ERROR')
+    if kwargs['id'] not in config.calibrations:
+        logger.error(f"Sensor {kwargs['id']} not in calibration data")
         return None
 
     we_sensitivity_na_ppb = config.calibrations[kwargs['id']]['we_sensitivity_na_ppb']
@@ -328,15 +313,15 @@ def basic_4electrode_alg(dataframe, **kwargs):
     sensor_type = config.calibrations[kwargs['id']]['sensor_type']
     nWA = config.calibrations[kwargs['id']]['we_sensor_zero_mv']/config.calibrations[kwargs['id']]['ae_sensor_zero_mv']
 
-    if sensor_type != kwargs['pollutant']: 
-        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+    if sensor_type != kwargs['pollutant']:
+        logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
         return None
 
     # This is always in ppm since the calibration data is in signal/ppm
     if kwargs['hardware'] == 'alphadelta': current_factor = alphadelta_pcb
     elif kwargs['hardware'] == 'isb': current_factor = 1 #TODO make it so we talk in mV
-    else: 
-        std_out(f"Measurement hardware {kwargs['hardware']} not supported", 'ERROR')
+    else:
+        logger.error(f"Measurement hardware {kwargs['hardware']} not supported")
         return None
 
     result = current_factor*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(we_sensitivity_na_ppb)
@@ -352,7 +337,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV), but using
     one of the metrics (baseline) as a baseline of the others. It uses the baseline correction algorithm
-    explained here: 
+    explained here:
     https://docs.smartcitizen.me/Components/sensors/Electrochemical%20Sensors/#baseline-correction-based-on-temperature
     and the calibration ID. It adds a configurable background concentration.
     Parameters
@@ -361,7 +346,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             Name of working electrode found in dataframe
         baseline: string
             Name of auxiliary electrode found in dataframe
-        id: int 
+        id: int
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
@@ -378,7 +363,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
             Whether or not to store the baseline in the dataframe
         resample: str
             '1Min'
-            Resample frequency for the target dataframe         
+            Resample frequency for the target dataframe
         pcb_factor: int
             alphadelta_pcb (6.36)
             Factor converting mV to nA due to the board configuration
@@ -396,13 +381,13 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     if 'baseline' not in kwargs: flag_error = True
     if 'id' not in kwargs: flag_error = True
     if 'pollutant' not in kwargs: flag_error = True
-    
-    if 'regression_type' in kwargs: 
+
+    if 'regression_type' in kwargs:
         if kwargs['regression_type'] not in ['best', 'exponential', 'linear']: flag_error = True
         else: reg_type = kwargs['regression_type']
     else: reg_type = 'best'
-    
-    if 'period' in kwargs: 
+
+    if 'period' in kwargs:
         if kwargs['period'] not in ['best', 'exponential', 'linear']: flag_error = True
         else: period = kwargs['period']
     else: period = '1D'
@@ -411,19 +396,19 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     else: store_baseline = True
 
     if 'resample' in kwargs: resample = kwargs['resample']
-    else: resample = '1Min'    
+    else: resample = '1Min'
 
     if 'pcb_factor' in kwargs: pcb_factor = kwargs['pcb_factor']
     else: pcb_factor = alphadelta_pcb
-    
+
     if 'baseline_type' in kwargs: baseline_type = kwargs['baseline_type']
     else: baseline_type = 'deltas'
 
     if 'deltas' in kwargs: deltas = kwargs['deltas']
     else: deltas = baseline_deltas
-    
-    if flag_error: 
-        std_out('Problem with input data', 'ERROR')
+
+    if flag_error:
+        logger.error('Problem with input data')
         return None
 
     min_date, max_date, _ = find_dates(dataframe)
@@ -443,17 +428,17 @@ def baseline_4electrode_alg(dataframe, **kwargs):
         target_2 = config.calibrations.loc[kwargs['id'],'target_2']
         nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
 
-        if target_1 != kwargs['pollutant']: 
-            std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+        if target_1 != kwargs['pollutant']:
+            logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
             return None
-        
+
         result = pcb_factor*(dataframe[kwargs['target']] - baseline)/abs(sensitivity_1)
 
         # Convert units
         result *= get_units_convf(kwargs['pollutant'], from_units = 'ppm')
         # Add Background concentration
         result += background_conc[kwargs['pollutant']]
-    
+
     else:
         # Calculate non convolved part
         result = dataframe[kwargs['target']] - baseline
@@ -461,7 +446,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     # Make use of DataFrame inmutable properties to store in it the baseline
     if store_baseline:
         dataframe[kwargs['target']+'_BASELINE'] = baseline
-    
+
     return result
 
 def deconvolution(dataframe, **kwargs):
@@ -474,7 +459,7 @@ def deconvolution(dataframe, **kwargs):
             Name of convolved metric containing both pollutants (such as NO2+O3)
         base: string
             Name of one of the already deconvolved pollutants (for instance NO2)
-        id: int 
+        id: int
             Sensor ID
         pollutant: string
             Pollutant name. Must be included in the corresponding LUTs for unit convertion and additional parameters:
@@ -493,8 +478,8 @@ def deconvolution(dataframe, **kwargs):
     if 'id' not in kwargs: flag_error = True
     if 'pollutant' not in kwargs: flag_error = True
 
-    if flag_error: 
-        std_out('Problem with input data', 'ERROR')
+    if flag_error:
+        logger.error('Problem with input data')
         return None
 
     sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
@@ -503,16 +488,16 @@ def deconvolution(dataframe, **kwargs):
     target_2 = config.calibrations.loc[kwargs['id'],'target_2']
     nWA = config.calibrations.loc[kwargs['id'],'w_zero_current']/config.calibrations.loc[kwargs['id'],'aux_zero_current']
 
-    if target_1 != kwargs['pollutant']: 
-        std_out(f"Sensor {kwargs['id']} doesn't coincide with calibration data", 'ERROR')
+    if target_1 != kwargs['pollutant']:
+        logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
         return None
 
     factor_unit_1 = get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     factor_unit_2 = get_units_convf(kwargs['base'], from_units = 'ppm')
 
     result = factor_unit_1*(alphadelta_pcb*dataframe[kwargs['source']] - dataframe[kwargs['base']]/factor_unit_2*abs(sensitivity_2))/abs(sensitivity_1)
-    
+
     # Add Background concentration
     result += background_conc[kwargs['pollutant']]
-    
+
     return result

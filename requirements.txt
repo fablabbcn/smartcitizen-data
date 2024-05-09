@@ -1,0 +1,28 @@
+# TODO To be updated?
+branca~=0.4.0
+# TODO Add once finished with file reports
+Flask~=2.2.2
+# TODO To be updated?
+folium~=0.12.1
+# TODO To be updated?
+geopy~=1.21.0
+# TODO To be updated?
+Jinja2~=3.1.2
+matplotlib
+# TODO To be updated?
+missingno~=0.5.2
+numpy~=1.25.2
+pandas~=2.2.2
+pydantic
+pytest
+# TODO To be updated?
+PyYAML==5.3.1
+requests
+scipy
+scikit-learn
+seaborn
+smartcitizen-connector
+termcolor==1.1.0
+tqdm~=4.50.2
+timezonefinder~=6.1.9
+urllib3

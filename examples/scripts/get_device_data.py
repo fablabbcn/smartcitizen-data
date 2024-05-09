@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
-from scdata.io.device_api import ScApiDevice
+from smartcitizen_connector import SCDevice
 from scdata._config import config
 
 # Set verbose level
-config._out_level = 'DEBUG'
+config.log_level = 'DEBUG'
 
 # Device id needs to be as str
-device = ScApiDevice('10972')
-device.get_device_lat_long()
-device.get_device_sensors()
+device = SCDevice(10972)
+device.options.min_date = None #Don't trim min_date
+device.options.max_date = None #Don't trim max_date
 
 # Load
-data = device.get_device_data(min_date = None, max_date = None, frequency = '1Min', clean_na = None);
+await data = device.g(min_date = None, max_date = None, frequency = '1Min', clean_na = None);
 
 print (data)

@@ -1,4 +1,6 @@
-from scdata.utils import std_out, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+
 from scdata._config import config
 from .plot_tools import prepare_data
 from pandas import to_datetime
@@ -34,23 +36,24 @@ def ts_plot(self, **kwargs):
         Matplotlib figure
     """
 
-    if config.framework == 'jupyterlab': plt.ioff();
-    plt.clf();
+    if config.framework == 'jupyterlab':
+        plt.ioff()
+    plt.clf()
 
     if 'traces' not in kwargs:
-        std_out('No traces defined', 'ERROR')
+        logger.error('No traces defined')
         return None
     else:
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._ts_plot_def_fmt['mpl']
     else:
         formatting = dict_fmerge(config._ts_plot_def_fmt['mpl'], kwargs['formatting'])
@@ -77,10 +80,10 @@ def ts_plot(self, **kwargs):
 
     # Size sanity check
     if formatting['width'] > 50:
-        std_out('Reducing width to 12')
+        logger.info('Reducing width to 12')
         formatting['width'] = 12
     if formatting['height'] > 50:
-        std_out('Reducing height to 10')
+        logger.info('Reducing height to 10')
         formatting['height'] = 10
 
     # Plot

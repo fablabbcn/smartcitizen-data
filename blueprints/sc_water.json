@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "documentation": "https://docs.smartcitizen.me/"
+  },
+  "metrics": [],
+  "source":{
+      "type": "api",
+      "module": "smartcitizen_connector",
+      "handler": "SCDevice"
+    }
+}

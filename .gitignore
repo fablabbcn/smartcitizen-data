@@ -152,3 +152,9 @@ ENV/
 
 # pytest
 .pytest_cache/
+
+tests/local
+
+scripts/
+
+.vscode

@@ -7,7 +7,9 @@ from folium.plugins import MiniMap, TimestampedGeoJson
 from math import isnan, floor, ceil
 from traceback import print_exc
 from pandas import cut, date_range
-from scdata.utils import dict_fmerge, clean, std_out
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.cleaning import clean
+from scdata.tools.custom_logger import logger
 from scdata._config import config
 from numpy import linspace, nan
 from branca import element
@@ -245,7 +247,7 @@ def device_metric_map(self, channel, start_date, end_date, options = dict()):
             _lat = self.devices[str(device)].api_device.lat
             _long = self.devices[str(device)].api_device.long
         except AttributeError:
-            std_out(f'Cannot retrieve [lat, long] from device {device}', 'WARNING')
+            logger.warning(f'Cannot retrieve [lat, long] from device {device}')
             pass
             continue
 
@@ -373,24 +375,24 @@ def path_plot(self, channel = None, map_type = 'dynamic', devices = 'all',
         mdev = list()
         for device in devices:
             if device in self.devices: mdev.append(device)
-            else: std_out(f'Device {device} not found, ignoring', 'WARNING')
+            else: logger.warning(f'Device {device} not found, ignoring')
 
     if len(mdev) == 0:
-        std_out('Requested devices not in test', 'ERROR')
+        logger.error('Requested devices not in test')
         return None
 
     for device in mdev:
         chs = ['GPS_LAT','GPS_LONG']
         if channel is not None:
             if channel not in self.devices[str(device)].readings.columns:
-                std_out(f'Channel {channel} not in columns: {self.devices[str(device)].readings.columns}', 'ERROR')
+                logger.error(f'Channel {channel} not in columns: {self.devices[str(device)].readings.columns}')
                 return None
 
             # Get bins
             minmax = False
             if not options['minmax']:
                 if all([key not in channel for key in config._channel_bins]):
-                    std_out(f'Requested channel {channel} not in config mapped bins {config._channel_bins.keys()}.Using min/max mapping', 'WARNING')
+                    logger.warning(f'Requested channel {channel} not in config mapped bins {config._channel_bins.keys()}.Using min/max mapping')
                     minmax = True
             else:
                 minmax = True
@@ -437,8 +439,8 @@ def path_plot(self, channel = None, map_type = 'dynamic', devices = 'all',
             color = str(dfc.loc[date, 'COLOR'])
             if color == 'nan' or isnan(dfc.loc[date, 'GPS_LONG'])\
             or isnan(dfc.loc[date, 'GPS_LAT']):
-                std_out(f'Skipping point {date}', 'WARNING'); continue
-
+                logger.warning(f'Skipping point {date}')
+                continue
             geometry = {
                 'type': 'LineString',
                 'coordinates': [[dfc.loc[date, 'GPS_LONG'],
@@ -543,7 +545,7 @@ def path_plot(self, channel = None, map_type = 'dynamic', devices = 'all',
                 box-shadow: 2px;
             """,
             max_width=800,
-        );
+        )
 
         GeoJson(featurecol,
             tooltip=tooltip,
@@ -567,7 +569,7 @@ def path_plot(self, channel = None, map_type = 'dynamic', devices = 'all',
         ).add_to(m)
 
     else:
-        std_out(f'Not supported map type {map_type}', 'ERROR')
+        logger.error(f'Not supported map type {map_type}')
         return None
 
     if options['minimap']:

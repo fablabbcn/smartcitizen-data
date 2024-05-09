@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import style
 from seaborn import set_palette, regplot, scatterplot, relplot
-from scdata.utils import std_out, dict_fmerge
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 from scdata._config import config
 from .plot_tools import prepare_data, colors
 from numpy import array
@@ -37,23 +38,24 @@ def scatter_plot(self, **kwargs):
         Matplotlib figure and axes
     """
 
-    if config.framework == 'jupyterlab': plt.ioff();
-    plt.clf();
+    if config.framework == 'jupyterlab':
+        plt.ioff()
+    plt.clf()
 
     if 'traces' not in kwargs:
-        std_out('No traces defined', 'ERROR')
+        logger.error('No traces defined')
         return None
     else:
         traces = kwargs['traces']
 
     if 'options' not in kwargs:
-        std_out('Using default options')
+        logger.info('Using default options')
         options = config._plot_def_opt
     else:
         options = dict_fmerge(config._plot_def_opt, kwargs['options'])
 
     if 'formatting' not in kwargs:
-        std_out('Using default formatting')
+        logger.info('Using default formatting')
         formatting = config._scatter_plot_def_fmt['mpl']
     else:
         formatting = dict_fmerge(config._scatter_plot_def_fmt['mpl'], kwargs['formatting'])
@@ -173,7 +175,7 @@ def scatter_plot(self, **kwargs):
                 try:
                     ax.set_ylabel(formatting['ylabel']);
                 except:
-                    std_out (f'y_label for subplot {subplots.index(i)} not set', 'WARNING')
+                    logger.warning (f'y_label for subplot {subplots.index(i)} not set')
                     ax.set_ylabel('')
                     pass
             else:
@@ -183,7 +185,7 @@ def scatter_plot(self, **kwargs):
                 try:
                     ax.set_xlabel(formatting['xlabel']);
                 except:
-                    std_out (f'x_label for subplot {subplots.index(i)} not set', 'WARNING')
+                    logger.warning (f'x_label for subplot {subplots.index(i)} not set')
                     ax.set_xlabel('')
                     pass
             else:
@@ -208,7 +210,7 @@ def scatter_plot(self, **kwargs):
                 try:
                     ax.set_ylim(formatting['yrange']);
                 except:
-                    std_out (f'yrange for subplot {subplots.index(i)} not set', 'WARNING')
+                    logger.warning (f'yrange for subplot {subplots.index(i)} not set')
                     pass
             elif formatting['sharey']:
                 ax.set_ylim(min([yl[0] for yl in y_axes]), max([yl[1] for yl in y_axes]))
@@ -218,7 +220,7 @@ def scatter_plot(self, **kwargs):
                 try:
                     ax.set_xlim(formatting['xrange']);
                 except:
-                    std_out (f'xrange for subplot {subplots.index(i)} not set', 'WARNING')
+                    logger.warning (f'xrange for subplot {subplots.index(i)} not set')
                     pass
             elif formatting['sharex']:
                 ax.set_xlim(min([xl[0] for xl in x_axes]), max([xl[1] for xl in x_axes]))
