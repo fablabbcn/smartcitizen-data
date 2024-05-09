@@ -42,8 +42,8 @@ def test_test():
                   "channel": "NOISE_A",
                   "subplot": 1},
         }
-    figure_mpl = t.ts_plot(traces)
-    figure_uplot = t.ts_uplot(traces)
+    figure_mpl = t.ts_plot(traces=traces)
+    figure_uplot = t.ts_uplot(traces=traces)
 
     # Test
 
@@ -52,5 +52,5 @@ def test_test():
     assert metric_in_df == True
     for device in t.devices:
         assert (localise_date(min_date, 'UTC') < device.data.index[0]), resp.text
-    assert figure is not None
+    assert figure_mpl is not None
     assert figure_uplot is not None
