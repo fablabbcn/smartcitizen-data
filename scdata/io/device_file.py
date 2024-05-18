@@ -128,7 +128,7 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
 
     # Read pandas dataframe
 
-    df = read_csv(path, verbose=False, skiprows=skiprows, sep=sep,
+    df = read_csv(path, skiprows=skiprows, sep=sep,
                 encoding=encoding, encoding_errors='ignore')
 
     flag_found = False
