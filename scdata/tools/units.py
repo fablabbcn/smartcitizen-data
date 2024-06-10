@@ -92,7 +92,7 @@ def get_units_convf(sensor, from_units):
             else: molecular_weight = 1
 
         # Check if channel is in look-up table
-        if channel_lut[channel] != from_units and from_units != "":
+        if channel_lut[channel] != from_units and from_units != "" and from_units is not None:
             logger.info(f"Converting units for {sensor}. From {from_units} to {channel_lut[channel]}")
             for unit in unit_convertion_lut:
                 # Get units
