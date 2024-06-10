@@ -2,7 +2,7 @@ from pandas import DataFrame
 from scdata.tools.custom_logger import logger
 from scdata.device import Device
 
-def combine(self, devices = None, readings = None):
+def combine(self, devices = None, channels = None, resample = True, frequency = '1Min'):
     """
     Combines devices from a test into a new dataframe, following the
     naming as follows: DEVICE-NAME_READING-NAME
@@ -11,7 +11,7 @@ def combine(self, devices = None, readings = None):
         devices: list or None
             None
             If None, includes all the devices in self.devices
-        readings: list or None
+        channels: list or None
             None
             If None, includes all the readings in self.readings
     Returns
@@ -20,36 +20,40 @@ def combine(self, devices = None, readings = None):
     """
 
     dfc = DataFrame()
+    if not self.loaded:
+        logger.error('Cannot combine data if test is not loaded. Maybe test.load() first?')
 
     if devices is None:
-        dl = list(self.devices.keys())
+        dl = [device.id for device in self.devices]
     else:
-        # Only pick the ones that are actually present
-        dl = list(set(devices).intersection(list(self.devices.keys())))
+        # Only requested AND available
+        dl = list(set(devices).intersection([device.id for device in self.devices]))
         if len(dl) != len(devices):
             logger.warning('Requested devices are not all present in devices')
-            logger.info(f'Discarding {set(devices).difference(list(self.devices.keys()))}')
+            logger.info(f'Discarding {set(devices).difference([device.id for device in self.devices])}')
 
     for device in dl:
         new_names = list()
 
-        if readings is None:
-            rl = list(self.devices[device].readings.columns)
+        if channels is None:
+            channel_list = list(self.get_device(device).data.columns)
         else:
             # Only pick the ones that are actually present
-            rl = list(set(readings).intersection(list(self.devices[device].readings.columns)))
+            channel_list = list(set(channels).intersection(list(self.get_device(device).data.columns)))
 
-            if any([reading not in rl for reading in readings]):
-                logger.warning(f'Requested readings are not all present in readings for device {device}')
-                logger.warning(f'Discarding {list(set(readings).difference(list(self.devices[device].readings.columns)))}')
+            if any([channel not in channel_list for channel in channels]):
+                logger.warning(f'Requested channels are not all present in readings for device {device}')
+                logger.warning(f'Discarding {list(set(channels).difference(list(self.get_device(device).data.columns)))}')
 
         rename = dict()
 
-        for reading in rl:
-            rename[reading] = reading + '_' + self.devices[device].id
+        for channel in channel_list:
+            rename[channel] = f'{channel}_{self.get_device(device).id}'
 
-        df = self.devices[device].readings[rl].copy()
+        df = self.get_device(device).data[channel_list].copy()
         df.rename(columns = rename, inplace = True)
+        if resample:
+            df = df.resample(frequency).mean()
         dfc = dfc.combine_first(df)
 
     if dfc.empty:
