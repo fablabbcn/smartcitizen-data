@@ -93,14 +93,15 @@ def prepare_data(test, traces, options):
             logger.warning(f'The trace {traces[trace]} was not placed in any subplot. Assuming subplot #1')
             traces[trace]['subplot'] = 1
 
+
         ndevs = traces[trace]['devices']
         nchans = traces[trace]['channel']
 
         # Make them lists always
         if ndevs == 'all': devices = [device.id for device in test.devices]
+        ## TODO Make it regex compatible!
         elif type(ndevs) == str or type(ndevs) == int: devices = [ndevs]
         else: devices = ndevs
-        print (devices)
 
         for ndev in devices:
 
@@ -158,8 +159,23 @@ def prepare_data(test, traces, options):
                         # Remove column for filtering from dfdev
                         dfdev.drop(columns=[col_name], inplace = True)
 
+                # Resample it
+                if options['frequency'] is not None:
+                    logger.info(f"Resampling at {options['frequency']}")
+
+                    if 'resample' in options:
+
+                        if options['resample'] == 'max': dfdev = dfdev.resample(options['frequency']).max()
+                        if options['resample'] == 'min': dfdev = dfdev.resample(options['frequency']).min()
+                        if options['resample'] == 'mean': dfdev = dfdev.resample(options['frequency']).mean()
+
+                    else:
+                        dfdev = dfdev.resample(options['frequency']).mean()
+
                 # Combine it in the df
                 df = df.combine_first(dfdev)
+
+        ## TODO Is this working?
         # Add average or other extras
         # TODO Check this to simplify
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.core.resample.Resampler.aggregate.html
@@ -168,15 +184,19 @@ def prepare_data(test, traces, options):
 
                 nextras = list()
                 for device in traces[trace]['devices']:
-                    for channel in traces[trace]['channel']:
-                        nextras.append(f'{channel}_{ndev}')
+                    if type(traces[trace]['channel']) == 'list':
+                        for channel in traces[trace]['channel']:
+                            nextras.append(f'{channel}_{device}')
+                    else:
+                        nextras.append(f"{traces[trace]['channel']}_{device}")
 
                 if extra == 'bands':
-                    ubn = channel + f"-{trace}-{'UPPER-BAND'}"
-                    lbn = channel + f"-{trace}-{'LOWER-BAND'}"
+                    ubn = channel + f"-{trace}-UPPER-BAND"
+                    lbn = channel + f"-{trace}-LOWER-BAND"
 
-                    df[ubn] = df.loc[:, nextras].mean(axis = 1) + 2*df.loc[:, nextras].std(axis = 1)
-                    df[lbn] = df.loc[:, nextras].mean(axis = 1) - 2*df.loc[:, nextras].std(axis = 1)
+                    logger.info('Using 3sig bands')
+                    df[ubn] = df.loc[:, nextras].mean(axis = 1) + 3*df.loc[:, nextras].std(axis = 1)
+                    df[lbn] = df.loc[:, nextras].mean(axis = 1) - 3*df.loc[:, nextras].std(axis = 1)
 
                     subplots[traces[trace]['subplot']-1].append(ubn)
                     subplots[traces[trace]['subplot']-1].append(lbn)
@@ -208,18 +228,19 @@ def prepare_data(test, traces, options):
     if df.empty:
         logger.error('Empty dataframe for plot')
         return None, None
-    # Resample it
-    if options['frequency'] is not None:
-        logger.info(f"Resampling at {options['frequency']}")
 
-        if 'resample' in options:
+    # # Resample it
+    # if options['frequency'] is not None:
+    #     logger.info(f"Resampling at {options['frequency']}")
 
-            if options['resample'] == 'max': df = df.resample(options['frequency']).max()
-            if options['resample'] == 'min': df = df.resample(options['frequency']).min()
-            if options['resample'] == 'mean': df = df.resample(options['frequency']).mean()
+    #     if 'resample' in options:
 
-        else:
-            df = df.resample(options['frequency']).mean()
+    #         if options['resample'] == 'max': df = df.resample(options['frequency']).max()
+    #         if options['resample'] == 'min': df = df.resample(options['frequency']).min()
+    #         if options['resample'] == 'mean': df = df.resample(options['frequency']).mean()
+
+    #     else:
+    #         df = df.resample(options['frequency']).mean()
 
     # Clean na
     if options['clean_na'] is not None:
