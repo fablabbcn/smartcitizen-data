@@ -149,7 +149,7 @@ def ts_dispersion_uplot(self, **kwargs):
 
     if formatting['join_sbplot']: n_subplots = 1
     else: n_subplots = 2
-    udf.index = udf.index.astype(int)/10**9
+    udf.index = udf.index.astype('int64')/10**9
 
     # Compose subplots lists
     for device in self.devices:
