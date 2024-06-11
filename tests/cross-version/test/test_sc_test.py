@@ -8,7 +8,6 @@ from scdata.tools.date import localise_date
 
 # Set basic configs
 config._out_level = 'DEBUG'
-config.data['strict_load'] = False
 
 def test_sc_test():
     # Test couple of weirded format dates

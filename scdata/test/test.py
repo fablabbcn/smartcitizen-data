@@ -67,7 +67,6 @@ class Test(BaseModel):
 
             self.devices = TypeAdapter(List[Device]).validate_python(tj['devices'])
             self.options = TypeAdapter(TestOptions).validate_python(tj['options'])
-            print (tj['meta'])
             self.type = tj['meta']['type']
             if self.name != tj['meta']['name']:
                 raise ValueError('Name not matching')
@@ -334,20 +333,20 @@ class Test(BaseModel):
 
         return fname
 
-    def cache(self):
-        logger.info(f'Caching files...')
-        for device in self.devices:
-            logger.info(f'Caching files for {device.id}...')
+    # def cache(self):
+    #     logger.info(f'Caching files...')
+    #     for device in self.devices:
+    #         logger.info(f'Caching files for {device.id}...')
 
-            cached_file_path = join(self.path, 'cached')
-            if not exists(cached_file_path):
-                logger.info('Creating path for exporting cached data')
-                makedirs(cached_file_path)
+    #         cached_file_path = join(self.path, 'cached')
+    #         if not exists(cached_file_path):
+    #             logger.info('Creating path for exporting cached data')
+    #             makedirs(cached_file_path)
 
-            if device.export(cached_file_path, forced_overwrite = True, file_format = 'csv'):
-                logger.info(f'Device {device.id} cached')
+    #         if device.export(cached_file_path, forced_overwrite = True, file_format = 'csv'):
+    #             logger.info(f'Device {device.id} cached')
 
-        return all([exists(join(self.path, 'cached', f'{d.id}.csv')) for d in self.devices])
+    #     return all([exists(join(self.path, 'cached', f'{d.id}.csv')) for d in self.devices])
 
     async def load(self):
         '''
@@ -359,17 +358,29 @@ class Test(BaseModel):
         '''
         logger.info('Loading test...')
 
+        if self.options.cache:
+            cache_dir = join(self.path, 'cached')
+            if not exists(cache_dir):
+                    logger.info('Creating path for exporting cached data...')
+                    makedirs(cache_dir)
+                    logger.info(f'Cache will be available in: {cache_dir}')
+
         for device in self.devices:
             # Check for cached data
-            cached_file_path = ''
+            device_cache_path = ''
             if self.options.cache:
                 tentative_path = join(self.path, 'cached', f'{device.id}.csv')
-                if exists(tentative_path): cached_file_path = tentative_path
+                if exists(tentative_path):
+                    device_cache_path = tentative_path
+
             # Load device (no need to go async, it's fast enough)
-            await device.load(cache=cached_file_path)
+            await device.load(cache=device_cache_path)
+
+            if self.options.cache:
+                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv'):
+                    logger.info(f'Device {device.id} cached')
 
         logger.info('Test load done')
-        if self.options.cache: self.cache()
 
         self.loaded = all([d.loaded for d in self.devices])
         return self.loaded

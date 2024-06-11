@@ -6,7 +6,6 @@ import os
 
 # Set basic configs
 config._log_level = 'DEBUG'
-config.data['strict_load'] = False
 
 def test_csv_device():
     id = 16838

@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 
 class TestOptions(BaseModel):
-    cache: Optional[bool] = False
+    cache: Optional[bool] = True
 
 class Metric(BaseModel):
     id: Optional[int] = None

@@ -38,9 +38,6 @@ class Config(object):
     if 'IPython' in sys.modules: _ipython_avail = True
     else: _ipython_avail = False
 
-    # Returns when iterables cannot be fully processed
-    _strict = False
-
     # Timeout for http requests
     _timeout = 3
     _max_http_retries = 2
@@ -51,21 +48,8 @@ class Config(object):
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------
-
-    data = {
-        # Whether or not to reload metadata from git repo
-        'reload_metadata': True,
-        # Whether or not to load or store cached data (saves time when requesting a lot of data)
-        'load_cached_api': True,
-        'store_cached_api': True,
-        # If reloading data from the API, how much gap between the saved data and the
-        # latest reading in the API should be ignore
-        'cached_data_margin': 1,
-        # clean_na
-        'clean_na': None,
-        # Ignore additional channels from API or CSV that are not in the blueprint.json
-        'strict_load': False
-    }
+    # Data Margin in minutes for consecutive requests
+    _cache_data_margin = '10Min'
 
     # Maximum amount of points to load when postprocessing data
     _max_load_amount = 500

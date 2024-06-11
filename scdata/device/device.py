@@ -300,9 +300,10 @@ class Device(BaseModel):
                 else:
                     raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
 
+                # Make request with a logical min_date
                 if not cached_data.empty:
                     # Update min_date
-                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)
+                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)+Timedelta(config._cache_data_margin)
 
         # Not implemented "for now"
         elif self.source.type == 'stream':
