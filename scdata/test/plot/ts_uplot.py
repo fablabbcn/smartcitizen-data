@@ -112,7 +112,7 @@ def ts_uplot(self, **kwargs):
 
     # Get data in uplot expected format
     udf = df.copy()
-    udf.index = udf.index.astype(int)/10**9
+    udf.index = udf.index.astype('int64')/10**9
 
     for isbplt in range(n_subplots):
 
