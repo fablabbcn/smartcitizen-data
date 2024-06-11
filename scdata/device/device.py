@@ -303,7 +303,7 @@ class Device(BaseModel):
                 # Make request with a logical min_date
                 if not cached_data.empty:
                     # Update min_date
-                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)+Timedelta(config._cache_data_margin)
+                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)+Timedelta(config.data['cached_data_margin'])
 
         # Not implemented "for now"
         elif self.source.type == 'stream':

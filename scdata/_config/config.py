@@ -48,8 +48,10 @@ class Config(object):
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------
-    # Data Margin in minutes for consecutive requests
-    _cache_data_margin = '10Min'
+    data = {
+        'cached_data_margin': '10Min', # Data Margin in minutes for consecutive requests
+        'reload_metadata': True # Reload metadata
+    }
 
     # Maximum amount of points to load when postprocessing data
     _max_load_amount = 500
