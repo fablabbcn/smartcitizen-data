@@ -303,7 +303,7 @@ class Device(BaseModel):
                 # Make request with a logical min_date
                 if not cached_data.empty:
                     # Update min_date
-                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)+Timedelta(config.data['cached_data_margin'])
+                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)
 
         # Not implemented "for now"
         elif self.source.type == 'stream':
@@ -328,6 +328,7 @@ class Device(BaseModel):
         # In principle this links both dataframes as they are unmutable
         self.data = self.handler.data
         # Wrap it all up
+        # TODO Avoid doing this if not needed?
         self.loaded = self.__load_wrapup__(max_amount,  convert_units=convert_units, convert_names=convert_names, cached_data=cached_data)
 
         self.processed = False
