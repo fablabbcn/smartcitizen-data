@@ -1,0 +1,12 @@
+from enum import Enum
+
+class StatusCode(Enum):
+    ERROR_MISSING_INPUT = 1
+    ERROR_MISSING_ID = 2
+    ERROR_MISSING_CAL = 3
+    ERROR_WRONG_CAL = 4
+    ERROR_MISSING_CHANNEL = 5
+    ERROR_WRONG_HW = 6
+    ERROR_WRONG_REQUEST = 7
+    WARNING_CALC = 50
+    SUCCESS = 100

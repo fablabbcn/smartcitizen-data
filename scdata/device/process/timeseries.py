@@ -2,6 +2,7 @@ from numpy import nan, full, power, ones, diff, convolve, append
 from scipy import ndimage
 from scdata.device.process import is_within_circle
 from scdata.tools.custom_logger import logger
+from scdata.device.process.codes import StatusCode
 
 def delta_index_ts(dataframe, **kwargs):
     result = dataframe.index.to_series().diff().astype('timedelta64[s]')
@@ -26,7 +27,7 @@ def poly_ts(dataframe, **kwargs):
         result = sum(coefficients[i]*channels[i]^exponents[i] + extra_term)
     """
 
-    if 'channels' not in kwargs: return None
+    if 'channels' not in kwargs: return StatusCode(1), None
     else: channels = kwargs['channels']
     n_channels = len(channels)
 
@@ -45,7 +46,7 @@ def poly_ts(dataframe, **kwargs):
     for i in range(n_channels):
         result += power(dataframe[channels[i]], exponents[i]) * coefficients[i]
 
-    return result + extra_term
+    return StatusCode(100), result + extra_term
 
 def clean_ts(dataframe, **kwargs):
     """
@@ -70,8 +71,8 @@ def clean_ts(dataframe, **kwargs):
         pandas series containing the clean
     """
 
-    if 'name' not in kwargs: return None
-    if kwargs['name'] not in dataframe: return None
+    if 'name' not in kwargs: return StatusCode(1), None
+    if kwargs['name'] not in dataframe: return StatusCode(5), None
 
     result = dataframe[kwargs['name']].copy()
     # Limits
@@ -91,7 +92,7 @@ def clean_ts(dataframe, **kwargs):
     if window is not None:
         result.rolling(window = window, win_type = win_type).mean()
 
-    return result
+    return StatusCode(100), result
 
 def merge_ts(dataframe, **kwargs):
     """
@@ -132,7 +133,7 @@ def merge_ts(dataframe, **kwargs):
     df = dataframe.copy()
 
     # Set defaults
-    if 'names' not in kwargs: return None
+    if 'names' not in kwargs: return StatusCode(1), None
     if 'pick' not in kwargs: pick = 'min'
     else: pick = kwargs['pick']
     if 'factor' not in kwargs: factor = 0.3
@@ -168,7 +169,7 @@ def merge_ts(dataframe, **kwargs):
     # elif pick == 'min_nonzero':
     #     df['result'] = df.loc[df['flag'] == True, kwargs['names']].min(skipna=True, axis = 1)
 
-    return df['result']
+    return StatusCode(100), df['result']
 
 def rolling_avg(dataframe, **kwargs):
     """
@@ -196,7 +197,7 @@ def rolling_avg(dataframe, **kwargs):
 
     if 'name' not in kwargs:
         logger.error (f'{kwargs[name]} not in kwargs')
-        return None
+        return StatusCode(1), None
 
     result = dataframe[kwargs['name']].copy()
 
@@ -212,7 +213,7 @@ def rolling_avg(dataframe, **kwargs):
         if kwargs['type'] == 'max': return result.rolling(window = window, win_type = win_type).max()
         if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()
     else:
-        return result.rolling(window = window, win_type = win_type).mean()
+        return StatusCode(100), result.rolling(window = window, win_type = win_type).mean()
 
 def time_derivative(dataframe, **kwargs):
     """
@@ -229,7 +230,7 @@ def time_derivative(dataframe, **kwargs):
         pandas series containing derivative using simple np.diff
     """
 
-    if 'name' not in kwargs: return None
+    if 'name' not in kwargs: return StatusCode(1), None
     if 'gaussian_filter1d' not in kwargs: gaussian_filter1d = True
     else: gaussian_filter1d = False
 
@@ -245,7 +246,7 @@ def time_derivative(dataframe, **kwargs):
         df['diff_filter1d']  = ndimage.gaussian_filter1d(df['diff'], sigma=1, order=1, mode='wrap') / dx
         return df['diff_filter1d']
 
-    return df['diff']
+    return StatusCode(100), df['diff']
 
 def geo_located(dataframe, **kwargs):
     """
@@ -269,11 +270,11 @@ def geo_located(dataframe, **kwargs):
 
     result = dataframe.copy()
 
-    if 'within' not in kwargs: return None
+    if 'within' not in kwargs: return StatusCode(1), None
 
     if 'lat_name' not in kwargs: lat_name = 'GPS_LAT'
     if 'long_name' not in kwargs: long_name = 'GPS_LONG'
 
     result['within'] = result.apply(lambda x: is_within_circle(x, kwargs['within'], lat_name, long_name), axis=1)
 
-    return result['within']
+    return StatusCode(100), result['within']

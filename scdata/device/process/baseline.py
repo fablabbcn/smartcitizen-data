@@ -8,6 +8,7 @@ from numpy import max as npmax
 from numpy import abs as npabs
 from numpy import argmax, argmin, arange, exp
 from scdata.tools.custom_logger import logger
+from scdata.device.process.codes import StatusCode
 from scdata._config import config
 from math import isnan
 from .formulae import exp_f
@@ -56,16 +57,22 @@ def get_delta_baseline(series, **kwargs):
         Series containing baselined values
     """
 
-    if 'delta' in kwargs: delta = kwargs['delta']
-    else: return None
+    if 'delta' in kwargs:
+        delta = kwargs['delta']
+    else:
+        return StatusCode(1), None
 
     # if 'resample' in kwargs: resample = kwargs['resample']
     # else: resample = '1Min'
 
-    if 'btype' in kwargs: btype = kwargs['btype']
-    else: btype = 'min'
+    if 'btype' in kwargs:
+        btype = kwargs['btype']
+    else:
+        btype = 'min'
 
-    if delta == 0: logger.error(f'Not valid delta = {delta}'); return None
+    if delta == 0:
+        logger.error(f'Not valid delta = {delta}')
+        return StatusCode(7), None
 
     result = series.copy()
     # result = result.resample(resample).mean()
@@ -80,7 +87,7 @@ def get_delta_baseline(series, **kwargs):
             if btype == 'min': result[pdates[pos]:pdates[pos+1]] = min(chunk.values)
             elif btype == 'max': result[pdates[pos]:pdates[pos+1]] = max(chunk.values)
 
-    return result
+    return StatusCode(100), result
 
 def get_als_baseline(series, lambd = 1e5, p = 0.01, n_iter=10):
 
@@ -97,6 +104,7 @@ def get_als_baseline(series, lambd = 1e5, p = 0.01, n_iter=10):
     return z
 
 # TODO DOCUMENT
+# TODO Fix
 def baseline_calc(dataframe, **kwargs):
 
     '''
@@ -247,7 +255,8 @@ def baseline_calc(dataframe, **kwargs):
     result[target_name + '_baseline'] = result[[(target_name + '_' + 'baseline_raw'), target_name]].min(axis=1)
 
     if config._intermediate_plots and config._plot_out_level == 'DEBUG':
-        with plt.style.context('seaborn-white'):
+        with plt.style.context(config._plot_style):
+
             fig1, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,8))
 
             ax1.plot(result.loc[:, baseline_name].values, result[(target_name + f'_{l_iter[ind_max]}')], label = 'Baseline ' + str(l_iter[ind_max]), linewidth=0, marker='o')

@@ -4,6 +4,7 @@ from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
 from scdata.device.process import baseline_calc, clean_ts
+from scdata.device.process.codes import StatusCode
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
@@ -74,24 +75,25 @@ def alphasense_803_04(dataframe, **kwargs):
         return comp_lut[idx_1] + (x['t'] - as_t_comp[idx_1]) * delta_y / delta_x
 
     # Check inputs
-    flag_error = False
-    if 'we' not in kwargs: flag_error = True
-    if 'ae' not in kwargs: flag_error = True
-    if 'alphasense_id' not in kwargs: flag_error = True
-    if 't' not in kwargs: flag_error = True
+    missing_input = False
+    msg_input = ''
+    if 'we' not in kwargs: missing_input = True; msg_input = 'we'
+    if 'ae' not in kwargs: missing_input = True; msg_input = 'ae'
+    if 'alphasense_id' not in kwargs: missing_input = True; msg_input = 'alphasense_id'
+    if 't' not in kwargs: missing_input = True; msg_input = 't'
 
-    if flag_error:
-        logger.warning('Problem with input data')
-        return None
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input {msg_input} in function kwargs')
+        return StatusCode(1), None
 
     if kwargs['alphasense_id'] is None:
         logger.warning(f"Empty ID. Ignoring")
-        return None
+        return StatusCode(2), None
 
     # Get Sensor data
     if kwargs['alphasense_id'] not in config.calibrations:
         logger.warning(f"Sensor {kwargs['alphasense_id']} not in calibration data")
-        return None
+        return StatusCode(3), None
 
     # Make copy
     df = dataframe.copy()
@@ -117,7 +119,7 @@ def alphasense_803_04(dataframe, **kwargs):
         except:
             logger.error(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct")
             logger.error(f'Error on {item}: \'{cal_data[item]}\'')
-            return
+            return StatusCode(4)
 
     # Remove spurious voltages (0V < electrode < 5V)
     for electrode in ['we', 'ae']:
@@ -159,7 +161,7 @@ def alphasense_803_04(dataframe, **kwargs):
     if avoid_negative_conc:
         df['conc'].clip(lower = 0, inplace = True)
 
-    return df['conc']
+    return StatusCode(100), df['conc']
 
 def ec_sensor_temp(dataframe, **kwargs):
     """
@@ -174,12 +176,12 @@ def ec_sensor_temp(dataframe, **kwargs):
     """
     if 'priority' in kwargs:
         if kwargs['priority'] in dataframe.columns:
-            return dataframe[kwargs['priority']]
+            return StatusCode(100), dataframe[kwargs['priority']]
     for option in alphasense_temp_channel:
         if option in dataframe.columns:
-            return dataframe[option]
-    logger.error('Problem with input data')
-    return None
+            return StatusCode(100), dataframe[option]
+    logger.warning('Problem with input data')
+    return StatusCode(1), None
 
 def alphasense_pt1000(dataframe, **kwargs):
     """
@@ -204,22 +206,27 @@ def alphasense_pt1000(dataframe, **kwargs):
         Calculation of temperature in degC
     """
     # Check inputs
-    flag_error = False
-    if 'pt1000plus' not in kwargs: flag_error = True
-    if 'pt1000minus' not in kwargs: flag_error = True
+    missing_input = False
+    msg_input = ''
 
-    if flag_error:
-        logger.error('Problem with input data')
-        return None
+    required_kwargs = ['pt1000plus', 'pt1000minus']
+    for item in required_kwargs:
+        if item not in kwargs:
+            missing_input = True
+            msg_input += item + ' '
+
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input(s) {msg_input} in function kwargs')
+        return StatusCode(1), None
 
     if kwargs['afe_id'] is None:
         logger.warning(f"Empty ID. Ignoring")
-        return None
+        return StatusCode(2), None
 
     # Get Sensor data
     if kwargs['afe_id'] not in config.calibrations:
         logger.error(f"AFE {kwargs['afe_id']} not in calibration data")
-        return None
+        return StatusCode(3), None
 
     # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['afe_id']]
@@ -229,7 +236,7 @@ def alphasense_pt1000(dataframe, **kwargs):
         except:
             logger.error(f"Alphasense calibration data for {kwargs['afe_id']} is not correct")
             logger.error(f'Error on {item}: \'{cal_data[item]}\'')
-            return
+            return StatusCode(4), None
 
     # Make copy
     df = dataframe.copy()
@@ -238,7 +245,7 @@ def alphasense_pt1000(dataframe, **kwargs):
     df['v20'] = cal_data['v20'] - (cal_data['t20'] - 20.0) / 1000.0
     df['temp'] = (df[kwargs['pt1000plus']] - df['v20']) * 1000.0 + 20.0 # in degC
 
-    return df['temp']
+    return StatusCode(100), df['temp']
 
 def channel_names(dataframe, **kwargs):
     """
@@ -258,19 +265,26 @@ def channel_names(dataframe, **kwargs):
         Channel named accordingly
     """
     # Check inputs
-    flag_error = False
-    if 'channel' not in kwargs: flag_error = True
+    missing_input = False
+    msg_input = ''
+
+    required_kwargs = ['channel']
+    for item in required_kwargs:
+        if item not in kwargs:
+            missing_input = True
+            msg_input += item + ' '
+
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input(s) {msg_input} in function kwargs')
+        return StatusCode(1), None
+
     if kwargs['channel'] not in dataframe:
         logger.warning(f"Channel {kwargs['channel']} not in dataframe. Ignoring")
-        return None
-
-    if flag_error:
-        logger.error('Problem with input data')
-        return None
+        return StatusCode(5), None
 
     # Make copy
     df = dataframe.copy()
-    return df[kwargs['channel']]
+    return StatusCode(100), df[kwargs['channel']]
 
 def basic_4electrode_alg(dataframe, **kwargs):
     """
@@ -293,20 +307,24 @@ def basic_4electrode_alg(dataframe, **kwargs):
         calculation of pollutant based on: 6.36 * sensitivity(working - zero_working)/(auxiliary - zero_auxiliary)
     """
 
-    flag_error = False
-    if 'working' not in kwargs: flag_error = True
-    if 'auxiliary' not in kwargs: flag_error = True
-    if 'id' not in kwargs: flag_error = True
-    if 'pollutant' not in kwargs: flag_error = True
+    # Check inputs
+    missing_input = False
+    msg_input = ''
 
-    if flag_error:
-        logger.error('Problem with input data')
-        return None
+    required_kwargs = ['working', 'auxiliary', 'id', 'pollutant']
+    for item in required_kwargs:
+        if item not in kwargs:
+            missing_input = True
+            msg_input += item + ' '
+
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input(s) {msg_input} in function kwargs')
+        return StatusCode(1), None
 
     # Get Sensor data
     if kwargs['id'] not in config.calibrations:
         logger.error(f"Sensor {kwargs['id']} not in calibration data")
-        return None
+        return StatusCode(2), None
 
     we_sensitivity_na_ppb = config.calibrations[kwargs['id']]['we_sensitivity_na_ppb']
     we_cross_sensitivity_no2_na_ppb = config.calibrations[kwargs['id']]['we_cross_sensitivity_no2_na_ppb']
@@ -315,14 +333,14 @@ def basic_4electrode_alg(dataframe, **kwargs):
 
     if sensor_type != kwargs['pollutant']:
         logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
-        return None
+        return StatusCode(4), None
 
     # This is always in ppm since the calibration data is in signal/ppm
     if kwargs['hardware'] == 'alphadelta': current_factor = alphadelta_pcb
     elif kwargs['hardware'] == 'isb': current_factor = 1 #TODO make it so we talk in mV
     else:
         logger.error(f"Measurement hardware {kwargs['hardware']} not supported")
-        return None
+        return StatusCode(6), None
 
     result = current_factor*(dataframe[kwargs['working']] - nWA*dataframe[kwargs['auxiliary']])/abs(we_sensitivity_na_ppb)
 
@@ -331,7 +349,7 @@ def basic_4electrode_alg(dataframe, **kwargs):
     # Add Background concentration
     result += background_conc[kwargs['pollutant']]
 
-    return result
+    return StatusCode(100), result
 
 def baseline_4electrode_alg(dataframe, **kwargs):
     """
@@ -376,19 +394,29 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     result = Series()
     baseline = Series()
 
-    flag_error = False
-    if 'target' not in kwargs: flag_error = True
-    if 'baseline' not in kwargs: flag_error = True
-    if 'id' not in kwargs: flag_error = True
-    if 'pollutant' not in kwargs: flag_error = True
+    # Check inputs
+    missing_input = False
+    msg_input = ''
+
+    required_kwargs = ['target', 'baseline', 'id', 'pollutant']
+    for item in required_kwargs:
+        if item not in kwargs:
+            missing_input = True
+            msg_input += item + ' '
+
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input(s) {msg_input} in function kwargs')
+        return StatusCode(1), None
 
     if 'regression_type' in kwargs:
-        if kwargs['regression_type'] not in ['best', 'exponential', 'linear']: flag_error = True
+        if kwargs['regression_type'] not in ['best', 'exponential', 'linear']:
+            return StatusCode(7), None
         else: reg_type = kwargs['regression_type']
     else: reg_type = 'best'
 
     if 'period' in kwargs:
-        if kwargs['period'] not in ['best', 'exponential', 'linear']: flag_error = True
+        if kwargs['period'] not in ['best', 'exponential', 'linear']:
+            return StatusCode(7), None
         else: period = kwargs['period']
     else: period = '1D'
 
@@ -406,10 +434,6 @@ def baseline_4electrode_alg(dataframe, **kwargs):
 
     if 'deltas' in kwargs: deltas = kwargs['deltas']
     else: deltas = baseline_deltas
-
-    if flag_error:
-        logger.error('Problem with input data')
-        return None
 
     min_date, max_date, _ = find_dates(dataframe)
     pdates = date_range(start = min_date, end = max_date, freq = period)
@@ -430,7 +454,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
 
         if target_1 != kwargs['pollutant']:
             logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
-            return None
+            return StatusCode(4), None
 
         result = pcb_factor*(dataframe[kwargs['target']] - baseline)/abs(sensitivity_1)
 
@@ -447,7 +471,7 @@ def baseline_4electrode_alg(dataframe, **kwargs):
     if store_baseline:
         dataframe[kwargs['target']+'_BASELINE'] = baseline
 
-    return result
+    return StatusCode(100), result
 
 def deconvolution(dataframe, **kwargs):
     """
@@ -472,15 +496,19 @@ def deconvolution(dataframe, **kwargs):
     result = Series()
     baseline = Series()
 
-    flag_error = False
-    if 'source' not in kwargs: flag_error = True
-    if 'base' not in kwargs: flag_error = True
-    if 'id' not in kwargs: flag_error = True
-    if 'pollutant' not in kwargs: flag_error = True
+    # Check inputs
+    missing_input = False
+    msg_input = ''
 
-    if flag_error:
-        logger.error('Problem with input data')
-        return None
+    required_kwargs = ['source', 'base', 'id', 'pollutant']
+    for item in required_kwargs:
+        if item not in kwargs:
+            missing_input = True
+            msg_input += item + ' '
+
+    if missing_input:
+        logger.warning(f'Problem with input data. Missing input(s) {msg_input} in function kwargs')
+        return StatusCode(1), None
 
     sensitivity_1 = config.calibrations.loc[kwargs['id'],'sensitivity_1']
     sensitivity_2 = config.calibrations.loc[kwargs['id'],'sensitivity_2']
@@ -490,7 +518,7 @@ def deconvolution(dataframe, **kwargs):
 
     if target_1 != kwargs['pollutant']:
         logger.error(f"Sensor {kwargs['id']} doesn't coincide with calibration data")
-        return None
+        return StatusCode(4), None
 
     factor_unit_1 = get_units_convf(kwargs['pollutant'], from_units = 'ppm')
     factor_unit_2 = get_units_convf(kwargs['base'], from_units = 'ppm')
@@ -500,4 +528,4 @@ def deconvolution(dataframe, **kwargs):
     # Add Background concentration
     result += background_conc[kwargs['pollutant']]
 
-    return result
+    return StatusCode(100), result

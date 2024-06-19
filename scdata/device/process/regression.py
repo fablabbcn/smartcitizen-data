@@ -1,6 +1,7 @@
 from scdata._config import config
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
+from scdata.device.process.codes import StatusCode
 from scdata.tools.cleaning import clean
 from pandas import DataFrame
 from numpy import array
@@ -38,7 +39,7 @@ def apply_regressor(dataframe, **kwargs):
 	except KeyError:
 		logger.error('Inputs not in dataframe')
 		pass
-		return None
+		return StatusCode(5), None
 
 	if 'model' not in kwargs:
 		logger.error('Model not in inputs')
@@ -56,4 +57,4 @@ def apply_regressor(dataframe, **kwargs):
 	features = array(inputdf)
 	result = DataFrame(model.predict(features)).set_index(inputdf.index)
 
-	return result
+	return StatusCode(100), result
