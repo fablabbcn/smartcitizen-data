@@ -1,5 +1,5 @@
 {
-  "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_21_station_module.json",
+  "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json",
   "description": "2PMS5003-4ELEC-CO2",
   "versions": [
     {
