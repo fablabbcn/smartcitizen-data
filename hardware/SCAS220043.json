@@ -1,0 +1,16 @@
+{
+  "blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json",
+  "description": "1PMS5003-2ELEC-AFE",
+  "comment": "TGH-T2-06",
+  "versions": [
+    {
+      "ids": {
+        "AS_48_32": "214920352",
+        "AS_49_10": "212830227",
+        "PT_49_23": "10-002917"
+      },
+      "from": "2024-01-20",
+      "to": null
+    }
+  ]
+}
