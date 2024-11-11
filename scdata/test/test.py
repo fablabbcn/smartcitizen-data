@@ -36,7 +36,7 @@ class Test(BaseModel):
     from .export import to_csv, to_html
     from .tools import combine, prepare, history
     from .dispersion import dispersion_analysis, dispersion_summary
-    from .checks import get_common_channels, gaps_check
+    from .checks import get_common_channels
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
     name: str
@@ -192,81 +192,6 @@ class Test(BaseModel):
 
         return process_ok
 
-    # # TODO - CHECK FOR CSV FILES
-    # def __preprocess__(self):
-    #     '''
-    #     Processes the files for one test, given that the devices and details have been added
-    #     '''
-
-    #     logger.info('Processing files...')
-    #     def get_raw_files():
-    #             list_raw_files = []
-    #             for device in self.devices:
-    #                 if device.source.type == 'sd-csv':
-    #                     list_raw_files.append(device.source.files.raw_data_file)
-
-    #             return list_raw_files
-
-    #     def copy_raw_files(_raw_src_path, _raw_dst_path, _list_raw_files):
-    #         try:
-
-    #             for item in _list_raw_files:
-    #                 s = join(_raw_src_path, item)
-    #                 d = join(_raw_dst_path, item.split('/')[-1])
-    #                 copyfile(s, d)
-
-    #             logger.info('Copy raw files: OK')
-
-    #             return True
-
-    #         except:
-    #             logger.error('Problem copying raw files')
-    #             print_exc()
-    #             return False
-
-    #     def date_parser(s, a):
-    #         return parser.parse(s).replace(microsecond=int(a[-3:])*1000)
-
-    #     # Define paths
-    #     raw_src_path = join(config.paths['data'], 'raw')
-    #     raw_dst_path = join(self.path, 'raw')
-
-    #     # Create path
-    #     if not exists(raw_dst_path): makedirs(raw_dst_path)
-
-        # Get raw files
-        # list_raw_files = get_raw_files()
-
-        # Copy raw files and process data
-        # if len(list_raw_files):
-        #     if copy_raw_files(raw_src_path, raw_dst_path, list_raw_files):
-
-        #         # Process devices
-        #         for device in self.devices:
-        #             ## Make this for CSV devices
-        #             if device.source.type == 'sd-csv':
-
-        #                 logger.info (f'Processing csv from device {device.id}...')
-        #                 src_path = join(raw_src_path, device.raw_data_file)
-        #                 dst_path = join(self.path, device.processed_data_file)
-
-        #                 # Load csv file, only localising and removing
-        #                 df = read_csv_file(file_path = src_path,
-        #                                     timezone = device.timezone,
-        #                                     frequency = device.frequency,
-        #                                     clean_na = None,
-        #                                     index_name = device.sources[device.source]['index'],
-        #                                     skiprows = device.sources[device.source]['header_skip'],
-        #                                     sep = device.sources[device.source]['sep'],
-        #                                     tzaware = device.sources[device.source]['tz-aware'],
-        #                                     resample = device.resample
-        #                                     )
-        #                 df.index.rename(config._csv_defaults['index_name'], inplace=True)
-        #                 df.to_csv(dst_path, sep=config._csv_defaults['sep'])
-
-            # logger.info('Files preprocessed')
-        # logger.info(f'Test {self.name} path: {self.path}')
-
     @model_serializer
     def ser_model(self) -> Dict[str, Any]:
 
@@ -330,21 +255,6 @@ class Test(BaseModel):
         if not exists(fname): return False
 
         return fname
-
-    # def cache(self):
-    #     logger.info(f'Caching files...')
-    #     for device in self.devices:
-    #         logger.info(f'Caching files for {device.id}...')
-
-    #         cached_file_path = join(self.path, 'cached')
-    #         if not exists(cached_file_path):
-    #             logger.info('Creating path for exporting cached data')
-    #             makedirs(cached_file_path)
-
-    #         if device.export(cached_file_path, forced_overwrite = True, file_format = 'csv'):
-    #             logger.info(f'Device {device.id} cached')
-
-    #     return all([exists(join(self.path, 'cached', f'{d.id}.csv')) for d in self.devices])
 
     async def load(self):
         '''
