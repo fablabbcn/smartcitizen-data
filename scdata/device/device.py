@@ -510,104 +510,81 @@ class Device(BaseModel):
                 self.postprocessing_updated = False
         return self.postprocessing_updated
 
-    # TODO
-    def health_check(self):
-        return True
+    # Check nans per column, return dict
+    # TODO-DOCUMENT
+    def get_nan_ratio(self, **kwargs):
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
 
-    # TODO - Decide if we keep it
-    # def forward(self, chunk_size = 500, dry_run = False, max_retries = 2):
-    #     '''
-    #     Forwards data to another api.
-    #     Parameters
-    #     ----------
-    #     chunk_size: int
-    #         500
-    #         Chunk size to be sent to device.post_data_to_device in question
-    #     dry_run: boolean
-    #         False
-    #         Post the payload to the API or just return it
-    #     max_retries: int
-    #         2
-    #         Maximum number of retries per chunk
-    #     Returns
-    #     ----------
-    #         boolean
-    #         True if posted ok, False otherwise
-    #     '''
+        if 'sampling_rate' not in kwargs:
+            sampling_rate = config._default_sampling_rate
+        else:
+            sampling_rate = kwargs['sampling_rate']
+        result = {}
 
-    #     # Import requested handler
-    #     hmod = __import__('scdata.io.device_api', fromlist = ['io.device_api'])
-    #     Hclass = getattr(hmod, config.connectors[self.forwarding_request]['handler'])
+        for column in self.data.columns:
+            if column not in sampling_rate: continue
+            df = self.data[column].resample(f'{sampling_rate[column]}Min').mean()
+            minutes = df.groupby(df.index.date).mean().index.to_series().diff()/Timedelta('60s')
+            result[column] = (1-(minutes-df.isna().groupby(df.index.date).sum())/minutes)*sampling_rate[column]
 
-    #     # Create new device in target API if it hasn't been created yet
-    #     if self.forwarding_params is None:
-    #         std_out('Empty forwarding information, attemping creating a new device', 'WARNING')
-    #         # We assume the device has never been posted
-    #         # Construct new device kwargs dictionary
-    #         kwargs = dict()
-    #         for item in config.connectors[self.forwarding_request]['kwargs']:
-    #             val = config.connectors[self.forwarding_request]['kwargs'][item]
-    #             if val == 'options':
-    #                 kitem = self.options[item]
-    #             elif val == 'config':
-    #                 # Items in config should be underscored
-    #                 kitem = config.__getattr__(f'_{item}')
-    #             elif isinstance(val, Iterable):
-    #                 if 'same' in val:
-    #                     if 'as_device' in val:
-    #                         if item == 'sensors':
-    #                             kitem = self.merge_sensor_metrics(ignore_empty = True)
-    #                         elif item == 'description':
-    #                             kitem = self.blueprint.replace('_', ' ')
-    #                     elif 'as_api' in val:
-    #                         if item == 'sensors':
-    #                             kitem = self.api_device.get_device_sensors()
-    #                         elif item == 'description':
-    #                             kitem = self.api_device.get_device_description()
-    #             else:
-    #                 kitem = val
-    #             kwargs[item] = kitem
+        return result
 
-    #         response = Hclass.new_device(name = config.connectors[self.forwarding_request]['name_prepend']\
-    #                                             + str(self.params.id),
-    #                                      location = self.location,
-    #                                      dry_run = dry_run,
-    #                                      **kwargs)
-    #         if response:
-    #             if 'message' in response:
-    #                 if response['message'] == 'Created':
-    #                     if 'sensorid' in response:
-    #                         self.forwarding_params = response['sensorid']
-    #                         self.api_device.postprocessing['forwarding_params'] = self.forwarding_params
-    #                         std_out(f'New sensor ID in {self.forwarding_request}\
-    #                          is {self.forwarding_params}. Updating')
+    # Check plausibility per column, return dict. Doesn't take into account nans
+    # TODO-DOCUMENT
+    def get_plausible_ratio(self, **kwargs):
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
 
-    #     if self.forwarding_params is not None:
-    #         df = self.data.copy()
-    #         df = df[df.columns.intersection(list(self.merge_sensor_metrics(ignore_empty=True).keys()))]
-    #         df = clean(df, 'drop', how = 'all')
+        if 'unplausible_values' not in kwargs:
+            unplausible_values = config._default_unplausible_values
+        else:
+            unplausible_values = kwargs['unplausible_values']
 
-    #         if df.empty:
-    #             std_out('Empty dataframe, ignoring', 'WARNING')
-    #             return False
+        if 'sampling_rate' not in kwargs:
+            sampling_rate = config._default_sampling_rate
+        else:
+            sampling_rate = kwargs['sampling_rate']
 
-    #         # Create object
-    #         ndev = Hclass(did = self.forwarding_params)
-    #         post_ok = ndev.post_data_to_device(df, chunk_size = chunk_size,
-    #             dry_run = dry_run, max_retries = 2)
+        return {column: self.data[column].between(left=unplausible_values[column][0], right=unplausible_values[column][1]).groupby(self.data[column].index.date).sum()/self.data.groupby(self.data.index.date).count()[column] for column in self.data.columns if column in unplausible_values}
 
-    #         if post_ok:
-    #             # TODO Check if we like this
-    #             if self.source == 'api':
-    #                 self.update_latest_postprocessing()
-    #             std_out(f'Posted data for {self.params.id}', 'SUCCESS')
-    #         else:
-    #             std_out(f'Error posting data for {self.params.id}', 'ERROR')
-    #         return post_ok
+    # Check plausibility per column, return dict. Doesn't take into account nans
+    def get_outlier_ratio(self, **kwargs):
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+        result = {}
+        resample = '360h'
 
-    #     else:
-    #         std_out('Empty forwarding information', 'ERROR')
-    #         return False
+        for column in self.data.columns:
+            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
+            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
+            IQR = Q3 - Q1
+
+            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
+            result[column] = mask.groupby(mask.index.date).mean()
+
+        return result
+
+    # Check plausibility per column, return dict. Doesn't take into account nans
+    def get_outliers(self, **kwargs):
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+        result = {}
+        resample = '360h'
+
+        for column in self.data.columns:
+            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
+            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
+            IQR = Q3 - Q1
+
+            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
+            result[column] = mask
+
+        return result
 
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
         '''
