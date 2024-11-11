@@ -1,0 +1,1 @@
+{"blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json", "description": "1SEN55-PID-TGS-HCHO", "comment": "TwinAIR-Sensor Pack - Experimental VOC. TGS on 48_0 and 48_1. PID on 49_1. Compare to ground", "versions": [{"ids": {"AS_49_12": "73002320"}, "from": "2024-04-01", "to": null}]}

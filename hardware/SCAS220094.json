@@ -1,0 +1,1 @@
+{"blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json", "description": "1SEN55-2ELEC-AFE", "comment": "TwinAIR-Sensor Pack 2. LIU-T2-57", "versions": [{"ids": {"AS_48_32": "212180224", "AS_49_10": "214400444", "PT_49_23": "10-002991"}, "from": "2024-04-01", "to": null}]}

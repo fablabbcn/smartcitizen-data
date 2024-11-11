@@ -1,0 +1,1 @@
+{"blueprint_url": "https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json", "description": "1SEN55-1ELEC-ISB", "comment": "Single B-series electrochemical sensor. 48_0 is WE, 48_1 is AE", "versions": [{"ids": {"AS_48_01": "164400106"}, "from": "2024-04-01", "to": null}]}
