@@ -12,7 +12,7 @@ from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
 
-from os.path import join, basename
+from os.path import join, basename, exists
 from urllib.parse import urlparse
 from pandas import DataFrame, to_timedelta, Timedelta
 from numpy import nan
@@ -256,7 +256,8 @@ class Device(BaseModel):
             return True
         return False
 
-    async def load(self, cache=None, convert_units=True, convert_names=True, max_amount=None):
+    async def load(self, cache=None, convert_units=True,
+    convert_names=True, max_amount=None, ignore_error = True):
         '''
         Loads the device with some options
 
@@ -274,6 +275,9 @@ class Device(BaseModel):
         max_amount: int
             Default: None
             Trim dataframe to this amount for processing and forwarding purposes (workaround)
+        ignore_error: bool
+            Default: True
+            Ignore if the cache does not exist
         Returns
         ----------
             True if loaded correctly
@@ -289,16 +293,22 @@ class Device(BaseModel):
         # Only case where cache makes sense
         if self.source.type == 'api':
             if cache is not None and cache:
-                if cache.endswith('.csv'):
-                    cached_data = read_csv_file(
-                        path = cache,
-                        timezone = timezone,
-                        frequency = frequency,
-                        clean_na = clean_na,
-                        resample = resample,
-                        index_name = 'TIME')
+                if not exists(cache):
+                    if not ignore_error:
+                        raise FileExistsError(f'Cache does not exist: {cache}')
+                    else:
+                        logger.warning(f'Cache file does not exist: {cache}')
                 else:
-                    raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
+                    if cache.endswith('.csv'):
+                        cached_data = read_csv_file(
+                            path = cache,
+                            timezone = timezone,
+                            frequency = frequency,
+                            clean_na = clean_na,
+                            resample = resample,
+                            index_name = 'TIME')
+                    else:
+                        raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
 
                 # Make request with a logical min_date
                 if not cached_data.empty:
