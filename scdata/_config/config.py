@@ -687,7 +687,7 @@ class Config(object):
                 with open(namespath, 'w') as file:
                     json.dump(names_dump, file)
 
-        # Find environment file in root or in scdata/ for clones
+        # Find environment file in root
         if exists(join(self.paths['data'],'.env')):
             self._env_file = join(self.paths['data'],'.env')
             print(f'Found Environment file at: {self._env_file}')
@@ -695,6 +695,9 @@ class Config(object):
         else:
             print(f'No environment file found. If you had an environment file (.env) before, make sure its now here')
             print(join(self.paths['data'],'.env'))
+
+        if 'SC_BEARER' not in environ:
+            print('SC_BEARER not in environment variables. You may get throttled when requesting to api.smartcitizen.me')
 
     def load(self):
         """ Override config if config file exists. """
