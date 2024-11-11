@@ -5,7 +5,6 @@ from os.path import join, exists
 from shutil import copyfile, rmtree, make_archive
 from traceback import print_exc
 from datetime import datetime, timedelta
-import yaml
 import json
 import folium
 import asyncio
@@ -303,8 +302,7 @@ class Test(BaseModel):
         selection
             'full'
             String. Selection of folders to compress. Either 'full',
-            'cached' or 'raw'. If 'full', compresses the whole test,
-            including test_description.yaml
+            'cached' or 'raw'. If 'full', compresses the whole test
 
         Returns
         ----------
