@@ -274,6 +274,7 @@ class Test(BaseModel):
                     logger.info(f'Cache will be available in: {cache_dir}')
 
         for device in self.devices:
+            logger.info(f"Loading device {device.id}")
             # Check for cached data
             device_cache_path = ''
             if self.options.cache:
@@ -284,7 +285,7 @@ class Test(BaseModel):
             # Load device (no need to go async, it's fast enough)
             await device.load(cache=device_cache_path)
 
-            if self.options.cache:
+            if self.options.cache and device.loaded and not device.data.empty:
                 if device.export(cache_dir, forced_overwrite = True, file_format = 'csv'):
                     logger.info(f'Device {device.id} cached')
 
