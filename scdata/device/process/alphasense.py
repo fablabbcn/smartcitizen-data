@@ -8,30 +8,6 @@ from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
 
-# Alphasense sensor codes
-alphasense_sensor_codes =  {
-    '132':  'ASA4_CO',
-    '133':  'ASA4_H2S',
-    '130':  'ASA4_NO',
-    '212':  'ASA4_NO2',
-    '214':  'ASA4_OX',
-    '134':  'ASA4_SO2',
-    '162':  'ASB4_CO',
-    '133':  'ASB4_H2S',#
-    '130':  'ASB4_NO', #
-    '202':  'ASB4_NO2',
-    '204':  'ASB4_OX',
-    '164':  'ASB4_SO2'
-}
-
-# Alphasense temperature channels (in order of priority)
-alphasense_temp_channel = [
-    "ASPT1000",
-    "SHT31_EXT_TEMP",
-    "SHT35_EXT_TEMP",
-    "PM_DALLAS_TEMP",
-]
-
 def alphasense_803_04(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
@@ -111,6 +87,7 @@ def alphasense_803_04(dataframe, **kwargs):
 
     # Retrieve calibration data - verify its all float
     cal_data = config.calibrations[kwargs['alphasense_id']]
+
     for item in cal_data:
         try:
             cal_data[item] = float (cal_data[item])
@@ -149,7 +126,7 @@ def alphasense_803_04(dataframe, **kwargs):
     # TODO - Check if df['we_c'] needs to always be positive and avoid spurious data
 
     # Verify if it has NO2 cross-sensitivity (in V)
-    if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0):
+    if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
         df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
         df['we_c'] -= df['we_no2_eq'] # in V
 
