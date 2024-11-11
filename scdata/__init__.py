@@ -3,4 +3,4 @@ from .device import Device
 from .test import Test
 from .models import Source, TestOptions, DeviceOptions, APIParams, FileParams, CSVParams
 
-__version__ = '1.0.3'
+__version__ = '1.1.0'
