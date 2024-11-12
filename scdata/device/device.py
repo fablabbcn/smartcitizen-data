@@ -481,20 +481,31 @@ class Device(BaseModel):
                 if metric.kwargs is not None: kwargs = metric.kwargs
 
             try:
-                result = funct(self.data, *args, **kwargs)
+                process_result = funct(self.data, *args, **kwargs)
             except KeyError:
                 logger.error('Cannot process requested function with data provided')
                 process_ok = False
                 pass
             else:
-                if result is not None:
-                    self.data[metric.name] = result
-                    process_ok &= True
                 # If the metric is None, might be for many reasons and shouldn't collapse the process_ok
+                if process_result is not None:
+                    if 'ERROR' in process_result.status_code.name:
+                        # We got an error during the processing
+                        logger.error(process_result.status_code.name)
+                        process_ok &= False
+                    elif 'WARNING' in process_result.status_code.name:
+                        # In this case there is no data to put into the metric
+                        # but there is no reason to make deny process_ok
+                        logger.warning(process_result.status_code.name)
+                        process_ok &= True
+                    elif 'SUCCESS' in process_result.status_code.name:
+                        self.data[metric.name] = process_result.data
+                        logger.info(process_result.status_code.name)
+                        process_ok &= True
 
         if process_ok:
             logger.info(f"Device {self.paramsParsed.id} processed")
-            self.processed = process_ok & self.update_postprocessing_date()
+            self.processed = process_ok
 
         return self.processed
 

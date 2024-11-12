@@ -1,5 +1,6 @@
 ''' Implementation of different processes to be done in each device '''
 
+# TODO UPDATE all these functions to make them comply with StatusCode types
 from scdata.tools.lazy import LazyCallable
 from .formulae import absolute_humidity, exp_f, fit_exp_f
 from .geoseries import is_within_circle
