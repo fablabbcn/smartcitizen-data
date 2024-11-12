@@ -47,6 +47,9 @@ class DeviceOptions(BaseModel):
     resample: Optional[bool] = False
     min_date: Optional[str] = None
     max_date: Optional[str] = None
+    max_amount: Optional[int] = None
+    convert_units: Optional[bool] = True
+    convert_names: Optional[bool] = True
 
 class Blueprint(BaseModel):
     meta: dict = dict()

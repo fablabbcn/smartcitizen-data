@@ -257,7 +257,7 @@ class Device(BaseModel):
         return False
 
     async def load(self, cache=None, convert_units=True,
-    convert_names=True, max_amount=None, ignore_error = True):
+    convert_names=True, ignore_error = True):
         '''
         Loads the device with some options
 
@@ -272,9 +272,6 @@ class Device(BaseModel):
         convert_names: bool
             Default: True
             Convert names for channels based on ids
-        max_amount: int
-            Default: None
-            Trim dataframe to this amount for processing and forwarding purposes (workaround)
         ignore_error: bool
             Default: True
             Ignore if the cache does not exist
@@ -337,27 +334,30 @@ class Device(BaseModel):
 
         # In principle this links both dataframes as they are unmutable
         self.data = self.handler.data
+
         # Wrap it all up
         # TODO Avoid doing this if not needed?
-        self.loaded = self.__load_wrapup__(max_amount,  convert_units=convert_units, convert_names=convert_names, cached_data=cached_data)
-
+        self.loaded = self.__load_wrapup__(cached_data=cached_data)
         self.processed = False
+
         return self.loaded
 
-    def __load_wrapup__(self, max_amount, convert_units=True, convert_names=True, cached_data=None):
+    def __load_wrapup__(self, cached_data=None):
+
         if self.data is not None:
             if not self.data.empty:
-                if max_amount is not None:
+                if self.options.max_amount is not None:
                     # TODO Dirty workaround
-                    logger.info(f'Trimming dataframe to {max_amount} rows')
-                    self.data=self.data.dropna(axis = 0, how='all').head(max_amount)
+                    logger.info(f'Trimming dataframe to {self.options.max_amount} rows')
+                    self.data=self.data.dropna(axis = 0, how='all').head(self.options.max_amount)
+
                 # Convert names
-                if convert_names:
-                    self.__convert_names__()
+                self.__convert_names__()
                 # Convert units
-                if convert_units:
-                    self.__convert_units__()
+                self.__convert_units__()
+
                 self.postprocessing_updated = False
+
             else:
                 logger.info('Empty dataframe in loaded data. Waiting for cache...')
 
@@ -368,6 +368,7 @@ class Device(BaseModel):
         return not self.data.empty
 
     def __convert_names__(self):
+        if not self.options.convert_names: return
         logger.info('Converting names...')
 
         self.data.rename(columns=self._rename, inplace=True)
@@ -380,6 +381,8 @@ class Device(BaseModel):
             The files are with original units, and then converted in the device only
             for the data but never chached like so.
         '''
+        if not self.options.convert_units: return
+
         logger.info('Checking if units need to be converted...')
         for sensor in self.data.columns:
             _rename_inv = {v: k for k, v in self._rename.items()}
