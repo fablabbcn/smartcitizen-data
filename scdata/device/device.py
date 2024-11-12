@@ -514,14 +514,31 @@ class Device(BaseModel):
         return self._sensors
 
     def update_postprocessing_date(self):
-        latest_postprocessing = localise_date(self.data.index[-1]+\
-            to_timedelta(self.options.frequency), 'UTC')
+        # This function updates the postprocessing date with the latest logical date
+        latest_postprocessing = None
+        if self.loaded:
+            # If device was loaded (data not empty)
+            if self.processed:
+                # If device was processed, new postprocessing is the last reading rounded up with frequency
+                latest_postprocessing = localise_date(self.data.index[-1] + to_timedelta(self.options.frequency), 'UTC')
+                logger.info(f'Updating latest_postprocessing to {latest_postprocessing}')
+            else:
+                logger.info(f'Cannot update latest_postprocessing. Device was loaded but not processed')
+        else:
+            # If device was not loaded, increase the postprocessing limited to last_reading_at
+            latest_postprocessing = min(self.handler.json.last_reading_at, self.options.max_date)
+            logger.info(f'Updating latest_postprocessing to {latest_postprocessing}')
+
+        if latest_postprocessing is None:
+            return False
+
         if self.handler.update_latest_postprocessing(latest_postprocessing):
             # Consider the case of no postprocessing, to avoid making the whole thing false
             if latest_postprocessing.to_pydatetime() == self.handler.latest_postprocessing or self.handler.json.postprocessing is None:
                 self.postprocessing_updated = True
             else:
                 self.postprocessing_updated = False
+
         return self.postprocessing_updated
 
     # Check nans per column, return dict
