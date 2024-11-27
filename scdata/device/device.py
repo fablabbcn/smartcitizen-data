@@ -285,6 +285,8 @@ class Device(BaseModel):
         frequency = self.options.frequency
         clean_na = self.options.clean_na
         resample = self.options.resample
+        limit = self.options.limit
+        channels = self.options.channels
         cached_data = DataFrame()
 
         # Only case where cache makes sense
@@ -323,6 +325,8 @@ class Device(BaseModel):
                 max_date = max_date,
                 frequency = frequency,
                 clean_na = clean_na,
+                limit = limit,
+                channels = channels,
                 resample = resample)
         else:
             self.handler.get_data(
@@ -336,7 +340,6 @@ class Device(BaseModel):
         self.data = self.handler.data
 
         # Wrap it all up
-        # TODO Avoid doing this if not needed?
         self.loaded = self.__load_wrapup__(cached_data=cached_data)
         self.processed = False
 
@@ -346,11 +349,6 @@ class Device(BaseModel):
 
         if self.data is not None:
             if not self.data.empty:
-                if self.options.max_amount is not None:
-                    # TODO Dirty workaround
-                    logger.info(f'Trimming dataframe to {self.options.max_amount} rows')
-                    self.data=self.data.dropna(axis = 0, how='all').head(self.options.max_amount)
-
                 # Convert names
                 self.__convert_names__()
                 # Convert units

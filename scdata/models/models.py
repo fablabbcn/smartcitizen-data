@@ -47,7 +47,8 @@ class DeviceOptions(BaseModel):
     resample: Optional[bool] = False
     min_date: Optional[str] = None
     max_date: Optional[str] = None
-    max_amount: Optional[int] = None
+    limit: Optional[int] = None
+    channels: Optional[List[str]] = []
     convert_units: Optional[bool] = True
     convert_names: Optional[bool] = True
 
