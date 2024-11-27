@@ -2,10 +2,16 @@ from numpy import nan, full, power, ones, diff, convolve, append
 from scipy import ndimage
 from scdata.device.process import is_within_circle
 from scdata.tools.custom_logger import logger
+from scdata.device.process.error_codes import StatusCode, ProcessResult
+
+# TODO UPDATE all these functions to make them comply with StatusCode types
 
 def delta_index_ts(dataframe, **kwargs):
-    result = dataframe.index.to_series().diff().astype('timedelta64[s]')
-    return result
+    try:
+        result = dataframe.index.to_series().diff().astype('timedelta64[s]')
+    except:
+        return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
+    return ProcessResult(result, StatusCode.SUCCESS)
 
 def poly_ts(dataframe, **kwargs):
     """
@@ -45,7 +51,7 @@ def poly_ts(dataframe, **kwargs):
     for i in range(n_channels):
         result += power(dataframe[channels[i]], exponents[i]) * coefficients[i]
 
-    return result + extra_term
+    return ProcessResult(result + extra_term, StatusCode.SUCCESS)
 
 def clean_ts(dataframe, **kwargs):
     """
@@ -91,7 +97,7 @@ def clean_ts(dataframe, **kwargs):
     if window is not None:
         result.rolling(window = window, win_type = win_type).mean()
 
-    return result
+    return ProcessResult(result, StatusCode.SUCCESS)
 
 def merge_ts(dataframe, **kwargs):
     """
@@ -168,7 +174,7 @@ def merge_ts(dataframe, **kwargs):
     # elif pick == 'min_nonzero':
     #     df['result'] = df.loc[df['flag'] == True, kwargs['names']].min(skipna=True, axis = 1)
 
-    return df['result']
+    return ProcessResult(df['result'], StatusCode.SUCCESS)
 
 def rolling_avg(dataframe, **kwargs):
     """
@@ -208,11 +214,14 @@ def rolling_avg(dataframe, **kwargs):
     else: win_type = None
 
     if 'type' in kwargs:
-        if kwargs['type'] == 'mean': return result.rolling(window = window, win_type = win_type).mean()
-        if kwargs['type'] == 'max': return result.rolling(window = window, win_type = win_type).max()
-        if kwargs['type'] == 'min': return result.rolling(window = window, win_type = win_type).min()
+        if kwargs['type'] == 'mean':
+            return ProcessResult(result.rolling(window = window, win_type = win_type).mean(), StatusCode.SUCCESS)
+        if kwargs['type'] == 'max':
+            return ProcessResult(result.rolling(window = window, win_type = win_type).max(), StatusCode.SUCCESS)
+        if kwargs['type'] == 'min':
+            return ProcessResult(result.rolling(window = window, win_type = win_type).min(), StatusCode.SUCCESS)
     else:
-        return result.rolling(window = window, win_type = win_type).mean()
+        return ProcessResult(result.rolling(window = window, win_type = win_type).mean(), StatusCode.SUCCESS)
 
 def time_derivative(dataframe, **kwargs):
     """
@@ -243,9 +252,8 @@ def time_derivative(dataframe, **kwargs):
 
     if gaussian_filter1d:
         df['diff_filter1d']  = ndimage.gaussian_filter1d(df['diff'], sigma=1, order=1, mode='wrap') / dx
-        return df['diff_filter1d']
-
-    return df['diff']
+        return ProcessResult(df['diff_filter1d'], StatusCode.SUCCESS)
+    return ProcessResult(df['diff'], StatusCode.SUCCESS)
 
 def geo_located(dataframe, **kwargs):
     """
@@ -276,4 +284,4 @@ def geo_located(dataframe, **kwargs):
 
     result['within'] = result.apply(lambda x: is_within_circle(x, kwargs['within'], lat_name, long_name), axis=1)
 
-    return result['within']
+    return ProcessResult(result['within'], StatusCode.SUCCESS)

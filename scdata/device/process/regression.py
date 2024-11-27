@@ -4,6 +4,7 @@ from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.cleaning import clean
 from pandas import DataFrame
 from numpy import array
+from scdata.device.process.error_codes import StatusCode, ProcessResult
 
 def apply_regressor(dataframe, **kwargs):
 	'''
@@ -37,8 +38,7 @@ def apply_regressor(dataframe, **kwargs):
 		inputdf = inputdf.reindex(sorted(inputdf.columns), axis=1)
 	except KeyError:
 		logger.error('Inputs not in dataframe')
-		pass
-		return None
+		return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
 	if 'model' not in kwargs:
 		logger.error('Model not in inputs')
@@ -56,4 +56,4 @@ def apply_regressor(dataframe, **kwargs):
 	features = array(inputdf)
 	result = DataFrame(model.predict(features)).set_index(inputdf.index)
 
-	return result
+	return ProcessResult(result, StatusCode.SUCCESS)
