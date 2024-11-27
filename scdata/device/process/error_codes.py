@@ -7,6 +7,7 @@ class StatusCode(Enum):
     ERROR_WRONG_CALIBRATION = 'Calibration data does not match'
     ERROR_MISSING_CHANNEL = 'Channels not found'
     ERROR_WRONG_HW = 'Not supported hardware'
+    ERROR_UNDEFINED = 'Undefined error'
 
     WARNING_EMPTY_ID = 'Calibration ID is empty'
     WARNING_NULL_CHANNEL = 'Channel name is null'
