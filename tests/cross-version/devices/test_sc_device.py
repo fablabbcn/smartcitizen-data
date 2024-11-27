@@ -10,7 +10,7 @@ def test_sc_device():
     id = 16838
     frequency = '1Min'
     uuid = "80e684e5-359f-4755-aec9-30fc0c84415f"
-    min_date = '2022-09-10T00:00:00Z'
+    min_date = '2022-09-10T00:00:23Z'
     blueprint = 'sc_air'
 
     d = sc.Device(blueprint=blueprint,
