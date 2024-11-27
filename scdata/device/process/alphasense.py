@@ -104,7 +104,11 @@ def alphasense_803_04(dataframe, **kwargs):
                         'window_size': None
                     }
 
-        df[f'{electrode}_clean'] = clean_ts(df, **subkwargs)
+        cleaning_result = clean_ts(df, **subkwargs)
+        if 'SUCCESS' in cleaning_result.status_code.name:
+            df[f'{electrode}_clean'] = cleaning_result.data
+        else:
+            return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
 
     # Compensate electronic zero
     df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
