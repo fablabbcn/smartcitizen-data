@@ -118,7 +118,7 @@ class Config(object):
     names_urls = [
         # Revert to base postprocessing url
         # f'{_base_postprocessing_url}names/SCDevice.json'
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhacement/flexible-handlers/names/SCDevice.json'
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/names/SCDevice.json'
     ]
 
 
