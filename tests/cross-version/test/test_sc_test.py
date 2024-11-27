@@ -36,4 +36,4 @@ def test_sc_test():
     assert t.loaded == True
     assert metric_in_df == True
     for device in t.devices:
-        assert (localise_date(min_date, 'UTC') < device.data.index[0]), resp.text
+        assert (localise_date(min_date, 'UTC') < device.data.index[0])

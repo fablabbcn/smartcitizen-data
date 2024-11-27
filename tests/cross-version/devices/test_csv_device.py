@@ -33,7 +33,7 @@ def test_csv_device():
     m = d.data.index[0].tz_convert('UTC').strftime('%Y-%m-%dT%H:%M:%SZ')
     process_status = d.process()
 
-    assert d.blueprint == blueprint, resp.text
-    assert load_status == True, resp.text
-    assert process_status == True, resp.text
+    assert d.blueprint == blueprint
+    assert load_status == True
+    assert process_status == True
     assert m == min_date

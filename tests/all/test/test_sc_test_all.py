@@ -51,6 +51,6 @@ def test_sc_test_all():
     assert t.loaded == True
     assert metric_in_df == True
     for device in t.devices:
-        assert (localise_date(min_date, 'UTC') < device.data.index[0]), resp.text
+        assert (localise_date(min_date, 'UTC') < device.data.index[0])
     assert figure_mpl is not None
     # assert figure_uplot is not None
