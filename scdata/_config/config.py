@@ -83,7 +83,7 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhacement/flexible-handlers/'
+    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
     _default_file_type = 'json'
 
     calibrations_urls = [
