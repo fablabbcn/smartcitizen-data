@@ -5616,5 +5616,49 @@
   "12-000296": {
       "t20": 20.995,
       "v20": 0.3223
+  },
+  "164400104": {
+    "ae_electronic_zero_mv": 361,
+    "ae_sensor_zero_mv": 5,
+    "pcb_gain_mv_na": 0.8,
+    "we_cross_sensitivity_no2_mv_ppb": 0,
+    "we_cross_sensitivity_no2_na_ppb": 0,
+    "we_electronic_zero_mv": 343,
+    "we_sensitivity_mv_ppb": 0.336,
+    "we_sensitivity_na_ppb": 0.419,
+    "we_sensor_zero_mv": 20
+  },
+  "164400105": {
+    "ae_electronic_zero_mv": 353,
+    "ae_sensor_zero_mv": 2,
+    "pcb_gain_mv_na": 0.8,
+    "we_cross_sensitivity_no2_mv_ppb": 0,
+    "we_cross_sensitivity_no2_na_ppb": 0,
+    "we_electronic_zero_mv": 356,
+    "we_sensitivity_mv_ppb": 0.342,
+    "we_sensitivity_na_ppb": 0.427,
+    "we_sensor_zero_mv": 24
+  },
+  "164400106": {
+    "ae_electronic_zero_mv": 342,
+    "ae_sensor_zero_mv": 4,
+    "pcb_gain_mv_na": 0.8,
+    "we_cross_sensitivity_no2_mv_ppb": 0,
+    "we_cross_sensitivity_no2_na_ppb": 0,
+    "we_electronic_zero_mv": 345,
+    "we_sensitivity_mv_ppb": 0.344,
+    "we_sensitivity_na_ppb": 0.430,
+    "we_sensor_zero_mv": 23
+  },
+  "164400107": {
+    "ae_electronic_zero_mv": 334,
+    "ae_sensor_zero_mv": 5,
+    "pcb_gain_mv_na": 0.8,
+    "we_cross_sensitivity_no2_mv_ppb": 0,
+    "we_cross_sensitivity_no2_na_ppb": 0,
+    "we_electronic_zero_mv": 354,
+    "we_sensitivity_mv_ppb": 0.341,
+    "we_sensitivity_na_ppb": 0.426,
+    "we_sensor_zero_mv": 22
   }
 }
