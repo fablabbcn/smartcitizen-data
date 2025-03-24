@@ -46,8 +46,7 @@ def test_sc_test_all():
     # figure_uplot = t.ts_uplot(traces=traces)
 
     # Test
-
-    assert process_status == False #Relax assertion
+    assert process_status == True
     assert t.loaded == True
     assert metric_in_df == True
     for device in t.devices:

@@ -28,6 +28,6 @@ def test_sc_device():
 
     assert d.blueprint == blueprint
     assert load_status == True
-    assert process_status == False #Relax assertion
+    assert process_status == True
     assert j.uuid == uuid
     assert m == min_date
