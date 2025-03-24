@@ -34,6 +34,6 @@ def test_sc_device_all():
     assert d.blueprint == blueprint
     # assert s == (500, 3) #TODO - add when reading on staging
     assert load_status == True
-    assert process_status == False #Force this to False
+    assert process_status == True
     assert j.uuid == uuid
     assert m == min_date
