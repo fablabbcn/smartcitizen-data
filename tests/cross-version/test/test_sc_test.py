@@ -32,7 +32,7 @@ def test_sc_test():
     process_status = t.process()
     metric_in_df = 'NOISE_A_SMOOTH' in t.get_device(16838).data.columns
 
-    assert process_status == False #Relax assertion
+    assert process_status == True
     assert t.loaded == True
     assert metric_in_df == True
     for device in t.devices:
