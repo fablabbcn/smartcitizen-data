@@ -41,6 +41,7 @@ alphasense_temp_channel = [
     "SHT31_EXT_TEMP",
     "SHT35_EXT_TEMP",
     "PM_DALLAS_TEMP",
+    "TEMP"
 ]
 
 # Alphasense pcb gains in mV/nA - TBR
