@@ -32,7 +32,8 @@
       "description": "Electrochemical sensor temperature",
       "id": null,
       "kwargs": {
-        "priority": "ASPT1000"
+        "priority": "ASPT1000",
+        "eager_channels": ["SHT31_EXT_TEMP", "SHT35_EXT_TEMP","PM_DALLAS_TEMP","TEMP"]
       },
       "post": false,
       "function": "ec_sensor_temp",
