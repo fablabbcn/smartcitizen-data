@@ -36,6 +36,7 @@ alphasense_sensor_codes =  {
 }
 
 # Alphasense temperature channels (in order of priority)
+# These are the "renamed" channels
 alphasense_temp_channel = [
     "ASPT1000",
     "SHT31_EXT_TEMP",

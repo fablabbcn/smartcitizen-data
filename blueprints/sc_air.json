@@ -33,7 +33,7 @@
       "id": null,
       "kwargs": {
         "priority": "ASPT1000",
-        "eager_channels": ["SHT31_EXT_TEMP", "SHT35_EXT_TEMP","PM_DALLAS_TEMP","TEMP"]
+        "eager_channels": ["Ext SHT31 - Temperature", "Sensirion SHT35 - Temperature", "DS18B20","Sensirion SHT31 - Temperature"]
       },
       "post": false,
       "function": "ec_sensor_temp",

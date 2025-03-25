@@ -160,6 +160,7 @@ def ec_sensor_temp(dataframe, **kwargs):
 
     for option in alphasense_temp_channel:
         if option in dataframe.columns:
+            logger.info(f'Selecting {option} for EC sensor temperature')
             return ProcessResult(dataframe[option], StatusCode.SUCCESS)
 
     logger.error('Problem with input data')
