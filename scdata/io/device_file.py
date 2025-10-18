@@ -57,7 +57,9 @@ class CSVHandler:
             skiprows=self.params.header_skip,
             sep=self.params.separator,
             tzaware=self.params.tzaware,
-            resample=kwargs['resample']
+            resample=kwargs['resample'],
+            dateformat=kwargs['dateformat']
+            # TODO Pandas read_csv kwargs???
         )
 
         return self.data
@@ -94,7 +96,7 @@ def export_csv_file(path, file_name, df, forced_overwrite=False):
         return False
     return True
 
-def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', skiprows=None, sep=',', encoding='utf-8', tzaware=True, resample=True):
+def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', skiprows=None, sep=',', encoding='utf-8', tzaware=True, resample=True, dateformat=None):
     """
     Reads a csv file and adds cleaning, localisation and resampling and puts it into a pandas dataframe
     Parameters
@@ -127,9 +129,9 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
     """
 
     # Read pandas dataframe
-
     df = read_csv(path, skiprows=skiprows, sep=sep,
-                encoding=encoding, encoding_errors='ignore')
+                encoding=encoding, encoding_errors='ignore',
+                date_format=dateformat)
 
     flag_found = False
     if type(index_name) == str:
@@ -156,7 +158,7 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
         return None
 
     # Set index
-    df.index = localise_date(df.index, timezone, tzaware=tzaware)
+    df.index = localise_date(df.index, timezone, tzaware=tzaware, dateformat=dateformat)
     # Remove duplicates
     df = df[~df.index.duplicated(keep='first')]
 

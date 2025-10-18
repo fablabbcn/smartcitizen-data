@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 class TestOptions(BaseModel):
@@ -28,10 +28,10 @@ class Source(BaseModel):
     handler: str = 'SCDevice'
 
 class APIParams(BaseModel):
-    id: int
+    id: Any
 
 class FileParams(BaseModel):
-    id: int # To be compatible with API id
+    id: Any # To be compatible with API id
     path: str
 
 class CSVParams(FileParams):
@@ -40,6 +40,7 @@ class CSVParams(FileParams):
     separator: Optional[str] = ','
     tzaware: Optional[bool] = True
     timezone: Optional[str] = "UTC"
+    date_format: Optional[str] = None
 
 class DeviceOptions(BaseModel):
     clean_na: Optional[bool] = None
@@ -51,6 +52,7 @@ class DeviceOptions(BaseModel):
     channels: Optional[List[str]] = []
     convert_units: Optional[bool] = True
     convert_names: Optional[bool] = True
+    dateformat: Optional[str] = None
 
 class Blueprint(BaseModel):
     meta: dict = dict()

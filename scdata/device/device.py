@@ -300,6 +300,7 @@ class Device(BaseModel):
         resample = self.options.resample
         limit = self.options.limit
         channels = self.options.channels
+        dateformat = self.options.dateformat
         cached_data = DataFrame()
 
         # Only case where cache makes sense
@@ -347,7 +348,8 @@ class Device(BaseModel):
                 max_date = max_date,
                 frequency = frequency,
                 clean_na = clean_na,
-                resample = resample)
+                resample = resample,
+                dateformat = dateformat)
 
         # In principle this links both dataframes as they are unmutable
         self.data = self.handler.data
