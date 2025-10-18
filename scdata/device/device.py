@@ -23,6 +23,19 @@ from pydantic_core import ValidationError
 from typing import Optional, List
 from json import dumps
 
+import os
+from io import StringIO
+
+try:
+    import awswrangler as wr
+except ModuleNotFoundError:
+    boto_available = False
+    pass
+else:
+    boto_available = True
+
+if boto_available: import boto3
+
 from timezonefinder import TimezoneFinder
 tf = TimezoneFinder()
 
@@ -706,3 +719,29 @@ class Device(BaseModel):
 
         if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
+
+    def backup(self, format='parquet', mode='append'):
+        if self.data.empty:
+            logger.error("Device data empty")
+            return False
+
+        if format == 'parquet':
+            if boto_available:
+                self.data['TIME']=self.data.index
+                target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
+                response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
+
+                return response
+
+    def backup_load(self, format='parquet'):
+        if format == 'parquet':
+            if boto_available:
+                session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+                aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                region_name=os.environ['AWS_REGION'])
+                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
+                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
+                self.data.set_index('TIME', inplace=True)
+                self.data.sort_index(inplace=True)
+
+                return s3_url
