@@ -8,6 +8,7 @@ from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
+from scdata.tools.series import infer_sampling_rate, mode_ratio
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
@@ -629,6 +630,38 @@ class Device(BaseModel):
             result[column] = mask
 
         return result
+
+    def get_stuck_ratio(self, period:str="1h", subset:List[str]=None, ignore_zeroes=True) -> DataFrame:
+        '''
+            Check stuck values per column, return pd.DataFrame with the same index as
+            self.data with the stuck ratio per rolling window.
+
+            Parameters
+            ----------
+                period: str
+                    "1h"
+                    Rolling window width.
+                ignore_zeroes: boolean
+                    True
+                    Ignore zeroes when checking for stuck values
+            Returns
+            ----------
+                dict
+                Dictionary with stuck ratio per date
+        '''
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        if subset is not None:
+            data = self.data[subset]
+        else:
+            data = self.data
+
+        r = data.rolling(period)
+
+        return r.apply(mode_ratio, raw=False)
+
 
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
         '''
