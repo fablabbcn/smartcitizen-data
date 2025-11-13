@@ -8,7 +8,7 @@ from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
-from scdata.tools.series import infer_sampling_rate, mode_ratio
+from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
@@ -21,7 +21,7 @@ from collections.abc import Iterable
 from importlib import import_module
 from pydantic import TypeAdapter, BaseModel, ConfigDict
 from pydantic_core import ValidationError
-from typing import Optional, List
+from typing import Optional, List, Dict
 from json import dumps
 
 import os
@@ -555,26 +555,61 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    # Check nans per column, return dict
-    # TODO-DOCUMENT
-    def get_nan_ratio(self, **kwargs):
+    def get_nan_ratio(self, period:str="1h", subset:List[str]=None, sampling_rates:Dict[str, int]=None) -> DataFrame:
+        '''
+            Check NaN ratio per column, return pd.DataFrame with the same index as
+            self.data with the NaN ratio per rolling window. 
+            Parameters
+            ----------
+                period: str
+                    "1h"
+                    Rolling window width.
+                subset: List[str]
+                    Columns to apply the stuck ratio calculation to. If None, all columns
+                    are used.
+                sampling_rates: Dict[str, int]
+                    Dictionary with sampling rates per column in minutes. If None, will get
+                    sampling rates from config._default_sampling_rate or try to infer them.
+
+            Returns
+            ----------
+                result: DataFrame
+                    DataFrame with rolling nan ratio.
+        '''
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
 
-        if 'sampling_rate' not in kwargs:
-            sampling_rate = config._default_sampling_rate
+        if subset is not None:
+            data = self.data[subset]
         else:
-            sampling_rate = kwargs['sampling_rate']
+            data = self.data
+
         result = {}
 
-        for column in self.data.columns:
-            if column not in sampling_rate: continue
-            df = self.data[column].resample(f'{sampling_rate[column]}Min').mean()
-            minutes = df.groupby(df.index.date).mean().index.to_series().diff()/Timedelta('60s')
-            result[column] = (1-(minutes-df.isna().groupby(df.index.date).sum())/minutes)*sampling_rate[column]
+        for column in data.columns:
+            if sampling_rates is not None and column in sampling_rates:
+                sampling_rate = sampling_rates[column]
+            elif column in config._default_sampling_rate:
+                sampling_rate = config._default_sampling_rate[column]
+            else:
+                sampling_rate = infer_sampling_rate(data[column])
 
-        return result
+            if sampling_rate is None:
+                logger.warning(f'Cannot infer sampling rate for column {column}. Skipping NaN ratio calculation')
+                continue
+
+            sampling_rate_timedelta = Timedelta(f'{sampling_rate}min')
+            max_possible_count = Timedelta(period) / sampling_rate_timedelta
+            datapoints = data[column].resample(sampling_rate_timedelta).mean()  # Need to aggregate somehow
+
+            nan_count = datapoints.rolling(period).apply(count_nas).fillna(max_possible_count)  # If we didn't fillna, we would get nas as count when the whole period is missing.
+
+            nan_ratio = nan_count / max_possible_count
+
+            result[column] = nan_ratio
+
+        return DataFrame(result)
 
     # Check plausibility per column, return dict. Doesn't take into account nans
     # TODO-DOCUMENT
@@ -641,13 +676,16 @@ class Device(BaseModel):
                 period: str
                     "1h"
                     Rolling window width.
+                subset: List[str]
+                    Columns to apply the stuck ratio calculation to. If None, all columns
+                    are used.
                 ignore_zeroes: boolean
                     True
                     Ignore zeroes when checking for stuck values
             Returns
             ----------
-                dict
-                Dictionary with stuck ratio per date
+                result: DataFrame
+                    DataFrame with rolling stuck ratio.
         '''
         if not self.loaded:
             logger.error('Need to load first (device.load())')

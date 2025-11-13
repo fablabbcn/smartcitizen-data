@@ -32,3 +32,8 @@ def mode_ratio(series: Series, ignore_zeroes=True) -> int:
     mode_count = series.value_counts().iloc[0]
 
     return mode_count / series.count()
+
+
+def count_nas(series: Series) -> int:
+    '''Count the number of NaN values in the series.'''
+    return series.isna().sum()
