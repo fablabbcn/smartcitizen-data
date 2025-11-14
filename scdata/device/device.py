@@ -15,7 +15,7 @@ from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, Devic
 
 from os.path import join, basename, exists
 from urllib.parse import urlparse
-from pandas import DataFrame, to_timedelta, Timedelta
+from pandas import DataFrame, Series, to_timedelta, Timedelta
 from numpy import nan
 from collections.abc import Iterable
 from importlib import import_module
@@ -611,24 +611,88 @@ class Device(BaseModel):
 
         return DataFrame(result)
 
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    # TODO-DOCUMENT
-    def get_plausible_ratio(self, **kwargs):
+    def get_implausible_values(self, column: str, plausible_interval:List[int]=None) -> Series:
+        '''Get a boolean series indicating which values are outside the plausible
+        interval for the physical magnitude, as defined by plausible_interval
+        or config._default_unplausible_values.
+
+        For example, we consider values of NOISE_A below 20dB or above 99dB to
+        be implausible.
+
+        Parameters
+        ----------
+            column: str
+                Column to apply the plausible values check to.
+            plausible_interval: List[int]
+                List with two elements defining the plausible interval [min, max].
+                If None, will try to get the plausible interval from
+                config._default_unplausible_values.'''
+
+        series = self.data[column]
+
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+        if plausible_interval is not None:
+            left, right = plausible_interval
+        elif column in config._default_unplausible_values:
+            left, right = config._default_unplausible_values[series.name]  # I don't like this name
+        else:
+            copy = series.copy()
+            copy[:] = nan
+
+            return copy
+
+        implausible = (series < left) | (series > right)
+        nullable = implausible.convert_dtypes()
+        nullable[series.isna()] = None  # Propagate NaNs
+
+        return nullable
+
+
+    def get_implausible_ratio(self, period:str="1h", subset:List[str]=None, plausible_intervals:Dict[str, List[int]]=None) -> DataFrame:
+        '''Scan the series for values outside the plausible interval for the
+        physical magnitude, as defined by plausible_interval or
+        config._default_unplausible_values. For example, we find values of
+        NOISE_A below 20dB or above 99dB to be implausible.
+
+        Parameters
+        ----------
+            period: str
+                Rolling window width.
+            subset: List[str]
+                Columns to apply the plausible ratio calculation to. If None, all columns
+                are used.
+            plausible_intervals: Dict[str, List[int]]
+                Dictionary with plausible intervals per column. Optional.
+
+        Returns
+        ----------
+            result: DataFrame
+                DataFrame with rolling calculation of plausible ratio.
+        '''
+
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
 
-        if 'unplausible_values' not in kwargs:
-            unplausible_values = config._default_unplausible_values
+        if subset is not None:
+            data = self.data[subset]
         else:
-            unplausible_values = kwargs['unplausible_values']
+            data = self.data
+        result = {}
 
-        if 'sampling_rate' not in kwargs:
-            sampling_rate = config._default_sampling_rate
-        else:
-            sampling_rate = kwargs['sampling_rate']
+        for column in data.columns:
+            if plausible_intervals is not None and column in plausible_intervals:
+                interval = plausible_intervals[column]
+            else:
+                interval = None
 
-        return {column: self.data[column].between(left=unplausible_values[column][0], right=unplausible_values[column][1]).groupby(self.data[column].index.date).sum()/self.data.groupby(self.data.index.date).count()[column] for column in self.data.columns if column in unplausible_values}
+            implausible_values = self.get_implausible_values(column, plausible_interval=interval)
+
+            result[column] = implausible_values.rolling(period).mean()  # Only consider actual observed data
+
+        return DataFrame(result)
 
     # Check plausibility per column, return dict. Doesn't take into account nans
     def get_outlier_ratio(self, **kwargs):
