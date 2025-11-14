@@ -37,3 +37,23 @@ def mode_ratio(series: Series, ignore_zeroes=True) -> int:
 def count_nas(series: Series) -> int:
     '''Count the number of NaN values in the series.'''
     return series.isna().sum()
+
+
+def rolling_deltas(series: Series) -> Series:
+    '''Compute the first derivative of the series at each datapoint.'''
+
+    dys = series.rolling(window=2).apply(lambda ys: ys.iloc[1] - ys.iloc[0])
+    dxs = series.index.diff().total_seconds()
+
+    return dys / dxs
+
+
+def normalize_central(series: Series, pct=0.05) -> Series:
+    '''Normalize the series by removing the mean and scaling to unit variance,
+    ignroring the top and bottom `pct` percent of values. This should be more
+    robust to outliers than standard normalization.'''
+
+    central = series[((series > series.quantile(pct)) | (series > series.quantile(1 - pct)))]
+    normalized = (series - central.mean()) / central.std()
+
+    return normalized
