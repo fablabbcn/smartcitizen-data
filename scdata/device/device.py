@@ -558,7 +558,7 @@ class Device(BaseModel):
     def get_nan_ratio(self, period:str="1h", subset:List[str]=None, sampling_rates:Dict[str, int]=None) -> DataFrame:
         '''
             Check NaN ratio per column, return pd.DataFrame with the same index as
-            self.data with the NaN ratio per rolling window. 
+            self.data with the NaN ratio per rolling window.
             Parameters
             ----------
                 period: str
@@ -730,10 +730,11 @@ class Device(BaseModel):
 
         return result
 
-    def get_stuck_ratio(self, period:str="1h", subset:List[str]=None, ignore_zeroes=True) -> DataFrame:
+    def get_top_value_ratio(self, period:str="1h", subset:List[str]=None, ignore_zeroes=True) -> DataFrame:
         '''
-            Check stuck values per column, return pd.DataFrame with the same index as
-            self.data with the stuck ratio per rolling window.
+            Check the frequency of the mode (top value) per column, return
+            pd.DataFrame with the same index as self.data with the mode ratio
+            per rolling window.
 
             Parameters
             ----------
@@ -745,11 +746,11 @@ class Device(BaseModel):
                     are used.
                 ignore_zeroes: boolean
                     True
-                    Ignore zeroes when checking for stuck values
+                    Ignore zeroes when checking for stuck values. Passed through to mode_ratio()
             Returns
             ----------
                 result: DataFrame
-                    DataFrame with rolling stuck ratio.
+                    DataFrame with rolling mode ratio.
         '''
         if not self.loaded:
             logger.error('Need to load first (device.load())')
@@ -762,7 +763,7 @@ class Device(BaseModel):
 
         r = data.rolling(period)
 
-        return r.apply(mode_ratio, raw=False)
+        return r.apply(lambda w: mode_ratio(w, ignore_zeroes), raw=False)
 
 
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
