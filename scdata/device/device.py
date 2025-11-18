@@ -8,7 +8,7 @@ from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
-from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio
+from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio, normalize_central, rolling_deltas
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
@@ -555,7 +555,7 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    def get_nan_ratio(self, period:str="1h", subset:List[str]=None, sampling_rates:Dict[str, int]=None) -> DataFrame:
+    def get_nan_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_nan_ratio", sampling_rates:Dict[str, int]=None) -> DataFrame:
         '''
             Check NaN ratio per column, return pd.DataFrame with the same index as
             self.data with the NaN ratio per rolling window.
@@ -607,7 +607,7 @@ class Device(BaseModel):
 
             nan_ratio = nan_count / max_possible_count
 
-            result[column] = nan_ratio
+            result[column + suffix] = nan_ratio
 
         return DataFrame(result)
 
@@ -650,7 +650,7 @@ class Device(BaseModel):
         return nullable
 
 
-    def get_implausible_ratio(self, period:str="1h", subset:List[str]=None, plausible_intervals:Dict[str, List[int]]=None) -> DataFrame:
+    def get_implausible_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_implausible_ratio", plausible_intervals:Dict[str, List[int]]=None) -> DataFrame:
         '''Scan the series for values outside the plausible interval for the
         physical magnitude, as defined by plausible_interval or
         config._default_unplausible_values. For example, we find values of
@@ -690,47 +690,93 @@ class Device(BaseModel):
 
             implausible_values = self.get_implausible_values(column, plausible_interval=interval)
 
-            result[column] = implausible_values.rolling(period).mean()  # Only consider actual observed data
+            result[column + suffix] = implausible_values.rolling(period).mean()  # Only consider actual observed data
 
         return DataFrame(result)
 
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    def get_outlier_ratio(self, **kwargs):
+    def get_outlier_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_outlier_ratio", sigma=5, pct=0.05) -> DataFrame:
+        '''Get the percentage of outlier values based on the rate of increase. When sensors
+        report sudden jumps, these are likely to be erroneous values. 
+
+        Parameters
+        ----------
+            period: str
+                "1h"
+                Rolling window width.
+            subset: List[str]
+                Columns to apply the outlier ratio calculation to. If None, all columns
+                are used.
+            sigma: int
+                5
+                Number of standard deviations to consider a point an outlier. A higher 
+                value would be more restrictive, detecting only worse malfunctions.
+            pct: float
+                0.05
+                Percentage of top and bottom values to ignore when normalizing. We 
+                assume the outliers will always be a minority of the data, so ignoring
+                a small percentage of extreme values should help get a better estimate.
+
+        Returns 
+        ----------
+            result: DataFrame
+                DataFrame with rolling outlier ratio.
+        '''
+
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
+
+        if subset is not None:
+            data = self.data[subset]
+        else:
+            data = self.data
+        
         result = {}
-        resample = '360h'
 
-        for column in self.data.columns:
-            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
-            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
-            IQR = Q3 - Q1
+        for column in data.columns:
+            outlier_values = self.get_outlier_values(column, sigma=sigma, pct=pct)
 
-            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
-            result[column] = mask.groupby(mask.index.date).mean()
+            result[column + suffix] = outlier_values.rolling(period).mean()  
 
-        return result
+        return DataFrame(result)
 
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    def get_outliers(self, **kwargs):
+    def get_outlier_values(self, column: str, sigma=5, pct=0.05) -> Series:
+        '''
+        Get a boolean series indicating which values are outliers based on
+        the rate of increase. We calculate the first derivative implied by
+        each datapoint. Then we normalize the derivative series after removing
+        the top and bottom pct% of values to avoid outliers impacting the mean
+        too much. Finally, we consider outliers those points where the
+        normalized derivative is above `sigma` standard deviations.
+
+        Parameters
+        ----------
+            column: str
+                Column to apply the outlier values check to.
+            sigma: int
+                Number of standard deviations to consider a point an outlier.
+            pct: float
+                Percentage of top and bottom values to ignore when normalizing. 
+
+        Returns
+        ----------
+            Series
+                Boolean series indicating outlier values.
+        '''
+
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
-        result = {}
-        resample = '360h'
 
-        for column in self.data.columns:
-            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
-            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
-            IQR = Q3 - Q1
+        series = self.data[column]
 
-            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
-            result[column] = mask
+        deltas = rolling_deltas(series)
+        normalized_deltas = normalize_central(deltas, pct=pct)
+        outliers = normalized_deltas.abs() > sigma
 
-        return result
+        return outliers
 
-    def get_top_value_ratio(self, period:str="1h", subset:List[str]=None, ignore_zeroes=True) -> DataFrame:
+    def get_top_value_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_top_value_ratio", ignore_zeroes=True) -> DataFrame:
         '''
             Check the frequency of the mode (top value) per column, return
             pd.DataFrame with the same index as self.data with the mode ratio
@@ -761,9 +807,11 @@ class Device(BaseModel):
         else:
             data = self.data
 
-        r = data.rolling(period)
+        rolling = data.rolling(period)
+        result = rolling.apply(lambda w: mode_ratio(w, ignore_zeroes), raw=False)
+        result.columns = [col + suffix for col in result.columns]
 
-        return r.apply(lambda w: mode_ratio(w, ignore_zeroes), raw=False)
+        return result
 
 
     def export(self, path, forced_overwrite = False, file_format = 'csv'):
