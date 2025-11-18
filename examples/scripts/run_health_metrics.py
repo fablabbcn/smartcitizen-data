@@ -65,17 +65,17 @@ if __name__ == "__main__":
         logger.info("Processing device %s", device_id)
         device = sc.Device(blueprint='sc_air', params=sc.APIParams(id=device_id))
 
-        device.options.min_date = "2025-09-01"
+        device.options.min_date = "2025-01-01"
         device.options.max_date = None
 
         logger.info("Getting data for device %s", device_id)
         asyncio.run(device.load())
         
         logger.info("get_nan_ratio for device %s", device_id)
-        device.get_nan_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_nan_ratios.csv")
+        device.get_nan_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_nan_ratios.csv.gz")
         logger.info("get_implausible_ratio for device %s", device_id)
-        device.get_implausible_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_implausible_ratios.csv")
+        device.get_implausible_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_implausible_ratios.csv.gz")
         logger.info("get_outlier_ratio for device %s", device_id)
-        device.get_outlier_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_outlier_ratios.csv")
+        device.get_outlier_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_outlier_ratios.csv.gz")
         logger.info("get_top_value_ratio for device %s", device_id)
-        device.get_top_value_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_top_value_ratios.csv")
+        device.get_top_value_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_top_value_ratios.csv.gz")
