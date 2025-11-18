@@ -474,6 +474,7 @@ class Config(object):
         'SCD30_CO2': [300, 2000],
         'SCD30_HUM': [20, 99],
         'SCD30_TEMP': [-20, 50],
+        'BATT': [0, 100],
         'ST LPS33 - Barometric Pressure': [50, 110],
         'PRESS': [50, 110],
         'PMS5003_PM_1': [0, 500],
