@@ -313,7 +313,7 @@ class Device(BaseModel):
                     else:
                         logger.warning(f'Cache file does not exist: {cache}')
                 else:
-                    if cache.endswith('.csv'):
+                    if cache.endswith('.csv') or cache.endswith('.csv.gz'):
                         cached_data = read_csv_file(
                             path = cache,
                             timezone = timezone,
