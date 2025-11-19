@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import requests
 from tqdm import tqdm
 import scdata as sc
-
+import time
+from random import random
 
 async def _async_process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None):
     """
@@ -22,6 +23,10 @@ async def _async_process_device(device_id, folder="twinair_health_metrics", min_
     Returns True on success, False on error or when no data.
     """
     _logger = logging.getLogger(__name__)
+
+    sleepytime = random() * 6
+    _logger.info("Sleeping %.2f seconds before starting device %s", sleepytime, device_id)
+    time.sleep(sleepytime)  # Stagger start times to reduce API load
 
     try:
         device = sc.Device(blueprint='sc_air', params=sc.APIParams(id=device_id))
