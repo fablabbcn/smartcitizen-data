@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 import requests
 from tqdm import tqdm
 import scdata as sc
+from concurrent.futures import ThreadPoolExecutor
+import multiprocessing
 import time
 from random import random
 
-async def _async_process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None):
+async def _async_process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None, executor=None):
     """
     Async worker that loads a device and computes health metrics.
 
@@ -50,16 +52,12 @@ async def _async_process_device(device_id, folder="twinair_health_metrics", min_
         return False
 
     try:
-        _logger.info("Exporting device %s raw data", device_id)
-        device.export(folder, forced_overwrite=True, gzip=True)
-        _logger.info("get_nan_ratio for device %s", device_id)
-        device.get_nan_ratio().to_csv(f"{folder}/device_{device_id}_nan_ratios.csv.gz")
-        _logger.info("get_implausible_ratio for device %s", device_id)
-        device.get_implausible_ratio().to_csv(f"{folder}/device_{device_id}_implausible_ratios.csv.gz")
-        _logger.info("get_outlier_ratio for device %s", device_id)
-        device.get_outlier_ratio().to_csv(f"{folder}/device_{device_id}_outlier_ratios.csv.gz")
-        _logger.info("get_top_value_ratio for device %s", device_id)
-        device.get_top_value_ratio().to_csv(f"{folder}/device_{device_id}_top_value_ratios.csv.gz")
+        # Offload metric computation to a thread from the provided executor
+        loop = asyncio.get_running_loop()
+        success = await loop.run_in_executor(executor, _sync_compute_metrics, device, device_id, folder)
+        if not success:
+            _logger.error("Metric computation failed for device %s", device_id)
+            return False
     except Exception:
         _logger.exception("Failed processing metrics for device %s", device_id)
         return False
@@ -74,6 +72,34 @@ def process_device(device_id, folder="twinair_health_metrics", min_date=None, ma
     `_async_process_device` directly inside an asyncio event loop.
     """
     return asyncio.run(_async_process_device(device_id, folder=folder, min_date=min_date, max_date=max_date))
+
+
+def _sync_compute_metrics(device, device_id, folder):
+    """Synchronous metric computation that runs inside a worker thread.
+
+    Runs Device.get_* methods and writes CSVs to `folder`.
+    """
+    logger = logging.getLogger(__name__)
+    try:
+        logger.info("Exporting device %s raw data", device_id)
+        # keep an exported raw CSV for debugging/archive
+        try:
+            device.export(folder, forced_overwrite=True, gzip=True)
+        except Exception:
+            logger.info("Raw export failed for device %s (non-fatal)", device_id)
+
+        logger.info("get_nan_ratio for device %s", device_id)
+        device.get_nan_ratio().to_csv(f"{folder}/device_{device_id}_nan_ratios.csv.gz")
+        logger.info("get_implausible_ratio for device %s", device_id)
+        device.get_implausible_ratio().to_csv(f"{folder}/device_{device_id}_implausible_ratios.csv.gz")
+        logger.info("get_outlier_ratio for device %s", device_id)
+        device.get_outlier_ratio().to_csv(f"{folder}/device_{device_id}_outlier_ratios.csv.gz")
+        logger.info("get_top_value_ratio for device %s", device_id)
+        device.get_top_value_ratio().to_csv(f"{folder}/device_{device_id}_top_value_ratios.csv.gz")
+    except Exception:
+        logger.exception("Synchronous metric computation failed for device %s", device_id)
+        return False
+    return True
 
 
 
@@ -139,8 +165,11 @@ if __name__ == "__main__":
     if device_ids:
         logger.info("Processing %d devices concurrently", len(device_ids))
 
-        async def _run_all(device_ids, folder, min_date, max_date):
-            tasks = [asyncio.create_task(_async_process_device(int(d), folder=folder, min_date=min_date, max_date=max_date)) for d in device_ids]
+        # Create a thread pool sized to CPU cores for metric computation
+        executor = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
+
+        async def _run_all(device_ids, folder, min_date, max_date, executor):
+            tasks = [asyncio.create_task(_async_process_device(int(d), folder=folder, min_date=min_date, max_date=max_date, executor=executor)) for d in device_ids]
 
             pbar = tqdm(total=len(tasks))
             results = []
@@ -155,6 +184,9 @@ if __name__ == "__main__":
             pbar.close()
             return results
 
-        asyncio.run(_run_all(device_ids, "twinair_health_metrics", "2025-01-01", None))
+        try:
+            asyncio.run(_run_all(device_ids, "twinair_health_metrics", "2025-01-01", None, executor))
+        finally:
+            executor.shutdown(wait=True)
     else:
         logger.info("No devices to process")
