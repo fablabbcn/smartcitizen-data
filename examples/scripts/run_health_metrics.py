@@ -129,10 +129,27 @@ if __name__ == "__main__":
 
     logger.info(f"Filtered devices, remaining {len(these['id'])}")
 
-    for device_id in tqdm(these["id"]):
-        logger.info("Processing device %s", device_id)
-        # call the sync wrapper which runs the async worker to completion
-        success = process_device(device_id, folder="twinair_health_metrics", min_date="2025-01-01", max_date=None)
-        if not success:
-            logger.warning("Processing failed for device %s, continuing", device_id)
-            continue
+    # Schedule all device tasks concurrently (no semaphore / batching)
+    device_ids = list(these["id"]) if len(these["id"]) else []
+    if device_ids:
+        logger.info("Processing %d devices concurrently", len(device_ids))
+
+        async def _run_all(device_ids, folder, min_date, max_date):
+            tasks = [asyncio.create_task(_async_process_device(int(d), folder=folder, min_date=min_date, max_date=max_date)) for d in device_ids]
+
+            pbar = tqdm(total=len(tasks))
+            results = []
+            for fut in asyncio.as_completed(tasks):
+                try:
+                    res = await fut
+                except Exception:
+                    logger.exception("Unhandled exception in device task")
+                    res = False
+                results.append(res)
+                pbar.update(1)
+            pbar.close()
+            return results
+
+        asyncio.run(_run_all(device_ids, "twinair_health_metrics", "2025-01-01", None))
+    else:
+        logger.info("No devices to process")
