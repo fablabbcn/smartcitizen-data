@@ -4,6 +4,7 @@ import pandas as pd
 import argparse
 import asyncio
 import matplotlib.pyplot as plt
+import requests
 from tqdm import tqdm
 
 if __name__ == "__main__":
@@ -63,14 +64,22 @@ if __name__ == "__main__":
 
     for device_id in tqdm(these["id"]):
         logger.info("Processing device %s", device_id)
-        device = sc.Device(blueprint='sc_air', params=sc.APIParams(id=device_id))
+        try:
+            device = sc.Device(blueprint='sc_air', params=sc.APIParams(id=device_id))
+            device.options.min_date = "2025-01-01"
+            device.options.max_date = None
 
-        device.options.min_date = "2025-01-01"
-        device.options.max_date = None
+            logger.info("Getting data for device %s", device_id)
+            asyncio.run(device.load())
 
-        logger.info("Getting data for device %s", device_id)
-        asyncio.run(device.load())
+        except requests.exceptions.HTTPError as e:
+            logger.error("Failed to instantiate device %s: %s", device_id, e)
+            continue
         
+        if device.data.empty:
+            logger.warning("No data for device %s, skipping health metrics", device_id)
+            continue
+
         logger.info("get_nan_ratio for device %s", device_id)
         device.get_nan_ratio().to_csv(f"twinair_health_metrics/device_{device_id}_nan_ratios.csv.gz")
         logger.info("get_implausible_ratio for device %s", device_id)
