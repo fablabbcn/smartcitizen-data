@@ -102,11 +102,11 @@ if __name__ == "__main__":
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     logger = logging.getLogger(__name__)
+    logger.info("Running scdata version %s", sc.__version__)
 
     criterion = args.criterion
     value = args.value
 
-    logger.info("Running scdata version %s", sc.__version__)
 
     source = args.source
     logger.info("Loading sensor list from file %s", source)
@@ -122,7 +122,10 @@ if __name__ == "__main__":
 
     logger.info(f"Found {len(devices['id'])} devices")
 
-    these = devices[devices[criterion] == value]
+    if criterion == "None":
+        these = devices
+    else:
+        these = devices[devices[criterion] == value]
 
     logger.info(f"Filtered devices, remaining {len(these['id'])}")
 
