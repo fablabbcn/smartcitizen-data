@@ -814,7 +814,7 @@ class Device(BaseModel):
         return result
 
 
-    def export(self, path, forced_overwrite = False, file_format = 'csv'):
+    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False):
         '''
         Exports Device.data to file
         Parameters
@@ -837,7 +837,7 @@ class Device(BaseModel):
             logger.error('Cannot export null data')
             return False
         if file_format == 'csv':
-            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite)
+            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite, gzip=gzip)
         else:
             # TODO Make a list of supported formats
             return NotImplementedError (f'Not supported format. Formats: [csv]')

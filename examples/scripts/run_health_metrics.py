@@ -46,7 +46,7 @@ async def _async_process_device(device_id, folder="twinair_health_metrics", min_
 
     try:
         _logger.info("Exporting device %s raw data", device_id)
-        device.export(folder, True)
+        device.export(folder, forced_overwrite=True, gzip=True)
         _logger.info("get_nan_ratio for device %s", device_id)
         device.get_nan_ratio().to_csv(f"{folder}/device_{device_id}_nan_ratios.csv.gz")
         _logger.info("get_implausible_ratio for device %s", device_id)
