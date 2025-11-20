@@ -64,7 +64,7 @@ class CSVHandler:
 
         return self.data
 
-def export_csv_file(path, file_name, df, forced_overwrite=False):
+def export_csv_file(path, file_name, df, forced_overwrite=False, gzip=False):
     '''
     Exports pandas dataframe to a csv file
     Parameters
@@ -87,10 +87,13 @@ def export_csv_file(path, file_name, df, forced_overwrite=False):
     if not exists(path):
         makedirs(path)
 
+    full_path = path + '/' + str(file_name) + '.csv'
+    full_path += '.gz' if gzip else ''
+
     # If file does not exist
-    if not exists(path + '/' + str(file_name) + '.csv') or forced_overwrite:
-        df.to_csv(path + '/' + str(file_name) + '.csv', sep=",")
-        logger.info('File saved to: \n' + path + '/' + str(file_name) + '.csv')
+    if not exists(full_path) or forced_overwrite:
+        df.to_csv(full_path, sep=",")
+        logger.info('File saved to: \n' + full_path)
     else:
         logger.error("File Already exists - delete it first, I was not asked to overwrite anything!")
         return False

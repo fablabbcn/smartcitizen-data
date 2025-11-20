@@ -8,19 +8,20 @@ from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
+from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio, normalize_central, rolling_deltas
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
 
 from os.path import join, basename, exists
 from urllib.parse import urlparse
-from pandas import DataFrame, to_timedelta, Timedelta
+from pandas import DataFrame, Series, to_timedelta, Timedelta
 from numpy import nan
 from collections.abc import Iterable
 from importlib import import_module
 from pydantic import TypeAdapter, BaseModel, ConfigDict
 from pydantic_core import ValidationError
-from typing import Optional, List
+from typing import Optional, List, Dict
 from json import dumps
 
 import os
@@ -312,7 +313,7 @@ class Device(BaseModel):
                     else:
                         logger.warning(f'Cache file does not exist: {cache}')
                 else:
-                    if cache.endswith('.csv'):
+                    if cache.endswith('.csv') or cache.endswith('.csv.gz'):
                         cached_data = read_csv_file(
                             path = cache,
                             timezone = timezone,
@@ -554,83 +555,266 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    # Check nans per column, return dict
-    # TODO-DOCUMENT
-    def get_nan_ratio(self, **kwargs):
+    def get_nan_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_nan_ratio", sampling_rates:Dict[str, int]=None) -> DataFrame:
+        '''
+            Check NaN ratio per column, return pd.DataFrame with the same index as
+            self.data with the NaN ratio per rolling window.
+            Parameters
+            ----------
+                period: str
+                    "1h"
+                    Rolling window width.
+                subset: List[str]
+                    Columns to apply the stuck ratio calculation to. If None, all columns
+                    are used.
+                sampling_rates: Dict[str, int]
+                    Dictionary with sampling rates per column in minutes. If None, will get
+                    sampling rates from config._default_sampling_rate or try to infer them.
+
+            Returns
+            ----------
+                result: DataFrame
+                    DataFrame with rolling nan ratio.
+        '''
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
 
-        if 'sampling_rate' not in kwargs:
-            sampling_rate = config._default_sampling_rate
+        if subset is not None:
+            data = self.data[subset]
         else:
-            sampling_rate = kwargs['sampling_rate']
+            data = self.data
+
         result = {}
 
-        for column in self.data.columns:
-            if column not in sampling_rate: continue
-            df = self.data[column].resample(f'{sampling_rate[column]}Min').mean()
-            minutes = df.groupby(df.index.date).mean().index.to_series().diff()/Timedelta('60s')
-            result[column] = (1-(minutes-df.isna().groupby(df.index.date).sum())/minutes)*sampling_rate[column]
+        for column in data.columns:
+            if sampling_rates is not None and column in sampling_rates:
+                sampling_rate = sampling_rates[column]
+            elif column in config._default_sampling_rate:
+                sampling_rate = config._default_sampling_rate[column]
+            else:
+                sampling_rate = infer_sampling_rate(data[column])
+
+            if sampling_rate is None:
+                logger.warning(f'Cannot infer sampling rate for column {column}. Skipping NaN ratio calculation')
+                continue
+
+            sampling_rate_timedelta = Timedelta(f'{sampling_rate}min')
+            max_possible_count = Timedelta(period) / sampling_rate_timedelta
+            datapoints = data[column].resample(sampling_rate_timedelta).mean()  # Need to aggregate somehow
+
+            nan_count = datapoints.rolling(period).apply(count_nas).fillna(max_possible_count)  # If we didn't fillna, we would get nas as count when the whole period is missing.
+
+            nan_ratio = nan_count / max_possible_count
+
+            result[column + suffix] = nan_ratio
+
+        return DataFrame(result)
+
+    def get_implausible_values(self, column: str, plausible_interval:List[int]=None) -> Series:
+        '''Get a boolean series indicating which values are outside the plausible
+        interval for the physical magnitude, as defined by plausible_interval
+        or config._default_unplausible_values.
+
+        For example, we consider values of NOISE_A below 20dB or above 99dB to
+        be implausible.
+
+        Parameters
+        ----------
+            column: str
+                Column to apply the plausible values check to.
+            plausible_interval: List[int]
+                List with two elements defining the plausible interval [min, max].
+                If None, will try to get the plausible interval from
+                config._default_unplausible_values.'''
+
+        series = self.data[column]
+
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+        if plausible_interval is not None:
+            left, right = plausible_interval
+        elif column in config._default_unplausible_values:
+            left, right = config._default_unplausible_values[series.name]  # I don't like this name
+        else:
+            copy = series.copy()
+            copy[:] = nan
+
+            return copy
+
+        implausible = (series < left) | (series > right)
+        nullable = implausible.convert_dtypes()
+        nullable[series.isna()] = None  # Propagate NaNs
+
+        return nullable
+
+
+    def get_implausible_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_implausible_ratio", plausible_intervals:Dict[str, List[int]]=None) -> DataFrame:
+        '''Scan the series for values outside the plausible interval for the
+        physical magnitude, as defined by plausible_interval or
+        config._default_unplausible_values. For example, we find values of
+        NOISE_A below 20dB or above 99dB to be implausible.
+
+        Parameters
+        ----------
+            period: str
+                Rolling window width.
+            subset: List[str]
+                Columns to apply the plausible ratio calculation to. If None, all columns
+                are used.
+            plausible_intervals: Dict[str, List[int]]
+                Dictionary with plausible intervals per column. Optional.
+
+        Returns
+        ----------
+            result: DataFrame
+                DataFrame with rolling calculation of plausible ratio.
+        '''
+
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        if subset is not None:
+            data = self.data[subset]
+        else:
+            data = self.data
+        result = {}
+
+        for column in data.columns:
+            if plausible_intervals is not None and column in plausible_intervals:
+                interval = plausible_intervals[column]
+            else:
+                interval = None
+
+            implausible_values = self.get_implausible_values(column, plausible_interval=interval)
+
+            result[column + suffix] = implausible_values.rolling(period).mean()  # Only consider actual observed data
+
+        return DataFrame(result)
+
+    def get_outlier_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_outlier_ratio", sigma=5, pct=0.05) -> DataFrame:
+        '''Get the percentage of outlier values based on the rate of increase. When sensors
+        report sudden jumps, these are likely to be erroneous values. 
+
+        Parameters
+        ----------
+            period: str
+                "1h"
+                Rolling window width.
+            subset: List[str]
+                Columns to apply the outlier ratio calculation to. If None, all columns
+                are used.
+            sigma: int
+                5
+                Number of standard deviations to consider a point an outlier. A higher 
+                value would be more restrictive, detecting only worse malfunctions.
+            pct: float
+                0.05
+                Percentage of top and bottom values to ignore when normalizing. We 
+                assume the outliers will always be a minority of the data, so ignoring
+                a small percentage of extreme values should help get a better estimate.
+
+        Returns 
+        ----------
+            result: DataFrame
+                DataFrame with rolling outlier ratio.
+        '''
+
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        if subset is not None:
+            data = self.data[subset]
+        else:
+            data = self.data
+        
+        result = {}
+
+        for column in data.columns:
+            outlier_values = self.get_outlier_values(column, sigma=sigma, pct=pct)
+
+            result[column + suffix] = outlier_values.rolling(period).mean()  
+
+        return DataFrame(result)
+
+    def get_outlier_values(self, column: str, sigma=5, pct=0.05) -> Series:
+        '''
+        Get a boolean series indicating which values are outliers based on
+        the rate of increase. We calculate the first derivative implied by
+        each datapoint. Then we normalize the derivative series after removing
+        the top and bottom pct% of values to avoid outliers impacting the mean
+        too much. Finally, we consider outliers those points where the
+        normalized derivative is above `sigma` standard deviations.
+
+        Parameters
+        ----------
+            column: str
+                Column to apply the outlier values check to.
+            sigma: int
+                Number of standard deviations to consider a point an outlier.
+            pct: float
+                Percentage of top and bottom values to ignore when normalizing. 
+
+        Returns
+        ----------
+            Series
+                Boolean series indicating outlier values.
+        '''
+
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        series = self.data[column]
+
+        deltas = rolling_deltas(series)
+        normalized_deltas = normalize_central(deltas, pct=pct)
+        outliers = normalized_deltas.abs() > sigma
+
+        return outliers
+
+    def get_top_value_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_top_value_ratio", ignore_zeroes=True) -> DataFrame:
+        '''
+            Check the frequency of the mode (top value) per column, return
+            pd.DataFrame with the same index as self.data with the mode ratio
+            per rolling window.
+
+            Parameters
+            ----------
+                period: str
+                    "1h"
+                    Rolling window width.
+                subset: List[str]
+                    Columns to apply the stuck ratio calculation to. If None, all columns
+                    are used.
+                ignore_zeroes: boolean
+                    True
+                    Ignore zeroes when checking for stuck values. Passed through to mode_ratio()
+            Returns
+            ----------
+                result: DataFrame
+                    DataFrame with rolling mode ratio.
+        '''
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        if subset is not None:
+            data = self.data[subset]
+        else:
+            data = self.data
+
+        rolling = data.rolling(period)
+        result = rolling.apply(lambda w: mode_ratio(w, ignore_zeroes), raw=False)
+        result.columns = [col + suffix for col in result.columns]
 
         return result
 
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    # TODO-DOCUMENT
-    def get_plausible_ratio(self, **kwargs):
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
 
-        if 'unplausible_values' not in kwargs:
-            unplausible_values = config._default_unplausible_values
-        else:
-            unplausible_values = kwargs['unplausible_values']
-
-        if 'sampling_rate' not in kwargs:
-            sampling_rate = config._default_sampling_rate
-        else:
-            sampling_rate = kwargs['sampling_rate']
-
-        return {column: self.data[column].between(left=unplausible_values[column][0], right=unplausible_values[column][1]).groupby(self.data[column].index.date).sum()/self.data.groupby(self.data.index.date).count()[column] for column in self.data.columns if column in unplausible_values}
-
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    def get_outlier_ratio(self, **kwargs):
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-        result = {}
-        resample = '360h'
-
-        for column in self.data.columns:
-            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
-            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
-            IQR = Q3 - Q1
-
-            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
-            result[column] = mask.groupby(mask.index.date).mean()
-
-        return result
-
-    # Check plausibility per column, return dict. Doesn't take into account nans
-    def get_outliers(self, **kwargs):
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-        result = {}
-        resample = '360h'
-
-        for column in self.data.columns:
-            Q1 = self.data[column].resample(resample).mean().quantile(0.25)
-            Q3 = self.data[column].resample(resample).mean().quantile(0.75)
-            IQR = Q3 - Q1
-
-            mask = (self.data[column] < (Q1 - 1.5 * IQR)) | (self.data[column] > (Q3 + 1.5 * IQR))
-            result[column] = mask
-
-        return result
-
-    def export(self, path, forced_overwrite = False, file_format = 'csv'):
+    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False):
         '''
         Exports Device.data to file
         Parameters
@@ -653,7 +837,7 @@ class Device(BaseModel):
             logger.error('Cannot export null data')
             return False
         if file_format == 'csv':
-            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite)
+            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite, gzip=gzip)
         else:
             # TODO Make a list of supported formats
             return NotImplementedError (f'Not supported format. Formats: [csv]')
