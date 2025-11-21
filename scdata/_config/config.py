@@ -42,9 +42,6 @@ class Config(object):
     _timeout = 3
     _max_http_retries = 2
 
-    # Max concurrent requests
-    _max_concurrent_requests = 30
-
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------
@@ -120,7 +117,6 @@ class Config(object):
         # f'{_base_postprocessing_url}names/SCDevice.json'
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/names/SCDevice.json'
     ]
-
 
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
