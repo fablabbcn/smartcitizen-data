@@ -462,7 +462,12 @@ class Config(object):
         'TEMP': 1,
         'RSSI': 1,
         'NO2': 1,
-        'O3': 1
+        'O3': 1,
+        'AS_TEMP': 1,
+        'AS_PH': 1,
+        'AS_COND': 1,
+        'AS_DO_SAT': 1,
+        'AS_DO': 1
     }
 
     _default_unplausible_values = {
@@ -496,7 +501,12 @@ class Config(object):
         'HUM': [20, 99],
         'TEMP': [-20, 50],
         'NO2': [0, 1000],
-        'O3': [0, 1000]
+        'O3': [0, 1000],
+        'AS_TEMP': [-20, 50],
+        'AS_PH': [0, 14],
+        'AS_COND': [0, 100000],
+        'AS_DO_SAT': [0, 100],
+        'AS_DO': [0, 15]
     }
 
     def __init__(self):
@@ -504,7 +514,6 @@ class Config(object):
         self.paths = self.get_paths()
         self.load()
         self.get_meta_data()
-
 
     def __getattr__(self, name):
         try:
