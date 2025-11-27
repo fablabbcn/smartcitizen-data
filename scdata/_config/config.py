@@ -42,9 +42,6 @@ class Config(object):
     _timeout = 3
     _max_http_retries = 2
 
-    # Max concurrent requests
-    _max_concurrent_requests = 30
-
     ### ---------------------------------------
     ### -----------------DATA------------------
     ### ---------------------------------------
@@ -120,7 +117,6 @@ class Config(object):
         # f'{_base_postprocessing_url}names/SCDevice.json'
         'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/names/SCDevice.json'
     ]
-
 
     ### ---------------------------------------
     ### -------------METRICS DATA--------------
@@ -466,7 +462,12 @@ class Config(object):
         'TEMP': 1,
         'RSSI': 1,
         'NO2': 1,
-        'O3': 1
+        'O3': 1,
+        'AS_TEMP': 1,
+        'AS_PH': 1,
+        'AS_COND': 1,
+        'AS_DO_SAT': 1,
+        'AS_DO': 1
     }
 
     _default_unplausible_values = {
@@ -500,7 +501,12 @@ class Config(object):
         'HUM': [20, 99],
         'TEMP': [-20, 50],
         'NO2': [0, 1000],
-        'O3': [0, 1000]
+        'O3': [0, 1000],
+        'AS_TEMP': [-20, 50],
+        'AS_PH': [0, 14],
+        'AS_COND': [0, 100000],
+        'AS_DO_SAT': [0, 100],
+        'AS_DO': [0, 15]
     }
 
     def __init__(self):
@@ -508,7 +514,6 @@ class Config(object):
         self.paths = self.get_paths()
         self.load()
         self.get_meta_data()
-
 
     def __getattr__(self, name):
         try:
