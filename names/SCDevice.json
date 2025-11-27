@@ -834,6 +834,30 @@
         "unit": ""
     },
     {
+        "name": "LPS33_PRESS",
+        "id": "227",
+        "description": "LPS33 Barometric pressure",
+        "unit": "kPa"
+    },
+    {
+        "name": "AS7331_UVA",
+        "id": "214",
+        "description": "AS7331 UVA",
+        "unit": "uW/cm2"
+    },
+    {
+        "name": "AS7331_UVB",
+        "id": "215",
+        "description": "AS7331 UVB",
+        "unit": "uW/cm2"
+    },
+    {
+        "name": "AS7331_UVC",
+        "id": "216",
+        "description": "AS7331 UVC",
+        "unit": "uW/cm2"
+    },
+    {
         "name": "VEML6070_UVA",
         "id": "159",
         "description": "VEML6070 UVA",
