@@ -47,6 +47,7 @@ channel_lut = {
 unit_convertion_lut = (
     ['%rh', '%', 1, False],
     ['ºC', 'degC', 1, False],
+    ['°C', 'degC', 1, False],
     ['ppm', 'ppb', 1000, False],
     ['mg/m3', 'ug/m3', 1000, False],
     ['mgm3', 'ugm3', 1000, False],
@@ -96,6 +97,7 @@ def get_units_convf(sensor, from_units):
             logger.info(f"Converting units for {sensor}. From {from_units} to {channel_lut[channel]}")
             for unit in unit_convertion_lut:
                 # Get units
+                logger.debug(f"Is it {unit[0]} to {unit[1]}?")
                 if unit[0] == from_units and unit[1] == channel_lut[channel]:
                     factor = unit[2]
                     requires_conc = unit[3]
