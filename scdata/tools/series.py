@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from scdata.tools.custom_logger import logger
 
 from pandas import Series, Timedelta
