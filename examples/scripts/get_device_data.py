@@ -7,7 +7,6 @@ import asyncio
 # Set verbose level
 config.log_level = 'DEBUG'
 
-# Device id needs to be as str
 device = sc.Device(blueprint='sc_air',
                                params=sc.APIParams(id=16784))
 device.options.min_date = None #Don't trim min_date
