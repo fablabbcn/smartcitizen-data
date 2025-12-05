@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from scdata.tools.custom_logger import logger
 
+from typing import Optional
 from pandas import Series, Timedelta
 import numpy as np
 
-def infer_sampling_rate(series: Series) -> int | None:
+def infer_sampling_rate(series: Series) -> Optional[int]:
     '''Infer the sampling rate of the given timeseries, rounded to the
     closest minute.
     '''
@@ -23,7 +24,7 @@ def infer_sampling_rate(series: Series) -> int | None:
     return integer_minutes
 
 
-def mode_ratio(series: Series, ignore_zeroes=True) -> int:
+def mode_ratio(series: Series, ignore_zeroes=True) -> float:
     '''Count the percentage of times the most common value appears in the series,
     ignoring zeroes and NaNs.'''
 
