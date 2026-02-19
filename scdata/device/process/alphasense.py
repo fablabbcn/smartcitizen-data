@@ -3,7 +3,7 @@ from scdata.tools.units import get_units_convf
 from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
-from scdata.device.process import baseline_calc, clean_ts
+from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
@@ -81,6 +81,13 @@ def alphasense_803_04(dataframe, **kwargs):
     if kwargs['use_alternative']: algorithm_idx = 1
     else: algorithm_idx = 0
 
+    # Clip negative values or not
+    if 'clip_negative_conc' in kwargs:
+        clip_negative_conc = kwargs['clip_negative_conc']
+    # Offset negative values or not
+    elif 'offset_negative_conc' in kwargs:
+        offset_negative_conc = kwargs['offset_negative_conc']
+
     # Get algorithm name
     algorithm = list(as_sensor_algs[as_type].keys())[algorithm_idx]
     comp_type = as_sensor_algs[as_type][algorithm][0]
@@ -138,8 +145,139 @@ def alphasense_803_04(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
-    if avoid_negative_conc:
-        df['conc'].clip(lower = 0, inplace = True)
+    if clip_negative_conc:
+        df['conc'] = df['conc'].clip(lower = 0)
+    elif offset_negative_conc:
+        df['conc'] += abs(df['conc'].min())
+
+    return ProcessResult(df['conc'], StatusCode.SUCCESS)
+
+def alphasense_als(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
+    and calibration ID. It adds a configurable background concentration and correction
+    based on AAN803-04
+    Parameters
+    ----------
+        alphasense_id: string
+            Alphasense sensor ID (must be in calibrations.json)
+        we: string
+            Name of working electrode found in dataframe (V)
+        ae: string
+            Name of auxiliary electrode found in dataframe (V)
+        t: string
+            Name of reference temperature
+        clip_negative_conc: bool
+            Clip the negative values after the algorithm
+        offset_negative_conc: bool
+            Offset the resulting negative values for the signal
+    Returns
+    -------
+        calculation of pollutant in ppb
+    """
+
+    # Check inputs
+    flag_error = False
+    if 'we' not in kwargs: flag_error = True
+    if 'ae' not in kwargs: flag_error = True
+    if 'alphasense_id' not in kwargs: flag_error = True
+    if 't' not in kwargs: flag_error = True
+    if 'clip_negative_conc' not in kwargs:
+        kwargs['clip_negative_conc'] = clip_negative_conc
+
+    if 'offset_negative_conc' not in kwargs:
+        kwargs['offset_negative_conc'] = offset_negative_conc
+
+    if 'lam' in kwargs:
+        lam = kwargs['lam']
+    else:
+        lam = None
+
+    if 'p' in kwargs:
+        p = kwargs['p']
+    else:
+        p = None
+
+    if flag_error:
+        logger.error('Problem with input data')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
+    if kwargs['alphasense_id'] is None:
+        logger.warning(f"Empty ID. Ignoring")
+        return ProcessResult(None, StatusCode.WARNING_EMPTY_ID)
+
+    # Get Sensor data
+    if kwargs['alphasense_id'] not in config.calibrations:
+        logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
+        return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
+
+    # Make copy
+    df = dataframe.copy()
+
+    # Get sensor type
+    as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
+
+    # Retrieve calibration data - verify its all float
+    cal_data = config.calibrations[kwargs['alphasense_id']]
+
+    for item in cal_data:
+        try:
+            cal_data[item] = float (cal_data[item])
+        except:
+            logger.error(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct")
+            logger.error(f'Error on {item}: \'{cal_data[item]}\'')
+            return ProcessResult(None, StatusCode.ERROR_WRONG_CALIBRATION)
+
+    # Remove spurious voltages (0V < electrode < 5V)
+    for electrode in ['we', 'ae']:
+        subkwargs = {'name': kwargs[electrode],
+                        'limits': (0, 5), # In V
+                        'window_size': None
+                    }
+
+        cleaning_result = clean_ts(df, **subkwargs)
+        if 'SUCCESS' in cleaning_result.status_code.name:
+            df[f'{electrode}_clean'] = cleaning_result.data
+        else:
+            return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
+
+    # Compensate electronic zero
+    df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
+    df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+    # Get requested temperature
+    df['t'] = df[kwargs['t']]
+
+    # Calculate WE baseline
+    subkwargs = {'name': 'we_t'}
+    if lam is not None: subkwargs['lam'] = lam
+    if p is not None: subkwargs['p'] = p
+
+    baseline_result = baseline_als(df, **subkwargs)
+    if 'SUCCESS' in baseline_result.status_code.name:
+        df[f'we_baseline'] = baseline_result.data
+    else:
+        return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
+
+    # Calculate baseline factor
+    df['baseline_t'] = df['we_baseline'] / df['ae_t']
+    # Correct Auxiliary electrode based on mean factor
+    df['ae_cor'] = df['baseline_t'].mean() * df['ae_t']
+    df['we_c'] = df['we_t'] - df['ae_cor']
+
+    # Verify if it has NO2 cross-sensitivity (in V)
+    if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
+        df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
+        df['we_c'] -= df['we_no2_eq'] # in V
+
+    # Calculate sensor concentration
+    df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
+
+    if kwargs['clip_negative_conc']:
+        df['conc'] = df['conc'].clip(lower = 0)
+
+    elif kwargs['offset_negative_conc']:
+        if df['conc'].min() < 0:
+            df['conc'] = df['conc'] + abs(df['conc'].min())
 
     return ProcessResult(df['conc'], StatusCode.SUCCESS)
 
