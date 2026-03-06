@@ -25,6 +25,6 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - (WIP) Easy dispersion analysis: [notebooks/14_easy_dispersion_analysis.ipynb](notebooks/14_easy_dispersion_analysis.ipynb)
 - R basic example: [notebooks/15_R_basic_example.ipynb](notebooks/15_R_basic_example.ipynb)
 - Load, process and post device: [notebooks/16_device_processing.ipynb](notebooks/16-device_processing.ipynb)
-- Process complex data (TwinAIR project): [notebooks/17_-_twinair_-_demo.ipynb](notebooks/17_-_twinair_-_demo.ipynb)
+- Process complex data (TwinAIR project): [notebooks/17_twinair_demo.ipynb](notebooks/17_twinair_demo.ipynb)
 - Basic data exploration: [learning/notebooks/01_basic_data_exploration.ipynb](learning/notebooks/01_basic_data_exploration.ipynb)
 
