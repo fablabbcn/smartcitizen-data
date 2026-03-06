@@ -155,6 +155,4 @@ ENV/
 
 tests/local
 
-scripts/
-
 .vscode
