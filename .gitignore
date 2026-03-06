@@ -156,3 +156,4 @@ ENV/
 tests/local
 
 .vscode
+.virtual_documents
