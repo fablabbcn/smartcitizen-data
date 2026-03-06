@@ -696,7 +696,7 @@ class Device(BaseModel):
 
     def get_outlier_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_outlier_ratio", sigma=5, pct=0.05) -> DataFrame:
         '''Get the percentage of outlier values based on the rate of increase. When sensors
-        report sudden jumps, these are likely to be erroneous values. 
+        report sudden jumps, these are likely to be erroneous values.
 
         Parameters
         ----------
@@ -708,15 +708,15 @@ class Device(BaseModel):
                 are used.
             sigma: int
                 5
-                Number of standard deviations to consider a point an outlier. A higher 
+                Number of standard deviations to consider a point an outlier. A higher
                 value would be more restrictive, detecting only worse malfunctions.
             pct: float
                 0.05
-                Percentage of top and bottom values to ignore when normalizing. We 
+                Percentage of top and bottom values to ignore when normalizing. We
                 assume the outliers will always be a minority of the data, so ignoring
                 a small percentage of extreme values should help get a better estimate.
 
-        Returns 
+        Returns
         ----------
             result: DataFrame
                 DataFrame with rolling outlier ratio.
@@ -730,13 +730,13 @@ class Device(BaseModel):
             data = self.data[subset]
         else:
             data = self.data
-        
+
         result = {}
 
         for column in data.columns:
             outlier_values = self.get_outlier_values(column, sigma=sigma, pct=pct)
 
-            result[column + suffix] = outlier_values.rolling(period).mean()  
+            result[column + suffix] = outlier_values.rolling(period).mean()
 
         return DataFrame(result)
 
@@ -756,7 +756,7 @@ class Device(BaseModel):
             sigma: int
                 Number of standard deviations to consider a point an outlier.
             pct: float
-                Percentage of top and bottom values to ignore when normalizing. 
+                Percentage of top and bottom values to ignore when normalizing.
 
         Returns
         ----------
@@ -906,7 +906,7 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
 
-    def backup(self, format='parquet', mode='append'):
+    def backup(self, format='parquet', mode='append', path='devices'):
         if self.data.empty:
             logger.error("Device data empty")
             return False
@@ -914,20 +914,24 @@ class Device(BaseModel):
         if format == 'parquet':
             if boto_available:
                 self.data['TIME']=self.data.index
-                target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
+                target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
                 response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
 
                 return response
 
-    def backup_load(self, format='parquet'):
+    # TODO Add function to backup device metadata and info
+
+    def backup_load(self, format='parquet', path='devices'):
         if format == 'parquet':
             if boto_available:
                 session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
                 aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
                 region_name=os.environ['AWS_REGION'])
-                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
+                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
                 self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
                 self.data.set_index('TIME', inplace=True)
                 self.data.sort_index(inplace=True)
+
+                self.loaded = True
 
                 return s3_url
