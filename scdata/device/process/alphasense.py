@@ -82,11 +82,14 @@ def alphasense_803_04(dataframe, **kwargs):
     else: algorithm_idx = 0
 
     # Clip negative values or not
+    process_negative_conc = None
     if 'clip_negative_conc' in kwargs:
-        clip_negative_conc = kwargs['clip_negative_conc']
+        if kwargs['clip_negative_conc']:
+            process_negative_conc = 'clip_negative_conc'
     # Offset negative values or not
     elif 'offset_negative_conc' in kwargs:
-        offset_negative_conc = kwargs['offset_negative_conc']
+        if kwargs['offset_negative_conc']:
+            process_negative_conc = 'offset_negative_conc'
 
     # Get algorithm name
     algorithm = list(as_sensor_algs[as_type].keys())[algorithm_idx]
@@ -145,9 +148,9 @@ def alphasense_803_04(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
-    if clip_negative_conc:
+    if process_negative_conc == 'clip_negative_conc':
         df['conc'] = df['conc'].clip(lower = 0)
-    elif offset_negative_conc:
+    elif process_negative_conc == 'offset_negative_conc':
         df['conc'] += abs(df['conc'].min())
 
     return ProcessResult(df['conc'], StatusCode.SUCCESS)
