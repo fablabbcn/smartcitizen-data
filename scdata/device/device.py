@@ -906,32 +906,84 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
 
-    def backup(self, format='parquet', mode='append', path='devices'):
+    def backup_to_storage(self, mode='append', path='devices'):
+        """
+        Backup device data into S3 storage (requires S3_DATA_BUCKET env
+         variable set).
+            Parameters
+            ----------
+            mode: str
+                'append'
+                How to handle awswrangler to_parquet() storage
+            path: str
+                'devices'
+                Path for backup directory
+                "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+        Returns
+        ----------
+            False or response from awswrangler
+        """
         if self.data.empty:
             logger.error("Device data empty")
             return False
 
-        if format == 'parquet':
-            if boto_available:
-                self.data['TIME']=self.data.index
-                target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-                response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
+        if 'S3_DATA_BUCKET' not in os.environ:
+            logger.error("S3_DATA_BUCKET not set in environment")
+            return False
 
-                return response
+        # TODO Add more formats
+        if boto_available:
+            self.data['TIME']=self.data.index
+            target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
 
-    # TODO Add function to backup device metadata and info
+            s3 = boto3.resource('s3')
+            s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/metadata.json")
+            s3object.put(
+                Body=(bytes(self.handler.json.model_dump_json().encode('utf-8')))
+            )
 
-    def backup_load(self, format='parquet', path='devices'):
-        if format == 'parquet':
-            if boto_available:
-                session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-                aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-                region_name=os.environ['AWS_REGION'])
-                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
-                self.data.set_index('TIME', inplace=True)
-                self.data.sort_index(inplace=True)
+            return response
 
-                self.loaded = True
+    def load_from_storage(self, path='devices'):
+        """
+        Load device data from S3 storage (requires AWS env
+         variable set).
+            Parameters
+            ----------
+            path: str
+                'devices'
+                Path for backup directory
+                "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+        Returns
+        ----------
+            S3 bucket url if successful, False otherwise
+        """
 
-                return s3_url
+        if 'S3_DATA_BUCKET' not in os.environ or \
+            'AWS_ACCESS_KEY_ID' not in os.environ or \
+            'AWS_SECRET_ACCESS_KEY' not in os.environ or \
+            'AWS_REGION' not in os.environ:
+
+            logger.error("Missing environment variables. S3_DATA_BUCKET, AWS_ACCESS_KEY_ID, \
+                AWS_SECRET_ACCESS_KEY and AWS_REGION need to be set.")
+
+            return False
+
+        if boto_available:
+            session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+            region_name=os.environ['AWS_REGION'])
+            s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            logger.info(f"Loading data from: {s3_url}")
+
+            self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
+            self.data.set_index('TIME', inplace=True)
+            self.data.sort_index(inplace=True)
+
+            self.loaded = True
+
+            return s3_url
+        else:
+            logger.error("Boto not available. Install awswrangler")
+            return False
