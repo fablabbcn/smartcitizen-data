@@ -9,6 +9,7 @@ from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.units import get_units_convf
 from scdata.tools.find import find_by_field
 from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio, normalize_central, rolling_deltas
+from scdata.tools.tree import topological_sort
 from scdata._config import config
 from scdata.io.device_api import *
 from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
@@ -462,7 +463,6 @@ class Device(BaseModel):
             logger.warning(f'Device {self.paramsParsed.id} has nothing to process. Skipping')
             return process_ok
 
-        logger.info('---------------------------')
         logger.info(f'Processing device {self.paramsParsed.id}')
         if lmetrics is None:
             _lmetrics = [metric.name for metric in self.metrics]
@@ -471,6 +471,10 @@ class Device(BaseModel):
         if not _lmetrics:
             logger.warning('Nothing to process')
             return process_ok
+
+        # Sort metrics
+        logger.info('Sorting metrics...')
+        self.metrics = topological_sort(self.metrics)
 
         for metric in self.metrics:
             logger.info('---')
@@ -518,6 +522,7 @@ class Device(BaseModel):
                         process_ok &= True
 
         if process_ok:
+            logger.info('---')
             logger.info(f"Device {self.paramsParsed.id} processed")
             self.processed = process_ok
 

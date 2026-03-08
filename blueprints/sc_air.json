@@ -25,7 +25,8 @@
       },
       "post": false,
       "function": "alphasense_pt1000",
-      "unit": "degC"
+      "unit": "degC",
+      "depends_on": ["PT1000_POS"]
     },
     {
       "name": "EC_SENSOR_TEMP",
@@ -37,7 +38,8 @@
       },
       "post": false,
       "function": "ec_sensor_temp",
-      "unit": "degC"
+      "unit": "degC",
+      "depends_on": ["ASPT1000"]
     },
     {
       "name": "CO_WE",
@@ -183,7 +185,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["CO_WE", "CO_AE", "EC_SENSOR_TEMP"]
     },
     {
       "name":"NO2",
@@ -197,7 +200,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["NO2_WE", "NO2_AE", "EC_SENSOR_TEMP"]
     },
     {
       "name":"O3",
@@ -211,7 +215,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP"]
     },
     {
       "name":"SO2",
@@ -226,7 +231,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["SO2_WE", "SO2_AE", "EC_SENSOR_TEMP"]
     },
     {
       "name": "NO",
@@ -240,7 +246,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["NO_WE", "NO_AE", "EC_SENSOR_TEMP"]
     },
     {
       "name": "H2S",
@@ -254,7 +261,8 @@
       },
       "post": true,
       "function": "alphasense_803_04",
-      "unit": "ppb"
+      "unit": "ppb",
+      "depends_on": ["H2S_WE", "H2S_AE", "EC_SENSOR_TEMP"]
     }
   ]
 }
