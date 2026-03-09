@@ -1,16 +1,15 @@
+# Matplotlib
+import matplotlib.pyplot as plt
+from matplotlib import rcParams, style
+from numpy import array, where
+from pandas import to_datetime
+from seaborn import set_palette
+
+from scdata._config import config
+from scdata.plot.tools import prepare_test_data, prepare_device_data
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
-from scdata._config import config
-from .plot_tools import prepare_data
-from pandas import to_datetime
-
-# Matplotlib
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import style
-from seaborn import set_palette
-from numpy import where, array
 
 def ts_plot(self, **kwargs):
     """
@@ -35,6 +34,9 @@ def ts_plot(self, **kwargs):
     -------
         Matplotlib figure
     """
+
+    from scdata.test.test import Test
+    from scdata.device.device import Device
 
     if config.framework == 'jupyterlab':
         plt.ioff()
@@ -70,7 +72,10 @@ def ts_plot(self, **kwargs):
             rcParams.update({'font.size': formatting['fontsize']});
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

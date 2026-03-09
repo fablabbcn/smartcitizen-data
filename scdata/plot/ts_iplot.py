@@ -1,14 +1,15 @@
-from scdata.tools.custom_logger import logger
-from scdata.tools.dictmerge import dict_fmerge
-from scdata._config import config
-from .plot_tools import prepare_data
-
 # Plotly
 import plotly.tools as tls
-from plotly.subplots import make_subplots
+from plotly.io import renderers
 # import plotly.graph_objs as go
 from plotly.offline import iplot
-from plotly.io import renderers
+from plotly.subplots import make_subplots
+
+from scdata._config import config
+from scdata.plot.tools import prepare_test_data, prepare_device_data
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+
 
 def ts_iplot(self, **kwargs):
     """
@@ -34,6 +35,9 @@ def ts_iplot(self, **kwargs):
         Plotly figure
     """
 
+    from scdata.test.test import Test
+    from scdata.device.device import Device
+
     if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs:
@@ -55,7 +59,10 @@ def ts_iplot(self, **kwargs):
         formatting = dict_fmerge(config._ts_plot_def_fmt['plotly'], kwargs['formatting'])
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

@@ -1,32 +1,34 @@
 ''' Main implementation of class Device '''
 
-from scdata.tools.custom_logger import logger
-from scdata.io import read_csv_file, export_csv_file
-from scdata.tools.lazy import LazyCallable
-from scdata.tools.url_check import url_checker
-from scdata.tools.date import localise_date
-from scdata.tools.dictmerge import dict_fmerge
-from scdata.tools.units import get_units_convf
-from scdata.tools.find import find_by_field
-from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio, normalize_central, rolling_deltas
-from scdata.tools.tree import topological_sort
-from scdata._config import config
-from scdata.io.device_api import *
-from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
-
-from os.path import join, basename, exists
-from urllib.parse import urlparse
-from pandas import DataFrame, Series, to_timedelta, Timedelta
-from numpy import nan
+import os
 from collections.abc import Iterable
 from importlib import import_module
-from pydantic import TypeAdapter, BaseModel, ConfigDict
-from pydantic_core import ValidationError
-from typing import Optional, List, Dict
-from json import dumps
-
-import os
 from io import StringIO
+from json import dumps
+from os.path import basename, exists, join
+from typing import Dict, List, Optional
+from urllib.parse import urlparse
+
+from numpy import nan
+from pandas import DataFrame, Series, Timedelta, to_timedelta
+from pydantic import BaseModel, ConfigDict, TypeAdapter
+from pydantic_core import ValidationError
+
+from scdata._config import config
+from scdata.io import export_csv_file, read_csv_file
+from scdata.io.device_api import *
+from scdata.models import (APIParams, Blueprint, CSVParams, DeviceOptions,
+                           Metric, Sensor, Source)
+from scdata.tools.custom_logger import logger
+from scdata.tools.date import localise_date
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.find import find_by_field
+from scdata.tools.lazy import LazyCallable
+from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
+                                 normalize_central, rolling_deltas)
+from scdata.tools.tree import topological_sort
+from scdata.tools.units import get_units_convf
+from scdata.tools.url_check import url_checker
 
 try:
     import awswrangler as wr
@@ -39,10 +41,22 @@ else:
 if boto_available: import boto3
 
 from timezonefinder import TimezoneFinder
+
 tf = TimezoneFinder()
 
 class Device(BaseModel):
     ''' Main implementation of the device class '''
+
+    from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
+    from scdata.plot import (device_metric_map, heatmap_plot, path_plot,
+                       scatter_dispersion_grid, scatter_plot, ts_dendrogram,
+                       ts_dispersion_grid, ts_dispersion_plot, ts_plot,
+                       ts_scatter)
+        #, report_plot, cat_plot, violin_plot)
+
+    if config._ipython_avail:
+        from scdata.plot import ts_uplot, ts_dispersion_uplot
+
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
     blueprint: str = None

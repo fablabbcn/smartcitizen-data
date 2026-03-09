@@ -1,42 +1,40 @@
 """ Main implementation of the class Test """
 
-from os import makedirs
-from os.path import join, exists
-from shutil import copyfile, rmtree, make_archive
-from traceback import print_exc
-from datetime import datetime, timedelta
-import json
-import folium
 import asyncio
+import json
+from datetime import datetime, timedelta
+from os import makedirs
+from os.path import exists, join
 from re import sub
-from pydantic import TypeAdapter, BaseModel, ConfigDict, model_serializer
-from typing import Optional, List, Dict, Any
+from shutil import copyfile, make_archive, rmtree
+from traceback import print_exc
+from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, ConfigDict, TypeAdapter, model_serializer
+
+from scdata import Device
+from scdata._config import config
+from scdata.io import export_csv_file, read_csv_file
+from scdata.models import TestOptions
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
-from scdata.io import read_csv_file, export_csv_file
-from scdata._config import config
-from scdata import Device
-from scdata.models import TestOptions
 
 class Test(BaseModel):
 
-    from .plot import (ts_plot, device_metric_map, path_plot,
-        scatter_plot, ts_scatter,
-        # ts_iplot, scatter_iplot, heatmap_iplot,
-        heatmap_plot,
-        box_plot, ts_dendrogram,
-        ts_dispersion_plot, ts_dispersion_grid,
-        scatter_dispersion_grid)
+    from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
+    from scdata.plot import (device_metric_map, heatmap_plot, path_plot,
+                       scatter_dispersion_grid, scatter_plot, ts_dendrogram,
+                       ts_dispersion_grid, ts_dispersion_plot, ts_plot,
+                       ts_scatter)
         #, report_plot, cat_plot, violin_plot)
 
     if config._ipython_avail:
-        from .plot import ts_uplot, ts_dispersion_uplot
-    from .export import to_csv, to_html
-    from .tools import combine, prepare, history
-    from .dispersion import dispersion_analysis, dispersion_summary
+        from scdata.plot import ts_uplot, ts_dispersion_uplot
     from .checks import get_common_channels
+    from .dispersion import dispersion_analysis, dispersion_summary
+    from .export import to_csv, to_html
+    from .tools import combine, history, prepare
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
     name: str

@@ -1,15 +1,15 @@
-from scdata.tools.custom_logger import logger
-from scdata.tools.dictmerge import dict_fmerge
-
-from scdata._config import config
-from .plot_tools import prepare_data, colors
+import io
+import json
+import re
 
 # uPlot
 from IPython.display import HTML
-import json
 from jinja2 import Template
-import io
-import re
+
+from scdata._config import config
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
 
 '''
 This code is heavily inspired by https://github.com/saewoonam/uplot_lib
@@ -38,6 +38,9 @@ def ts_uplot(self, **kwargs):
     -------
         uPlot figure
     """
+
+    from scdata.test.test import Test
+    from scdata.device.device import Device
 
     head_template = '''
         <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
@@ -101,7 +104,10 @@ def ts_uplot(self, **kwargs):
     h = Template(head_template).render(title=formatting['title'])
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:
@@ -170,6 +176,7 @@ def ts_uplot(self, **kwargs):
                                     'drag': {
                                                 'x': True,
                                                 'y': True,
+                                                'setScale': True,
                                                 'uni': 50,
                                                 'dist': 10,
                                             }
