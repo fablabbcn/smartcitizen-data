@@ -42,15 +42,57 @@ def ts_uplot(self, **kwargs):
     from scdata.test.test import Test
     from scdata.device.device import Device
 
+    initHook = '''**[ u => {
+                let axisEls = u.root.querySelectorAll('.u-axis');
+
+                for (let i = 0; i < axisEls.length; i++) {
+                    let el = axisEls[i];
+
+                    el.addEventListener('mousedown', e => {
+                        let y0 = e.clientY;
+                        let x0 = e.clientX;
+
+                        let scaleKey = u.axes[i].scale;
+                        let scale = u.scales[scaleKey];
+                        let { min, max } = scale;
+                        let dim = i == 0 ? u.bbox.width : u.bbox.height;
+                        let unitsPerPx = (max - min) / (dim / uPlot.pxRatio);
+
+                        let mousemove = e => {
+                            let d = i == 0 ?  x0 - e.clientX : e.clientY - y0
+                            let shiftyBy = d * unitsPerPx;
+
+                            u.setScale(scaleKey, {
+                                min: e.shiftKey ? (min - shiftyBy) : min + shiftyBy,
+                                max: max + shiftyBy,
+                            });
+                        };
+
+                        let mouseup = e => {
+                            document.removeEventListener('mousemove', mousemove);
+                            document.removeEventListener('mousemove', mouseup);
+                        };
+
+                        document.addEventListener('mousemove', mousemove);
+                        document.addEventListener('mouseup', mouseup);
+                    });
+                }
+            },
+        ]**'''
+
     head_template = '''
         <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
+        <style>
+            .u-axis:hover {
+                cursor: move;
+            }
+        </style>
         <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
 
         <div style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
         </div>
-
-        '''
+    '''
 
     uplot_template = '''
         <div id="plot{{subplot}}"></div>
@@ -164,6 +206,7 @@ def ts_uplot(self, **kwargs):
                         'width': formatting['width'],
                         'height': formatting['height'],
                         'legend': {'isolate': False},
+                        'hooks': {'init': 'initHook'},
                         'cursor': {
                                     'lock': True,
                                     'focus': {
@@ -189,15 +232,20 @@ def ts_uplot(self, **kwargs):
                         'axes': uaxes
                     }
 
-        h2 = Template(uplot_template).render(data=json.dumps(data),
-                                 options=json.dumps(u_options),
-                                 subplot=isbplt)
-
+        h2 = Template(uplot_template).render(
+            data=json.dumps(data),
+            options=json.dumps(u_options),
+            subplot=isbplt
+        )
 
         h += h2
 
     h = h.replace('"', "'")
     h = h.replace("'null'", "null")
+    # Super-Hack to get axis to drag
+    h = h.replace("initHook", initHook)
+    h = h.replace("'**[", "[")
+    h = h.replace("]**'", "]")
 
     if options['html']:
         return h
