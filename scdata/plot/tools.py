@@ -87,6 +87,7 @@ def prepare_device_data(device, traces, options):
 
     # Generate list of subplots
     subplots = [[] for x in range(n_subplots)]
+    sides = {}
 
     # Put data in the df
     for trace in traces.keys():
@@ -113,6 +114,8 @@ def prepare_device_data(device, traces, options):
 
             # Put channel in subplots
             subplots[traces[trace]['subplot']-1].append(f'{channel}')
+            if 'side' in traces[trace]:
+                sides[channel] = traces[trace]['side']
 
             column_orig = [channel]
             columns_add = [f'{channel}']
@@ -194,7 +197,7 @@ def prepare_device_data(device, traces, options):
 
     if df.empty: logger.warning('Dataframe for selected options is empty')
 
-    return df, subplots
+    return df, subplots, sides
 
 def prepare_test_data(test, traces, options):
 
@@ -216,6 +219,7 @@ def prepare_test_data(test, traces, options):
 
     # Generate list of subplots
     subplots = [[] for x in range(n_subplots)]
+    sides = {}
 
     # Put data in the df
     for trace in traces.keys():
@@ -254,6 +258,8 @@ def prepare_test_data(test, traces, options):
 
                 # Put channel in subplots
                 subplots[traces[trace]['subplot']-1].append(f'{channel}_{ndev}')
+                if 'side' in traces[trace]:
+                    sides[f'{channel}_{ndev}'] = traces[trace]['side']
 
                 column_orig = [channel]
                 columns_add = [f'{channel}_{ndev}']
@@ -387,7 +393,7 @@ def prepare_test_data(test, traces, options):
 
     if df.empty: logger.warning('Dataframe for selected options is empty')
 
-    return df, subplots
+    return df, subplots, sides
 
 def groupby_session(dataframe, **kwargs):
     '''

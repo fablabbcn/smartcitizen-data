@@ -73,9 +73,9 @@ def ts_plot(self, **kwargs):
 
     # Get dataframe
     if isinstance(self, Test):
-        df, subplots = prepare_test_data(self, traces, options)
+        df, subplots, sides = prepare_test_data(self, traces, options)
     elif isinstance(self, Device):
-        df, subplots = prepare_device_data(self, traces, options)
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

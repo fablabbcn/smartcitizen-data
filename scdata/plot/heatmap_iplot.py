@@ -54,9 +54,9 @@ def heatmap_iplot(self, **kwargs):
 
     # Get dataframe
     if isinstance(self, Test):
-        df, subplots = prepare_test_data(self, traces, options)
+        df, subplots, sides = prepare_test_data(self, traces, options)
     elif isinstance(self, Device):
-        df, subplots = prepare_device_data(self, traces, options)
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     n_subplots = len(subplots)
 

@@ -147,9 +147,9 @@ def ts_uplot(self, **kwargs):
 
     # Get dataframe
     if isinstance(self, Test):
-        df, subplots = prepare_test_data(self, traces, options)
+        df, subplots, sides = prepare_test_data(self, traces, options)
     elif isinstance(self, Device):
-        df, subplots = prepare_device_data(self, traces, options)
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:
@@ -171,21 +171,77 @@ def ts_uplot(self, **kwargs):
         labels = sdf.columns
         useries = [{'label': labels[0]}]
 
-        if formatting['ylabel'] is None:
-            ylabel = None
-        else:
-            ylabel = formatting['ylabel'][isbplt+1]
-
         uaxes = [
-                    {
-                        'label': formatting['xlabel'],
-                        'labelSize': formatting['fontsize'],
-                    },
-                    {
-                        'label': ylabel,
-                        'labelSize': formatting['fontsize']
-                    }
-                ]
+            {
+                'label': formatting['xlabel'],
+                'labelSize': formatting['fontsize']
+            }
+        ]
+
+        side = 3
+        multiple_sides = False
+        if all([sides[side] == 'right' for side in sides]):
+            side = 1
+        elif all([sides[side] == 'left' for side in sides]):
+            side = 3
+        else:
+            for side in sides:
+                if sides[side] not in ['right', 'left']:
+                    logger.warning(f'Unknown side {sides[side]}. Valid options: "left", "right"')
+                    continue
+                else:
+                    multiple_sides = True
+
+        if not multiple_sides:
+            if formatting['ylabel'] is None:
+                ylabel = None
+            else:
+                ylabel = formatting['ylabel'][isbplt+1]
+            uaxes.append(
+                        {
+                            'label': ylabel,
+                            'labelSize': formatting['fontsize'],
+                            'side': side
+                        }
+            )
+        else:
+            if 'ylabel_left' in formatting:
+                if formatting['ylabel_left'] is None:
+                    ylabel_left = None
+                else:
+                    ylabel_left = formatting['ylabel_left'][isbplt+1]
+            elif 'ylabel' in formatting:
+                if formatting['ylabel'] is None:
+                    ylabel_left = None
+                else:
+                    ylabel_left = formatting['ylabel'][isbplt+1]
+
+            uaxes.append(
+                        {
+                            'label': ylabel_left,
+                            'scale': "left",
+                            'labelSize': formatting['fontsize'],
+                            'side': 3
+                        }
+            )
+
+            if 'ylabel_right' in formatting:
+                if formatting['ylabel_right'] is None:
+                    ylabel_right = None
+                else:
+                    ylabel_right = formatting['ylabel_right'][isbplt+1]
+            else:
+                ylabel_right = None
+
+            uaxes.append(
+                        {
+                            'label': ylabel_right,
+                            'scale': "right",
+                            'labelSize': formatting['fontsize'],
+                            'side': 1
+                        }
+                )
+
 
         color_idx=0
 
@@ -198,6 +254,10 @@ def ts_uplot(self, **kwargs):
                     'stroke': colors[color_idx],
                     'points': {'space': 0, 'size': formatting['size']}
                     }
+
+            if multiple_sides:
+                if label in sides:
+                    nser["scale"] = sides[label]
 
             useries.append(nser)
             color_idx += 1
