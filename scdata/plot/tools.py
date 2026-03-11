@@ -142,15 +142,15 @@ def prepare_device_data(device, traces, options):
 
                 if col_name in dfdev.columns:
                     if relationship == '==':
-                        dfdev.loc[dfdev[col_name]==value]
+                        dfdev = dfdev.loc[dfdev[col_name]==value]
                     elif relationship == '<=':
-                        dfdev.loc[dfdev[col_name]<=value]
+                        dfdev = dfdev.loc[dfdev[col_name]<=value]
                     elif relationship == '>=':
-                        dfdev.loc[dfdev[col_name]>=value]
+                        dfdev = dfdev.loc[dfdev[col_name]>=value]
                     elif relationship == '<':
-                        dfdev.loc[dfdev[col_name]<value]
+                        dfdev = dfdev.loc[dfdev[col_name]<value]
                     elif relationship == '>':
-                        dfdev.loc[dfdev[col_name]>value]
+                        dfdev = dfdev.loc[dfdev[col_name]>value]
                     else:
                         logger.error(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'")
                         continue
@@ -286,15 +286,15 @@ def prepare_test_data(test, traces, options):
 
                     if col_name in dfdev.columns:
                         if relationship == '==':
-                            dfdev.loc[dfdev[col_name]==value]
+                            dfdev = dfdev.loc[dfdev[col_name]==value]
                         elif relationship == '<=':
-                            dfdev.loc[dfdev[col_name]<=value]
+                            dfdev = dfdev.loc[dfdev[col_name]<=value]
                         elif relationship == '>=':
-                            dfdev.loc[dfdev[col_name]>=value]
+                            dfdev = dfdev.loc[dfdev[col_name]>=value]
                         elif relationship == '<':
-                            dfdev.loc[dfdev[col_name]<value]
+                            dfdev = dfdev.loc[dfdev[col_name]<value]
                         elif relationship == '>':
-                            dfdev.loc[dfdev[col_name]>value]
+                            dfdev = dfdev.loc[dfdev[col_name]>value]
                         else:
                             logger.error(f"Not valid relationship. Valid options: '==', '<=', '>=', '<', '>'")
                             continue
@@ -325,12 +325,21 @@ def prepare_test_data(test, traces, options):
             for extra in traces[trace]['extras']:
 
                 nextras = list()
-                for device in traces[trace]['devices']:
-                    if type(traces[trace]['channel']) == 'list':
-                        for channel in traces[trace]['channel']:
-                            nextras.append(f'{channel}_{device}')
-                    else:
-                        nextras.append(f"{traces[trace]['channel']}_{device}")
+
+                if traces[trace]['devices'] == 'all':
+                    for device in [device.id for device in test.devices]:
+                        if type(traces[trace]['channel']) == 'list':
+                            for channel in traces[trace]['channel']:
+                                nextras.append(f'{channel}_{device}')
+                        else:
+                            nextras.append(f"{traces[trace]['channel']}_{device}")
+                elif type(traces[trace]['devices']) == 'list':
+                    for device in traces[trace]['devices']:
+                        if type(traces[trace]['channel']) == 'list':
+                            for channel in traces[trace]['channel']:
+                                nextras.append(f'{channel}_{device}')
+                        else:
+                            nextras.append(f"{traces[trace]['channel']}_{device}")
 
                 if extra == 'bands':
                     ubn = channel + f"-{trace}-UPPER-BAND"
