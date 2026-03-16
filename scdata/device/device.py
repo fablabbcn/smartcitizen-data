@@ -107,11 +107,12 @@ class Device(BaseModel):
         self.__set_handler__()
 
         # Set blueprint
-        logger.info("Checking blueprint in URL")
-        if url_checker(self.handler.blueprint_url) and not self.override_url_blueprint:
-            logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
-            self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
-            self.__set_blueprint_attrs__(self.handler.properties)
+        if self.handler.blueprint_url is not None and not self.override_url_blueprint:
+            logger.info("Checking blueprint in URL")
+            if url_checker(self.handler.blueprint_url):
+                logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
+                self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
+                self.__set_blueprint_attrs__(self.handler.properties)
         elif self.blueprint is not None:
             logger.info("Using defined blueprint")
             if self.blueprint not in config.blueprints:
