@@ -60,6 +60,7 @@ class Device(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
     blueprint: str = None
+    override_url_blueprint: bool = False
     source: Source = Source()
     options: DeviceOptions = DeviceOptions()
     params: object = None
@@ -104,18 +105,20 @@ class Device(BaseModel):
 
         # Set handler
         self.__set_handler__()
+
         # Set blueprint
-        if self.blueprint is not None:
+        logger.info("Checking blueprint in URL")
+        if url_checker(self.handler.blueprint_url) and not self.override_url_blueprint:
+            logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
+            self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
+            self.__set_blueprint_attrs__(self.handler.properties)
+        elif self.blueprint is not None:
+            logger.info("Using defined blueprint")
             if self.blueprint not in config.blueprints:
                 raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
             self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
         else:
-            if url_checker(self.handler.blueprint_url):
-                logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
-                self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
-                self.__set_blueprint_attrs__(self.handler.properties)
-            else:
-                raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
+            raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
 
         logger.info(f'Device {self.paramsParsed.id} initialised')
 
