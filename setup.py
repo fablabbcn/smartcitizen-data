@@ -39,6 +39,23 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     install_requires=[REQUIREMENTS],
+    extras_require={
+        "plotting": [
+            "bokeh",
+            "panel",
+            "branca~=0.4.0",
+            "folium~=0.12.1",
+        ],
+        "dev": [
+            "pytest",
+            "bokeh",
+            "panel",
+            "branca~=0.4.0",
+            "folium~=0.12.1",
+            "awswrangler",
+            "boto3"
+        ]
+    },
     setup_requires=['wheel'],
     python_requires=">=3.9",
     include_package_data=True,

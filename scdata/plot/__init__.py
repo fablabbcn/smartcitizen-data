@@ -10,7 +10,10 @@ if config._ipython_avail:
 # from .heatmap_iplot import heatmap_iplot
 from .box_plot import box_plot
 from .heatmap_plot import heatmap_plot
-from .maps import device_metric_map, path_plot
+try:
+    from .maps import device_metric_map, path_plot
+except ModuleNotFoundError:
+    pass
 from .scatter_dispersion_grid import scatter_dispersion_grid
 from .scatter_plot import scatter_plot
 from .ts_dendrogram import ts_dendrogram

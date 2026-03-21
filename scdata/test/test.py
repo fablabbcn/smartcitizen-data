@@ -19,19 +19,41 @@ from scdata.models import TestOptions
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
-from scdata.plot.ts_panel import TimeSeriesPanel
+
+try:
+    import panel
+    import bokeh
+except ModuleNotFoundError:
+    bokeh_available = False
+    pass
+else:
+    bokeh_available = True
+
+if bokeh_available:
+    from scdata.plot.ts_panel import TimeSeriesPanel
+
+try:
+    from branca import element
+    from folium import Circle
+except ModuleNotFoundError:
+    map_plotting_available = False
+    pass
+else:
+    map_plotting_available = True
 
 class Test(BaseModel):
 
     from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
-    from scdata.plot import (device_metric_map, heatmap_plot, path_plot,
-                       scatter_dispersion_grid, scatter_plot, ts_dendrogram,
-                       ts_dispersion_grid, ts_dispersion_plot, ts_plot,
-                       ts_scatter)
+    from scdata.plot import (heatmap_plot, scatter_dispersion_grid, scatter_plot,
+        ts_dendrogram, ts_dispersion_grid, ts_dispersion_plot, ts_plot, ts_scatter)
         #, report_plot, cat_plot, violin_plot)
+
+    if map_plotting_available:
+        from scdata.plot import device_metric_map, path_plot
 
     if config._ipython_avail:
         from scdata.plot import ts_uplot, ts_dispersion_uplot
+
     from .checks import get_common_channels
     from .dispersion import dispersion_analysis, dispersion_summary
     from .export import to_csv, to_html
@@ -302,7 +324,24 @@ class Test(BaseModel):
         return series
 
     def ts_panel(self, frequency='10Min', **kwargs):
-        return TimeSeriesPanel(
-            self.get_series_dict(frequency=frequency),
-            **kwargs
-        ).view()
+        '''
+            Returns a panel for interactive plotting
+            ---
+            frequency: str
+                Default: 10Min
+                Add a resample to the series to reduce
+            width: int
+                Default: 800
+                Max width of each subplot (resizable to max width of window below that)
+            height: int
+                Default: 400
+                Height of each subplot
+        '''
+        if bokeh_available:
+            return TimeSeriesPanel(
+                self.get_series_dict(frequency=frequency),
+                **kwargs
+            ).view()
+        else:
+            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
+            return False

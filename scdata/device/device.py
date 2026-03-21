@@ -29,18 +29,36 @@ from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
 from scdata.tools.tree import topological_sort
 from scdata.tools.units import get_units_convf
 from scdata.tools.url_check import url_checker
-from scdata.plot.ts_panel import TimeSeriesPanel
 
+try:
+    import panel
+    import bokeh
+except ModuleNotFoundError:
+    bokeh_available = False
+    pass
+else:
+    bokeh_available = True
+
+if bokeh_available:
+    from scdata.plot.ts_panel import TimeSeriesPanel
 
 try:
     import awswrangler as wr
+    import boto3
 except ModuleNotFoundError:
     boto_available = False
     pass
 else:
     boto_available = True
 
-if boto_available: import boto3
+try:
+    from branca import element
+    from folium import Circle
+except ModuleNotFoundError:
+    map_plotting_available = False
+    pass
+else:
+    map_plotting_available = True
 
 from timezonefinder import TimezoneFinder
 
@@ -50,11 +68,11 @@ class Device(BaseModel):
     ''' Main implementation of the device class '''
 
     from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
-    from scdata.plot import (device_metric_map, heatmap_plot, path_plot,
-                       scatter_dispersion_grid, scatter_plot, ts_dendrogram,
-                       ts_dispersion_grid, ts_dispersion_plot, ts_plot,
-                       ts_scatter)
+    from scdata.plot import (heatmap_plot, scatter_dispersion_grid, scatter_plot,
+        ts_dendrogram, ts_dispersion_grid, ts_dispersion_plot, ts_plot, ts_scatter)
         #, report_plot, cat_plot, violin_plot)
+    if map_plotting_available:
+        from scdata.plot import device_metric_map, path_plot
 
     if config._ipython_avail:
         from scdata.plot import ts_uplot, ts_dispersion_uplot
@@ -1018,12 +1036,29 @@ class Device(BaseModel):
         df.index = df.index.tz_convert('UTC').tz_localize(None)
         df = df.resample(frequency).mean()
         return {
-            f"{self.id}:{col}": df[col].dropna()
+            f"{self.id}:{col}": df[col]
             for col in df.columns
         }
 
     def ts_panel(self, frequency='10Min', **kwargs):
-        return TimeSeriesPanel(
-            self.get_series_dict(frequency=frequency),
-            **kwargs
-        ).view()
+        '''
+            Returns a panel for interactive plotting
+            ---
+            frequency: str
+                Default: 10Min
+                Add a resample to the series to reduce
+            width: int
+                Default: 800
+                Max width of each subplot (resizable to max width of window below that)
+            height: int
+                Default: 400
+                Height of each subplot
+        '''
+        if bokeh_available:
+            return TimeSeriesPanel(
+                self.get_series_dict(frequency=frequency),
+                **kwargs
+            ).view()
+        else:
+            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
+            return False

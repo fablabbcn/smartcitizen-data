@@ -3,12 +3,11 @@ import numpy as np
 import panel as pn
 
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, Span, Div, CustomJS
+from bokeh.models import ColumnDataSource, Span, Div, CustomJS, Range1d, WheelZoomTool, LinearAxis, PanTool, TextInput
 from bokeh.layouts import column
 from itertools import cycle
 
 pn.extension()
-
 
 class TimeSeriesPanel:
 
@@ -28,7 +27,7 @@ class TimeSeriesPanel:
         self.device_select = pn.widgets.MultiChoice(
             name="Devices",
             options=list(self.device_map.keys()),
-            value=list(self.device_map.keys())[:1]
+            value=list(self.device_map.keys())[:]
         )
 
         self.series_select = pn.widgets.MultiChoice(
@@ -67,6 +66,11 @@ class TimeSeriesPanel:
         color_cycle = cycle(palette)
         self.series_colors = {name: next(color_cycle) for name in series_dict.keys()}
 
+        # --- axis labels ---
+        self.text_input_left = TextInput(value="Left axis name", title="Left axis label:")
+        self.text_input_right = TextInput(value="Right axis name", title="Right axis label:")
+        self.axis_labels = {0: [self.text_input_left.value, self.text_input_right.value]}
+
         # --- data sources ---
         self.sources = {}
         for name, s in series_dict.items():
@@ -76,7 +80,7 @@ class TimeSeriesPanel:
             )
 
         # --- tooltip ---
-        self.tooltip = Div(width=300, height=120)
+        self.tooltip = Div(width=300)
 
         # --- wiring ---
         self.device_select.param.watch(self._update_series_options, 'value')
@@ -96,7 +100,7 @@ class TimeSeriesPanel:
         for dev in self.device_select.value:
             opts.extend(self.device_map.get(dev, []))
         self.series_select.options = opts
-        self.series_select.value = opts[:min(2, len(opts))]
+        self.series_select.value = []
 
     # --------------------------
     def _add_to_plot(self, *_):
@@ -107,6 +111,7 @@ class TimeSeriesPanel:
             if s not in self.plot_groups[idx]:
                 self.plot_groups[idx].append(s)
             self.series_axis[s] = self.axis_select.value
+        self.axis_labels[idx] = [self.text_input_left.value, self.text_input_right.value]
         self._refresh_plots()
 
     # --------------------------
@@ -114,8 +119,13 @@ class TimeSeriesPanel:
         if self.num_plots >= self.max_plots:
             return
         self.plot_groups[self.num_plots] = []
+        self.axis_labels[self.num_plots] = []
         self.num_plots += 1
         self.target_plot.end = self.num_plots - 1
+        self.target_plot.value = self.target_plot.end
+        self.series_select.value = []
+        self.text_input_left.value = "Left axis name"
+        self.text_input_right.value = "Right axis name"
         self._refresh_plots()
 
     # --------------------------
@@ -128,12 +138,17 @@ class TimeSeriesPanel:
         if idx in self.plot_groups:
             # remove the subplot
             del self.plot_groups[idx]
+            del self.axis_labels[idx]
 
             # shift higher-index subplots down
             new_plot_groups = {}
+            new_axis_labels = {}
             for i, k in enumerate(sorted(self.plot_groups.keys())):
                 new_plot_groups[i] = self.plot_groups[k]
+            for i, k in enumerate(sorted(self.axis_labels.keys())):
+                new_axis_labels[i] = self.axis_labels[k]
             self.plot_groups = new_plot_groups
+            self.axis_labels = new_axis_labels
             self.num_plots = len(self.plot_groups)
             self.target_plot.end = max(0, self.num_plots - 1)
         self._refresh_plots()
@@ -142,7 +157,7 @@ class TimeSeriesPanel:
         self.legend_visible = not self.legend_visible
         for fig in getattr(self, "_last_figs", []):
             fig.legend.visible = self.legend_visible
-            self._refresh_plots()
+        self._refresh_plots()
 
     # --------------------------
     def _build_plots(self):
@@ -153,6 +168,7 @@ class TimeSeriesPanel:
 
         for i in range(self.num_plots):
             series_list = self.plot_groups.get(i, [])
+            axis_name = self.axis_labels.get(i, [])
             if not series_list:
                 continue
 
@@ -161,7 +177,7 @@ class TimeSeriesPanel:
                     height=self.height,
                     width=self.width,
                     x_axis_type="datetime",
-                    tools="xwheel_zoom,ywheel_zoom,xpan,reset",
+                    tools="xpan,box_zoom,reset,save",
                     active_scroll=None
                 )
                 shared_x_range = p.x_range
@@ -171,32 +187,60 @@ class TimeSeriesPanel:
                     width=self.width,
                     x_axis_type="datetime",
                     x_range=shared_x_range,
-                    tools="xwheel_zoom,ywheel_zoom,xpan,reset",
+                    tools="xpan,box_zoom,reset,save",
                     active_scroll=None
                 )
+            p.yaxis[0].axis_label = axis_name[0]
 
-            # add right y-axis if any series requires it
-            if any(self.series_axis[s]=="right" for s in series_list):
-                p.extra_y_ranges = {"right": p.y_range.clone()}  # duplicate the left y_range
-                # p.add_layout(p.yaxis[0].clone(), 'left')  # existing left y-axis
-                p.add_layout(p.yaxis[0].clone(), 'right')  # add right y-axis
-                # p.yaxis[1].axis_label = "Right axis"
+            # Create separate y-ranges for right axis series if needed
+            right_series = [s for s in series_list if self.series_axis[s] == "right"]
+            if right_series:
+                p.extra_y_ranges = {"right": Range1d(start=min(self.sources[s].data['y'].min() for s in right_series),
+                                                     end=max(self.sources[s].data['y'].max() for s in right_series))}
+                p.add_layout(LinearAxis(y_range_name = 'right'), 'right')
+                p.yaxis[1].axis_label = axis_name[1]
 
+                # Add independent vertical zoom for right axis
+                # p.add_tools(WheelZoomTool(dimensions="height", y_range_name="right"))
+
+            # add independent vertical zoom
+            wheel_zoom = WheelZoomTool()
+            wheel_zoom.zoom_on_axis = True
+            wheel_zoom.zoom_together = "none"
+
+            pan_tool = PanTool()
+            p.add_tools(wheel_zoom, pan_tool)
+            p.toolbar.active_scroll = wheel_zoom
+
+            # plot series
             for name in series_list:
                 src = self.sources[name]
-                p.line(
-                    "x", "y",
-                    source=src,
-                    line_width=1,
-                    color=self.series_colors[name],
-                    legend_label=name
-                )
+                axis_name = self.series_axis[name]
+                color = self.series_colors[name]
+                if axis_name == 'left':
+                    p.line(
+                        "x", "y",
+                        source=src,
+                        line_width=1,
+                        color=color,
+                        legend_label=name
+                    )
+                elif axis_name == "right":
+                    p.line(
+                        "x", "y",
+                        source=src,
+                        line_width=1,
+                        color=color,
+                        legend_label=name,
+                        y_range_name="right"
+                    )
                 all_series.append(name)
 
             vline = Span(location=0, dimension="height", line_color="red", line_width=1)
             p.add_layout(vline)
             spans.append(vline)
             p.legend.visible = self.legend_visible
+            p.legend.click_policy="hide"
             figs.append(p)
 
         self._last_figs = figs  # store for toggle legend
@@ -245,8 +289,9 @@ class TimeSeriesPanel:
             self.add_button,
             self.new_plot_button,
             self.remove_plot_button,
-            "---",
             self.toggle_legend_button,
+            self.text_input_left,
+            self.text_input_right,
             width=320
         )
         return pn.Row(

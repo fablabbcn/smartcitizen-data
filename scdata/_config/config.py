@@ -29,10 +29,6 @@ class Config(object):
 
     # Framework option
     # For renderer plots and config files
-    # Options:
-    # - 'script': no plots in jupyter, updates config
-    # - 'jupyterlab': for plots, updates config
-    # - 'chupiflow': no plots in jupyter, does not update config
     framework = 'script'
 
     if 'IPython' in sys.modules: _ipython_avail = True
@@ -421,7 +417,7 @@ class Config(object):
         'SCD30_HUM': 1,
         'SCD30_TEMP': 1,
         'SD-card': 1,
-        'ST LPS33 - Barometric Pressure': 1,
+        'LPS33_PRESS': 1,
         'PRESS': 1,
         'PMS5003_PM_1': 5,
         'PMS5003_PM_25': 5,
@@ -476,7 +472,7 @@ class Config(object):
         'SCD30_HUM': [20, 99],
         'SCD30_TEMP': [-20, 50],
         'BATT': [0, 100],
-        'ST LPS33 - Barometric Pressure': [50, 110],
+        'LPS33_PRESS': [50, 110],
         'PRESS': [50, 110],
         'PMS5003_PM_1': [0, 500],
         'PMS5003_PM_25': [0, 500],

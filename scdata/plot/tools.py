@@ -109,7 +109,7 @@ def prepare_device_data(device, traces, options):
         for channel in channels:
             # Check if device is in columns
             if channel not in device.data.columns:
-                logger.warning(f'The device {device.name} does not contain {channel}. Ignoring')
+                logger.warning(f'The device {device.id} does not contain {channel}. Ignoring')
                 continue
 
             # Put channel in subplots
