@@ -86,16 +86,22 @@ def ts_uplot(self, **kwargs):
             .u-axis:hover {
                 cursor: move;
             }
+            .plot-area{
+                background-color: white;
+            }
+            .plot {
+                background-color: white;
+            }
         </style>
         <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
 
-        <div style="text-align:center">
+        <div class="plot-area" style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
         </div>
     '''
 
     uplot_template = '''
-        <div id="plot{{subplot}}"></div>
+        <div class="plot" id="plot{{subplot}}"></div>
         <script>
             data = {{data}};
             options = {{options}};
@@ -197,6 +203,7 @@ def ts_uplot(self, **kwargs):
                 ylabel = None
             else:
                 ylabel = formatting['ylabel'][isbplt+1]
+
             uaxes.append(
                         {
                             'label': ylabel,
@@ -313,7 +320,7 @@ def ts_uplot(self, **kwargs):
         iframe = f'''<iframe srcdoc="{h}" src=""
             frameborder="0" width={formatting['width'] + formatting['padding-right']}
             height={formatting['height'] + formatting['padding-bottom']}
-            sandbox="allow-scripts">
+            sandbox="allow-scripts" class="plot-area">
             </iframe>'''
 
         return HTML(iframe)
