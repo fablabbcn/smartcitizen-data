@@ -29,6 +29,8 @@ from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
 from scdata.tools.tree import topological_sort
 from scdata.tools.units import get_units_convf
 from scdata.tools.url_check import url_checker
+from scdata.plot.ts_panel import TimeSeriesPanel
+
 
 try:
     import awswrangler as wr
@@ -1010,3 +1012,18 @@ class Device(BaseModel):
         else:
             logger.error("Boto not available. Install awswrangler")
             return False
+
+    def get_series_dict(self, frequency):
+        df = self.data.copy()
+        df.index = df.index.tz_convert('UTC').tz_localize(None)
+        df = df.resample(frequency).mean()
+        return {
+            f"{self.id}:{col}": df[col].dropna()
+            for col in df.columns
+        }
+
+    def ts_panel(self, frequency='10Min', **kwargs):
+        return TimeSeriesPanel(
+            self.get_series_dict(frequency=frequency),
+            **kwargs
+        ).view()

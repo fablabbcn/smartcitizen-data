@@ -20,8 +20,9 @@ scikit-learn
 seaborn
 smartcitizen-connector
 termcolor==1.1.0
-tqdm~=4.50.2
 timezonefinder~=6.1.9
 urllib3
 boto3
 awswrangler
+bokeh
+panel

@@ -19,6 +19,7 @@ from scdata.models import TestOptions
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
+from scdata.plot.ts_panel import TimeSeriesPanel
 
 class Test(BaseModel):
 
@@ -291,3 +292,17 @@ class Test(BaseModel):
 
         self.loaded = all([d.loaded for d in self.devices])
         return self.loaded
+
+    def get_series_dict(self, frequency):
+        series = {}
+
+        for device in self.devices:
+            series.update(device.get_series_dict(frequency))
+
+        return series
+
+    def ts_panel(self, frequency='10Min', **kwargs):
+        return TimeSeriesPanel(
+            self.get_series_dict(frequency=frequency),
+            **kwargs
+        ).view()

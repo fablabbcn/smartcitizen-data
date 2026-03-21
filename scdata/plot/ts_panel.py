@@ -1,0 +1,256 @@
+import pandas as pd
+import numpy as np
+import panel as pn
+
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, Span, Div, CustomJS
+from bokeh.layouts import column
+from itertools import cycle
+
+pn.extension()
+
+
+class TimeSeriesPanel:
+
+    def __init__(self, series_dict, max_plots=3, height=400, width=800):
+        self.series_dict = series_dict
+        self.max_plots = max_plots
+        self.height = height
+        self.width = width
+
+        # --- device mapping ---
+        self.device_map = {}
+        for name in series_dict:
+            dev, col = name.split(":", 1)
+            self.device_map.setdefault(dev, []).append(name)
+
+        # --- widgets ---
+        self.device_select = pn.widgets.MultiChoice(
+            name="Devices",
+            options=list(self.device_map.keys()),
+            value=list(self.device_map.keys())[:1]
+        )
+
+        self.series_select = pn.widgets.MultiChoice(
+            name="Series",
+            options=[],
+            value=[]
+        )
+
+        self.target_plot = pn.widgets.IntInput(
+            name="Target subplot",
+            value=0,
+            start=0,
+            end=max_plots-1
+        )
+
+        # widget to select right/left axis for selected series
+        self.axis_select = pn.widgets.RadioButtonGroup(name="Axis", options=["left","right"], value="left")
+        self.series_axis = {name: "left" for name in series_dict.keys()}
+
+        self.add_button = pn.widgets.Button(name="Add to subplot")
+        self.new_plot_button = pn.widgets.Button(name="New subplot")
+        self.remove_plot_button = pn.widgets.Button(name="Remove subplot", button_type="danger")
+        self.toggle_legend_button = pn.widgets.Button(name="Toggle legend")
+        self.legend_visible = True
+
+        # --- plot grouping ---
+        self.plot_groups = {0: []}
+        self.num_plots = 1
+
+        # --- color map ---
+        palette = [
+            "#1f77b4","#ff7f0e","#2ca02c",
+            "#d62728","#9467bd","#8c564b",
+            "#e377c2","#7f7f7f","#bcbd22","#17becf"
+        ]
+        color_cycle = cycle(palette)
+        self.series_colors = {name: next(color_cycle) for name in series_dict.keys()}
+
+        # --- data sources ---
+        self.sources = {}
+        for name, s in series_dict.items():
+            ts = s.index.view("int64") // 10**6  # ms
+            self.sources[name] = ColumnDataSource(
+                data=dict(x=ts, y=s.values)
+            )
+
+        # --- tooltip ---
+        self.tooltip = Div(width=300, height=120)
+
+        # --- wiring ---
+        self.device_select.param.watch(self._update_series_options, 'value')
+        self.add_button.on_click(self._add_to_plot)
+        self.new_plot_button.on_click(self._add_new_plot)
+        self.remove_plot_button.on_click(self._remove_subplot)
+        self.toggle_legend_button.on_click(self._toggle_legend)
+
+        self._update_series_options()
+
+        # --- reactive plot container ---
+        self.plot_pane = pn.Column(self._build_plots())
+
+    # --------------------------
+    def _update_series_options(self, *_):
+        opts = []
+        for dev in self.device_select.value:
+            opts.extend(self.device_map.get(dev, []))
+        self.series_select.options = opts
+        self.series_select.value = opts[:min(2, len(opts))]
+
+    # --------------------------
+    def _add_to_plot(self, *_):
+        idx = self.target_plot.value
+        if idx not in self.plot_groups:
+            self.plot_groups[idx] = []
+        for s in self.series_select.value:
+            if s not in self.plot_groups[idx]:
+                self.plot_groups[idx].append(s)
+            self.series_axis[s] = self.axis_select.value
+        self._refresh_plots()
+
+    # --------------------------
+    def _add_new_plot(self, *_):
+        if self.num_plots >= self.max_plots:
+            return
+        self.plot_groups[self.num_plots] = []
+        self.num_plots += 1
+        self.target_plot.end = self.num_plots - 1
+        self._refresh_plots()
+
+    # --------------------------
+    def _refresh_plots(self):
+        """Refresh the Bokeh plots in the column pane"""
+        self.plot_pane.objects = [self._build_plots()]
+
+    def _remove_subplot(self, *_):
+        idx = self.target_plot.value
+        if idx in self.plot_groups:
+            # remove the subplot
+            del self.plot_groups[idx]
+
+            # shift higher-index subplots down
+            new_plot_groups = {}
+            for i, k in enumerate(sorted(self.plot_groups.keys())):
+                new_plot_groups[i] = self.plot_groups[k]
+            self.plot_groups = new_plot_groups
+            self.num_plots = len(self.plot_groups)
+            self.target_plot.end = max(0, self.num_plots - 1)
+        self._refresh_plots()
+
+    def _toggle_legend(self, *_):
+        self.legend_visible = not self.legend_visible
+        for fig in getattr(self, "_last_figs", []):
+            fig.legend.visible = self.legend_visible
+            self._refresh_plots()
+
+    # --------------------------
+    def _build_plots(self):
+        figs = []
+        spans = []
+        shared_x_range = None
+        all_series = []
+
+        for i in range(self.num_plots):
+            series_list = self.plot_groups.get(i, [])
+            if not series_list:
+                continue
+
+            if shared_x_range is None:
+                p = figure(
+                    height=self.height,
+                    width=self.width,
+                    x_axis_type="datetime",
+                    tools="xwheel_zoom,ywheel_zoom,xpan,reset",
+                    active_scroll=None
+                )
+                shared_x_range = p.x_range
+            else:
+                p = figure(
+                    height=self.height,
+                    width=self.width,
+                    x_axis_type="datetime",
+                    x_range=shared_x_range,
+                    tools="xwheel_zoom,ywheel_zoom,xpan,reset",
+                    active_scroll=None
+                )
+
+            # add right y-axis if any series requires it
+            if any(self.series_axis[s]=="right" for s in series_list):
+                p.extra_y_ranges = {"right": p.y_range.clone()}  # duplicate the left y_range
+                # p.add_layout(p.yaxis[0].clone(), 'left')  # existing left y-axis
+                p.add_layout(p.yaxis[0].clone(), 'right')  # add right y-axis
+                # p.yaxis[1].axis_label = "Right axis"
+
+            for name in series_list:
+                src = self.sources[name]
+                p.line(
+                    "x", "y",
+                    source=src,
+                    line_width=1,
+                    color=self.series_colors[name],
+                    legend_label=name
+                )
+                all_series.append(name)
+
+            vline = Span(location=0, dimension="height", line_color="red", line_width=1)
+            p.add_layout(vline)
+            spans.append(vline)
+            p.legend.visible = self.legend_visible
+            figs.append(p)
+
+        self._last_figs = figs  # store for toggle legend
+
+        data_sources = {name: self.sources[name] for name in set(all_series)}
+
+        if figs:
+            callback = CustomJS(
+                args=dict(spans=spans, tooltip=self.tooltip, sources=data_sources),
+                code="""
+                    const x = cb_obj.x;
+                    for (let i=0; i<spans.length; i++) { spans[i].location = x; }
+                    let text = `<b>${new Date(x).toISOString()}</b><br/>`;
+                    function findClosest(xs, x) {
+                        let lo = 0, hi = xs.length - 1;
+                        while (hi - lo > 1) {
+                            let mid = Math.floor((lo + hi)/2);
+                            if (xs[mid] < x) lo = mid; else hi = mid;
+                        }
+                        return (Math.abs(xs[lo] - x) < Math.abs(xs[hi] - x)) ? lo : hi;
+                    }
+                    for (const key in sources) {
+                        const data = sources[key].data;
+                        const xs = data.x; const ys = data.y;
+                        if (xs.length===0) continue;
+                        const idx = findClosest(xs, x);
+                        const val = ys[idx];
+                        text += `${key}: ${val.toFixed(3)}<br/>`;
+                    }
+                    tooltip.text = text;
+                """
+            )
+            for fig in figs:
+                fig.js_on_event("mousemove", callback)
+
+        return pn.pane.Bokeh(column(*figs, sizing_mode="stretch_width"), sizing_mode="stretch_width")
+
+    # --------------------------
+    def view(self):
+        controls = pn.Column(
+            "### Add series",
+            self.device_select,
+            self.series_select,
+            self.target_plot,
+            self.axis_select,
+            self.add_button,
+            self.new_plot_button,
+            self.remove_plot_button,
+            "---",
+            self.toggle_legend_button,
+            width=320
+        )
+        return pn.Row(
+            controls,
+            pn.Column(self.tooltip, self.plot_pane),
+            sizing_mode="stretch_both"
+        )
