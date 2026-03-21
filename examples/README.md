@@ -27,4 +27,5 @@ This folder contains examples in either script `.py` or notebook `.ipynb` files 
 - Load, process and post device: [notebooks/16_device_processing.ipynb](notebooks/16-device_processing.ipynb)
 - Process complex data (TwinAIR project): [notebooks/17_twinair_demo.ipynb](notebooks/17_twinair_demo.ipynb)
 - Basic data exploration: [learning/notebooks/01_basic_data_exploration.ipynb](learning/notebooks/01_basic_data_exploration.ipynb)
-- Interactive plots tutorial: [notebooks/18_interactive_plots.ipynb](notebooks/18_interactive_plots.ipynb)
+- Interactive plots tutorial with uPlot: [notebooks/18_interactive_plots.ipynb](notebooks/18_interactive_plots.ipynb)
+- Interactive plots tutorial with bokeh: [notebooks/19_interactive_plots_with_panel.ipynb](notebooks/19_interactive_plots_with_panel.ipynb)
