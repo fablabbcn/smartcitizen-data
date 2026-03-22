@@ -3,7 +3,7 @@ import numpy as np
 import panel as pn
 
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, Span, Div, CustomJS, Range1d, WheelZoomTool, LinearAxis, PanTool, TextInput
+from bokeh.models import ColumnDataSource, Span, Div, CustomJS, Range1d, WheelZoomTool, LinearAxis, PanTool, TextInput, RangeTool
 from bokeh.layouts import column
 from itertools import cycle
 
@@ -56,10 +56,10 @@ class TimeSeriesPanel:
         self.axis_select = pn.widgets.RadioButtonGroup(name="Axis", options=["left","right"], value="left")
         self.series_axis = {name: "left" for name in series_dict.keys()}
 
-        self.add_button = pn.widgets.Button(name="Add to subplot")
-        self.new_plot_button = pn.widgets.Button(name="New subplot")
+        self.add_button = pn.widgets.Button(name="Update subplot", button_type="primary")
+        self.new_plot_button = pn.widgets.Button(name="New subplot", button_type="success")
         self.remove_plot_button = pn.widgets.Button(name="Remove subplot", button_type="danger")
-        self.toggle_legend_button = pn.widgets.Button(name="Toggle legend")
+        # self.toggle_legend_button = pn.widgets.Button(name="Toggle legend")
         self.legend_visible = True
 
         # --- plot grouping ---
@@ -89,14 +89,16 @@ class TimeSeriesPanel:
             )
 
         # --- tooltip ---
-        self.tooltip = Div(width=300)
+        self.tooltip = Div(width=300, styles={'background-color': 'aliceblue', 'padding': '10px'})
 
         # --- wiring ---
         self.device_select.param.watch(self._update_series_options, 'value')
+        self.axis_select.param.watch(lambda e: self._axis_select(), 'value')
+        self.target_plot.param.watch(lambda e: self._axis_select(), 'value')
         self.add_button.on_click(self._add_to_plot)
         self.new_plot_button.on_click(self._add_new_plot)
         self.remove_plot_button.on_click(self._remove_subplot)
-        self.toggle_legend_button.on_click(self._toggle_legend)
+        # self.toggle_legend_button.on_click(self._toggle_legend)
 
         self._update_series_options()
 
@@ -112,6 +114,15 @@ class TimeSeriesPanel:
         self.series_select.value = []
 
     # --------------------------
+    def _axis_select(self, *_):
+        idx = self.target_plot.value
+        new_series = []
+        for s in self.plot_groups[idx]:
+            if self.series_axis[s] == self.axis_select.value:
+                new_series.append(s)
+        self.series_select.value = new_series
+
+    # --------------------------
     def _add_to_plot(self, *_):
         idx = self.target_plot.value
         if idx not in self.plot_groups:
@@ -120,6 +131,16 @@ class TimeSeriesPanel:
             if s not in self.plot_groups[idx]:
                 self.plot_groups[idx].append(s)
             self.series_axis[s] = self.axis_select.value
+        to_remove = []
+        for item in self.plot_groups[idx]:
+            self.logger.log(item)
+            if item not in self.series_select.value:
+                if self.series_axis[item] == self.axis_select.value:
+                    self.logger.log(f'Removing {item}')
+                    to_remove.append(item)
+        if to_remove:
+            for item in to_remove:
+                self.plot_groups[idx].remove(item)
         self.axis_labels[idx] = [self.text_input_left.value, self.text_input_right.value]
         self._refresh_plots()
 
@@ -160,13 +181,15 @@ class TimeSeriesPanel:
             self.axis_labels = new_axis_labels
             self.num_plots = len(self.plot_groups)
             self.target_plot.end = max(0, self.num_plots - 1)
+        if len(self.plot_groups.keys()) == 0:
+            self._add_new_plot()
         self._refresh_plots()
 
-    def _toggle_legend(self, *_):
-        self.legend_visible = not self.legend_visible
-        for fig in getattr(self, "_last_figs", []):
-            fig.legend.visible = self.legend_visible
-        self._refresh_plots()
+    # def _toggle_legend(self, *_):
+    #     self.legend_visible = not self.legend_visible
+    #     for fig in getattr(self, "_last_figs", []):
+    #         fig.legend.visible = self.legend_visible
+    #     self._refresh_plots()
 
     # --------------------------
     def _build_plots(self):
@@ -204,22 +227,17 @@ class TimeSeriesPanel:
             # Create separate y-ranges for right axis series if needed
             right_series = [s for s in series_list if self.series_axis[s] == "right"]
             if right_series:
-                p.extra_y_ranges = {"right": Range1d(start=min(self.sources[s].data['y'].min() for s in right_series),
-                                                     end=max(self.sources[s].data['y'].max() for s in right_series))}
-                p.add_layout(LinearAxis(y_range_name = 'right'), 'right')
+                min_y = []
+                max_y = []
+                for s in right_series:
+                    y = self.sources[s].data['y']
+                    y = y[~np.isnan(y)]
+                    min_y.append(y.min())
+                    max_y.append(y.max())
+                p.extra_y_ranges = {"right": Range1d(start=min(min_y),
+                                                     end=max(max_y))}
+                p.add_layout(LinearAxis(y_range_name="right"), "right")
                 p.yaxis[1].axis_label = axis_name[1]
-
-                # Add independent vertical zoom for right axis
-                # p.add_tools(WheelZoomTool(dimensions="height", y_range_name="right"))
-
-            # add independent vertical zoom
-            wheel_zoom = WheelZoomTool()
-            wheel_zoom.zoom_on_axis = True
-            wheel_zoom.zoom_together = "none"
-
-            pan_tool = PanTool()
-            p.add_tools(wheel_zoom, pan_tool)
-            p.toolbar.active_scroll = wheel_zoom
 
             # plot series
             for name in series_list:
@@ -241,16 +259,46 @@ class TimeSeriesPanel:
                         line_width=1,
                         color=color,
                         legend_label=name,
-                        y_range_name="right"
+                        y_range_name=axis_name
                     )
                 all_series.append(name)
 
+            # Add independent vertical zoom
+            wheel_zoom = WheelZoomTool()
+            wheel_zoom.zoom_together = "none"
+
+            # Add pan tool
+            pan_tool = PanTool()
+
+            p.add_tools(wheel_zoom, pan_tool)
+            p.toolbar.active_scroll = wheel_zoom
+
+            # Vline
             vline = Span(location=0, dimension="height", line_color="red", line_width=1)
             p.add_layout(vline)
             spans.append(vline)
+
+            # RangeTool
+            select = figure(title="Range select",
+                            height=120, width=self.width,
+                            x_axis_type="datetime", y_axis_type=None,
+                            tools="", toolbar_location=None, background_fill_color="#efefef")
+            select.x_range.range_padding = 0
+            select.x_range.bounds = "auto"
+            range_tool = RangeTool(x_range=p.x_range, start_gesture="pan")
+            range_tool.overlay.fill_color = "navy"
+            range_tool.overlay.fill_alpha = 0.2
+
+            select.line('x', 'y', source=src)
+            select.ygrid.grid_line_color = None
+            select.add_tools(range_tool)
+
+            # Legend
             p.legend.visible = self.legend_visible
             p.legend.click_policy="hide"
+            p.add_layout(p.legend[0], 'right')
             figs.append(p)
+            figs.append(select)
 
         self._last_figs = figs  # store for toggle legend
 
@@ -294,13 +342,14 @@ class TimeSeriesPanel:
             self.device_select,
             self.series_select,
             self.target_plot,
-            self.axis_select,
-            self.add_button,
-            self.new_plot_button,
-            self.remove_plot_button,
-            self.toggle_legend_button,
+            pn.Row(self.axis_select, self.add_button),
+            # self.toggle_legend_button,
             self.text_input_left,
             self.text_input_right,
+            "### Edit subplots",
+            pn.Row(self.new_plot_button, self.remove_plot_button),
+            '### Tooltip',
+            self.tooltip,
             width=320
         )
         if self.debug:
