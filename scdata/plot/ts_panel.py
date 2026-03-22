@@ -9,13 +9,22 @@ from itertools import cycle
 
 pn.extension()
 
+class Logger:
+    def __init__(self):
+        self.pane = pn.pane.Markdown("")
+
+    def log(self, msg):
+        self.pane.object += f"\n{msg}"
+
 class TimeSeriesPanel:
 
-    def __init__(self, series_dict, max_plots=3, height=400, width=800):
+    def __init__(self, series_dict, max_plots=3, height=400, width=800, debug=False):
         self.series_dict = series_dict
         self.max_plots = max_plots
         self.height = height
         self.width = width
+        self.debug = debug
+        self.logger = Logger()
 
         # --- device mapping ---
         self.device_map = {}
@@ -294,8 +303,15 @@ class TimeSeriesPanel:
             self.text_input_right,
             width=320
         )
-        return pn.Row(
-            controls,
-            pn.Column(self.tooltip, self.plot_pane),
-            sizing_mode="stretch_both"
-        )
+        if self.debug:
+            return pn.Row(
+                controls,
+                pn.Column(self.plot_pane, pn.Row(self.logger.pane)),
+                sizing_mode="stretch_both"
+            )
+        else:
+            return pn.Row(
+                controls,
+                pn.Column(self.plot_pane),
+                sizing_mode="stretch_both"
+            )
