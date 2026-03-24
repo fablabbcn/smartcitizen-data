@@ -467,8 +467,10 @@ class Config(object):
     }
 
     _default_unplausible_values = {
+        'CCS811_VOCS': [0, 30000],
+        'CCS811_ECO2': [400, 30000],
         'NOISE_A': [20, 99],
-        'SCD30_CO2': [300, 2000],
+        'SCD30_CO2': [300, 9500], # Sensor limit is 10000ppm
         'SCD30_HUM': [20, 99],
         'SCD30_TEMP': [-20, 50],
         'BATT': [0, 100],
@@ -483,7 +485,7 @@ class Config(object):
         'SEN5X_PM_25': [0, 500],
         'SEN5X_PM_40': [0, 500],
         'SEN5X_TEMP': [-20, 50],
-        'SFA30_HCHO': [00, 1000],
+        'SFA30_HCHO': [0, 4500], # Sensor saturates at 5000ppb, standard output is at 1000ppb
         'SFA30_HUM': [20, 99],
         'SFA30_TEMP': [-20, 50],
         'ADC_48_0': [0, 3],
