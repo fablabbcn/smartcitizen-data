@@ -414,9 +414,10 @@ class Device(BaseModel):
             else:
                 logger.info('Empty dataframe in loaded data. Waiting for cache...')
 
-        if not cached_data.empty:
-            logger.info('Cache exists')
-            self.data = self.data.combine_first(cached_data)
+        if cached_data is not None:
+            if not cached_data.empty:
+                logger.info('Cache exists')
+                self.data = self.data.combine_first(cached_data)
 
         return not self.data.empty
 
