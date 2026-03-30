@@ -77,9 +77,12 @@ def alphasense_803_04(dataframe, **kwargs):
     as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
-    if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
-    if kwargs['use_alternative']: algorithm_idx = 1
-    else: algorithm_idx = 0
+    if 'use_alternative' not in kwargs:
+        kwargs['use_alternative'] = False
+    if kwargs['use_alternative']:
+        algorithm_idx = 1
+    else:
+        algorithm_idx = 0
 
     # Clip negative values or not
     process_negative_conc = None
@@ -153,7 +156,31 @@ def alphasense_803_04(dataframe, **kwargs):
     elif process_negative_conc == 'offset_negative_conc':
         df['conc'] += abs(df['conc'].min())
 
-    return ProcessResult(df['conc'], StatusCode.SUCCESS)
+    # Return intermediate columns if needed
+    if return_all_cols:
+        cols = [
+            "we_clean",
+            "ae_clean",
+            "we_t",
+            "ae_t",
+            "we_c"
+        ]
+
+        result = df[cols]
+
+        rename_cols = {
+            "we_clean": f"{as_type[5:]}_803_we_clean",
+            "ae_clean": f"{as_type[5:]}_803_ae_clean",
+            "we_t": f"{as_type[5:]}_803_we_t",
+            "ae_t": f"{as_type[5:]}_803_ae_t",
+            "we_c": f"{as_type[5:]}_803_we_c"
+        }
+        result.rename(colums=rename_cols, inplace=True)
+
+    else:
+        result = df['conc']
+
+    return ProcessResult(result, StatusCode.SUCCESS)
 
 def alphasense_als(dataframe, **kwargs):
     """
@@ -174,6 +201,12 @@ def alphasense_als(dataframe, **kwargs):
             Clip the negative values after the algorithm
         offset_negative_conc: bool
             Offset the resulting negative values for the signal
+        background_conc: bool
+            Offset a background concentration on resulting value
+        resample_frequency: string
+            Resample we and ae electrodes with certain frequency
+        return_all_cols: bool
+            Return all columns intermediate to the calculation
     Returns
     -------
         calculation of pollutant in ppb
@@ -185,21 +218,6 @@ def alphasense_als(dataframe, **kwargs):
     if 'ae' not in kwargs: flag_error = True
     if 'alphasense_id' not in kwargs: flag_error = True
     if 't' not in kwargs: flag_error = True
-    if 'clip_negative_conc' not in kwargs:
-        kwargs['clip_negative_conc'] = clip_negative_conc
-
-    if 'offset_negative_conc' not in kwargs:
-        kwargs['offset_negative_conc'] = offset_negative_conc
-
-    if 'lam' in kwargs:
-        lam = kwargs['lam']
-    else:
-        lam = None
-
-    if 'p' in kwargs:
-        p = kwargs['p']
-    else:
-        p = None
 
     if flag_error:
         logger.error('Problem with input data')
@@ -213,6 +231,17 @@ def alphasense_als(dataframe, **kwargs):
     if kwargs['alphasense_id'] not in config.calibrations:
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
+
+    # Parse options
+    clip_negative_conc = kwargs.get('clip_negative_conc', _default_clip_negative_conc)
+    offset_negative_conc = kwargs.get('offset_negative_conc', _default_offset_negative_conc)
+    background_conc = kwargs.get('background_conc', 0)
+
+    lam = kwargs.get('lam', None)
+    p = kwargs.get('p', None)
+
+    resample_frequency = kwargs.get('resample_frequency', None)
+    return_all_cols = kwargs.get('return_all_cols', None)
 
     # Make copy
     df = dataframe.copy()
@@ -247,6 +276,12 @@ def alphasense_als(dataframe, **kwargs):
     # Compensate electronic zero
     df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
     df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+
+    # Resample if requested
+    if resample_frequency is not None:
+        df['we_t'] = df['we_t'].resample(resample_frequency).mean()
+        df['ae_t'] = df['ae_t'].resample(resample_frequency).mean()
+
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 
@@ -261,8 +296,8 @@ def alphasense_als(dataframe, **kwargs):
     else:
         return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
 
-    # Calculate baseline factor
-    df['baseline_t'] = df['we_baseline'] / df['ae_t']
+    # Calculate baseline factor with the baseline mean
+    df['baseline_t'] = df['we_baseline'].dropna().mean() / df['ae_t']
     # Correct Auxiliary electrode based on mean factor
     df['ae_cor'] = df['baseline_t'].mean() * df['ae_t']
     df['we_c'] = df['we_t'] - df['ae_cor']
@@ -275,14 +310,50 @@ def alphasense_als(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
-    if kwargs['clip_negative_conc']:
-        df['conc'] = df['conc'].clip(lower = 0)
+    # Add background concentration
+    if background_conc:
+        df['conc'] = df['conc'] + background_conc
 
-    elif kwargs['offset_negative_conc']:
+    # Clip or offset negative concentration
+    if clip_negative_conc:
+        df['conc'] = df['conc'].clip(lower = 0)
+    elif offset_negative_conc:
         if df['conc'].min() < 0:
             df['conc'] = df['conc'] + abs(df['conc'].min())
 
-    return ProcessResult(df['conc'], StatusCode.SUCCESS)
+    # Return intermediate columns if needed
+    if return_all_cols:
+        cols = [
+            "we_clean",
+            "ae_clean",
+            "we_t",
+            "ae_t",
+            "we_baseline",
+            "baseline_t",
+            "baseline_t_mean",
+            "ae_cor",
+            "we_c"
+        ]
+
+        result = df[cols]
+
+        rename_cols = {
+            "we_clean": f"{as_type[5:]}_als_we_clean",
+            "ae_clean": f"{as_type[5:]}_als_ae_clean",
+            "we_t": f"{as_type[5:]}_als_we_t",
+            "ae_t": f"{as_type[5:]}_als_ae_t",
+            "we_baseline": f"{as_type[5:]}_als_we_baseline",
+            "baseline_t": f"{as_type[5:]}_als_baseline_t",
+            "baseline_t_mean": f"{as_type[5:]}_als_baseline_t_mean",
+            "ae_cor": f"{as_type[5:]}_als_ae_cor",
+            "we_c": f"{as_type[5:]}_als_we_c"
+        }
+        result.rename(colums=rename_cols, inplace=True)
+
+    else:
+        result = df['conc']
+
+    return ProcessResult(result, StatusCode.SUCCESS)
 
 def ec_sensor_temp(dataframe, **kwargs):
     """
