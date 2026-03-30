@@ -1031,10 +1031,13 @@ class Device(BaseModel):
             logger.error("Boto not available. Install awswrangler")
             return False
 
-    def get_series_dict(self, frequency):
+    def get_series_dict(self, frequency=None):
         df = self.data.copy()
+
         df.index = df.index.tz_convert('UTC').tz_localize(None)
-        df = df.resample(frequency).mean()
+
+        if frequency is not None:
+            df = df.resample(frequency).mean()
         return {
             f"{self.id}:{col}": df[col]
             for col in df.columns

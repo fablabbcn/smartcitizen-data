@@ -315,11 +315,12 @@ class Test(BaseModel):
         self.loaded = all([d.loaded for d in self.devices])
         return self.loaded
 
-    def get_series_dict(self, frequency):
+    def get_series_dict(self, frequency=None):
         series = {}
 
         for device in self.devices:
-            series.update(device.get_series_dict(frequency))
+            if device.loaded:
+                series.update(device.get_series_dict(frequency))
 
         return series
 
