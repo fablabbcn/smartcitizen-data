@@ -185,9 +185,9 @@ class Device(BaseModel):
                 logger.info(f'Setting handler as {self.hclass}')
 
             self.paramsParsed = TypeAdapter(CSVParams).validate_python(self.params)
-        elif self.source.type == 'stream':
+        else:
             # TODO Add handler here
-            raise NotImplementedError('No handler for stream yet')
+            raise NotImplementedError(f'No handler for {self.source.type} yet')
 
         if self.hclass is not None:
             self.handler = self.hclass(params = self.paramsParsed)
