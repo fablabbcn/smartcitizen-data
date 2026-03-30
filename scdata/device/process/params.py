@@ -1,8 +1,8 @@
 from numpy import arange
 
 # Avoid negative pollutant concentrations by clipping or offseting. These are mutually exclusive
-offset_negative_conc = False
-clip_negative_conc = False
+_default_offset_negative_conc = False
+_default_clip_negative_conc = False
 
 # Background concentrations
 background_conc = {
