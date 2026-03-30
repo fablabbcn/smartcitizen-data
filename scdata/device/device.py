@@ -887,7 +887,7 @@ class Device(BaseModel):
             return NotImplementedError (f'Not supported format. Formats: [csv]')
 
     async def post(self, columns = 'sensors', clean_na = 'drop', chunk_size = 500,\
-        dry_run = False, max_retries = 2, with_postprocessing = False):
+        dry_run = False, max_retries = 2, with_postprocessing = False, delay_between_posts=None):
         '''
         Posts data via handler post method.
             Parameters
@@ -917,7 +917,7 @@ class Device(BaseModel):
 
         post_ok = await self.handler.post_data(columns=columns, \
             rename = self._rename, clean_na = clean_na, chunk_size = chunk_size, \
-            dry_run = dry_run, max_retries = max_retries)
+            dry_run = dry_run, max_retries = max_retries, delay_between_posts=delay_between_posts)
 
         if post_ok: logger.info(f'Posted data for {self.paramsParsed.id}')
         else: logger.error(f'Error posting data for {self.paramsParsed.id}')
