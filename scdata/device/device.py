@@ -1024,6 +1024,7 @@ class Device(BaseModel):
             self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
             self.data.set_index('TIME', inplace=True)
             self.data.sort_index(inplace=True)
+            self.data = self.data[~self.data.index.duplicated(keep='first')]
 
             self.loaded = True
 
