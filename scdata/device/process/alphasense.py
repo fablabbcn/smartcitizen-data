@@ -167,22 +167,22 @@ def alphasense_803_04(dataframe, **kwargs):
             "ae_clean",
             "we_t",
             "ae_t",
-            "we_c"
+            "we_c",
+            "conc" # Reserved for metric name
         ]
 
-        result = df[cols]
+        result = df[cols].copy()
 
         rename_cols = {
-            "we_clean": f"{as_type[5:]}_803_we_clean",
-            "ae_clean": f"{as_type[5:]}_803_ae_clean",
-            "we_t": f"{as_type[5:]}_803_we_t",
-            "ae_t": f"{as_type[5:]}_803_ae_t",
-            "we_c": f"{as_type[5:]}_803_we_c"
+            "we_clean": f"803_we_clean",
+            "ae_clean": f"803_ae_clean",
+            "we_t": f"803_we_t",
+            "ae_t": f"803_ae_t",
+            "we_c": f"803_we_c"
         }
-        result.rename(colums=rename_cols, inplace=True)
-
+        result.rename(columns=rename_cols, inplace=True)
     else:
-        result = df['conc']
+        result = df['conc'].copy()
 
     return ProcessResult(result, StatusCode.SUCCESS)
 
@@ -337,26 +337,27 @@ def alphasense_als(dataframe, **kwargs):
             "baseline_t",
             "baseline_t_mean",
             "ae_cor",
-            "we_c"
+            "we_c",
+            "conc" # Reserved for metric name
         ]
 
-        result = df[cols]
+        result = df[cols].copy()
 
         rename_cols = {
-            "we_clean": f"{as_type[5:]}_als_we_clean",
-            "ae_clean": f"{as_type[5:]}_als_ae_clean",
-            "we_t": f"{as_type[5:]}_als_we_t",
-            "ae_t": f"{as_type[5:]}_als_ae_t",
-            "we_baseline": f"{as_type[5:]}_als_we_baseline",
-            "baseline_t": f"{as_type[5:]}_als_baseline_t",
-            "baseline_t_mean": f"{as_type[5:]}_als_baseline_t_mean",
-            "ae_cor": f"{as_type[5:]}_als_ae_cor",
-            "we_c": f"{as_type[5:]}_als_we_c"
+            "we_clean": f"als_we_clean",
+            "ae_clean": f"als_ae_clean",
+            "we_t": f"als_we_t",
+            "ae_t": f"als_ae_t",
+            "we_baseline": f"als_we_baseline",
+            "baseline_t": f"als_baseline_t",
+            "baseline_t_mean": f"als_baseline_t_mean",
+            "ae_cor": f"als_ae_cor",
+            "we_c": f"als_we_c"
         }
         result.rename(columns=rename_cols, inplace=True)
 
     else:
-        result = df['conc']
+        result = df['conc'].copy()
 
     return ProcessResult(result, StatusCode.SUCCESS)
 
