@@ -556,7 +556,16 @@ class Device(BaseModel):
                         logger.warning(process_result.status_code.name)
                         process_ok &= True
                     elif 'SUCCESS' in process_result.status_code.name:
-                        self.data[metric.name] = process_result.data
+                        if isinstance(process_result.data, DataFrame):
+                           for col in process_result.data.columns:
+                                if 'conc' in col:
+                                    self.data[f'{metric.name}'] = process_result.data[col]
+                                else:
+                                    self.data[f'{metric.name}_{col}'] = process_result.data[col]
+                        elif isinstance(process_result.data, Series):
+                            self.data[metric.name] = process_result.data
+                        else:
+                            logger.error("Not supported format for data results, ignoring")
                         logger.info(process_result.status_code.name)
                         process_ok &= True
 
