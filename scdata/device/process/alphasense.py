@@ -27,6 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
+        return_all_cols: bool
+            Return all columns intermediate to the calculation
     Returns
     -------
         calculation of pollutant in ppb
