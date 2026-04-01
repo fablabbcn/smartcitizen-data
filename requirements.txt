@@ -4,7 +4,7 @@ geopy~=1.21.0
 Jinja2~=3.1.2
 matplotlib
 pandas~=2.2.2
-pydantic
+pydantic~=2.8
 # TODO To be updated?
 PyYAML~=6.0.1
 requests
