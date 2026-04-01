@@ -70,6 +70,8 @@ def alphasense_803_04(dataframe, **kwargs):
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
 
+    return_all_cols = kwargs.get('return_all_cols', False)
+
     # Make copy
     df = dataframe.copy()
 
@@ -241,7 +243,7 @@ def alphasense_als(dataframe, **kwargs):
     p = kwargs.get('p', None)
 
     resample_frequency = kwargs.get('resample_frequency', None)
-    return_all_cols = kwargs.get('return_all_cols', None)
+    return_all_cols = kwargs.get('return_all_cols', False)
 
     # Make copy
     df = dataframe.copy()
@@ -298,6 +300,7 @@ def alphasense_als(dataframe, **kwargs):
 
     # Calculate baseline factor with the baseline mean
     df['baseline_t'] = df['we_baseline'].dropna().mean() / df['ae_t']
+    df['baseline_t_mean'] = df['baseline_t'].mean()
     # Correct Auxiliary electrode based on mean factor
     df['ae_cor'] = df['baseline_t'].mean() * df['ae_t']
     df['we_c'] = df['we_t'] - df['ae_cor']
@@ -348,7 +351,7 @@ def alphasense_als(dataframe, **kwargs):
             "ae_cor": f"{as_type[5:]}_als_ae_cor",
             "we_c": f"{as_type[5:]}_als_we_c"
         }
-        result.rename(colums=rename_cols, inplace=True)
+        result.rename(columns=rename_cols, inplace=True)
 
     else:
         result = df['conc']
