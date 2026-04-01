@@ -470,7 +470,7 @@ class Device(BaseModel):
             return True
         return False
 
-    def process(self, only_new=False, lmetrics=None):
+    def process(self, only_new=False, metrics_list=None):
         '''
         Processes devices metrics, either added by the blueprint definition
         or the addition using Device.add_metric(). See help(Device.add_metric) for
@@ -482,7 +482,7 @@ class Device(BaseModel):
             False
             To process or not the existing channels in the Device.data that are
             defined in Device.metrics
-        lmetrics: list
+        metrics_list: list
             None
             List of metrics to process. If none, processes all
         Returns
@@ -503,11 +503,11 @@ class Device(BaseModel):
             return process_ok
 
         logger.info(f'Processing device {self.paramsParsed.id}')
-        if lmetrics is None:
-            _lmetrics = [metric.name for metric in self.metrics]
-        else: _lmetrics = lmetrics
+        if metrics_list is None:
+            _metrics_list = [metric.name for metric in self.metrics]
+        else: _metrics_list = metrics_list
 
-        if not _lmetrics:
+        if not _metrics_list:
             logger.warning('Nothing to process')
             return process_ok
 
@@ -517,7 +517,7 @@ class Device(BaseModel):
 
         for metric in self.metrics:
             logger.info('---')
-            if metric.name not in _lmetrics: continue
+            if metric.name not in _metrics_list: continue
             logger.info(f'Processing {metric.name}')
 
             if only_new and metric.name in self.data:
