@@ -16,6 +16,8 @@ class CSVHandler:
         self.id = params.id
         self.params = params
         self.method = 'sync'
+        self.blueprint_url = None
+        self.override_url_blueprint = True
         self.data = DataFrame()
         self._metrics: List[Metric] = []
         self.latest_postprocessing = None
@@ -214,10 +216,10 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
     concat = DataFrame()
     header_tokenized = dict()
     marked_for_revision = False
-
-    for file in listdir(path):
+    files = listdir(path)
+    for file in files:
         if file != output and file not in ignore:
-            logger.info(f'Loading file: {file}')
+            logger.info(f'Loading file ({files.index(file)}/{len(files)}): {join(path, file)}')
             filename, _ = splitext(file)
             src_path = join(path, file)
 
@@ -248,7 +250,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                         header_tokenized[short_tokenized[index]]['long'] = long_tokenized[index]
                         header_tokenized[short_tokenized[index]]['id'] = id_tokenized[index]
 
-            temp = read_csv(src_path, verbose=False, skiprows=range(1,4),
+            temp = read_csv(src_path, skiprows=range(1,4),
                             encoding_errors='ignore', na_values=config._ignore_na_values).set_index("TIME")
             temp = clean(temp, clean_na='drop', how='all')
             temp.index.rename(index_name, inplace=True)

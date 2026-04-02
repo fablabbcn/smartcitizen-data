@@ -1,17 +1,18 @@
+import io
+import json
+import re
+
+import numpy as np
+# uPlot
+from IPython.display import HTML
+from jinja2 import Template
+from scipy.stats import t
+
+from scdata._config import config
+from scdata.plot.tools import colors
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
-from scdata._config import config
-from .plot_tools import colors
-from scipy.stats import t
-import numpy as np
-
-# uPlot
-from IPython.display import HTML
-import json
-from jinja2 import Template
-import io
-import re
 
 def ts_dispersion_uplot(self, **kwargs):
     '''

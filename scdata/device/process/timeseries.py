@@ -1,4 +1,6 @@
 from numpy import nan, full, power, ones, diff, convolve, append
+from scipy import sparse
+from scipy.sparse.linalg import spsolve
 from scipy import ndimage
 from scdata.device.process import is_within_circle
 from scdata.tools.custom_logger import logger
@@ -255,7 +257,7 @@ def time_derivative(dataframe, **kwargs):
         return ProcessResult(df['diff_filter1d'], StatusCode.SUCCESS)
     return ProcessResult(df['diff'], StatusCode.SUCCESS)
 
-def geo_located(dataframe, **kwargs):
+def within(dataframe, **kwargs):
     """
     Performs geo location of input
     Parameters
@@ -285,3 +287,66 @@ def geo_located(dataframe, **kwargs):
     result['within'] = result.apply(lambda x: is_within_circle(x, kwargs['within'], lat_name, long_name), axis=1)
 
     return ProcessResult(result['within'], StatusCode.SUCCESS)
+
+
+def baseline_als(dataframe, **kwargs):
+# def baseline_als(y, lam = 1000, p = 0.001, niter=10):
+    """
+    Performs baseline extraction of a signal, using Assymetric least squares
+    P. Eilers, H. Boelens (2005)
+    Baseline Correction with Asymmetric Least Squares Smoothing
+    Parameters
+    ----------
+        name: str
+            name of the series in "dataframe" to extract baseline from
+        lam: int, optional (1000)
+            lambda
+            Typically between 100 and 10000
+        p: int, optional (0.001)
+            p
+            Typically 0.001
+        niter: int, optional (10)
+    Returns
+    -------
+        pandas series containing bool defining wether or not each dataframe[:, [lat_name, long_name]] are within circle of basepoint(lat, long)
+    """
+
+    # Check inputs
+    flag_error = False
+    if 'name' not in kwargs:
+        logger.error('Problem with input data')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+    if 'lam' not in kwargs:
+        lam = 1000
+    else:
+        lam = kwargs['lam']
+    if 'p' not in kwargs:
+        p = 0.001
+    else:
+        p = kwargs['p']
+    if 'niter' not in kwargs:
+        niter = 10
+    else:
+        niter = kwargs['niter']
+
+    if kwargs['name'] not in dataframe.columns:
+        logger.error(f"{kwargs['name']} not in dataframe")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
+
+    # Make copy
+    df = dataframe.copy().dropna(subset = kwargs['name'])
+
+    y = df[kwargs['name']]
+    L = len(y)
+    D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
+    w = ones(L)
+    for i in range(niter):
+        W = sparse.spdiags(w, 0, L, L)
+        Z = W + lam * D.dot(D.transpose())
+        z = spsolve(Z, w*y)
+        w = p * (y > z) + (1-p) * (y < z)
+
+    rname = f"{kwargs['name']}_baseline"
+    df[rname]=z
+
+    return ProcessResult(df[rname], StatusCode.SUCCESS)

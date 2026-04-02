@@ -1,21 +1,23 @@
 ''' Device metric map implementation '''
 
-from folium import (Map, Marker, Circle, GeoJson, DivIcon,
-                    GeoJsonTooltip, GeoJsonPopup)
-
-from folium.plugins import MiniMap, TimestampedGeoJson
-from math import isnan, floor, ceil
+import json
+from math import ceil, floor, isnan
+from os.path import dirname, join
 from traceback import print_exc
+
+from branca import element
+from folium import (Circle, DivIcon, GeoJson, GeoJsonPopup, GeoJsonTooltip,
+                    Map, Marker)
+from folium.plugins import MiniMap, TimestampedGeoJson
+from jinja2 import Environment, FileSystemLoader, Template
+from numpy import linspace, nan
 from pandas import cut, date_range
-from scdata.tools.dictmerge import dict_fmerge
+
+from scdata._config import config
 from scdata.tools.cleaning import clean
 from scdata.tools.custom_logger import logger
-from scdata._config import config
-from numpy import linspace, nan
-from branca import element
-from jinja2 import Template, FileSystemLoader, Environment
-import json
-from os.path import dirname, join
+from scdata.tools.dictmerge import dict_fmerge
+
 
 def convert_rollup(frequency):
     ''' Converts pandas to folium period '''

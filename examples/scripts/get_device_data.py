@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+import asyncio
+
 import scdata as sc
 from scdata._config import config
-import asyncio
 
 # Set verbose level
 config.log_level = 'DEBUG'

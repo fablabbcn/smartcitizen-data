@@ -19,7 +19,7 @@ REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
 setup(
     name='scdata',
-    version='1.3.2',
+    version='1.4.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -39,6 +39,23 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     install_requires=[REQUIREMENTS],
+    extras_require={
+        "plotting": [
+            "bokeh",
+            "panel",
+            "branca~=0.4.0",
+            "folium~=0.12.1",
+        ],
+        "dev": [
+            "pytest",
+            "bokeh",
+            "panel",
+            "branca~=0.4.0",
+            "folium~=0.12.1",
+            "awswrangler",
+            "boto3"
+        ]
+    },
     setup_requires=['wheel'],
     python_requires=">=3.9",
     include_package_data=True,

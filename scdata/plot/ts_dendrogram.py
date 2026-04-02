@@ -1,12 +1,13 @@
-from scipy.cluster import hierarchy as hc
+import matplotlib.pyplot as plt
+from matplotlib import rcParams, style
 from pandas import DataFrame
+from scipy.cluster import hierarchy as hc
+
+from scdata._config import config
+from scdata.tools.cleaning import clean
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
-from scdata.tools.cleaning import clean
-from scdata._config import config
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import style
+
 
 def ts_dendrogram(self, **kwargs):
     """
