@@ -15,6 +15,7 @@ class Metric(BaseModel):
     post: Optional[bool] = False
     args: Optional[dict] = None
     kwargs: Optional[dict] = None
+    depends_on: List[str] = []
 
 class Sensor(BaseModel):
     id: int

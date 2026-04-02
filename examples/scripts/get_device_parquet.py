@@ -13,11 +13,12 @@ AWS_REGION=
 '''
 
 import scdata as sc
+
 device = sc.Device(blueprint='sc_air',
                                params=sc.APIParams(id=18445))
 
 # Load
-device.backup_load()
+device.load_from_storage()
 
 print (device.json)
 print (device.data.describe())

@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import style
-from seaborn import set_palette, boxplot
+from matplotlib import rcParams, style
+from seaborn import boxplot, set_palette
+
+from scdata._config import config
+from scdata.plot.tools import groupby_session, prepare_test_data, prepare_device_data
 # import seaborn as sns
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
-from scdata._config import config
-from .plot_tools import prepare_data, groupby_session
+
 
 def box_plot(self, **kwargs):
     """
@@ -31,6 +32,8 @@ def box_plot(self, **kwargs):
     -------
         Matplotlib figure
     """
+    from scdata.test.test import Test
+    from scdata.device.device import Device
 
     if config.framework == 'jupyterlab':
         plt.ioff()
@@ -69,7 +72,10 @@ def box_plot(self, **kwargs):
     if formatting['palette'] is not None: set_palette(formatting['palette'])
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots, sides = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

@@ -1,9 +1,11 @@
-from plotly.graph_objs import Heatmap, Layout, Figure
+from plotly.graph_objs import Figure, Heatmap, Layout
+from plotly.offline import iplot
+
+from scdata._config import config
+from scdata.plot.tools import groupby_session, prepare_test_data, prepare_device_data
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
-from scdata._config import config
-from .plot_tools import prepare_data, groupby_session
-from plotly.offline import iplot
+
 
 def heatmap_iplot(self, **kwargs):
     """
@@ -23,6 +25,9 @@ def heatmap_iplot(self, **kwargs):
     -------
         Plotly figure
     """
+    from scdata.test.test import Test
+    from scdata.device.device import Device
+
     if config.framework == 'jupyterlab': renderers.default = config.framework
 
     if 'traces' not in kwargs:
@@ -48,7 +53,11 @@ def heatmap_iplot(self, **kwargs):
         if 'subplot' not in trace: traces[trace]['subplot'] = 1
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots, sides = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots, sides = prepare_device_data(self, traces, options)
+
     n_subplots = len(subplots)
 
     gskwags = {'frequency_hours': formatting['frequency_hours']}

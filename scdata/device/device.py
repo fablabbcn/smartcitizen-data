@@ -1,50 +1,86 @@
 ''' Main implementation of class Device '''
 
-from scdata.tools.custom_logger import logger
-from scdata.io import read_csv_file, export_csv_file
-from scdata.tools.lazy import LazyCallable
-from scdata.tools.url_check import url_checker
-from scdata.tools.date import localise_date
-from scdata.tools.dictmerge import dict_fmerge
-from scdata.tools.units import get_units_convf
-from scdata.tools.find import find_by_field
-from scdata.tools.series import count_nas, infer_sampling_rate, mode_ratio, normalize_central, rolling_deltas
-from scdata._config import config
-from scdata.io.device_api import *
-from scdata.models import Blueprint, Metric, Source, APIParams, CSVParams, DeviceOptions, Sensor
-
-from os.path import join, basename, exists
-from urllib.parse import urlparse
-from pandas import DataFrame, Series, to_timedelta, Timedelta
-from numpy import nan
+import os
 from collections.abc import Iterable
 from importlib import import_module
-from pydantic import TypeAdapter, BaseModel, ConfigDict
-from pydantic_core import ValidationError
-from typing import Optional, List, Dict
-from json import dumps
-
-import os
 from io import StringIO
+from json import dumps
+from os.path import basename, exists, join
+from typing import Dict, List, Optional
+from urllib.parse import urlparse
+
+from numpy import nan
+from pandas import DataFrame, Series, Timedelta, to_timedelta
+from pydantic import BaseModel, ConfigDict, TypeAdapter
+from pydantic_core import ValidationError
+
+from scdata._config import config
+from scdata.io import export_csv_file, read_csv_file
+from scdata.io.device_api import *
+from scdata.models import (APIParams, Blueprint, CSVParams, DeviceOptions,
+                           Metric, Sensor, Source)
+from scdata.tools.custom_logger import logger
+from scdata.tools.date import localise_date
+from scdata.tools.dictmerge import dict_fmerge
+from scdata.tools.find import find_by_field
+from scdata.tools.lazy import LazyCallable
+from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
+                                 normalize_central, rolling_deltas)
+from scdata.tools.tree import topological_sort
+from scdata.tools.units import get_units_convf
+from scdata.tools.url_check import url_checker
+
+try:
+    import panel
+    import bokeh
+except ModuleNotFoundError:
+    bokeh_available = False
+    pass
+else:
+    bokeh_available = True
+
+if bokeh_available:
+    from scdata.plot.ts_panel import TimeSeriesPanel
 
 try:
     import awswrangler as wr
+    import boto3
 except ModuleNotFoundError:
     boto_available = False
     pass
 else:
     boto_available = True
 
-if boto_available: import boto3
+try:
+    from branca import element
+    from folium import Circle
+except ModuleNotFoundError:
+    map_plotting_available = False
+    pass
+else:
+    map_plotting_available = True
 
 from timezonefinder import TimezoneFinder
+
 tf = TimezoneFinder()
 
 class Device(BaseModel):
     ''' Main implementation of the device class '''
+
+    from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
+    from scdata.plot import (heatmap_plot, scatter_dispersion_grid, scatter_plot,
+        ts_dendrogram, ts_dispersion_grid, ts_dispersion_plot, ts_plot, ts_scatter)
+        #, report_plot, cat_plot, violin_plot)
+    if map_plotting_available:
+        from scdata.plot import device_metric_map, path_plot
+
+    if config._ipython_avail:
+        from scdata.plot import ts_uplot, ts_dispersion_uplot
+
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
     blueprint: str = None
+    override_url_blueprint: bool = False
     source: Source = Source()
     options: DeviceOptions = DeviceOptions()
     params: object = None
@@ -89,18 +125,21 @@ class Device(BaseModel):
 
         # Set handler
         self.__set_handler__()
+
         # Set blueprint
-        if self.blueprint is not None:
-            if self.blueprint not in config.blueprints:
-                raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
-            self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
-        else:
+        if self.handler.blueprint_url is not None and not self.override_url_blueprint:
+            logger.info("Checking blueprint in URL")
             if url_checker(self.handler.blueprint_url):
                 logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
                 self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
                 self.__set_blueprint_attrs__(self.handler.properties)
-            else:
-                raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
+        elif self.blueprint is not None:
+            logger.info("Using defined blueprint")
+            if self.blueprint not in config.blueprints:
+                raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
+            self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
+        else:
+            raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
 
         logger.info(f'Device {self.paramsParsed.id} initialised')
 
@@ -146,9 +185,9 @@ class Device(BaseModel):
                 logger.info(f'Setting handler as {self.hclass}')
 
             self.paramsParsed = TypeAdapter(CSVParams).validate_python(self.params)
-        elif self.source.type == 'stream':
+        else:
             # TODO Add handler here
-            raise NotImplementedError('No handler for stream yet')
+            raise NotImplementedError(f'No handler for {self.source.type} yet')
 
         if self.hclass is not None:
             self.handler = self.hclass(params = self.paramsParsed)
@@ -375,9 +414,10 @@ class Device(BaseModel):
             else:
                 logger.info('Empty dataframe in loaded data. Waiting for cache...')
 
-        if not cached_data.empty:
-            logger.info('Cache exists')
-            self.data = self.data.combine_first(cached_data)
+        if cached_data is not None:
+            if not cached_data.empty:
+                logger.info('Cache exists')
+                self.data = self.data.combine_first(cached_data)
 
         return not self.data.empty
 
@@ -430,7 +470,7 @@ class Device(BaseModel):
             return True
         return False
 
-    def process(self, only_new=False, lmetrics=None):
+    def process(self, only_new=False, metrics_list=None):
         '''
         Processes devices metrics, either added by the blueprint definition
         or the addition using Device.add_metric(). See help(Device.add_metric) for
@@ -442,7 +482,7 @@ class Device(BaseModel):
             False
             To process or not the existing channels in the Device.data that are
             defined in Device.metrics
-        lmetrics: list
+        metrics_list: list
             None
             List of metrics to process. If none, processes all
         Returns
@@ -462,19 +502,22 @@ class Device(BaseModel):
             logger.warning(f'Device {self.paramsParsed.id} has nothing to process. Skipping')
             return process_ok
 
-        logger.info('---------------------------')
         logger.info(f'Processing device {self.paramsParsed.id}')
-        if lmetrics is None:
-            _lmetrics = [metric.name for metric in self.metrics]
-        else: _lmetrics = lmetrics
+        if metrics_list is None:
+            _metrics_list = [metric.name for metric in self.metrics]
+        else: _metrics_list = metrics_list
 
-        if not _lmetrics:
+        if not _metrics_list:
             logger.warning('Nothing to process')
             return process_ok
 
+        # Sort metrics
+        logger.info('Sorting metrics...')
+        self.metrics = topological_sort(self.metrics)
+
         for metric in self.metrics:
             logger.info('---')
-            if metric.name not in _lmetrics: continue
+            if metric.name not in _metrics_list: continue
             logger.info(f'Processing {metric.name}')
 
             if only_new and metric.name in self.data:
@@ -513,11 +556,23 @@ class Device(BaseModel):
                         logger.warning(process_result.status_code.name)
                         process_ok &= True
                     elif 'SUCCESS' in process_result.status_code.name:
-                        self.data[metric.name] = process_result.data
+                        if isinstance(process_result.data, DataFrame):
+                            if len(process_result.data.columns) == 1:
+                                self.data[f'{metric.name}'] = process_result.data
+                            for col in process_result.data.columns:
+                                if 'conc' in col:
+                                    self.data[f'{metric.name}'] = process_result.data[col]
+                                else:
+                                    self.data[f'{metric.name}_{col}'] = process_result.data[col]
+                        elif isinstance(process_result.data, Series):
+                            self.data[metric.name] = process_result.data
+                        else:
+                            logger.error("Not supported format for data results, ignoring")
                         logger.info(process_result.status_code.name)
                         process_ok &= True
 
         if process_ok:
+            logger.info('---')
             logger.info(f"Device {self.paramsParsed.id} processed")
             self.processed = process_ok
 
@@ -696,7 +751,7 @@ class Device(BaseModel):
 
     def get_outlier_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_outlier_ratio", sigma=5, pct=0.05) -> DataFrame:
         '''Get the percentage of outlier values based on the rate of increase. When sensors
-        report sudden jumps, these are likely to be erroneous values. 
+        report sudden jumps, these are likely to be erroneous values.
 
         Parameters
         ----------
@@ -708,15 +763,15 @@ class Device(BaseModel):
                 are used.
             sigma: int
                 5
-                Number of standard deviations to consider a point an outlier. A higher 
+                Number of standard deviations to consider a point an outlier. A higher
                 value would be more restrictive, detecting only worse malfunctions.
             pct: float
                 0.05
-                Percentage of top and bottom values to ignore when normalizing. We 
+                Percentage of top and bottom values to ignore when normalizing. We
                 assume the outliers will always be a minority of the data, so ignoring
                 a small percentage of extreme values should help get a better estimate.
 
-        Returns 
+        Returns
         ----------
             result: DataFrame
                 DataFrame with rolling outlier ratio.
@@ -730,13 +785,13 @@ class Device(BaseModel):
             data = self.data[subset]
         else:
             data = self.data
-        
+
         result = {}
 
         for column in data.columns:
             outlier_values = self.get_outlier_values(column, sigma=sigma, pct=pct)
 
-            result[column + suffix] = outlier_values.rolling(period).mean()  
+            result[column + suffix] = outlier_values.rolling(period).mean()
 
         return DataFrame(result)
 
@@ -756,7 +811,7 @@ class Device(BaseModel):
             sigma: int
                 Number of standard deviations to consider a point an outlier.
             pct: float
-                Percentage of top and bottom values to ignore when normalizing. 
+                Percentage of top and bottom values to ignore when normalizing.
 
         Returns
         ----------
@@ -843,7 +898,7 @@ class Device(BaseModel):
             return NotImplementedError (f'Not supported format. Formats: [csv]')
 
     async def post(self, columns = 'sensors', clean_na = 'drop', chunk_size = 500,\
-        dry_run = False, max_retries = 2, with_postprocessing = False):
+        dry_run = False, max_retries = 2, with_postprocessing = False, delay_between_posts=None):
         '''
         Posts data via handler post method.
             Parameters
@@ -873,7 +928,7 @@ class Device(BaseModel):
 
         post_ok = await self.handler.post_data(columns=columns, \
             rename = self._rename, clean_na = clean_na, chunk_size = chunk_size, \
-            dry_run = dry_run, max_retries = max_retries)
+            dry_run = dry_run, max_retries = max_retries, delay_between_posts=delay_between_posts)
 
         if post_ok: logger.info(f'Posted data for {self.paramsParsed.id}')
         else: logger.error(f'Error posting data for {self.paramsParsed.id}')
@@ -906,28 +961,120 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
 
-    def backup(self, format='parquet', mode='append'):
+    def backup_to_storage(self, mode='append', path='devices'):
+        """
+        Backup device data into S3 storage (requires S3_DATA_BUCKET env
+         variable set).
+            Parameters
+            ----------
+            mode: str
+                'append'
+                How to handle awswrangler to_parquet() storage
+            path: str
+                'devices'
+                Path for backup directory
+                "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+        Returns
+        ----------
+            False or response from awswrangler
+        """
         if self.data.empty:
             logger.error("Device data empty")
             return False
 
-        if format == 'parquet':
-            if boto_available:
-                self.data['TIME']=self.data.index
-                target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
-                response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
+        if 'S3_DATA_BUCKET' not in os.environ:
+            logger.error("S3_DATA_BUCKET not set in environment")
+            return False
 
-                return response
+        # TODO Add more formats
+        if boto_available:
+            self.data['TIME']=self.data.index
+            target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
 
-    def backup_load(self, format='parquet'):
-        if format == 'parquet':
-            if boto_available:
-                session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-                aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-                region_name=os.environ['AWS_REGION'])
-                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/devices/{self.id}/data/"
-                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
-                self.data.set_index('TIME', inplace=True)
-                self.data.sort_index(inplace=True)
+            s3 = boto3.resource('s3')
+            s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/metadata.json")
+            s3object.put(
+                Body=(bytes(self.handler.json.model_dump_json().encode('utf-8')))
+            )
 
-                return s3_url
+            return response
+
+    def load_from_storage(self, path='devices'):
+        """
+        Load device data from S3 storage (requires AWS env
+         variable set).
+            Parameters
+            ----------
+            path: str
+                'devices'
+                Path for backup directory
+                "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+        Returns
+        ----------
+            S3 bucket url if successful, False otherwise
+        """
+
+        if 'S3_DATA_BUCKET' not in os.environ or \
+            'AWS_ACCESS_KEY_ID' not in os.environ or \
+            'AWS_SECRET_ACCESS_KEY' not in os.environ or \
+            'AWS_REGION' not in os.environ:
+
+            logger.error("Missing environment variables. S3_DATA_BUCKET, AWS_ACCESS_KEY_ID, \
+                AWS_SECRET_ACCESS_KEY and AWS_REGION need to be set.")
+
+            return False
+
+        if boto_available:
+            session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+            region_name=os.environ['AWS_REGION'])
+            s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            logger.info(f"Loading data from: {s3_url}")
+
+            self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
+            self.data.set_index('TIME', inplace=True)
+            self.data.sort_index(inplace=True)
+            self.data = self.data[~self.data.index.duplicated(keep='first')]
+
+            self.loaded = True
+
+            return s3_url
+        else:
+            logger.error("Boto not available. Install awswrangler")
+            return False
+
+    def get_series_dict(self, frequency=None):
+        df = self.data.copy()
+
+        df.index = df.index.tz_convert('UTC').tz_localize(None)
+
+        if frequency is not None:
+            df = df.resample(frequency).mean()
+        return {
+            f"{self.id}:{col}": df[col]
+            for col in df.columns
+        }
+
+    def ts_panel(self, frequency='10Min', **kwargs):
+        '''
+            Returns a panel for interactive plotting
+            ---
+            frequency: str
+                Default: 10Min
+                Add a resample to the series to reduce
+            width: int
+                Default: 800
+                Max width of each subplot (resizable to max width of window below that)
+            height: int
+                Default: 400
+                Height of each subplot
+        '''
+        if bokeh_available:
+            return TimeSeriesPanel(
+                self.get_series_dict(frequency=frequency),
+                **kwargs
+            ).view()
+        else:
+            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
+            return False

@@ -1,9 +1,11 @@
-from scdata.tools.custom_logger import logger
-from scdata._config import config
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from math import ceil
+
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 from matplotlib import gridspec
+
+from scdata._config import config
+from scdata.tools.custom_logger import logger
 
 plt.style.use(config._plot_style)
 
