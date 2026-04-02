@@ -1,18 +1,17 @@
-from scdata.tools.custom_logger import logger
-from scdata.tools.dictmerge import dict_fmerge
-from scdata._config import config
-from .plot_tools import prepare_data
+from math import sqrt
 
 # Matplotlib
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import gridspec
-from matplotlib import style
-from seaborn import set_palette
-
-from math import sqrt
+from matplotlib import gridspec, rcParams, style
 from pandas import to_datetime
+from seaborn import set_palette
 from sklearn.metrics import mean_squared_error
+
+from scdata._config import config
+from scdata.plot.tools import prepare_test_data, prepare_device_data
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+
 
 def ts_scatter(self, **kwargs):
     """
@@ -37,6 +36,9 @@ def ts_scatter(self, **kwargs):
         Matplotlib figure containing timeseries and scatter plot with correlation
         coefficients on it
     """
+    from scdata.test.test import Test
+    from scdata.device.device import Device
+
     if config.framework == 'jupyterlab':
         plt.ioff()
     plt.clf()
@@ -75,7 +77,10 @@ def ts_scatter(self, **kwargs):
         if 'subplot' not in trace: traces[trace]['subplot'] = 1
 
     # Get dataframe
-    df, subplots = prepare_data(self, traces, options)
+    if isinstance(self, Test):
+        df, subplots, sides = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

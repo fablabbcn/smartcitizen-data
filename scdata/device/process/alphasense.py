@@ -3,7 +3,7 @@ from scdata.tools.units import get_units_convf
 from scdata.tools.date import find_dates, localise_date
 from scdata._config import config
 from scdata.device.process.params import *
-from scdata.device.process import baseline_calc, clean_ts
+from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from pandas import date_range, DataFrame, Series, isnull
@@ -27,6 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
+        return_all_cols: bool
+            Return all columns intermediate to the calculation
     Returns
     -------
         calculation of pollutant in ppb
@@ -70,6 +72,8 @@ def alphasense_803_04(dataframe, **kwargs):
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
 
+    return_all_cols = kwargs.get('return_all_cols', False)
+
     # Make copy
     df = dataframe.copy()
 
@@ -77,9 +81,22 @@ def alphasense_803_04(dataframe, **kwargs):
     as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
 
     # Use alternative method or not
-    if 'use_alternative' not in kwargs: kwargs['use_alternative'] = False
-    if kwargs['use_alternative']: algorithm_idx = 1
-    else: algorithm_idx = 0
+    if 'use_alternative' not in kwargs:
+        kwargs['use_alternative'] = False
+    if kwargs['use_alternative']:
+        algorithm_idx = 1
+    else:
+        algorithm_idx = 0
+
+    # Clip negative values or not
+    process_negative_conc = None
+    if 'clip_negative_conc' in kwargs:
+        if kwargs['clip_negative_conc']:
+            process_negative_conc = 'clip_negative_conc'
+    # Offset negative values or not
+    elif 'offset_negative_conc' in kwargs:
+        if kwargs['offset_negative_conc']:
+            process_negative_conc = 'offset_negative_conc'
 
     # Get algorithm name
     algorithm = list(as_sensor_algs[as_type].keys())[algorithm_idx]
@@ -138,10 +155,211 @@ def alphasense_803_04(dataframe, **kwargs):
     # Calculate sensor concentration
     df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
 
-    if avoid_negative_conc:
-        df['conc'].clip(lower = 0, inplace = True)
+    if process_negative_conc == 'clip_negative_conc':
+        df['conc'] = df['conc'].clip(lower = 0)
+    elif process_negative_conc == 'offset_negative_conc':
+        df['conc'] += abs(df['conc'].min())
 
-    return ProcessResult(df['conc'], StatusCode.SUCCESS)
+    # Return intermediate columns if needed
+    if return_all_cols:
+        cols = [
+            "we_clean",
+            "ae_clean",
+            "we_t",
+            "ae_t",
+            "we_c",
+            "conc" # Reserved for metric name
+        ]
+
+        result = df[cols].copy()
+
+        rename_cols = {
+            "we_clean": f"803_we_clean",
+            "ae_clean": f"803_ae_clean",
+            "we_t": f"803_we_t",
+            "ae_t": f"803_ae_t",
+            "we_c": f"803_we_c"
+        }
+        result.rename(columns=rename_cols, inplace=True)
+    else:
+        result = df['conc'].copy()
+
+    return ProcessResult(result, StatusCode.SUCCESS)
+
+def alphasense_als(dataframe, **kwargs):
+    """
+    Calculates pollutant concentration based on 4 electrode sensor readings (mV)
+    and calibration ID. It adds a configurable background concentration and correction
+    based on AAN803-04
+    Parameters
+    ----------
+        alphasense_id: string
+            Alphasense sensor ID (must be in calibrations.json)
+        we: string
+            Name of working electrode found in dataframe (V)
+        ae: string
+            Name of auxiliary electrode found in dataframe (V)
+        t: string
+            Name of reference temperature
+        clip_negative_conc: bool
+            Clip the negative values after the algorithm
+        offset_negative_conc: bool
+            Offset the resulting negative values for the signal
+        background_conc: bool
+            Offset a background concentration on resulting value
+        resample_frequency: string
+            Resample we and ae electrodes with certain frequency
+        return_all_cols: bool
+            Return all columns intermediate to the calculation
+    Returns
+    -------
+        calculation of pollutant in ppb
+    """
+
+    # Check inputs
+    flag_error = False
+    if 'we' not in kwargs: flag_error = True
+    if 'ae' not in kwargs: flag_error = True
+    if 'alphasense_id' not in kwargs: flag_error = True
+    if 't' not in kwargs: flag_error = True
+
+    if flag_error:
+        logger.error('Problem with input data')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
+    if kwargs['alphasense_id'] is None:
+        logger.warning(f"Empty ID. Ignoring")
+        return ProcessResult(None, StatusCode.WARNING_EMPTY_ID)
+
+    # Get Sensor data
+    if kwargs['alphasense_id'] not in config.calibrations:
+        logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
+        return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
+
+    # Parse options
+    clip_negative_conc = kwargs.get('clip_negative_conc', _default_clip_negative_conc)
+    offset_negative_conc = kwargs.get('offset_negative_conc', _default_offset_negative_conc)
+    background_conc = kwargs.get('background_conc', 0)
+
+    lam = kwargs.get('lam', None)
+    p = kwargs.get('p', None)
+
+    resample_frequency = kwargs.get('resample_frequency', None)
+    return_all_cols = kwargs.get('return_all_cols', False)
+
+    # Make copy
+    df = dataframe.copy()
+
+    # Get sensor type
+    as_type = alphasense_sensor_codes[kwargs['alphasense_id'][0:3]]
+
+    # Retrieve calibration data - verify its all float
+    cal_data = config.calibrations[kwargs['alphasense_id']]
+
+    for item in cal_data:
+        try:
+            cal_data[item] = float (cal_data[item])
+        except:
+            logger.error(f"Alphasense calibration data for {kwargs['alphasense_id']} is not correct")
+            logger.error(f'Error on {item}: \'{cal_data[item]}\'')
+            return ProcessResult(None, StatusCode.ERROR_WRONG_CALIBRATION)
+
+    # Remove spurious voltages (0V < electrode < 5V)
+    for electrode in ['we', 'ae']:
+        subkwargs = {'name': kwargs[electrode],
+                        'limits': (0, 5), # In V
+                        'window_size': None
+                    }
+
+        cleaning_result = clean_ts(df, **subkwargs)
+        if 'SUCCESS' in cleaning_result.status_code.name:
+            df[f'{electrode}_clean'] = cleaning_result.data
+        else:
+            return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
+
+    # Compensate electronic zero
+    df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
+    df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+
+    # Resample if requested
+    if resample_frequency is not None:
+        df['we_t'] = df['we_t'].resample(resample_frequency).mean()
+        df['ae_t'] = df['ae_t'].resample(resample_frequency).mean()
+
+    # Get requested temperature
+    df['t'] = df[kwargs['t']]
+
+    # Calculate WE baseline
+    subkwargs = {'name': 'we_t'}
+    if lam is not None: subkwargs['lam'] = lam
+    if p is not None: subkwargs['p'] = p
+
+    baseline_result = baseline_als(df, **subkwargs)
+    if 'SUCCESS' in baseline_result.status_code.name:
+        df[f'we_baseline'] = baseline_result.data
+    else:
+        return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
+
+    # Calculate baseline factor with the baseline mean
+    df['baseline_t'] = df['we_baseline'].dropna().mean() / df['ae_t']
+    df['baseline_t_mean'] = df['baseline_t'].mean()
+    # Correct Auxiliary electrode based on mean factor
+    df['ae_cor'] = df['baseline_t'].mean() * df['ae_t']
+    df['we_c'] = df['we_t'] - df['ae_cor']
+
+    # Verify if it has NO2 cross-sensitivity (in V)
+    if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
+        df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
+        df['we_c'] -= df['we_no2_eq'] # in V
+
+    # Calculate sensor concentration
+    df['conc'] = df['we_c'] / (cal_data['we_sensitivity_mv_ppb'] / 1000.0) # in ppb
+
+    # Add background concentration
+    if background_conc:
+        df['conc'] = df['conc'] + background_conc
+
+    # Clip or offset negative concentration
+    if clip_negative_conc:
+        df['conc'] = df['conc'].clip(lower = 0)
+    elif offset_negative_conc:
+        if df['conc'].min() < 0:
+            df['conc'] = df['conc'] + abs(df['conc'].min())
+
+    # Return intermediate columns if needed
+    if return_all_cols:
+        cols = [
+            "we_clean",
+            "ae_clean",
+            "we_t",
+            "ae_t",
+            "we_baseline",
+            "baseline_t",
+            "baseline_t_mean",
+            "ae_cor",
+            "we_c",
+            "conc" # Reserved for metric name
+        ]
+
+        result = df[cols].copy()
+
+        rename_cols = {
+            "we_clean": f"als_we_clean",
+            "ae_clean": f"als_ae_clean",
+            "we_t": f"als_we_t",
+            "ae_t": f"als_ae_t",
+            "we_baseline": f"als_we_baseline",
+            "baseline_t": f"als_baseline_t",
+            "baseline_t_mean": f"als_baseline_t_mean",
+            "ae_cor": f"als_ae_cor",
+            "we_c": f"als_we_c"
+        }
+        result.rename(columns=rename_cols, inplace=True)
+
+    else:
+        result = df['conc'].copy()
+
+    return ProcessResult(result, StatusCode.SUCCESS)
 
 def ec_sensor_temp(dataframe, **kwargs):
     """

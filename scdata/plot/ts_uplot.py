@@ -1,0 +1,326 @@
+import io
+import json
+import re
+
+# uPlot
+from IPython.display import HTML
+from jinja2 import Template
+
+from scdata._config import config
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
+from scdata.tools.custom_logger import logger
+from scdata.tools.dictmerge import dict_fmerge
+
+'''
+This code is heavily inspired by https://github.com/saewoonam/uplot_lib
+'''
+
+def ts_uplot(self, **kwargs):
+    """
+    Plots timeseries in uplot interactive plot - Fast, fast fast
+    Parameters
+    ----------
+        traces: dict
+            Data for the plot, with the format:
+            "traces":  {"1": {"devices": ['8019043', '8019044', '8019004'],
+                             "channel" : "PM_10",
+                             "subplot": 1,
+                             "extras": ['max', 'min', 'avg']},
+                        "2": {"devices": "all",
+                             "channel" : "TEMP",
+                             "subplot": 2}
+                        }
+        options: dict
+            Options including data processing prior to plot. Defaults in config._plot_def_opt
+        formatting: dict
+            Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
+    Returns
+    -------
+        uPlot figure
+    """
+
+    from scdata.test.test import Test
+    from scdata.device.device import Device
+
+    initHook = '''**[ u => {
+                let axisEls = u.root.querySelectorAll('.u-axis');
+
+                for (let i = 0; i < axisEls.length; i++) {
+                    let el = axisEls[i];
+
+                    el.addEventListener('mousedown', e => {
+                        let y0 = e.clientY;
+                        let x0 = e.clientX;
+
+                        let scaleKey = u.axes[i].scale;
+                        let scale = u.scales[scaleKey];
+                        let { min, max } = scale;
+                        let dim = i == 0 ? u.bbox.width : u.bbox.height;
+                        let unitsPerPx = (max - min) / (dim / uPlot.pxRatio);
+
+                        let mousemove = e => {
+                            let d = i == 0 ?  x0 - e.clientX : e.clientY - y0
+                            let shiftyBy = d * unitsPerPx;
+
+                            u.setScale(scaleKey, {
+                                min: e.shiftKey ? (min - shiftyBy) : min + shiftyBy,
+                                max: max + shiftyBy,
+                            });
+                        };
+
+                        let mouseup = e => {
+                            document.removeEventListener('mousemove', mousemove);
+                            document.removeEventListener('mousemove', mouseup);
+                        };
+
+                        document.addEventListener('mousemove', mousemove);
+                        document.addEventListener('mouseup', mouseup);
+                    });
+                }
+            },
+        ]**'''
+
+    head_template = '''
+        <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
+        <style>
+            .u-axis:hover {
+                cursor: move;
+            }
+            .plot-area{
+                background-color: white;
+            }
+            .plot {
+                background-color: white;
+            }
+        </style>
+        <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
+
+        <div class="plot-area" style="text-align:center">
+            <h2 style="font-family: Roboto"> {{title}} </h2>
+        </div>
+    '''
+
+    uplot_template = '''
+        <div class="plot" id="plot{{subplot}}"></div>
+        <script>
+            data = {{data}};
+            options = {{options}};
+
+            if (typeof options.scatter == 'undefined') {
+                options.scatter = false
+            }
+
+            if (options.scatter) {
+                for (i=1; i<data.length; i++) {
+                    options['series'][i]["paths"] = u => null;
+                }
+            }
+
+            u = new uPlot(options, data, document.getElementById("plot{{subplot}}"))
+        </script>
+        '''
+
+    if 'traces' not in kwargs:
+        logger.info('No traces defined', 'ERROR')
+        return None
+    else:
+        traces = kwargs['traces']
+
+    if 'options' not in kwargs:
+        logger.info('Using default options')
+        options = config._plot_def_opt
+    else:
+        options = dict_fmerge(config._plot_def_opt, kwargs['options'])
+
+    if 'formatting' not in kwargs:
+        logger.info('Using default formatting')
+        formatting = config._ts_plot_def_fmt['uplot']
+    else:
+        formatting = dict_fmerge(config._ts_plot_def_fmt['uplot'], kwargs['formatting'])
+
+    # Size sanity check
+    if formatting['width'] < 100:
+        logger.info('Setting width to 800')
+        formatting['width'] = 800
+    if formatting['height'] < 100:
+        logger.info('Reducing height to 600')
+        formatting['height'] = 600
+
+    if 'html' not in options:
+        options['html'] = False
+
+    h = Template(head_template).render(title=formatting['title'])
+
+    # Get dataframe
+    if isinstance(self, Test):
+        df, subplots, sides = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots, sides = prepare_device_data(self, traces, options)
+
+    # If empty, nothing to do here
+    if df is None:
+        return None
+
+    df = df.fillna('null')
+    n_subplots = len(subplots)
+
+    # Get data in uplot expected format
+    udf = df.copy()
+    udf.index = udf.index.astype('int64')/10**9
+
+    for isbplt in range(n_subplots):
+
+        sdf = udf.loc[:, subplots[isbplt]]
+        sdf = sdf.reset_index()
+        data = sdf.values.T.tolist()
+
+        labels = sdf.columns
+        useries = [{'label': labels[0]}]
+
+        uaxes = [
+            {
+                'label': formatting['xlabel'],
+                'labelSize': formatting['fontsize']
+            }
+        ]
+
+        side = 3
+        multiple_sides = False
+        if all([sides[side] == 'right' for side in sides]):
+            side = 1
+        elif all([sides[side] == 'left' for side in sides]):
+            side = 3
+        else:
+            for side in sides:
+                if sides[side] not in ['right', 'left']:
+                    logger.warning(f'Unknown side {sides[side]}. Valid options: "left", "right"')
+                    continue
+                else:
+                    multiple_sides = True
+
+        if not multiple_sides:
+            if formatting['ylabel'] is None:
+                ylabel = None
+            else:
+                ylabel = formatting['ylabel'][isbplt+1]
+
+            uaxes.append(
+                        {
+                            'label': ylabel,
+                            'labelSize': formatting['fontsize'],
+                            'side': side
+                        }
+            )
+        else:
+            if 'ylabel_left' in formatting:
+                if formatting['ylabel_left'] is None:
+                    ylabel_left = None
+                else:
+                    ylabel_left = formatting['ylabel_left'][isbplt+1]
+            elif 'ylabel' in formatting:
+                if formatting['ylabel'] is None:
+                    ylabel_left = None
+                else:
+                    ylabel_left = formatting['ylabel'][isbplt+1]
+
+            uaxes.append(
+                        {
+                            'label': ylabel_left,
+                            'scale': "left",
+                            'labelSize': formatting['fontsize'],
+                            'side': 3
+                        }
+            )
+
+            if 'ylabel_right' in formatting:
+                if formatting['ylabel_right'] is None:
+                    ylabel_right = None
+                else:
+                    ylabel_right = formatting['ylabel_right'][isbplt+1]
+            else:
+                ylabel_right = None
+
+            uaxes.append(
+                        {
+                            'label': ylabel_right,
+                            'scale': "right",
+                            'labelSize': formatting['fontsize'],
+                            'side': 1
+                        }
+                )
+
+
+        color_idx=0
+
+        for label in labels:
+            if label == labels[0]: continue
+            if color_idx+1>len(colors): color_idx=0
+
+            nser = {
+                    'label': label,
+                    'stroke': colors[color_idx],
+                    'points': {'space': 0, 'size': formatting['size']}
+                    }
+
+            if multiple_sides:
+                if label in sides:
+                    nser["scale"] = sides[label]
+
+            useries.append(nser)
+            color_idx += 1
+
+        u_options = {
+                        'width': formatting['width'],
+                        'height': formatting['height'],
+                        'legend': {'isolate': False},
+                        'hooks': {'init': 'initHook'},
+                        'cursor': {
+                                    'lock': True,
+                                    'focus': {
+                                                'prox': 16,
+                                    },
+                                    'sync': {
+                                                'key': 'moo',
+                                                'setSeries': True,
+                                    },
+                                    'drag': {
+                                                'x': True,
+                                                'y': True,
+                                                'setScale': True,
+                                                'uni': 50,
+                                                'dist': 10,
+                                            }
+                                    },
+                        'scales': {
+                                    'x': {'time': True},
+                                    'y': {'auto': True},
+                                  },
+                        'series': useries,
+                        'axes': uaxes
+                    }
+
+        h2 = Template(uplot_template).render(
+            data=json.dumps(data),
+            options=json.dumps(u_options),
+            subplot=isbplt
+        )
+
+        h += h2
+
+    h = h.replace('"', "'")
+    h = h.replace("'null'", "null")
+    # Super-Hack to get axis to drag
+    h = h.replace("initHook", initHook)
+    h = h.replace("'**[", "[")
+    h = h.replace("]**'", "]")
+
+    if options['html']:
+        return h
+    else:
+        iframe = f'''<iframe srcdoc="{h}" src=""
+            frameborder="0" width={formatting['width'] + formatting['padding-right']}
+            height={formatting['height'] + formatting['padding-bottom']}
+            sandbox="allow-scripts" class="plot-area">
+            </iframe>'''
+
+        return HTML(iframe)

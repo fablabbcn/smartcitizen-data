@@ -1,12 +1,13 @@
-from scdata.tools.custom_logger import logger
-from scdata._config import config
-import matplotlib.pyplot as plt
 import matplotlib.colors
-from matplotlib import rcParams
-from matplotlib import style
-from seaborn import set_palette
-from scipy.stats import t
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import rcParams, style
+from scipy.stats import t
+from seaborn import set_palette
+
+from scdata._config import config
+from scdata.tools.custom_logger import logger
+
 
 def ts_dispersion_plot(self, **kwargs):
     '''

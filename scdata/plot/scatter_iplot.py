@@ -1,9 +1,12 @@
+import plotly.tools as tls
+from plotly.io import renderers
+
+from scdata._config import config
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
+
 from .scatter_plot import scatter_plot
-from scdata._config import config
-from plotly.io import renderers
-import plotly.tools as tls
+
 
 def scatter_iplot(self, **kwargs):
     """
@@ -56,8 +59,8 @@ def scatter_iplot(self, **kwargs):
     mfig = scatter_plot(self, traces = traces, options = options, formatting = formatting)
     options['show'] = toshow
 
-    pfig = tls.mpl_to_plotly(mfig);
+    pfig = tls.mpl_to_plotly(mfig)
 
-    if options['show']: pfig.show();
+    if options['show']: pfig.show()
 
     return pfig

@@ -1,15 +1,18 @@
-from matplotlib import style
 from math import sqrt
-from numpy import power
-import matplotlib.pyplot as plt
 from traceback import print_exc
-from .plot_tools import colors, markers
+
+import matplotlib.pyplot as plt
+from matplotlib import style
+from numpy import power
+
+from scdata.plot.tools import colors, markers
+
 
 def target_diagram(models, **kwargs):
     ## TODO DOCUMENT
     if 'style' in kwargs:
         style.use(kwargs['style'])
-    
+
     def minRtarget(targetR):
         return sqrt(1+ power(targetR,2)-2*power(targetR,2))
 
@@ -32,13 +35,13 @@ def target_diagram(models, **kwargs):
 
             if prev_group != models[model]['group']: i = 0
             else: i+=1
-            
-            if models[model]['group'] > len(colors)-1: 
+
+            if models[model]['group'] > len(colors)-1:
                 color_group = colors[models[model]['group']-len(colors)]
-            else: 
+            else:
                 color_group = colors[models[model]['group']]
             marker_group = markers[i]
-            plt.scatter(metrics_model['sign_sigma']*metrics_model['RMSD_norm_unb'], metrics_model['normalised_bias'], 
+            plt.scatter(metrics_model['sign_sigma']*metrics_model['RMSD_norm_unb'], metrics_model['normalised_bias'],
                 label = model, color = color_group, marker = marker_group, s = 100, alpha = 0.7)
             prev_group = models[model]['group']
         except:
@@ -54,32 +57,32 @@ def target_diagram(models, **kwargs):
     circleMR0 =plt.Circle((0, 0), MR0, linewidth = 1.4, color='r', fill=False)
     circleMR1 =plt.Circle((0, 0), MR1, linewidth = 1.4, color='y', fill=False)
     circleMR2 =plt.Circle((0, 0), MR2, linewidth = 1.4, color='g', fill=False)
-    
+
     circle3 =plt.Circle((0, 0), 0.01, color='g', fill=True)
-    
+
     ## Add annotations
     ax.add_artist(circle1)
     ax.annotate('R2 < 0',
                 xy=(1, 0), xycoords='data',
                 xytext=(-35, 10), textcoords='offset points')
-    
+
     ax.add_artist(circleMR0)
     ax.annotate('R2 < ' + str(targetR20),
                 xy=(MR0, 0), xycoords='data',
                 xytext=(-35, 10), textcoords='offset points', color = 'r')
-    
+
     ax.add_artist(circleMR1)
     ax.annotate('R2 < ' + str(targetR21),
                 xy=(MR1, 0), xycoords='data',
                 xytext=(-45, 10), textcoords='offset points', color = 'y')
-    
-    
+
+
     ax.add_artist(circleMR2)
     ax.annotate('R2 < ' + str(targetR22),
                 xy=(MR2, 0), xycoords='data',
                 xytext=(-45, 10), textcoords='offset points', color = 'g')
     ax.add_artist(circle3)
-    
+
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.xlim([-1.1,1.1])
     plt.ylim([-1.1,1.1])

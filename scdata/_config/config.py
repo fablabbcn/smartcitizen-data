@@ -29,10 +29,6 @@ class Config(object):
 
     # Framework option
     # For renderer plots and config files
-    # Options:
-    # - 'script': no plots in jupyter, updates config
-    # - 'jupyterlab': for plots, updates config
-    # - 'chupiflow': no plots in jupyter, does not update config
     framework = 'script'
 
     if 'IPython' in sys.modules: _ipython_avail = True
@@ -421,7 +417,7 @@ class Config(object):
         'SCD30_HUM': 1,
         'SCD30_TEMP': 1,
         'SD-card': 1,
-        'ST LPS33 - Barometric Pressure': 1,
+        'LPS33_PRESS': 1,
         'PRESS': 1,
         'PMS5003_PM_1': 5,
         'PMS5003_PM_25': 5,
@@ -471,12 +467,14 @@ class Config(object):
     }
 
     _default_unplausible_values = {
+        'CCS811_VOCS': [0, 30000],
+        'CCS811_ECO2': [400, 30000],
         'NOISE_A': [20, 99],
-        'SCD30_CO2': [300, 2000],
+        'SCD30_CO2': [300, 9500], # Sensor limit is 10000ppm
         'SCD30_HUM': [20, 99],
         'SCD30_TEMP': [-20, 50],
         'BATT': [0, 100],
-        'ST LPS33 - Barometric Pressure': [50, 110],
+        'LPS33_PRESS': [50, 110],
         'PRESS': [50, 110],
         'PMS5003_PM_1': [0, 500],
         'PMS5003_PM_25': [0, 500],
@@ -487,19 +485,19 @@ class Config(object):
         'SEN5X_PM_25': [0, 500],
         'SEN5X_PM_40': [0, 500],
         'SEN5X_TEMP': [-20, 50],
-        'SFA30_HCHO': [00, 1000],
+        'SFA30_HCHO': [0, 4500], # Sensor saturates at 5000ppb, standard output is at 1000ppb
         'SFA30_HUM': [20, 99],
         'SFA30_TEMP': [-20, 50],
-        'ADC_48_0': [0, 3],
-        'ADC_48_1': [0, 3],
-        'ADC_48_2': [0, 3],
-        'ADC_48_3': [0, 3],
-        'ADC_49_0': [0, 3],
-        'ADC_49_1': [0, 3],
-        'ADC_49_2': [0, 3],
-        'ADC_49_3': [0, 3],
+        'ADC_48_0': [0, 5.1],
+        'ADC_48_1': [0, 5.1],
+        'ADC_48_2': [0, 5.1],
+        'ADC_48_3': [0, 5.1],
+        'ADC_49_0': [0, 5.1],
+        'ADC_49_1': [0, 5.1],
+        'ADC_49_2': [0, 5.1],
+        'ADC_49_3': [0, 5.1],
         'HUM': [20, 99],
-        'TEMP': [-20, 50],
+        'TEMP': [-40, 60],
         'NO2': [0, 1000],
         'O3': [0, 1000],
         'AS_TEMP': [-20, 50],

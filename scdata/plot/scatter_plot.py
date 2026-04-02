@@ -1,13 +1,14 @@
+from math import ceil, floor
+
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
-from matplotlib import style
-from seaborn import set_palette, regplot, scatterplot, relplot
+from matplotlib import rcParams, style
+from numpy import array
+from seaborn import regplot, relplot, scatterplot, set_palette
+
+from scdata._config import config
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
-from scdata._config import config
-from .plot_tools import prepare_data, colors
-from numpy import array
-from math import floor, ceil
 
 def scatter_plot(self, **kwargs):
     """
@@ -37,6 +38,9 @@ def scatter_plot(self, **kwargs):
     -------
         Matplotlib figure and axes
     """
+
+    from scdata.test.test import Test
+    from scdata.device.device import Device
 
     if config.framework == 'jupyterlab':
         plt.ioff()
@@ -99,7 +103,10 @@ def scatter_plot(self, **kwargs):
                                 }
 
     # Get dataframe
-    df, subplots = prepare_data(self, ptraces, options)
+    if isinstance(self, Test):
+        df, subplots, sides = prepare_test_data(self, traces, options)
+    elif isinstance(self, Device):
+        df, subplots, sides = prepare_device_data(self, traces, options)
 
     # If empty, nothing to do here
     if df is None:

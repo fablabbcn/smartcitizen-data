@@ -1,9 +1,7 @@
+from pandas import DataFrame
+
 from scdata.tools.custom_logger import logger
-import matplotlib.pyplot as plt
-from pandas import to_datetime, DataFrame
-from scdata.test.plot.plot_tools import prepare_data
-from scdata._config import config
-from scdata.tools.dictmerge import dict_fmerge
+
 
 def get_common_channels(self, devices = None, ignore_missing_channels = False, pop_zero_readings_devices = False, detailed = False, verbose = True):
     '''
@@ -80,7 +78,7 @@ def get_common_channels(self, devices = None, ignore_missing_channels = False, p
         logger.info(f'Final list of channels:\n {self.common_channels}')
         if show_warning:
             logger.warning (f'Some devices show less amount of sensors')
-            print (channels_devices)
+            logger.info (channels_devices)
 
         return self.common_channels
 
