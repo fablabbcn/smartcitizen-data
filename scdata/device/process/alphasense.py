@@ -27,6 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
+        resample_frequency: string
+            Resample we and ae electrodes with certain frequency
         return_all_cols: bool
             Return all columns intermediate to the calculation
     Returns
@@ -72,6 +74,7 @@ def alphasense_803_04(dataframe, **kwargs):
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
 
+    resample_frequency = kwargs.get('resample_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
 
     # Make copy
@@ -132,6 +135,12 @@ def alphasense_803_04(dataframe, **kwargs):
     df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
     # Get requested temperature
     df['t'] = df[kwargs['t']]
+
+    # Resample if requested
+    if resample_frequency is not None:
+        df = df[~df.index.duplicated(keep='first')]
+        df['we_t'] = df['we_t'].rolling(resample_frequency).mean()
+        df['ae_t'] = df['ae_t'].rolling(resample_frequency).mean()
 
     # Temperature compensation - done line by line as it has special conditions
     df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
@@ -247,6 +256,9 @@ def alphasense_als(dataframe, **kwargs):
     resample_frequency = kwargs.get('resample_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
 
+    # Algorithm selection
+    algorithm = kwargs.get('algorithm', 1)
+
     # Make copy
     df = dataframe.copy()
 
@@ -283,8 +295,9 @@ def alphasense_als(dataframe, **kwargs):
 
     # Resample if requested
     if resample_frequency is not None:
-        df['we_t'] = df['we_t'].resample(resample_frequency).mean()
-        df['ae_t'] = df['ae_t'].resample(resample_frequency).mean()
+        df = df[~df.index.duplicated(keep='first')]
+        df['we_t'] = df['we_t'].rolling(resample_frequency).mean()
+        df['ae_t'] = df['ae_t'].rolling(resample_frequency).mean()
 
     # Get requested temperature
     df['t'] = df[kwargs['t']]
@@ -300,12 +313,26 @@ def alphasense_als(dataframe, **kwargs):
     else:
         return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
 
-    # Calculate baseline factor with the baseline mean
-    df['baseline_t'] = df['we_baseline'].dropna().mean() / df['ae_t']
-    df['baseline_t_mean'] = df['baseline_t'].mean()
-    # Correct Auxiliary electrode based on mean factor
-    df['ae_cor'] = df['baseline_t'].mean() * df['ae_t']
-    df['we_c'] = df['we_t'] - df['ae_cor']
+    if algorithm == 1: # Division
+        # Calculate baseline factor with the baseline mean
+        mean_we = df['we_baseline'].mean()
+        mask = df['ae_t'].notna() & (df['ae_t'] != 0)
+        df.loc[mask, 'baseline_t'] = mean_we / df.loc[mask, 'ae_t']
+        df['baseline_t_mean'] = df['baseline_t'].mean()
+
+        # Correct Auxiliary electrode based on mean factor
+        df['ae_cor'] = df['baseline_t_mean'] * df['ae_t']
+        df['we_c'] = df['we_t'] - df['ae_cor']
+    elif algorithm == 2: # +/-
+        # Calculate baseline factor with the baseline mean
+        mean_we = df['we_baseline'].quantile(0.05)
+        mask = df['ae_t'].notna() & (df['ae_t'] != 0)
+        df.loc[mask, 'baseline_t'] = mean_we - df.loc[mask, 'ae_t']
+        df['baseline_t_mean'] = mean_we
+
+        # Correct Auxiliary electrode based on mean factor
+        df['ae_cor'] = df['ae_t'] + mean_we
+        df['we_c'] = df['we_t'] - df['ae_cor']
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
