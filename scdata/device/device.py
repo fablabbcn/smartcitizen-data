@@ -294,7 +294,9 @@ class Device(BaseModel):
             return True
 
     def del_metric(self, metric_name = ''):
-        if 'metrics' not in vars(self): raise ValueError('Device has no metrics')
+        if 'metrics' not in vars(self):
+            raise ValueError('Device has no metrics')
+
         m = find_by_field(self.metrics, metric_name, 'name')
         if m:
             self.metrics.remove(m)
