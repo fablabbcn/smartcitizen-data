@@ -42,7 +42,8 @@ class TimeSeriesPanel:
         self.series_select = pn.widgets.MultiChoice(
             name="Series",
             options=[],
-            value=[]
+            value=[],
+            search_option_limit=10
         )
 
         self.target_plot = pn.widgets.IntInput(
@@ -65,17 +66,6 @@ class TimeSeriesPanel:
         # --- plot grouping ---
         self.plot_groups = {0: []}
         self.num_plots = 1
-
-        # preselect some channels
-        if channels and device_id is not None:
-            preselect = []
-            for ch in channels:
-                full_name = f"{device_id}:{ch}"
-                if full_name in series_dict:
-                    self.plot_groups[0].append(full_name)
-                    preselect.append(full_name)
-            # Preselect in the Series widget
-            self.series_select.value = preselect
 
         # --- color map ---
         palette = [
@@ -112,6 +102,17 @@ class TimeSeriesPanel:
         # self.toggle_legend_button.on_click(self._toggle_legend)
 
         self._update_series_options()
+
+        # preselect some channels
+        if channels and device_id is not None:
+            preselect = []
+            for ch in channels:
+                full_name = f"{device_id}:{ch}"
+                if full_name in series_dict:
+                    self.plot_groups[0].append(full_name)
+                    preselect.append(full_name)
+            # Preselect in the Series widget
+            self.series_select.value = preselect
 
         # --- reactive plot container ---
         self.plot_pane = pn.Column(self._build_plots())
