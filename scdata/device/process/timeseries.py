@@ -65,10 +65,10 @@ def clean_ts(dataframe, **kwargs):
         limits: list, optional
             (0, 99999)
             Sensor limits. The function will fill with NaN in the values that exceed the band
-        window_size: int, optional
+        window: int, optional
             3
             If not None, will smooth the time series by applying a rolling window of that size
-        window_type: str, optional
+        win_type: str, optional
             None
             Accepts arguments in the list of windows for scipy.signal windows:
             https://docs.scipy.org/doc/scipy/reference/signal.html#window-functions
@@ -90,14 +90,11 @@ def clean_ts(dataframe, **kwargs):
     result[result < lower_limit] = nan
 
     # Smoothing
-    if 'window_size' in kwargs: window = kwargs['window_size']
-    else: window = 3
-
-    if 'window_type' in kwargs: win_type = kwargs['window_type']
-    else: win_type = None
+    window=kwargs.get('window', 3)
+    win_type=kwargs.get('win_type', None)
 
     if window is not None:
-        result.rolling(window = window, win_type = win_type).mean()
+        result = result.rolling(window = window, win_type = win_type).mean()
 
     return ProcessResult(result, StatusCode.SUCCESS)
 
