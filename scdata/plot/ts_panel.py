@@ -42,8 +42,7 @@ class TimeSeriesPanel:
         self.series_select = pn.widgets.MultiChoice(
             name="Series",
             options=[],
-            value=[],
-            search_option_limit=10
+            value=[]
         )
 
         self.target_plot = pn.widgets.IntInput(
