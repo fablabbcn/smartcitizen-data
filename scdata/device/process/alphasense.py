@@ -213,8 +213,6 @@ def alphasense_als(dataframe, **kwargs):
             Offset the resulting negative values for the signal
         background_conc: bool
             Offset a background concentration on resulting value
-        resample_frequency: string
-            Resample we for gap detection with certain frequency
         n_gaps: int
             Number of rows that need to be NaN to be considered a gap
             Default: 5
@@ -264,7 +262,7 @@ def alphasense_als(dataframe, **kwargs):
 
     # Gaps cleaning
     n_gaps = kwargs.get('n_gaps', None)
-    resample_frequency = kwargs.get('resample_frequency', None)
+    # resample_frequency = kwargs.get('resample_frequency', None)
     gap_window_removal_h = kwargs.get('gap_window_removal_h', 6)
 
     # Rolling
@@ -315,7 +313,7 @@ def alphasense_als(dataframe, **kwargs):
     # Find gaps
     found_gaps = False
     baseline_als_kwargs = {'name': 'we_t'}
-    if n_gaps and resample_frequency and gap_window_removal_h is not None:
+    if n_gaps and gap_window_removal_h is not None:
         logger.info(f'Searching gaps of at least {n_gaps}')
         # logger.info(f'Resampling at {resample_frequency}')
         # df = df.resample(resample_frequency).mean() # This is important, otherwise we can't find gaps
