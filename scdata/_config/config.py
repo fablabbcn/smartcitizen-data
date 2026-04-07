@@ -466,6 +466,7 @@ class Config(object):
         'AS_DO': 1
     }
 
+    # TODO - Review limits
     _default_unplausible_values = {
         'CCS811_VOCS': [0, 30000],
         'CCS811_ECO2': [400, 30000],
