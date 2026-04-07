@@ -90,7 +90,7 @@ def clean_ts(dataframe, **kwargs):
     result[result < lower_limit] = nan
 
     # Smoothing
-    window=kwargs.get('window', 3)
+    window=kwargs.get('window', None)
     win_type=kwargs.get('win_type', None)
 
     if window is not None:
