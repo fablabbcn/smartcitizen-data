@@ -6,7 +6,7 @@ from scdata.device.process.params import *
 from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
-from pandas import date_range, DataFrame, Series, isnull
+from pandas import date_range, DataFrame, Series, isnull, Timedelta
 from scdata.device.process.error_codes import StatusCode, ProcessResult
 
 def alphasense_803_04(dataframe, **kwargs):
@@ -27,8 +27,8 @@ def alphasense_803_04(dataframe, **kwargs):
         use_alternative: boolean
             Default false
             Use alternative algorithm as shown in the AAN
-        resample_frequency: string
-            Resample we and ae electrodes with certain frequency
+        rolling_frequency: string
+            Rolling average frequency for we and ae electrodes
         return_all_cols: bool
             Return all columns intermediate to the calculation
     Returns
@@ -74,7 +74,7 @@ def alphasense_803_04(dataframe, **kwargs):
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
 
-    resample_frequency = kwargs.get('resample_frequency', None)
+    rolling_frequency = kwargs.get('rolling_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
 
     # Make copy
@@ -121,7 +121,7 @@ def alphasense_803_04(dataframe, **kwargs):
     for electrode in ['we', 'ae']:
         subkwargs = {'name': kwargs[electrode],
                         'limits': (0, 5), # In V
-                        'window_size': None
+                        'window': None
                     }
 
         cleaning_result = clean_ts(df, **subkwargs)
@@ -137,10 +137,9 @@ def alphasense_803_04(dataframe, **kwargs):
     df['t'] = df[kwargs['t']]
 
     # Resample if requested
-    if resample_frequency is not None:
-        df = df[~df.index.duplicated(keep='first')]
-        df['we_t'] = df['we_t'].rolling(resample_frequency).mean()
-        df['ae_t'] = df['ae_t'].rolling(resample_frequency).mean()
+    if rolling_frequency is not None:
+        df['we_t'] = df['we_t'].rolling(rolling_frequency).mean()
+        df['ae_t'] = df['ae_t'].rolling(rolling_frequency).mean()
 
     # Temperature compensation - done line by line as it has special conditions
     df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
@@ -182,13 +181,11 @@ def alphasense_803_04(dataframe, **kwargs):
 
         result = df[cols].copy()
 
-        rename_cols = {
-            "we_clean": f"803_we_clean",
-            "ae_clean": f"803_ae_clean",
-            "we_t": f"803_we_t",
-            "ae_t": f"803_ae_t",
-            "we_c": f"803_we_c"
-        }
+        rename_cols = {}
+        for col in cols:
+            if col == 'conc': continue
+            rename_cols[col] = f'803_{col}'
+
         result.rename(columns=rename_cols, inplace=True)
     else:
         result = df['conc'].copy()
@@ -217,7 +214,14 @@ def alphasense_als(dataframe, **kwargs):
         background_conc: bool
             Offset a background concentration on resulting value
         resample_frequency: string
-            Resample we and ae electrodes with certain frequency
+            Resample we for gap detection with certain frequency
+        n_gaps: int
+            Number of rows that need to be NaN to be considered a gap
+            Default: 5
+        gap_window_removal_h: int
+            Number of hours to remove data after a gap is found for baseline calculation
+        rolling_frequency: string
+            Roll average for we and ae electrodes with certain frequency
         return_all_cols: bool
             Return all columns intermediate to the calculation
     Returns
@@ -246,18 +250,25 @@ def alphasense_als(dataframe, **kwargs):
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
 
     # Parse options
-    clip_negative_conc = kwargs.get('clip_negative_conc', _default_clip_negative_conc)
-    offset_negative_conc = kwargs.get('offset_negative_conc', _default_offset_negative_conc)
+    clip_negative_conc = kwargs.get('clip_negative_conc', default_clip_negative_conc)
+    offset_negative_conc = kwargs.get('offset_negative_conc', default_offset_negative_conc)
     background_conc = kwargs.get('background_conc', 0)
 
     lam = kwargs.get('lam', None)
     p = kwargs.get('p', None)
 
-    resample_frequency = kwargs.get('resample_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
 
     # Algorithm selection
     algorithm = kwargs.get('algorithm', 1)
+
+    # Gaps cleaning
+    n_gaps = kwargs.get('n_gaps', None)
+    resample_frequency = kwargs.get('resample_frequency', None)
+    gap_window_removal_h = kwargs.get('gap_window_removal_h', 6)
+
+    # Rolling
+    rolling_frequency = kwargs.get('rolling_frequency', None)
 
     # Make copy
     df = dataframe.copy()
@@ -278,12 +289,12 @@ def alphasense_als(dataframe, **kwargs):
 
     # Remove spurious voltages (0V < electrode < 5V)
     for electrode in ['we', 'ae']:
-        subkwargs = {'name': kwargs[electrode],
+        clean_ts_kwargs = {'name': kwargs[electrode],
                         'limits': (0, 5), # In V
-                        'window_size': None
+                        'window': None
                     }
 
-        cleaning_result = clean_ts(df, **subkwargs)
+        cleaning_result = clean_ts(df, **clean_ts_kwargs)
         if 'SUCCESS' in cleaning_result.status_code.name:
             df[f'{electrode}_clean'] = cleaning_result.data
         else:
@@ -293,21 +304,55 @@ def alphasense_als(dataframe, **kwargs):
     df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
     df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
 
-    # Resample if requested
-    if resample_frequency is not None:
-        df = df[~df.index.duplicated(keep='first')]
-        df['we_t'] = df['we_t'].rolling(resample_frequency).mean()
-        df['ae_t'] = df['ae_t'].rolling(resample_frequency).mean()
+    # Roll if requested
+    if rolling_frequency is not None:
+        logger.info(f'Rolling on sensor data {rolling_frequency}')
+        df['we_t'] = df['we_t'].rolling(rolling_frequency).mean()
+        df['ae_t'] = df['ae_t'].rolling(rolling_frequency).mean()
+    else:
+        logger.warning('Not doing rolling on sensor data')
+
+    # Find gaps
+    found_gaps = False
+    baseline_als_kwargs = {'name': 'we_t'}
+    if n_gaps and resample_frequency and gap_window_removal_h is not None:
+        logger.info(f'Searching gaps of at least {n_gaps}')
+        # logger.info(f'Resampling at {resample_frequency}')
+        # df = df.resample(resample_frequency).mean() # This is important, otherwise we can't find gaps
+        # df['we_na'] = df['we_t'].isna()
+        # for i in range(n_gaps):
+        #     df[f'we_na_shift_{i+1}'] = df['we_na'].shift(i+1)
+
+        # # We consider a gap only when there is at least "n_gaps" consecutive gaps
+        # cols = [c for c in df.columns if c.startswith("we_na_shift_")]
+        # # Get a falling edge afte a n_gaps-long gap
+        # df['we_gap_falling_edge'] = df[cols].all(axis=1) & (~df["we_na"])
+
+        df['time'] = df.index
+        df['time_lag'] = df['time'].shift(1)
+        df['time_delta'] = df['time'] - df['time_lag']
+        df['gap'] = df['time_delta'] > Timedelta(minutes=n_gaps)
+        df['we_mask'] = False
+        # true_idx = df.index[df["we_gap_falling_edge"]]
+        true_idx = df.index[df["gap"]]
+
+        for t in true_idx:
+            end = t + Timedelta(hours=gap_window_removal_h)
+            df.loc[t:end, "we_mask"] = True
+
+        df['we_t_filter'] = df['we_t'][~df['we_mask']]
+        # Replace baseline kwargs
+        baseline_als_kwargs = {'name': 'we_t_filter'}
+        found_gaps = True
 
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 
     # Calculate WE baseline
-    subkwargs = {'name': 'we_t'}
-    if lam is not None: subkwargs['lam'] = lam
-    if p is not None: subkwargs['p'] = p
+    if lam is not None: baseline_als_kwargs['lam'] = lam
+    if p is not None: baseline_als_kwargs['p'] = p
 
-    baseline_result = baseline_als(df, **subkwargs)
+    baseline_result = baseline_als(df, **baseline_als_kwargs)
     if 'SUCCESS' in baseline_result.status_code.name:
         df[f'we_baseline'] = baseline_result.data
     else:
@@ -323,6 +368,8 @@ def alphasense_als(dataframe, **kwargs):
         # Correct Auxiliary electrode based on mean factor
         df['ae_cor'] = df['baseline_t_mean'] * df['ae_t']
         df['we_c'] = df['we_t'] - df['ae_cor']
+        if found_gaps:
+            df['we_c'] = df['we_c'][~df['we_mask']]
     elif algorithm == 2: # +/-
         # Calculate baseline factor with the baseline mean
         mean_we = df['we_baseline'].quantile(0.05)
@@ -333,6 +380,8 @@ def alphasense_als(dataframe, **kwargs):
         # Correct Auxiliary electrode based on mean factor
         df['ae_cor'] = df['ae_t'] + mean_we
         df['we_c'] = df['we_t'] - df['ae_cor']
+        if found_gaps:
+            df['we_c'] = df['we_c'][~df['we_mask']]
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
@@ -357,8 +406,12 @@ def alphasense_als(dataframe, **kwargs):
     if return_all_cols:
         cols = [
             "we_clean",
+            "we_na",
+            "we_mask",
+            "we_gap_falling_edge",
             "ae_clean",
             "we_t",
+            "we_t_filter",
             "ae_t",
             "we_baseline",
             "baseline_t",
@@ -368,19 +421,15 @@ def alphasense_als(dataframe, **kwargs):
             "conc" # Reserved for metric name
         ]
 
-        result = df[cols].copy()
+        # Return those columns that are present in the df
+        result = df[df.columns.intersection(cols)].copy()
+        # result = df[cols].copy()
 
-        rename_cols = {
-            "we_clean": f"als_we_clean",
-            "ae_clean": f"als_ae_clean",
-            "we_t": f"als_we_t",
-            "ae_t": f"als_ae_t",
-            "we_baseline": f"als_we_baseline",
-            "baseline_t": f"als_baseline_t",
-            "baseline_t_mean": f"als_baseline_t_mean",
-            "ae_cor": f"als_ae_cor",
-            "we_c": f"als_we_c"
-        }
+        rename_cols = {}
+        for col in cols:
+            if col == 'conc': continue
+            rename_cols[col] = f'als_{col}'
+
         result.rename(columns=rename_cols, inplace=True)
 
     else:
