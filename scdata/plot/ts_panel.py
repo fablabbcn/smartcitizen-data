@@ -18,7 +18,7 @@ class Logger:
 
 class TimeSeriesPanel:
 
-    def __init__(self, series_dict, max_plots=3, height=400, width=800, debug=False):
+    def __init__(self, series_dict, max_plots=3, height=400, width=800, debug=False, channels=None, device_id=None):
         self.series_dict = series_dict
         self.max_plots = max_plots
         self.height = height
@@ -65,6 +65,17 @@ class TimeSeriesPanel:
         # --- plot grouping ---
         self.plot_groups = {0: []}
         self.num_plots = 1
+
+        # preselect some channels
+        if channels and device_id is not None:
+            preselect = []
+            for ch in channels:
+                full_name = f"{device_id}:{ch}"
+                if full_name in series_dict:
+                    self.plot_groups[0].append(full_name)
+                    preselect.append(full_name)
+            # Preselect in the Series widget
+            self.series_select.value = preselect
 
         # --- color map ---
         palette = [

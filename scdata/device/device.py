@@ -1056,7 +1056,7 @@ class Device(BaseModel):
             for col in df.columns
         }
 
-    def ts_panel(self, frequency='10Min', **kwargs):
+    def ts_panel(self, frequency='10Min', channels=None, **kwargs):
         '''
             Returns a panel for interactive plotting
             ---
@@ -1073,6 +1073,8 @@ class Device(BaseModel):
         if bokeh_available:
             return TimeSeriesPanel(
                 self.get_series_dict(frequency=frequency),
+                channels=channels,
+                device_id=self.id,
                 **kwargs
             ).view()
         else:
