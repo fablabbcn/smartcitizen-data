@@ -31,6 +31,9 @@ def alphasense_803_04(dataframe, **kwargs):
             Rolling average frequency for we and ae electrodes
         return_all_cols: bool
             Return all columns intermediate to the calculation
+        no2_channel: string
+            Default 'NO2'
+            Channel name for calculating 'NO2' cross-sensitivity
     Returns
     -------
         calculation of pollutant in ppb
@@ -76,6 +79,7 @@ def alphasense_803_04(dataframe, **kwargs):
 
     rolling_frequency = kwargs.get('rolling_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
+    no2_channel = kwargs.get('no2_channel', 'NO2')
 
     # Make copy
     df = dataframe.copy()
@@ -157,7 +161,7 @@ def alphasense_803_04(dataframe, **kwargs):
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
-        df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
+        df['we_no2_eq'] = df[no2_channel] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
         df['we_c'] -= df['we_no2_eq'] # in V
 
     # Calculate sensor concentration
@@ -222,6 +226,9 @@ def alphasense_als(dataframe, **kwargs):
             Roll average for we and ae electrodes with certain frequency
         return_all_cols: bool
             Return all columns intermediate to the calculation
+        no2_channel: string
+            Default 'NO2'
+            Channel name for calculating 'NO2' cross-sensitivity
     Returns
     -------
         calculation of pollutant in ppb
@@ -267,6 +274,9 @@ def alphasense_als(dataframe, **kwargs):
 
     # Rolling
     rolling_frequency = kwargs.get('rolling_frequency', None)
+
+    # NO2 cross-sensitivity
+    no2_channel = kwargs.get('no2_channel', 'NO2')
 
     # Make copy
     df = dataframe.copy()
@@ -383,7 +393,7 @@ def alphasense_als(dataframe, **kwargs):
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
-        df['we_no2_eq'] = df['NO2'] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
+        df['we_no2_eq'] = df[no2_channel] * cal_data['we_cross_sensitivity_no2_mv_ppb'] / 1000.0
         df['we_c'] -= df['we_no2_eq'] # in V
 
     # Calculate sensor concentration
