@@ -263,6 +263,49 @@
       "function": "alphasense_803_04",
       "unit": "ppb",
       "depends_on": ["H2S_WE", "H2S_AE", "EC_SENSOR_TEMP"]
+    },
+    {
+      "name": "CO2_CLEAN",
+      "description": "Clean CO2 values for baseline calculation",
+      "id": null,
+      "kwargs": {
+        "name": "SCD30_CO2",
+        "limits": [300, 9500],
+        "window": 5
+      },
+      "post": false,
+      "function": "clean_ts",
+      "unit": "ppm",
+      "depends_on": []
+    },
+    {
+      "name": "CO2_BASELINE",
+      "description": "Baseline calculation of CO2 with ALS",
+      "id": null,
+      "kwargs": {
+        "name": "CO2_CLEAN",
+        "p": 0.000001,
+        "lam": 10000000000,
+        "niter": 10
+      },
+      "post": false,
+      "function": "baseline_als",
+      "unit": "ppm",
+      "depends_on": ["CO2_CLEAN"]
+    },
+    {
+      "name": "CO2",
+      "description": "Correction of CO2 with ALS Baseline",
+      "id": null,
+      "kwargs": {
+        "channels": ["SCD30_CO2", "CO2_BASELINE"],
+        "coefficients": [1, -1],
+        "extra_term": 450
+      },
+      "post": false,
+      "function": "poly_ts",
+      "unit": "ppm",
+      "depends_on": ["CO2_BASELINE"]
     }
   ]
 }
