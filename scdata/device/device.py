@@ -93,6 +93,7 @@ class Device(BaseModel):
     loaded: bool = False
     processed: bool = False
     postprocessing_updated: bool = False
+    quality_metrics: dict = dict()
 
     def model_post_init(self, __context) -> None:
 
@@ -963,7 +964,7 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
         return post_ok
 
-    def backup_to_storage(self, mode='append', path='devices'):
+    def backup_to_storage(self, mode='append', path='devices', add_qc=False):
         """
         Backup device data into S3 storage (requires S3_DATA_BUCKET env
          variable set).
@@ -976,6 +977,9 @@ class Device(BaseModel):
                 'devices'
                 Path for backup directory
                 "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            add_qc: bool
+                False
+                Add quality metrics to export as json
         Returns
         ----------
             False or response from awswrangler
@@ -999,6 +1003,13 @@ class Device(BaseModel):
             s3object.put(
                 Body=(bytes(self.handler.json.model_dump_json().encode('utf-8')))
             )
+
+            # TODO Test if this works
+            if add_qc:
+                s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json")
+                s3object.put(
+                    Body=(bytes(dumps(self.quality_metrics).encode('utf-8')))
+                )
 
             return response
 
