@@ -78,8 +78,10 @@ def clean_ts(dataframe, **kwargs):
         pandas series containing the clean
     """
 
-    if 'name' not in kwargs: return None
-    if kwargs['name'] not in dataframe: return None
+    if 'name' not in kwargs:
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+    if kwargs['name'] not in dataframe:
+        return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
     result = dataframe[kwargs['name']].copy()
     # Limits
@@ -287,7 +289,6 @@ def within(dataframe, **kwargs):
 
 
 def baseline_als(dataframe, **kwargs):
-# def baseline_als(y, lam = 1000, p = 0.001, niter=10):
     """
     Performs baseline extraction of a signal, using Assymetric least squares
     P. Eilers, H. Boelens (2005)
