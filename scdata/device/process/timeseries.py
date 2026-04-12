@@ -34,9 +34,16 @@ def poly_ts(dataframe, **kwargs):
         result = sum(coefficients[i]*channels[i]^exponents[i] + extra_term)
     """
 
-    if 'channels' not in kwargs: return None
-    else: channels = kwargs['channels']
+    if 'channels' not in kwargs:
+        logger.error('Problem with input data')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+    else:
+        channels = kwargs['channels']
     n_channels = len(channels)
+
+    if any([channel not in dataframe.columns for channel in channels]):
+        logger.error("Channels not in dataframe")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
     result = 0 * dataframe[channels[0]].copy()
 
@@ -79,8 +86,10 @@ def clean_ts(dataframe, **kwargs):
     """
 
     if 'name' not in kwargs:
+        logger.error('Problem with input data')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
     if kwargs['name'] not in dataframe:
+        logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
     result = dataframe[kwargs['name']].copy()
