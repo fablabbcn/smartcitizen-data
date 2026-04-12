@@ -6,6 +6,7 @@ from scdata.device.process.params import *
 from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
+import numpy as np
 from pandas import date_range, DataFrame, Series, isnull, Timedelta
 from scdata.device.process.error_codes import StatusCode, ProcessResult
 
@@ -29,6 +30,11 @@ def alphasense_803_04(dataframe, **kwargs):
             Use alternative algorithm as shown in the AAN
         rolling_frequency: string
             Rolling average frequency for we and ae electrodes
+        n_gaps: int
+            Number of rows that need to be NaN to be considered a gap
+            Default: 5
+        gap_window_removal_h: int
+            Number of hours to remove data after a gap is found for baseline calculation
         return_all_cols: bool
             Return all columns intermediate to the calculation
         no2_channel: string
@@ -76,6 +82,10 @@ def alphasense_803_04(dataframe, **kwargs):
     if kwargs['alphasense_id'] not in config.calibrations:
         logger.error(f"Sensor {kwargs['alphasense_id']} not in calibration data")
         return ProcessResult(None, StatusCode.ERROR_CALIBRATION_NOT_FOUND)
+
+    # Gaps cleaning
+    n_gaps = kwargs.get('n_gaps', None)
+    gap_window_removal_h = kwargs.get('gap_window_removal_h', 6)
 
     rolling_frequency = kwargs.get('rolling_frequency', None)
     return_all_cols = kwargs.get('return_all_cols', False)
@@ -137,6 +147,7 @@ def alphasense_803_04(dataframe, **kwargs):
     # Compensate electronic zero
     df['we_t'] = df['we_clean'] - (cal_data['we_electronic_zero_mv'] / 1000) # in V
     df['ae_t'] = df['ae_clean'] - (cal_data['ae_electronic_zero_mv'] / 1000) # in V
+
     # Get requested temperature
     df['t'] = df[kwargs['t']]
 
@@ -144,6 +155,32 @@ def alphasense_803_04(dataframe, **kwargs):
     if rolling_frequency is not None:
         df['we_t'] = df['we_t'].rolling(rolling_frequency).mean()
         df['ae_t'] = df['ae_t'].rolling(rolling_frequency).mean()
+
+    # Find gaps
+    found_gaps = False
+    baseline_als_kwargs = {'name': 'we_t'}
+    if n_gaps and gap_window_removal_h is not None:
+        logger.info(f'Searching gaps of at least {n_gaps}')
+
+        df['time'] = df.index
+        df['time_lag'] = df['time'].shift(1)
+        df['time_delta'] = df['time'] - df['time_lag']
+        df['gap'] = df['time_delta'] > Timedelta(minutes=n_gaps)
+        df['we_mask'] = False
+
+        # Extract index of the gaps and add first index by default
+        # as it will probably have the stab issue.
+        true_idx = df.index[df["gap"]].insert(0, df.index[0])
+
+        for t in true_idx:
+            end = t + Timedelta(hours=gap_window_removal_h)
+            df.loc[t:end, "we_mask"] = True
+
+        found_gaps = True
+
+    if found_gaps:
+        df.loc[df['we_mask'], 'we_t'] = np.nan
+        df.loc[df['we_mask'], 'ae_t'] = np.nan
 
     # Temperature compensation - done line by line as it has special conditions
     df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
@@ -264,9 +301,6 @@ def alphasense_als(dataframe, **kwargs):
 
     return_all_cols = kwargs.get('return_all_cols', False)
 
-    # Algorithm selection
-    algorithm = kwargs.get('algorithm', 1)
-
     # Gaps cleaning
     n_gaps = kwargs.get('n_gaps', None)
     # resample_frequency = kwargs.get('resample_frequency', None)
@@ -325,33 +359,26 @@ def alphasense_als(dataframe, **kwargs):
     baseline_als_kwargs = {'name': 'we_t'}
     if n_gaps and gap_window_removal_h is not None:
         logger.info(f'Searching gaps of at least {n_gaps}')
-        # logger.info(f'Resampling at {resample_frequency}')
-        # df = df.resample(resample_frequency).mean() # This is important, otherwise we can't find gaps
-        # df['we_na'] = df['we_t'].isna()
-        # for i in range(n_gaps):
-        #     df[f'we_na_shift_{i+1}'] = df['we_na'].shift(i+1)
-
-        # # We consider a gap only when there is at least "n_gaps" consecutive gaps
-        # cols = [c for c in df.columns if c.startswith("we_na_shift_")]
-        # # Get a falling edge afte a n_gaps-long gap
-        # df['we_gap_falling_edge'] = df[cols].all(axis=1) & (~df["we_na"])
 
         df['time'] = df.index
         df['time_lag'] = df['time'].shift(1)
         df['time_delta'] = df['time'] - df['time_lag']
         df['gap'] = df['time_delta'] > Timedelta(minutes=n_gaps)
         df['we_mask'] = False
-        # true_idx = df.index[df["we_gap_falling_edge"]]
-        true_idx = df.index[df["gap"]]
+
+        # Extract index of the gaps and add first index by default
+        # as it will probably have the stab issue.
+        true_idx = df.index[df["gap"]].insert(0, df.index[0])
 
         for t in true_idx:
             end = t + Timedelta(hours=gap_window_removal_h)
             df.loc[t:end, "we_mask"] = True
 
-        df['we_t_filter'] = df['we_t'][~df['we_mask']]
-        # Replace baseline kwargs
-        baseline_als_kwargs = {'name': 'we_t_filter'}
         found_gaps = True
+
+    if found_gaps:
+        df.loc[df['we_mask'], 'we_t'] = np.nan
+        df.loc[df['we_mask'], 'ae_t'] = np.nan
 
     # Get requested temperature
     df['t'] = df[kwargs['t']]
@@ -366,30 +393,17 @@ def alphasense_als(dataframe, **kwargs):
     else:
         return ProcessResult(None, StatusCode.ERROR_UNDEFINED)
 
-    if algorithm == 1: # Division
-        # Calculate baseline factor with the baseline mean
-        mean_we = df['we_baseline'].mean()
-        mask = df['ae_t'].notna() & (df['ae_t'] != 0)
-        df.loc[mask, 'baseline_t'] = mean_we / df.loc[mask, 'ae_t']
-        df['baseline_t_mean'] = df['baseline_t'].mean()
+    # Calculate baseline factor with the baseline mean
+    mean_we = df['we_baseline'].mean()
+    mask = df['ae_t'].notna() & df['we_baseline'].notna()
+    coef = np.polyfit(df.loc[mask, 'ae_t'], df.loc[mask, 'we_baseline'], 1)
+    a, b = coef
 
-        # Correct Auxiliary electrode based on mean factor
-        df['ae_cor'] = df['baseline_t_mean'] * df['ae_t']
-        df['we_c'] = df['we_t'] - df['ae_cor']
-        if found_gaps:
-            df['we_c'] = df['we_c'][~df['we_mask']]
-    elif algorithm == 2: # +/-
-        # Calculate baseline factor with the baseline mean
-        mean_we = df['we_baseline'].quantile(0.05)
-        mask = df['ae_t'].notna() & (df['ae_t'] != 0)
-        df.loc[mask, 'baseline_t'] = mean_we - df.loc[mask, 'ae_t']
-        df['baseline_t_mean'] = mean_we
-
-        # Correct Auxiliary electrode based on mean factor
-        df['ae_cor'] = df['ae_t'] + mean_we
-        df['we_c'] = df['we_t'] - df['ae_cor']
-        if found_gaps:
-            df['we_c'] = df['we_c'][~df['we_mask']]
+    # Correct Auxiliary electrode based on mean factor
+    df['ae_cor'] = a * df['ae_t'] + b
+    df['we_c'] = df['we_t'] - df['ae_cor']
+    if found_gaps:
+        df.loc[df['we_mask'], 'we_c'] = np.nan
 
     # Verify if it has NO2 cross-sensitivity (in V)
     if cal_data['we_cross_sensitivity_no2_mv_ppb'] != float (0) and 'NO2' not in as_type:
@@ -419,7 +433,6 @@ def alphasense_als(dataframe, **kwargs):
             "we_gap_falling_edge",
             "ae_clean",
             "we_t",
-            "we_t_filter",
             "ae_t",
             "we_baseline",
             "baseline_t",
