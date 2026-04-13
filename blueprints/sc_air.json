@@ -2,7 +2,7 @@
   "meta": {
     "documentation": "https://docs.smartcitizen.me/"
   },
-  "metrics": [
+  "channels": [
     {
       "name": "PT1000_POS",
       "description": "PT1000 raw value",
