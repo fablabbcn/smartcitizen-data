@@ -473,7 +473,29 @@
       "description": "Find flat values in columns",
       "kwargs": {
         "flat_window_minutes": 1440,
-        "limit_rolling_std": 0.00001
+        "limit_rolling_std": 0.00001,
+        "columns": [
+          "SEN5X_PM_1",
+          "SEN5X_PM_25",
+          "SEN5X_PM_40",
+          "SEN5X_PM_10",
+          "PMS5003_PM_1",
+          "PMS5003_PM_25",
+          "PMS5003_PM_10",
+          "PRESS",
+          "NOISE_A",
+          "TEMP",
+          "HUM",
+          "SCD30_CO2",
+          "SFA30_HCHO",
+          "ADC_48_2",
+          "ADC_48_3",
+          "ADC_49_0",
+          "ADC_49_1",
+          "ADC_49_2",
+          "ADC_49_3",
+          "LPS33_PRESS"
+        ]
       },
       "store_qc": true,
       "clean": false,
