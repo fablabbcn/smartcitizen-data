@@ -466,7 +466,7 @@
       },
       "store_qc": true,
       "clean": true,
-      "function": "find_implausibles"
+      "function": "find_implausible_values"
     },
     {
       "name": "FLAT",
