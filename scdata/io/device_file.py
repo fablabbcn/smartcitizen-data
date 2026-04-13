@@ -7,7 +7,7 @@ from scdata.tools.date import localise_date
 from scdata.tools.cleaning import clean
 from pandas import read_csv, to_datetime, DataFrame
 from scdata._config import config
-from scdata.models import Metric
+from scdata.models import CalculatedChannel
 
 class CSVHandler:
     ''' Main implementation of the CSV data class '''
@@ -19,7 +19,7 @@ class CSVHandler:
         self.blueprint_url = None
         self.override_url_blueprint = True
         self.data = DataFrame()
-        self._metrics: List[Metric] = []
+        self._calculated_channels: List[CalculatedChannel] = []
         self.latest_postprocessing = None
         if not self.__check__():
             raise FileExistsError(f'File not found: {self.params.path}')

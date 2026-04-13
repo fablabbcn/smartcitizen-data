@@ -88,7 +88,7 @@ def clean_ts(dataframe, **kwargs):
     if 'name' not in kwargs:
         logger.error('Problem with input data')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
-    if kwargs['name'] not in dataframe:
+    if kwargs['name'] not in dataframe.columns:
         logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
@@ -212,7 +212,11 @@ def rolling_avg(dataframe, **kwargs):
 
     if 'name' not in kwargs:
         logger.error (f'{kwargs[name]} not in kwargs')
-        return None
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
+    if kwargs['name'] not in dataframe:
+        logger.error(f"{kwargs['name']} not in dataframe")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
     result = dataframe[kwargs['name']].copy()
 
@@ -248,9 +252,18 @@ def time_derivative(dataframe, **kwargs):
         pandas series containing derivative using simple np.diff
     """
 
-    if 'name' not in kwargs: return None
-    if 'gaussian_filter1d' not in kwargs: gaussian_filter1d = True
-    else: gaussian_filter1d = False
+    if 'name' not in kwargs:
+        logger.error('Problem with input data')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
+    if kwargs['name'] not in dataframe.columns:
+        logger.error(f"{kwargs['name']} not in dataframe")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
+
+    if 'gaussian_filter1d' not in kwargs:
+        gaussian_filter1d = True
+    else:
+        gaussian_filter1d = False
 
     df = dataframe.copy()
 

@@ -5,7 +5,7 @@ from datetime import datetime
 class TestOptions(BaseModel):
     cache: Optional[bool] = True
 
-class Metric(BaseModel):
+class CalculatedChannel(BaseModel):
     id: Optional[int] = None
     name: str
     description: Optional[str] = ''
@@ -16,6 +16,16 @@ class Metric(BaseModel):
     args: Optional[dict] = None
     kwargs: Optional[dict] = None
     depends_on: List[str] = []
+
+class Check(BaseModel):
+    name: str
+    description: Optional[str] = ''
+    module: Optional[str] = "scdata.device.check"
+    function: str
+    clean: Optional[bool] = False
+    store_qc: Optional[bool] = True
+    args: Optional[dict] = None
+    kwargs: Optional[dict] = None
 
 class Sensor(BaseModel):
     id: int
@@ -57,7 +67,8 @@ class DeviceOptions(BaseModel):
 
 class Blueprint(BaseModel):
     meta: dict = dict()
-    metrics: List[Metric] = []
+    channels: List[CalculatedChannel] = []
+    checks: List[Check] = []
 
 class Name(BaseModel):
     id: int

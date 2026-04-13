@@ -533,8 +533,7 @@
           "ADC_49_2",
           "ADC_49_3",
           "LPS33_PRESS"
-        ],
-        "contamination": 0.02
+        ]
       },
       "store_qc": true,
       "clean": false,

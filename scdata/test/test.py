@@ -224,7 +224,8 @@ class Test(BaseModel):
             },
             'options': self.options.model_dump(),
             'devices': [{'params': device.params.model_dump(),
-                         'metrics': [metric.model_dump() for metric in device.metrics],
+                         'channels': [channel.model_dump() for channel in device.channels],
+                         'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
                          'blueprint': device.blueprint}
                          for device in self.devices]
