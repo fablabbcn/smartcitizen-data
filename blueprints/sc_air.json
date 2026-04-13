@@ -307,5 +307,209 @@
       "unit": "ppm",
       "depends_on": ["CO2_BASELINE"]
     }
+  ],
+  "checks": [
+    {
+      "name": "GAPS",
+      "description": "Find gaps in columns",
+      "kwargs": {
+        "default_gap_size_minutes": 5,
+        "gap_sizes": [
+          {
+            "columns": ["SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPS", "SEN5X_TEMP"],
+            "gap_size_minutes": 10
+          }
+        ]
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_gaps"
+    },
+    {
+      "name": "IMPLAUSIBLE",
+      "description": "Find implausible values in columns",
+      "kwargs": {
+        "implausible_values": [
+          {
+            "column": "CCS811_VOCS",
+            "limits": [0, 30000]
+          },
+          {
+            "column": "CCS811_ECO2",
+            "limits": [400, 30000]
+          },
+          {
+            "column": "NOISE_A",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SCD30_CO2",
+            "limits": [300, 9500]
+          },
+          {
+            "column": "SCD30_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SCD30_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "BATT",
+            "limits": [0, 100]
+          },
+          {
+            "column": "LPS33_PRESS",
+            "limits": [50, 110]
+          },
+          {
+            "column": "PRESS",
+            "limits": [50, 110]
+          },
+          {
+            "column": "PMS5003_PM_1",
+            "limits": [0, 500]
+          },
+          {
+            "column": "PMS5003_PM_25",
+            "limits": [0, 500]
+          },
+          {
+            "column": "PMS5003_PM_10",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SEN5X_PM_1",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_10",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_25",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_40",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "SFA30_HCHO",
+            "limits": [0, 4500]
+          },
+          {
+            "column": "SFA30_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SFA30_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "ADC_48_0",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_1",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_2",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_3",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_0",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_1",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_2",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_3",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "TEMP",
+            "limits": [-40, 60]
+          },
+          {
+            "column": "NO2",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "O3",
+            "limits": [0, 1000]
+          }
+        ]
+      },
+      "store_qc": true,
+      "clean": true,
+      "function": "find_implausibles"
+    },
+    {
+      "name": "FLAT",
+      "description": "Find flat values in columns",
+      "kwargs": {
+        "flat_window_minutes": 1440,
+        "limit_rolling_std": 0.00001
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_flat_values"
+    },
+    {
+      "name": "OUTLIERS",
+      "description": "Find outliers values in columns",
+      "kwargs": {
+        "columns": [
+          "SEN5X_PM_1",
+          "SEN5X_PM_25",
+          "SEN5X_PM_40",
+          "SEN5X_PM_10",
+          "PMS5003_PM_1",
+          "PMS5003_PM_25",
+          "PMS5003_PM_10",
+          "PRESS",
+          "NOISE_A",
+          "TEMP",
+          "HUM",
+          "SCD30_CO2",
+          "SFA30_HCHO",
+          "ADC_48_2",
+          "ADC_48_3",
+          "ADC_49_0",
+          "ADC_49_1",
+          "ADC_49_2",
+          "ADC_49_3",
+          "LPS33_PRESS"
+        ],
+        "contamination": 0.02
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_outliers_isolation_forest"
+    }
   ]
 }
