@@ -316,7 +316,7 @@
         "default_gap_size_minutes": 5,
         "gap_sizes": [
           {
-            "columns": ["SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPS", "SEN5X_TEMP"],
+            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPS", "SEN5X_TEMP"],
             "gap_size_minutes": 10
           }
         ]
@@ -444,7 +444,7 @@
           },
           {
             "column": "ADC_49_3",
-            "limits": [0, 5.1]
+            "limits": [0, 13]
           },
           {
             "column": "HUM",
