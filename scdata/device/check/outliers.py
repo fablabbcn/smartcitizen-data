@@ -1,10 +1,36 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import IsolationForest
+from scipy.stats import zscore
 
 from scdata._config import config
 from scdata.tools.custom_logger import logger
 from scdata.device.process.error_codes import StatusCode, ProcessResult
+
+def find_outliers(dataframe, **kwargs):
+    columns = kwargs.get('columns', list(dataframe.columns))
+    zscore_value = kwargs.get('zscore', 3)
+    window = kwargs.get('window', 60)
+
+    df = dataframe.copy()
+    cols = []
+
+    for col in columns:
+        if '__' in col: continue # Internal code for healthchecks
+        if col not in df.columns:
+            logger.warning(f'{col} not in columns. Skipping')
+            continue
+
+        logger.info (f'Calculating outliers for {col}')
+        df[f'{col}_z_score'] = zscore(df[col].rolling(window=window).mean(), nan_policy='omit')
+
+        df.loc[:, f'__{col}'] = False
+        df.loc[(df[f'{col}_z_score'] > zscore_value) | (df[f'{col}_z_score'] < -zscore_value), f'__{col}'] = True
+
+        cols.append(f'__{col}')
+
+
+    return ProcessResult(df[cols], StatusCode.SUCCESS)
 
 def find_outliers_isolation_forest(dataframe, **kwargs):
     columns = kwargs.get('columns', list(dataframe.columns))
