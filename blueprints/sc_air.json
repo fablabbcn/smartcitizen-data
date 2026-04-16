@@ -514,6 +514,8 @@
       "name": "OUTLIERS",
       "description": "Find outliers values in columns",
       "kwargs": {
+        "zscore": 3,
+        "window": 60,
         "columns": [
           "SEN5X_PM_1",
           "SEN5X_PM_25",
@@ -534,7 +536,10 @@
           "ADC_49_1",
           "ADC_49_2",
           "ADC_49_3",
-          "LPS33_PRESS"
+          "LPS33_PRESS",
+          "NO2",
+          "O3",
+          "CO2"
         ]
       },
       "store_qc": true,
