@@ -493,7 +493,6 @@
           "NOISE_A",
           "TEMP",
           "HUM",
-          "SCD30_CO2",
           "SFA30_HCHO",
           "ADC_48_2",
           "ADC_48_3",
@@ -501,7 +500,10 @@
           "ADC_49_1",
           "ADC_49_2",
           "ADC_49_3",
-          "LPS33_PRESS"
+          "LPS33_PRESS",
+          "NO2",
+          "O3",
+          "CO2"
         ]
       },
       "store_qc": true,
@@ -537,7 +539,7 @@
       },
       "store_qc": true,
       "clean": false,
-      "function": "find_outliers_isolation_forest"
+      "function": "find_outliers"
     }
   ]
 }
