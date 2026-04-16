@@ -587,12 +587,14 @@ class Device(BaseModel):
 
         return self.processed
 
-    def health_checks(self, outlier_detector=None, resample=None):
+    def health_checks(self, resample=None, get_min=False, get_max=False, remake_qc_data=True):
         if not self.loaded:
             logger.error('Need to load first (device.load())')
             return False
 
         checked_ok = True
+        if remake_qc_data:
+            self.qc_data = DataFrame()
 
         if resample is not None:
             df = self.data.resample(resample).mean().copy()
@@ -618,10 +620,6 @@ class Device(BaseModel):
                 if check.kwargs is not None:
                     kwargs = check.kwargs
 
-            # TODO - Fix for outliers detection
-            if outlier_detector is not None:
-                kwargs['detector'] = outlier_detector
-
             try:
                 check_result = funct(df, *args, **kwargs)
             except KeyError as e:
@@ -645,15 +643,18 @@ class Device(BaseModel):
                         if isinstance(check_result.data, DataFrame):
                             for col in check_result.data.columns:
                                 df[f'{check.name}{col}'] = check_result.data.loc[:, col]
+                                # Check if we store QC
                                 if check.store_qc:
                                     self.quality_metrics[f'{check.name}{col}'] = df[f'{check.name}{col}'].mean()
-                                # TODO - This needs to be cumulative for all the columns
-                                # i.e. if any of the checks are True - clean that value
-                                # if check.clean:
-                                #     df.loc[df[f'CLEAN_{col}'], col] = True
 
-                            # TODO Update self.data? or self.qc_data?
-                            # I think it should be another one (for instance self.qc_data)
+                                # Add clean mask
+                                if check.clean:
+                                    if f'CLEAN{col}' not in df.columns:
+                                        df.loc[:, f'CLEAN{col}'] = False
+                                    else:
+                                        logger.info(f'Already clean col for {col}')
+                                    df.loc[df[f'{check.name}{col}'], f'CLEAN{col}'] = True
+
                             # Put it back
                             self.qc_data = self.qc_data.combine_first(df)
                         else:
@@ -661,16 +662,38 @@ class Device(BaseModel):
                         logger.info(check_result.status_code.name)
                         checked_ok &= True
 
-        for check in self.checks:
-            if check.clean:
-                logger.info(f'Cleaning qc data based on {check.name}')
-                self.qc_data.loc[self.qc_data[f'{check.name}{col}'], col] = nan
+        # Check if we need min/max metrics
+        if get_min:
+            logger.info('Adding min values')
+            df_min = self.data.resample(resample).min().copy()
+            min_names = {col: f'MIN__{col}' for col in df_min.columns}
+            df_min.rename(columns=min_names, inplace=True)
+            self.qc_data = self.qc_data.combine_first(df_min)
+        if get_max:
+            logger.info('Adding max values')
+            df_max = self.data.resample(resample).max().copy()
+            max_names = {col: f'MAX__{col}' for col in df_max.columns}
+            df_max.rename(columns=max_names, inplace=True)
+            self.qc_data = self.qc_data.combine_first(df_max)
+
+        # Check if we need to clean
+        needs_cleaning = any([check.clean for check in self.checks])
+        if needs_cleaning:
+            logger.info('Cleaning qc dataset')
+            cols_clean = [col for col in self.qc_data.columns if 'CLEAN__' in col]
+            for col in cols_clean:
+                col_name = col.replace('CLEAN__', '')
+                logger.info(f'Cleaning qc data based for {col_name}')
+                self.qc_data.loc[self.qc_data[col], col_name] = nan
+                if get_min:
+                    self.qc_data.loc[self.qc_data[col], f'MIN__{col_name}'] = nan
+                if get_max:
+                    self.qc_data.loc[self.qc_data[col], f'MAX__{col_name}'] = nan
 
         if checked_ok:
             logger.info('---')
             logger.info(f"Device {self.id} checked")
             self.checked = checked_ok
-
 
         return self.checked
 
