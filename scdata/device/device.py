@@ -4,7 +4,7 @@ import os
 from collections.abc import Iterable
 from importlib import import_module
 from io import StringIO
-from json import dumps
+from json import dumps, loads
 from os.path import basename, exists, join
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
@@ -45,6 +45,7 @@ if bokeh_available:
 try:
     import awswrangler as wr
     import boto3
+    import botocore
 except ModuleNotFoundError:
     boto_available = False
     pass
@@ -821,7 +822,7 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.params_parsed.id}")
         return post_ok
 
-    def backup_to_storage(self, mode='append', path='devices', add_qc=False):
+    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False):
         """
         Backup device data into S3 storage (requires S3_DATA_BUCKET env
          variable set).
@@ -834,7 +835,10 @@ class Device(BaseModel):
                 'devices'
                 Path for backup directory
                 "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            add_qc: bool
+            add_qc_data: bool
+                False
+                Add quality dataframe to export as parquet
+            add_qc_metrics: bool
                 False
                 Add quality metrics to export as json
         Returns
@@ -850,10 +854,11 @@ class Device(BaseModel):
             return False
 
         # TODO Add more formats
+        responses = {}
         if boto_available:
             self.data['TIME']=self.data.index
             target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
+            responses['data_upload'] = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
 
             s3 = boto3.resource('s3')
             s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/metadata.json")
@@ -861,16 +866,24 @@ class Device(BaseModel):
                 Body=(bytes(self.handler.json.model_dump_json().encode('utf-8')))
             )
 
-            # TODO Test if this works
-            if add_qc:
-                s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json")
-                s3object.put(
-                    Body=(bytes(dumps(self.quality_metrics).encode('utf-8')))
-                )
+            if add_qc_data:
+                if self.qc_data.empty:
+                    logger.error("Device qc_data empty")
+                else:
+                    self.qc_data['TIME']=self.qc_data.index
+                    target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                    responses['qc_data_upload'] = wr.s3.to_parquet(df=self.qc_data, path=target_path, dataset=True, mode=mode)
 
-            return response
+                    # TODO Test if this works
+                    if add_qc_metrics:
+                        s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json")
+                        s3object.put(
+                            Body=(bytes(dumps(self.quality_metrics).encode('utf-8')))
+                        )
 
-    def load_from_storage(self, path='devices'):
+            return responses
+
+    def load_from_storage(self, path='devices', load_qc_data=False, load_qc_metrics=False):
         """
         Load device data from S3 storage (requires AWS env
          variable set).
@@ -908,6 +921,36 @@ class Device(BaseModel):
             self.data = self.data[~self.data.index.duplicated(keep='first')]
 
             self.loaded = True
+
+            if load_qc_data:
+                qc_data_s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                logger.info(f"Loading qc_data from: {qc_data_s3_url}")
+
+                self.qc_data = wr.s3.read_parquet(qc_data_s3_url, boto3_session=session, dataset=True)
+                self.qc_data.set_index('TIME', inplace=True)
+                self.qc_data.sort_index(inplace=True)
+                self.qc_data = self.qc_data[~self.qc_data.index.duplicated(keep='first')]
+
+            if load_qc_metrics:
+                s3 = boto3.resource('s3')
+                try:
+                    qc_metrics_s3_url = f"{os.environ['S3_DATA_BUCKET']}/" + f"{path}/{self.id}/quality_metrics.json"
+                    logger.info(f"Loading qc_metrics from: {qc_metrics_s3_url}")
+
+                    qc_metrics = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json").get()
+                except botocore.exceptions.ClientError as e:
+                    if e.response['Error']['Code'] == "NoSuchKey":
+                        # The object does not exist.
+                        logger.error('No qc_metrics available')
+                    else:
+                        # Something else has gone wrong.
+                        logger.error(e.response)
+                        error = True
+                else:
+                    # The object does exist.
+                    response = loads(qc_metrics['Body'].read().decode('utf-8'))
+                    self.quality_metrics = response
+            logger.info('Done')
 
             return s3_url
         else:
