@@ -730,7 +730,7 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False):
+    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False, qc_data=False):
         '''
         Exports Device.data to file
         Parameters
@@ -744,16 +744,33 @@ class Device(BaseModel):
             file_format: String
                 'csv'
                 File format to export. Current supported format CSV
+            gzip: bool
+                False
+                Export as gzip
+            qc_data: bool
+                False
+                Export device.qc_data instead of data
         Returns
         ---------
             True if exported ok, False otherwise
         '''
         # Export device
-        if self.data is None:
-            logger.error('Cannot export null data')
+        append = ''
+        if qc_data:
+            df = self.qc_data
+            append = 'qc_data'
+        else:
+            df = self.data
+            append  = 'data'
+
+        if df.empty:
+            logger.error(f'Cannot export empty device.{append}')
             return False
+
+        logger.info(f"Exporting device.{append}")
+
         if file_format == 'csv':
-            return export_csv_file(path, str(self.params_parsed.id), self.data, forced_overwrite = forced_overwrite, gzip=gzip)
+            return export_csv_file(path, f"{self.id}_{append}", df, forced_overwrite = forced_overwrite, gzip=gzip)
         else:
             # TODO Make a list of supported formats
             return NotImplementedError (f'Not supported format. Formats: [csv]')
