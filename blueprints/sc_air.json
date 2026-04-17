@@ -462,12 +462,32 @@
             "limits": [-40, 60]
           },
           {
+            "column": "CO",
+            "limits": [0, 1000]
+          },
+          {
             "column": "NO2",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "NO",
             "limits": [0, 1000]
           },
           {
             "column": "O3",
             "limits": [0, 1000]
+          },
+          {
+            "column": "H2S",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "SO2",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "CO2",
+            "limits": [400, 10500]
           }
         ]
       },
@@ -501,6 +521,10 @@
           "ADC_49_2",
           "ADC_49_3",
           "LPS33_PRESS",
+          "CO",
+          "H2S",
+          "SO2",
+          "NO",
           "NO2",
           "O3",
           "CO2"
@@ -537,6 +561,10 @@
           "ADC_49_2",
           "ADC_49_3",
           "LPS33_PRESS",
+          "CO",
+          "H2S",
+          "NO",
+          "SO2",
           "NO2",
           "O3",
           "CO2"
