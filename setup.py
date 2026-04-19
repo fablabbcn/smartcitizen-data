@@ -45,6 +45,7 @@ setup(
             "panel",
             "branca~=0.4.0",
             "folium~=0.12.1",
+            "hvplot"
         ],
         "dev": [
             "pytest",
@@ -53,6 +54,7 @@ setup(
             "branca~=0.4.0",
             "folium~=0.12.1",
             "awswrangler",
+            "hvplot",
             "boto3"
         ]
     },
