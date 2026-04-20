@@ -187,7 +187,7 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
 
     return df
 
-def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT', 'MONITOR.TXT', 'ERROR.TXT', 'DEBUG.TXT'], timezone = '', encoding='utf-8', tzaware=True, dateformat=None, **kwargs):
+def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT', 'MONITOR.TXT', 'ERROR.TXT', 'DEBUG.TXT'], timezone = '', encoding='utf-8', tzaware=True, dateformat=None, min_date=None, **kwargs):
     '''
         Loads files from local directory in text format, for instance
         SD card files with timestamp, sparse or concatenated
@@ -231,7 +231,7 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
 
         try:
             with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
-                header = csv_file.readlines()[0:4]
+                header = csv_file.readlines()[0:5]
         except:
             ignore_file = True
             logger.warning(f'Ignoring file: {file}')
@@ -240,6 +240,13 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
             ignore_file = False
 
         if ignore_file: continue
+
+        first_row = header[4].strip('\r\n').split(',')
+        first_date = localise_date(first_row[0], timezone, tzaware=tzaware, dateformat=dateformat)
+
+        if (first_date < min_date):
+            logger.warning(f'Ignoring file: {file} due to cutt-off date')
+            continue
 
         if keep:
             try:
