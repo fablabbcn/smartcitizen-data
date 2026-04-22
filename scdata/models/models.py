@@ -73,7 +73,7 @@ class Blueprint(BaseModel):
     meta: dict = dict()
     channels: List[CalculatedChannel] = []
     checks: List[Check] = []
-    export: List[Export] = []
+    exports: List[Export] = []
 
 class Name(BaseModel):
     id: int
