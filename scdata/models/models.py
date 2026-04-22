@@ -27,6 +27,10 @@ class Check(BaseModel):
     args: Optional[dict] = None
     kwargs: Optional[dict] = None
 
+class Export(BaseModel):
+    name: str
+    columns: Optional[List[str]] = []
+
 class Sensor(BaseModel):
     id: int
     name: str
@@ -69,6 +73,7 @@ class Blueprint(BaseModel):
     meta: dict = dict()
     channels: List[CalculatedChannel] = []
     checks: List[Check] = []
+    export: List[Export] = []
 
 class Name(BaseModel):
     id: int
