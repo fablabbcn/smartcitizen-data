@@ -17,8 +17,8 @@ from pydantic_core import ValidationError
 from scdata._config import config
 from scdata.io import export_csv_file, read_csv_file
 from scdata.io.device_api import *
-from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, CSVParams,
-                           DeviceOptions, Sensor, Source)
+from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, Export,
+                             CSVParams, DeviceOptions, Sensor, Source)
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
@@ -89,6 +89,7 @@ class Device(BaseModel):
     params_parsed: object = None
     channels: List[CalculatedChannel] = []
     checks: List[Check] = []
+    exports: List[Export] = []
     meta: dict = dict()
     hclass: object = None
     handler: object = None
@@ -732,7 +733,7 @@ class Device(BaseModel):
 
     def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False, qc_data=False):
         '''
-        Exports Device.data to file
+        Exports Device.data or Device.qc_data to file
         Parameters
         ----------
             path: String
@@ -756,6 +757,7 @@ class Device(BaseModel):
         '''
         # Export device
         append = ''
+
         if qc_data:
             df = self.qc_data
             append = 'qc_data'
@@ -769,11 +771,22 @@ class Device(BaseModel):
 
         logger.info(f"Exporting device.{append}")
 
-        if file_format == 'csv':
-            return export_csv_file(path, f"{self.id}_{append}", df, forced_overwrite = forced_overwrite, gzip=gzip)
-        else:
-            # TODO Make a list of supported formats
-            return NotImplementedError (f'Not supported format. Formats: [csv]')
+        for export in self.exports:
+            logger.info(f"Exporting {export.name}")
+
+            df_export = df.copy()
+            if export.columns:
+                df_export = df_export.loc[:, df_export.columns.intersection(export.columns)]
+
+            if file_format == 'csv':
+                logger.info(f"Exporting as {file_format}")
+                export_csv_file(path, f"{self.id}_{append}_{export.name}", df_export, forced_overwrite = forced_overwrite, gzip=gzip)
+            elif file_format == 'parquet':
+                logger.info(f"Exporting as {file_format}")
+                df_export.to_parquet(f"{join(path, f'{self.id}_{append}_{export.name}')}.parquet", index=True)
+            else:
+                # TODO Make a list of supported formats
+                raise NotImplementedError (f'Not supported format. Formats: [csv]')
 
     async def post(self, columns = 'sensors', clean_na = 'drop', chunk_size = 500,\
         dry_run = False, max_retries = 2, with_postprocessing = False, delay_between_posts=None):
