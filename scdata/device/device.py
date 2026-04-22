@@ -913,7 +913,7 @@ class Device(BaseModel):
 
             return responses
 
-    def load_from_storage(self, path='devices', load_qc_data=False, load_qc_metrics=False):
+    def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False):
         """
         Load device data from S3 storage (requires AWS env
          variable set).
@@ -938,19 +938,24 @@ class Device(BaseModel):
 
             return False
 
+        loaded = False
+
         if boto_available:
             session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
             region_name=os.environ['AWS_REGION'])
-            s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            logger.info(f"Loading data from: {s3_url}")
 
-            self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
-            self.data.set_index('TIME', inplace=True)
-            self.data.sort_index(inplace=True)
-            self.data = self.data[~self.data.index.duplicated(keep='first')]
+            if load_data:
+                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+                logger.info(f"Loading data from: {s3_url}")
 
-            self.loaded = True
+                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
+                self.data.set_index('TIME', inplace=True)
+                self.data.sort_index(inplace=True)
+                self.data = self.data[~self.data.index.duplicated(keep='first')]
+
+                self.loaded = True
+                loaded = True
 
             if load_qc_data:
                 qc_data_s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
@@ -960,6 +965,8 @@ class Device(BaseModel):
                 self.qc_data.set_index('TIME', inplace=True)
                 self.qc_data.sort_index(inplace=True)
                 self.qc_data = self.qc_data[~self.qc_data.index.duplicated(keep='first')]
+
+                loaded = True
 
             if load_qc_metrics:
                 s3 = boto3.resource('s3')
@@ -982,7 +989,7 @@ class Device(BaseModel):
                     self.quality_metrics = response
             logger.info('Done')
 
-            return s3_url
+            return loaded
         else:
             logger.error("Boto not available. Install awswrangler")
             return False
