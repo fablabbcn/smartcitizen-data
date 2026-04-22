@@ -574,5 +574,49 @@
       "clean": false,
       "function": "find_outliers"
     }
+  ],
+  "exports": [
+    {
+      "name": "all"
+    },
+    {
+      "name": "clean",
+      "columns": [
+        "AS7331_UVA",
+        "AS7331_UVB",
+        "AS7331_UVC",
+        "BATT",
+        "CO",
+        "CO2",
+        "EC_SENSOR_TEMP",
+        "H2S",
+        "HUM",
+        "LIGHT",
+        "LPS33_PRESS",
+        "NO",
+        "NO2",
+        "NOISE_A",
+        "O3",
+        "SO2",
+        "SCD30_HUM",
+        "SCD30_TEMP",
+        "SFA30_HCHO",
+        "SFA30_HUM",
+        "SFA30_TEMP",
+        "SEN5X_HUM",
+        "SEN5X_PM_1",
+        "SEN5X_PM_10",
+        "SEN5X_PM_25",
+        "SEN5X_PM_40",
+        "SEN5X_PN_05",
+        "SEN5X_PN_1",
+        "SEN5X_PN_10",
+        "SEN5X_PN_25",
+        "SEN5X_PN_40",
+        "SEN5X_TEMP",
+        "SEN5X_TPS",
+        "TEMP"
+      ]
+    }
   ]
 }
