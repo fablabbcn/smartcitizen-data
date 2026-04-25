@@ -2,7 +2,7 @@
   "meta": {
     "documentation": "https://docs.smartcitizen.me/"
   },
-  "metrics": [
+  "channels": [
     {
       "name": "PT1000_POS",
       "description": "PT1000 raw value",
@@ -216,7 +216,7 @@
       "post": true,
       "function": "alphasense_803_04",
       "unit": "ppb",
-      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP"]
+      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP", "NO2"]
     },
     {
       "name":"SO2",
@@ -306,6 +306,319 @@
       "function": "poly_ts",
       "unit": "ppm",
       "depends_on": ["CO2_BASELINE"]
+    }
+  ],
+  "checks": [
+    {
+      "name": "GAPS",
+      "description": "Find gaps in columns",
+      "kwargs": {
+        "default_gap_size_minutes": 5,
+        "default_frequency_minutes": 1,
+        "gap_sizes": [
+          {
+            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPS", "SEN5X_TEMP", "SEN5X_HUM"],
+            "gap_size_minutes": 10
+          }
+        ],
+        "frequencies": [
+          {
+            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPS", "SEN5X_TEMP", "SEN5X_HUM"],
+            "frequency_minutes": 5
+          }
+        ]
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_gaps"
+    },
+    {
+      "name": "IMPLAUSIBLE",
+      "description": "Find implausible values in columns",
+      "kwargs": {
+        "implausible_values": [
+          {
+            "column": "CCS811_VOCS",
+            "limits": [0, 30000]
+          },
+          {
+            "column": "CCS811_ECO2",
+            "limits": [400, 30000]
+          },
+          {
+            "column": "NOISE_A",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SCD30_CO2",
+            "limits": [300, 9500]
+          },
+          {
+            "column": "SCD30_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SCD30_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "BATT",
+            "limits": [0, 100]
+          },
+          {
+            "column": "LPS33_PRESS",
+            "limits": [50, 110]
+          },
+          {
+            "column": "PRESS",
+            "limits": [50, 110]
+          },
+          {
+            "column": "PMS5003_PM_1",
+            "limits": [0, 500]
+          },
+          {
+            "column": "PMS5003_PM_25",
+            "limits": [0, 500]
+          },
+          {
+            "column": "PMS5003_PM_10",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SEN5X_PM_1",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_10",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_25",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_PM_40",
+            "limits": [0, 500]
+          },
+          {
+            "column": "SEN5X_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "SFA30_HCHO",
+            "limits": [0, 4500]
+          },
+          {
+            "column": "SFA30_HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "SFA30_TEMP",
+            "limits": [-20, 50]
+          },
+          {
+            "column": "ADC_48_0",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_1",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_2",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_48_3",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_0",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_1",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_2",
+            "limits": [0, 5.1]
+          },
+          {
+            "column": "ADC_49_3",
+            "limits": [0, 13]
+          },
+          {
+            "column": "HUM",
+            "limits": [20, 99]
+          },
+          {
+            "column": "TEMP",
+            "limits": [-40, 60]
+          },
+          {
+            "column": "CO",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "NO2",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "NO",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "O3",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "H2S",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "SO2",
+            "limits": [0, 1000]
+          },
+          {
+            "column": "CO2",
+            "limits": [400, 10500]
+          }
+        ]
+      },
+      "store_qc": true,
+      "clean": true,
+      "function": "find_implausible_values"
+    },
+    {
+      "name": "FLAT",
+      "description": "Find flat values in columns",
+      "kwargs": {
+        "flat_window_minutes": 1440,
+        "limit_rolling_std": 0.00001,
+        "columns": [
+          "SEN5X_PM_1",
+          "SEN5X_PM_25",
+          "SEN5X_PM_40",
+          "SEN5X_PM_10",
+          "PMS5003_PM_1",
+          "PMS5003_PM_25",
+          "PMS5003_PM_10",
+          "PRESS",
+          "NOISE_A",
+          "TEMP",
+          "HUM",
+          "SFA30_HCHO",
+          "ADC_48_2",
+          "ADC_48_3",
+          "ADC_49_0",
+          "ADC_49_1",
+          "ADC_49_2",
+          "ADC_49_3",
+          "LPS33_PRESS",
+          "CO",
+          "H2S",
+          "SO2",
+          "NO",
+          "NO2",
+          "O3",
+          "CO2"
+        ]
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_flat_values"
+    },
+    {
+      "name": "OUTLIERS",
+      "description": "Find outliers values in columns",
+      "kwargs": {
+        "zscore": 3,
+        "window": 60,
+        "columns": [
+          "SEN5X_PM_1",
+          "SEN5X_PM_25",
+          "SEN5X_PM_40",
+          "SEN5X_PM_10",
+          "PMS5003_PM_1",
+          "PMS5003_PM_25",
+          "PMS5003_PM_10",
+          "PRESS",
+          "NOISE_A",
+          "TEMP",
+          "HUM",
+          "SCD30_CO2",
+          "SFA30_HCHO",
+          "ADC_48_2",
+          "ADC_48_3",
+          "ADC_49_0",
+          "ADC_49_1",
+          "ADC_49_2",
+          "ADC_49_3",
+          "LPS33_PRESS",
+          "CO",
+          "H2S",
+          "NO",
+          "SO2",
+          "NO2",
+          "O3",
+          "CO2"
+        ]
+      },
+      "store_qc": true,
+      "clean": false,
+      "function": "find_outliers"
+    }
+  ],
+  "exports": [
+    {
+      "name": "all"
+    },
+    {
+      "name": "clean",
+      "columns": [
+        "AS7331_UVA",
+        "AS7331_UVB",
+        "AS7331_UVC",
+        "BATT",
+        "CO",
+        "CO2",
+        "EC_SENSOR_TEMP",
+        "H2S",
+        "HUM",
+        "LIGHT",
+        "LPS33_PRESS",
+        "PRESS",
+        "MPL_PRESS",
+        "NO",
+        "NO2",
+        "NOISE_A",
+        "O3",
+        "SO2",
+        "SCD30_HUM",
+        "SCD30_TEMP",
+        "SFA30_HCHO",
+        "SFA30_HUM",
+        "SFA30_TEMP",
+        "SEN5X_HUM",
+        "SEN5X_PM_1",
+        "SEN5X_PM_10",
+        "SEN5X_PM_25",
+        "SEN5X_PM_40",
+        "SEN5X_PN_05",
+        "SEN5X_PN_1",
+        "SEN5X_PN_10",
+        "SEN5X_PN_25",
+        "SEN5X_PN_40",
+        "SEN5X_TEMP",
+        "SEN5X_TPS",
+        "TEMP"
+      ]
     }
   ]
 }

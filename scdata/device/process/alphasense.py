@@ -45,23 +45,23 @@ def alphasense_803_04(dataframe, **kwargs):
         calculation of pollutant in ppb
     """
 
-    def comp_t(x, comp_lut):
-        if isnull(x['t']): return None
+    # def comp_t(x, comp_lut):
+    #     if isnull(x['t']): return None
 
-        # Below min temperature, we saturate
-        if x['t'] < as_t_comp[0]: return comp_lut[0]
+    #     # Below min temperature, we saturate
+    #     if x['t'] < as_t_comp[0]: return comp_lut[0]
 
-        # Over max temperature, we saturate
-        if x['t'] > as_t_comp[-1]: return comp_lut[-1]
+    #     # Over max temperature, we saturate
+    #     if x['t'] > as_t_comp[-1]: return comp_lut[-1]
 
-        # Otherwise, we calculate
-        idx_2 = next(axis[0] for axis in enumerate(as_t_comp) if axis[1] > x['t'])
-        idx_1 = idx_2 - 1
+    #     # Otherwise, we calculate
+    #     idx_2 = next(axis[0] for axis in enumerate(as_t_comp) if axis[1] > x['t'])
+    #     idx_1 = idx_2 - 1
 
-        delta_y = comp_lut[idx_2] - comp_lut[idx_1]
-        delta_x = as_t_comp[idx_2] - as_t_comp[idx_1]
+    #     delta_y = comp_lut[idx_2] - comp_lut[idx_1]
+    #     delta_x = as_t_comp[idx_2] - as_t_comp[idx_1]
 
-        return comp_lut[idx_1] + (x['t'] - as_t_comp[idx_1]) * delta_y / delta_x
+    #     return comp_lut[idx_1] + (x['t'] - as_t_comp[idx_1]) * delta_y / delta_x
 
     # Check inputs
     flag_error = False
@@ -183,7 +183,16 @@ def alphasense_803_04(dataframe, **kwargs):
         df.loc[df['we_mask'], 'ae_t'] = np.nan
 
     # Temperature compensation - done line by line as it has special conditions
-    df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
+    # df[comp_type] = df.apply(lambda x: comp_t(x, comp_lut), axis = 1) # temperature correction factor
+    t_vals = df['t'].to_numpy()
+    comp_vals = np.interp(
+        t_vals,
+        as_t_comp,
+        comp_lut
+    )
+    # Preserve NaNs (your original function returns None)
+    comp_vals[np.isnan(t_vals)] = np.nan
+    df[comp_type] = comp_vals
 
     # Algorithm selection (result in V)
     if algorithm == 1:

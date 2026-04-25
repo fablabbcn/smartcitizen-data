@@ -756,7 +756,7 @@
         "unit": "ug/m3"
     },
     {
-        "name": "SEN5X_PM_40",
+        "name": "SEN5X_PM_4",
         "id": "195",
         "description": "PM4.0 measurement from SEN5X",
         "unit": "ug/m3"
@@ -780,7 +780,7 @@
         "unit": "#/0.1l"
     },
     {
-        "name": "SEN5X_PN_40",
+        "name": "SEN5X_PN_4",
         "id": "200",
         "description": "PN4.0 measurement from SEN5X",
         "unit": "#/0.1l"

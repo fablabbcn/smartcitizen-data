@@ -4,7 +4,7 @@ import os
 from collections.abc import Iterable
 from importlib import import_module
 from io import StringIO
-from json import dumps
+from json import dumps, loads
 from os.path import basename, exists, join
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
@@ -17,8 +17,8 @@ from pydantic_core import ValidationError
 from scdata._config import config
 from scdata.io import export_csv_file, read_csv_file
 from scdata.io.device_api import *
-from scdata.models import (APIParams, Blueprint, CSVParams, DeviceOptions,
-                           Metric, Sensor, Source)
+from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, Export,
+                             CSVParams, DeviceOptions, Sensor, Source)
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
@@ -31,8 +31,8 @@ from scdata.tools.units import get_units_convf
 from scdata.tools.url_check import url_checker
 
 try:
-    import panel
     import bokeh
+    import panel
 except ModuleNotFoundError:
     bokeh_available = False
     pass
@@ -45,6 +45,7 @@ if bokeh_available:
 try:
     import awswrangler as wr
     import boto3
+    import botocore
 except ModuleNotFoundError:
     boto_available = False
     pass
@@ -68,14 +69,15 @@ class Device(BaseModel):
     ''' Main implementation of the device class '''
 
     from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
-    from scdata.plot import (heatmap_plot, scatter_dispersion_grid, scatter_plot,
-        ts_dendrogram, ts_dispersion_grid, ts_dispersion_plot, ts_plot, ts_scatter)
+    from scdata.plot import (heatmap_plot, scatter_dispersion_grid,
+                             scatter_plot, ts_dendrogram, ts_dispersion_grid,
+                             ts_dispersion_plot, ts_plot, ts_scatter)
         #, report_plot, cat_plot, violin_plot)
     if map_plotting_available:
         from scdata.plot import device_metric_map, path_plot
 
     if config._ipython_avail:
-        from scdata.plot import ts_uplot, ts_dispersion_uplot
+        from scdata.plot import ts_dispersion_uplot, ts_uplot
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
@@ -84,21 +86,25 @@ class Device(BaseModel):
     source: Source = Source()
     options: DeviceOptions = DeviceOptions()
     params: object = None
-    paramsParsed: object = None
-    metrics: List[Metric] = []
+    params_parsed: object = None
+    channels: List[CalculatedChannel] = []
+    checks: List[Check] = []
+    exports: List[Export] = []
     meta: dict = dict()
     hclass: object = None
     handler: object = None
     data: DataFrame = DataFrame()
+    qc_data: DataFrame = DataFrame()
     loaded: bool = False
     processed: bool = False
+    checked: bool = False
     postprocessing_updated: bool = False
     quality_metrics: dict = dict()
 
     def model_post_init(self, __context) -> None:
 
         '''
-        Creates an instance of device. Devices are objects that contain sensors data, metrics
+        Creates an instance of device. Devices are objects that contain sensors data, channels
         (calculations based on sensors data), and metadata such as units, dates, frequency and source
 
         Parameters:
@@ -117,7 +123,9 @@ class Device(BaseModel):
 
         params: dict()
             Default: empty dict
-            A dictionary containing information about the device itself. Depending on the blueprint, this params needs to have different data. If not all the data is present, the corresponding blueprint's default will be used
+            A dictionary containing information about the device itself.
+            Depending on the blueprint, this params needs to have different data.
+            If not all the data is present, the corresponding blueprint's default will be used
 
         Returns
         ----------
@@ -142,7 +150,7 @@ class Device(BaseModel):
         else:
             raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
 
-        logger.info(f'Device {self.paramsParsed.id} initialised')
+        logger.info(f'Device {self.params_parsed.id} initialised')
 
     def __set_handler__(self):
         # Add handlers here
@@ -165,7 +173,7 @@ class Device(BaseModel):
                 self.hclass = getattr(hmod, self.source.handler)
                 logger.info(f'Setting handler as {self.hclass}')
 
-            self.paramsParsed = TypeAdapter(APIParams).validate_python(self.params)
+            self.params_parsed = TypeAdapter(APIParams).validate_python(self.params)
 
         elif self.source.type == 'csv':
             try:
@@ -185,13 +193,13 @@ class Device(BaseModel):
                 self.hclass = getattr(hmod, self.source.handler)
                 logger.info(f'Setting handler as {self.hclass}')
 
-            self.paramsParsed = TypeAdapter(CSVParams).validate_python(self.params)
+            self.params_parsed = TypeAdapter(CSVParams).validate_python(self.params)
         else:
             # TODO Add handler here
             raise NotImplementedError(f'No handler for {self.source.type} yet')
 
         if self.hclass is not None:
-            self.handler = self.hclass(params = self.paramsParsed)
+            self.handler = self.hclass(params = self.params_parsed)
         else:
             raise ValueError("Devices need one handler")
 
@@ -209,16 +217,16 @@ class Device(BaseModel):
         self._sensors = TypeAdapter(List[Sensor]).validate_python(self.handler.sensors)
 
         self._rename = dict()
-        for channel in self._sensors:
-            if channel.id is not None:
-                _ch = find_by_field(config.names[self.source.handler], channel.id, 'id')
+        for sensor in self._sensors:
+            if sensor.id is not None:
+                _ch = find_by_field(config.names[self.source.handler], sensor.id, 'id')
                 if _ch:
-                    self._rename[channel.name] = _ch.name
+                    self._rename[sensor.name] = _ch.name
             else:
-                logger.warning(f'Channel {channel.name} has no id')
+                logger.warning(f'Sensor {sensor.name} has no id')
 
-        # Metrics stay the same
-        for channel in self.metrics:
+        # Calculated channels stay the same
+        for channel in self.channels:
             self._rename[channel.name] = channel.name
 
     # TODO - Improve?
@@ -234,81 +242,81 @@ class Device(BaseModel):
 
     @property
     def id(self):
-        return self.paramsParsed.id
+        return self.params_parsed.id
 
-    def add_metric(self, metric = dict()):
+    def add_channel(self, calculated_channel = dict()):
         '''
-        Add a metric to the device to be processed by a callable function
+        Add a CalculatedChannel to the device to be processed by a callable function
         Parameters
         ----------
-            metric: dict
+            calculated_channel: dict
             Empty dict
-            Description of the metric to be added. It only adds it to
-            Device.metrics, but does not calculate anything yet. The metric dict needs
-            to follow the format:
-                metric = {
-                            'id': Optional[int] = None
-                                <sensor_id> (in an API for instance)
-                            'description': Optional[str] = ''
-                                <description>
-                            'name': [str]
-                                <metric_name>
-                            'function': [str]
-                                <function_name>
-                            'args': Optional[dict] = None
-                                <iterable of arguments>
-                            'kwargs': Optional[dict] = None
-                                <**kwargs for @function_name>
-                            'module': Optional[str] = 'scdata.device.process
-                                <module to load function from>'
-                        }
+            Description of the new channel to be added. It only adds it to
+            Device.channels, but does not calculate anything yet.
+            The channels dict needs to follow the format:
+                calculated_channel = {
+                    'id': Optional[int] = None
+                        <sensor_id> (in an API for instance)
+                    'description': Optional[str] = ''
+                        <description>
+                    'name': [str]
+                        <channel_name>
+                    'function': [str]
+                        <function_name>
+                    'args': Optional[dict] = None
+                        <iterable of arguments>
+                    'kwargs': Optional[dict] = None
+                        <**kwargs for @function_name>
+                    'module': Optional[str] = 'scdata.device.process
+                        <module to load function from>'
+                }
             The 'module' parameter is only needed if the process is not
             already available in scdata.device.process.
         Example:
         --------
-        d.add_metric(metric={
-                        'name': 'NO2_CLEAN',
-                        'function': 'clean_ts',
-                        'description': 'Clean NO2 channel',
-                        'units': 'ppb',
-                        'kwargs': {
-                            'name': 'NO2',
-                            'limits': [0, 350],
-                            'window_size': 5}
-                     })
+        d.calculated_channel(calculated_channel={
+            'name': 'NO2_CLEAN',
+            'function': 'clean_ts',
+            'description': 'Clean NO2 channel',
+            'units': 'ppb',
+            'kwargs': {
+                'name': 'NO2',
+                'limits': [0, 350],
+                'window_size': 5}
+            })
         Returns
         ----------
-            True if added metric
+            True if calculated_channel added
         '''
 
-        if 'metrics' not in vars(self):
-            logger.info(f'Device {self.paramsParsed.id} has no metrics yet. Adding')
-            self.metrics = list()
+        if 'channels' not in vars(self):
+            logger.info(f'Device {self.params_parsed.id} has no channels yet')
+            self.channels = list()
 
-        _metric = TypeAdapter(Metric).validate_python(metric)
+        _calculated_channel = TypeAdapter(CalculatedChannel).validate_python(calculated_channel)
 
-        if self.__check_callable__(_metric.module, _metric.function):
-            self.metrics.append(_metric)
+        if self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
+            self.channels.append(_calculated_channel)
 
-            logger.info(f"Metric {_metric.name} added to metrics")
-            self._rename[_metric.name] = _metric.name
+            logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
+            self._rename[_calculated_channel.name] = _calculated_channel.name
             return True
 
-    def del_metric(self, metric_name = ''):
-        if 'metrics' not in vars(self):
-            raise ValueError('Device has no metrics')
+    def del_channel(self, channel_name = ''):
+        if 'channels' not in vars(self):
+            raise ValueError('Device has no calculated channels')
 
-        m = find_by_field(self.metrics, metric_name, 'name')
+        m = find_by_field(self.channels, channel_name, 'name')
         if m:
-            self.metrics.remove(m)
+            self.channels.remove(m)
         else:
-            logger.warning(f'Metric {metric_name} not in metrics')
+            logger.warning(f'Channel {channel_name} not in device {self.id}')
             return False
-        if metric_name in self.data.columns:
-            self.data.__delitem__(metric_name)
+        if channel_name in self.data.columns:
+            self.data.__delitem__(channel_name)
 
-        if metric_name not in self.data and find_by_field(self.metrics, metric_name, 'name') is None:
-            logger.info(f'Metric {metric_name} removed from metrics')
+        if channel_name not in self.data and find_by_field(self.channels, channel_name, 'name') is None:
+            logger.info(f'Channel {channel_name} removed from {self.id}')
             return True
         return False
 
@@ -461,7 +469,7 @@ class Device(BaseModel):
         logger.info('Units check done')
 
     def __check_callable__(self, module, function):
-        # Check if the metric contains a custom module
+        # Check if the calculated_channel contains a custom module
         lazy_name = f"{module}.{function}"
 
         try:
@@ -473,21 +481,21 @@ class Device(BaseModel):
             return True
         return False
 
-    def process(self, only_new=False, metrics_list=None):
+    def process(self, only_new=False, channels_list=None):
         '''
-        Processes devices metrics, either added by the blueprint definition
-        or the addition using Device.add_metric(). See help(Device.add_metric) for
-        more information about the definition of the metrics to be added.
+        Processes devices calculated channels, either added by the blueprint definition
+        or the addition using Device.calculated_channel(). See help(Device.calculated_channel) for
+        more information.
 
         Parameters
         ----------
         only_new: boolean
             False
             To process or not the existing channels in the Device.data that are
-            defined in Device.metrics
-        metrics_list: list
+            defined in Device.channels
+        channels_list: list
             None
-            List of metrics to process. If none, processes all
+            List of channels to process. If none, processes all
         Returns
         ----------
             boolean
@@ -501,74 +509,74 @@ class Device(BaseModel):
         process_ok = True
         self.postprocessing_updated = False
 
-        if 'metrics' not in vars(self):
-            logger.warning(f'Device {self.paramsParsed.id} has nothing to process. Skipping')
+        if 'channels' not in vars(self):
+            logger.warning(f'Device {self.params_parsed.id} has nothing to process. Skipping')
             return process_ok
 
-        logger.info(f'Processing device {self.paramsParsed.id}')
-        if metrics_list is None:
-            _metrics_list = [metric.name for metric in self.metrics]
-        else: _metrics_list = metrics_list
+        logger.info(f'Processing device {self.params_parsed.id}')
+        if channels_list is None:
+            _channels_list = [channel.name for channel in self.channels]
+        else: _channels_list = channels_list
 
-        if not _metrics_list:
+        if not _channels_list:
             logger.warning('Nothing to process')
             return process_ok
 
-        # Sort metrics
-        logger.info('Sorting metrics...')
-        self.metrics = topological_sort(self.metrics)
+        # Sort channels
+        logger.info('Sorting channels...')
+        self.channels = topological_sort(self.channels)
 
-        for metric in self.metrics:
+        for channel in self.channels:
             logger.info('---')
-            if metric.name not in _metrics_list: continue
-            logger.info(f'Processing {metric.name}')
+            if channel.name not in _channels_list: continue
+            logger.info(f'Processing {channel.name}')
 
-            if only_new and metric.name in self.data:
+            if only_new and channel.name in self.data:
                 logger.info(f'Skipping. Already in device')
                 continue
 
-            if self.__check_callable__(metric.module, metric.function):
-                funct = LazyCallable(f"{metric.module}.{metric.function}")
+            if self.__check_callable__(channel.module, channel.function):
+                funct = LazyCallable(f"{channel.module}.{channel.function}")
             else:
                 process_ok &= False
-                logger.error('Problem adding lazy callable to metrics list')
+                logger.error('Problem adding lazy callable to channels list')
                 continue
 
             args, kwargs = list(), dict()
-            if 'args' in vars(metric):
-                if metric.args is not None: args = metric.args
-            if 'kwargs' in vars(metric):
-                if metric.kwargs is not None: kwargs = metric.kwargs
+            if 'args' in vars(channel):
+                if channel.args is not None: args = channel.args
+            if 'kwargs' in vars(channel):
+                if channel.kwargs is not None: kwargs = channel.kwargs
 
             try:
                 process_result = funct(self.data, *args, **kwargs)
-            except KeyError:
-                logger.error('Cannot process requested function with data provided')
+            except KeyError as e:
+                logger.error('Cannot process requested function with data provided', exc_info=e)
                 process_ok = False
                 pass
             else:
-                # If the metric is None, might be for many reasons and shouldn't collapse the process_ok
+                # If the result is None, might be for many reasons and shouldn't collapse the process_ok
                 if process_result is not None:
                     if 'ERROR' in process_result.status_code.name:
                         # We got an error during the processing
                         logger.error(process_result.status_code.name)
                         process_ok &= False
                     elif 'WARNING' in process_result.status_code.name:
-                        # In this case there is no data to put into the metric
+                        # In this case there is no data to put into the result
                         # but there is no reason to make deny process_ok
                         logger.warning(process_result.status_code.name)
                         process_ok &= True
                     elif 'SUCCESS' in process_result.status_code.name:
                         if isinstance(process_result.data, DataFrame):
                             if len(process_result.data.columns) == 1:
-                                self.data[f'{metric.name}'] = process_result.data
+                                self.data[f'{channel.name}'] = process_result.data
                             for col in process_result.data.columns:
                                 if 'conc' in col:
-                                    self.data[f'{metric.name}'] = process_result.data[col]
+                                    self.data[f'{channel.name}'] = process_result.data[col]
                                 else:
-                                    self.data[f'{metric.name}_{col}'] = process_result.data[col]
+                                    self.data[f'{channel.name}_{col}'] = process_result.data[col]
                         elif isinstance(process_result.data, Series):
-                            self.data[metric.name] = process_result.data
+                            self.data[channel.name] = process_result.data
                         else:
                             logger.error("Not supported format for data results, ignoring")
                         logger.info(process_result.status_code.name)
@@ -576,10 +584,120 @@ class Device(BaseModel):
 
         if process_ok:
             logger.info('---')
-            logger.info(f"Device {self.paramsParsed.id} processed")
+            logger.info(f"Device {self.params_parsed.id} processed")
             self.processed = process_ok
 
         return self.processed
+
+    def health_checks(self, resample=None, get_min=False, get_max=False, remake_qc_data=True):
+        if not self.loaded:
+            logger.error('Need to load first (device.load())')
+            return False
+
+        checked_ok = True
+        if remake_qc_data:
+            self.qc_data = DataFrame()
+
+        if resample is not None:
+            df = self.data.resample(resample).mean().copy()
+        else:
+            df = self.data.copy()
+
+        for check in self.checks:
+            logger.info('---')
+            logger.info(f'Checking {check.name}')
+
+            if self.__check_callable__(check.module, check.function):
+                funct = LazyCallable(f"{check.module}.{check.function}")
+            else:
+                checked_ok &= False
+                logger.error('Problem adding lazy callable to checks list')
+                continue
+
+            args, kwargs = list(), dict()
+            if 'args' in vars(check):
+                if check.args is not None:
+                    args = check.args
+            if 'kwargs' in vars(check):
+                if check.kwargs is not None:
+                    kwargs = check.kwargs
+
+            try:
+                check_result = funct(df, *args, **kwargs)
+            except KeyError as e:
+                logger.error('Cannot process requested function with data provided', exc_info=e)
+                checked_ok = False
+                pass
+            else:
+                # If the result is None, might be for many reasons and shouldn't collapse the process_ok
+                if check_result is not None:
+
+                    if 'ERROR' in check_result.status_code.name:
+                        # We got an error during the processing
+                        logger.error(check_result.status_code.name)
+                        checked_ok &= False
+                    elif 'WARNING' in check_result.status_code.name:
+                        # In this case there is no data to put into the result
+                        # but there is no reason to make deny checked_ok
+                        logger.warning(check_result.status_code.name)
+                        checked_ok &= True
+                    elif 'SUCCESS' in check_result.status_code.name:
+                        if isinstance(check_result.data, DataFrame):
+                            for col in check_result.data.columns:
+                                df[f'{check.name}{col}'] = check_result.data.loc[:, col]
+                                # Check if we store QC
+                                if check.store_qc:
+                                    self.quality_metrics[f'{check.name}{col}'] = df[f'{check.name}{col}'].mean()
+
+                                # Add clean mask
+                                if check.clean:
+                                    if f'CLEAN{col}' not in df.columns:
+                                        df.loc[:, f'CLEAN{col}'] = False
+                                    else:
+                                        logger.info(f'Already clean col for {col}')
+                                    df.loc[df[f'{check.name}{col}'], f'CLEAN{col}'] = True
+
+                            # Put it back
+                            self.qc_data = self.qc_data.combine_first(df)
+                        else:
+                            logger.error("Not supported format for data results. Ignoring")
+                        logger.info(check_result.status_code.name)
+                        checked_ok &= True
+
+        # Check if we need min/max metrics
+        if get_min:
+            logger.info('Adding min values')
+            df_min = self.data.resample(resample).min().copy()
+            min_names = {col: f'MIN__{col}' for col in df_min.columns}
+            df_min.rename(columns=min_names, inplace=True)
+            self.qc_data = self.qc_data.combine_first(df_min)
+        if get_max:
+            logger.info('Adding max values')
+            df_max = self.data.resample(resample).max().copy()
+            max_names = {col: f'MAX__{col}' for col in df_max.columns}
+            df_max.rename(columns=max_names, inplace=True)
+            self.qc_data = self.qc_data.combine_first(df_max)
+
+        # Check if we need to clean
+        needs_cleaning = any([check.clean for check in self.checks])
+        if needs_cleaning:
+            logger.info('Cleaning qc dataset')
+            cols_clean = [col for col in self.qc_data.columns if 'CLEAN__' in col]
+            for col in cols_clean:
+                col_name = col.replace('CLEAN__', '')
+                logger.info(f'Cleaning qc data based for {col_name}')
+                self.qc_data.loc[self.qc_data[col], col_name] = nan
+                if get_min:
+                    self.qc_data.loc[self.qc_data[col], f'MIN__{col_name}'] = nan
+                if get_max:
+                    self.qc_data.loc[self.qc_data[col], f'MAX__{col_name}'] = nan
+
+        if checked_ok:
+            logger.info('---')
+            logger.info(f"Device {self.id} checked")
+            self.checked = checked_ok
+
+        return self.checked
 
     @property
     def sensors(self):
@@ -613,268 +731,9 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    def get_nan_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_nan_ratio", sampling_rates:Dict[str, int]=None) -> DataFrame:
+    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False, qc_data=False):
         '''
-            Check NaN ratio per column, return pd.DataFrame with the same index as
-            self.data with the NaN ratio per rolling window.
-            Parameters
-            ----------
-                period: str
-                    "1h"
-                    Rolling window width.
-                subset: List[str]
-                    Columns to apply the stuck ratio calculation to. If None, all columns
-                    are used.
-                sampling_rates: Dict[str, int]
-                    Dictionary with sampling rates per column in minutes. If None, will get
-                    sampling rates from config._default_sampling_rate or try to infer them.
-
-            Returns
-            ----------
-                result: DataFrame
-                    DataFrame with rolling nan ratio.
-        '''
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-
-        if subset is not None:
-            data = self.data[subset]
-        else:
-            data = self.data
-
-        result = {}
-
-        for column in data.columns:
-            if sampling_rates is not None and column in sampling_rates:
-                sampling_rate = sampling_rates[column]
-            elif column in config._default_sampling_rate:
-                sampling_rate = config._default_sampling_rate[column]
-            else:
-                sampling_rate = infer_sampling_rate(data[column])
-
-            if sampling_rate is None:
-                logger.warning(f'Cannot infer sampling rate for column {column}. Skipping NaN ratio calculation')
-                continue
-
-            sampling_rate_timedelta = Timedelta(f'{sampling_rate}min')
-            max_possible_count = Timedelta(period) / sampling_rate_timedelta
-            datapoints = data[column].resample(sampling_rate_timedelta).mean()  # Need to aggregate somehow
-
-            nan_count = datapoints.rolling(period).apply(count_nas).fillna(max_possible_count)  # If we didn't fillna, we would get nas as count when the whole period is missing.
-
-            nan_ratio = nan_count / max_possible_count
-
-            result[column + suffix] = nan_ratio
-
-        return DataFrame(result)
-
-    def get_implausible_values(self, column: str, plausible_interval:List[int]=None) -> Series:
-        '''Get a boolean series indicating which values are outside the plausible
-        interval for the physical magnitude, as defined by plausible_interval
-        or config._default_unplausible_values.
-
-        For example, we consider values of NOISE_A below 20dB or above 99dB to
-        be implausible.
-
-        Parameters
-        ----------
-            column: str
-                Column to apply the plausible values check to.
-            plausible_interval: List[int]
-                List with two elements defining the plausible interval [min, max].
-                If None, will try to get the plausible interval from
-                config._default_unplausible_values.'''
-
-        series = self.data[column]
-
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-        if plausible_interval is not None:
-            left, right = plausible_interval
-        elif column in config._default_unplausible_values:
-            left, right = config._default_unplausible_values[series.name]  # I don't like this name
-        else:
-            copy = series.copy()
-            copy[:] = nan
-
-            return copy
-
-        implausible = (series < left) | (series > right)
-        nullable = implausible.convert_dtypes()
-        nullable[series.isna()] = None  # Propagate NaNs
-
-        return nullable
-
-
-    def get_implausible_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_implausible_ratio", plausible_intervals:Dict[str, List[int]]=None) -> DataFrame:
-        '''Scan the series for values outside the plausible interval for the
-        physical magnitude, as defined by plausible_interval or
-        config._default_unplausible_values. For example, we find values of
-        NOISE_A below 20dB or above 99dB to be implausible.
-
-        Parameters
-        ----------
-            period: str
-                Rolling window width.
-            subset: List[str]
-                Columns to apply the plausible ratio calculation to. If None, all columns
-                are used.
-            plausible_intervals: Dict[str, List[int]]
-                Dictionary with plausible intervals per column. Optional.
-
-        Returns
-        ----------
-            result: DataFrame
-                DataFrame with rolling calculation of plausible ratio.
-        '''
-
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-
-        if subset is not None:
-            data = self.data[subset]
-        else:
-            data = self.data
-        result = {}
-
-        for column in data.columns:
-            if plausible_intervals is not None and column in plausible_intervals:
-                interval = plausible_intervals[column]
-            else:
-                interval = None
-
-            implausible_values = self.get_implausible_values(column, plausible_interval=interval)
-
-            result[column + suffix] = implausible_values.rolling(period).mean()  # Only consider actual observed data
-
-        return DataFrame(result)
-
-    def get_outlier_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_outlier_ratio", sigma=5, pct=0.05) -> DataFrame:
-        '''Get the percentage of outlier values based on the rate of increase. When sensors
-        report sudden jumps, these are likely to be erroneous values.
-
-        Parameters
-        ----------
-            period: str
-                "1h"
-                Rolling window width.
-            subset: List[str]
-                Columns to apply the outlier ratio calculation to. If None, all columns
-                are used.
-            sigma: int
-                5
-                Number of standard deviations to consider a point an outlier. A higher
-                value would be more restrictive, detecting only worse malfunctions.
-            pct: float
-                0.05
-                Percentage of top and bottom values to ignore when normalizing. We
-                assume the outliers will always be a minority of the data, so ignoring
-                a small percentage of extreme values should help get a better estimate.
-
-        Returns
-        ----------
-            result: DataFrame
-                DataFrame with rolling outlier ratio.
-        '''
-
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-
-        if subset is not None:
-            data = self.data[subset]
-        else:
-            data = self.data
-
-        result = {}
-
-        for column in data.columns:
-            outlier_values = self.get_outlier_values(column, sigma=sigma, pct=pct)
-
-            result[column + suffix] = outlier_values.rolling(period).mean()
-
-        return DataFrame(result)
-
-    def get_outlier_values(self, column: str, sigma=5, pct=0.05) -> Series:
-        '''
-        Get a boolean series indicating which values are outliers based on
-        the rate of increase. We calculate the first derivative implied by
-        each datapoint. Then we normalize the derivative series after removing
-        the top and bottom pct% of values to avoid outliers impacting the mean
-        too much. Finally, we consider outliers those points where the
-        normalized derivative is above `sigma` standard deviations.
-
-        Parameters
-        ----------
-            column: str
-                Column to apply the outlier values check to.
-            sigma: int
-                Number of standard deviations to consider a point an outlier.
-            pct: float
-                Percentage of top and bottom values to ignore when normalizing.
-
-        Returns
-        ----------
-            Series
-                Boolean series indicating outlier values.
-        '''
-
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-
-        series = self.data[column]
-
-        deltas = rolling_deltas(series)
-        normalized_deltas = normalize_central(deltas, pct=pct)
-        outliers = normalized_deltas.abs() > sigma
-
-        return outliers
-
-    def get_top_value_ratio(self, period:str="1h", subset:List[str]=None, suffix:str="_top_value_ratio", ignore_zeroes=True) -> DataFrame:
-        '''
-            Check the frequency of the mode (top value) per column, return
-            pd.DataFrame with the same index as self.data with the mode ratio
-            per rolling window.
-
-            Parameters
-            ----------
-                period: str
-                    "1h"
-                    Rolling window width.
-                subset: List[str]
-                    Columns to apply the stuck ratio calculation to. If None, all columns
-                    are used.
-                ignore_zeroes: boolean
-                    True
-                    Ignore zeroes when checking for stuck values. Passed through to mode_ratio()
-            Returns
-            ----------
-                result: DataFrame
-                    DataFrame with rolling mode ratio.
-        '''
-        if not self.loaded:
-            logger.error('Need to load first (device.load())')
-            return False
-
-        if subset is not None:
-            data = self.data[subset]
-        else:
-            data = self.data
-
-        rolling = data.rolling(period)
-        result = rolling.apply(lambda w: mode_ratio(w, ignore_zeroes), raw=False)
-        result.columns = [col + suffix for col in result.columns]
-
-        return result
-
-
-    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False):
-        '''
-        Exports Device.data to file
+        Exports Device.data or Device.qc_data to file
         Parameters
         ----------
             path: String
@@ -886,19 +745,48 @@ class Device(BaseModel):
             file_format: String
                 'csv'
                 File format to export. Current supported format CSV
+            gzip: bool
+                False
+                Export as gzip
+            qc_data: bool
+                False
+                Export device.qc_data instead of data
         Returns
         ---------
             True if exported ok, False otherwise
         '''
         # Export device
-        if self.data is None:
-            logger.error('Cannot export null data')
-            return False
-        if file_format == 'csv':
-            return export_csv_file(path, str(self.paramsParsed.id), self.data, forced_overwrite = forced_overwrite, gzip=gzip)
+        append = ''
+
+        if qc_data:
+            df = self.qc_data
+            append = 'qc_data'
         else:
-            # TODO Make a list of supported formats
-            return NotImplementedError (f'Not supported format. Formats: [csv]')
+            df = self.data
+            append  = 'data'
+
+        if df.empty:
+            logger.error(f'Cannot export empty device.{append}')
+            return False
+
+        logger.info(f"Exporting device.{append}")
+
+        for export in self.exports:
+            logger.info(f"Exporting {export.name}")
+
+            df_export = df.copy()
+            if export.columns:
+                df_export = df_export.loc[:, df_export.columns.intersection(export.columns)]
+
+            if file_format == 'csv':
+                logger.info(f"Exporting as {file_format}")
+                export_csv_file(path, f"{self.id}_{append}_{export.name}", df_export, forced_overwrite = forced_overwrite, gzip=gzip)
+            elif file_format == 'parquet':
+                logger.info(f"Exporting as {file_format}")
+                df_export.to_parquet(f"{join(path, f'{self.id}_{append}_{export.name}')}.parquet", index=True)
+            else:
+                # TODO Make a list of supported formats
+                raise NotImplementedError (f'Not supported format. Formats: [csv]')
 
     async def post(self, columns = 'sensors', clean_na = 'drop', chunk_size = 500,\
         dry_run = False, max_retries = 2, with_postprocessing = False, delay_between_posts=None):
@@ -908,7 +796,7 @@ class Device(BaseModel):
             ----------
             columns: str, optional
                 ''
-                'metrics' or 'sensors'. Empty '' means 'all'
+                'channels' or 'sensors'. Empty '' means 'all'
             clean_na: string, optional
                 'drop'
                 'drop', 'fill'
@@ -933,8 +821,8 @@ class Device(BaseModel):
             rename = self._rename, clean_na = clean_na, chunk_size = chunk_size, \
             dry_run = dry_run, max_retries = max_retries, delay_between_posts=delay_between_posts)
 
-        if post_ok: logger.info(f'Posted data for {self.paramsParsed.id}')
-        else: logger.error(f'Error posting data for {self.paramsParsed.id}')
+        if post_ok: logger.info(f'Posted data for {self.params_parsed.id}')
+        else: logger.error(f'Error posting data for {self.params_parsed.id}')
 
         # Post info if requested. It should be updated elsewhere
         if with_postprocessing and post_ok and not dry_run:
@@ -961,10 +849,10 @@ class Device(BaseModel):
 
         post_ok = self.handler.patch_postprocessing(dry_run=dry_run)
 
-        if post_ok: logger.info(f"Postprocessing posted for device {self.paramsParsed.id}")
+        if post_ok: logger.info(f"Postprocessing posted for device {self.params_parsed.id}")
         return post_ok
 
-    def backup_to_storage(self, mode='append', path='devices', add_qc=False):
+    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False):
         """
         Backup device data into S3 storage (requires S3_DATA_BUCKET env
          variable set).
@@ -977,7 +865,10 @@ class Device(BaseModel):
                 'devices'
                 Path for backup directory
                 "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            add_qc: bool
+            add_qc_data: bool
+                False
+                Add quality dataframe to export as parquet
+            add_qc_metrics: bool
                 False
                 Add quality metrics to export as json
         Returns
@@ -993,10 +884,11 @@ class Device(BaseModel):
             return False
 
         # TODO Add more formats
+        responses = {}
         if boto_available:
             self.data['TIME']=self.data.index
             target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            response = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
+            responses['data_upload'] = wr.s3.to_parquet(df=self.data, path=target_path, dataset=True, mode=mode)
 
             s3 = boto3.resource('s3')
             s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/metadata.json")
@@ -1004,16 +896,24 @@ class Device(BaseModel):
                 Body=(bytes(self.handler.json.model_dump_json().encode('utf-8')))
             )
 
-            # TODO Test if this works
-            if add_qc:
-                s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json")
-                s3object.put(
-                    Body=(bytes(dumps(self.quality_metrics).encode('utf-8')))
-                )
+            if add_qc_data:
+                if self.qc_data.empty:
+                    logger.error("Device qc_data empty")
+                else:
+                    self.qc_data['TIME']=self.qc_data.index
+                    target_path = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                    responses['qc_data_upload'] = wr.s3.to_parquet(df=self.qc_data, path=target_path, dataset=True, mode=mode)
 
-            return response
+                    # TODO Test if this works
+                    if add_qc_metrics:
+                        s3object = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json")
+                        s3object.put(
+                            Body=(bytes(dumps(self.quality_metrics).encode('utf-8')))
+                        )
 
-    def load_from_storage(self, path='devices'):
+            return responses
+
+    def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False):
         """
         Load device data from S3 storage (requires AWS env
          variable set).
@@ -1038,27 +938,67 @@ class Device(BaseModel):
 
             return False
 
+        loaded = False
+
         if boto_available:
             session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
             region_name=os.environ['AWS_REGION'])
-            s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-            logger.info(f"Loading data from: {s3_url}")
 
-            self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
-            self.data.set_index('TIME', inplace=True)
-            self.data.sort_index(inplace=True)
-            self.data = self.data[~self.data.index.duplicated(keep='first')]
+            if load_data:
+                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+                logger.info(f"Loading data from: {s3_url}")
 
-            self.loaded = True
+                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
+                self.data.set_index('TIME', inplace=True)
+                self.data.sort_index(inplace=True)
+                self.data = self.data[~self.data.index.duplicated(keep='first')]
 
-            return s3_url
+                self.loaded = True
+                loaded = True
+
+            if load_qc_data:
+                qc_data_s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                logger.info(f"Loading qc_data from: {qc_data_s3_url}")
+
+                self.qc_data = wr.s3.read_parquet(qc_data_s3_url, boto3_session=session, dataset=True)
+                self.qc_data.set_index('TIME', inplace=True)
+                self.qc_data.sort_index(inplace=True)
+                self.qc_data = self.qc_data[~self.qc_data.index.duplicated(keep='first')]
+
+                loaded = True
+
+            if load_qc_metrics:
+                s3 = boto3.resource('s3')
+                try:
+                    qc_metrics_s3_url = f"{os.environ['S3_DATA_BUCKET']}/" + f"{path}/{self.id}/quality_metrics.json"
+                    logger.info(f"Loading qc_metrics from: {qc_metrics_s3_url}")
+
+                    qc_metrics = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json").get()
+                except botocore.exceptions.ClientError as e:
+                    if e.response['Error']['Code'] == "NoSuchKey":
+                        # The object does not exist.
+                        logger.error('No qc_metrics available')
+                    else:
+                        # Something else has gone wrong.
+                        logger.error(e.response)
+                        error = True
+                else:
+                    # The object does exist.
+                    response = loads(qc_metrics['Body'].read().decode('utf-8'))
+                    self.quality_metrics = response
+            logger.info('Done')
+
+            return loaded
         else:
             logger.error("Boto not available. Install awswrangler")
             return False
 
-    def get_series_dict(self, frequency=None):
-        df = self.data.copy()
+    def get_series_dict(self, frequency=None, plot_qc_data=False):
+        if plot_qc_data:
+            df = self.qc_data.copy()
+        else:
+            df = self.data.copy()
 
         df.index = df.index.tz_convert('UTC').tz_localize(None)
 
@@ -1069,7 +1009,7 @@ class Device(BaseModel):
             for col in df.columns
         }
 
-    def ts_panel(self, frequency='10Min', channels=None, **kwargs):
+    def ts_panel(self, frequency='10Min', channels=None, plot_qc_data=False, **kwargs):
         '''
             Returns a panel for interactive plotting
             ---
@@ -1085,7 +1025,7 @@ class Device(BaseModel):
         '''
         if bokeh_available:
             return TimeSeriesPanel(
-                self.get_series_dict(frequency=frequency),
+                self.get_series_dict(frequency=frequency, plot_qc_data=plot_qc_data),
                 channels=channels,
                 device_id=self.id,
                 **kwargs

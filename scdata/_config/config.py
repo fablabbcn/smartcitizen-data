@@ -17,7 +17,7 @@ import json
 from pydantic import TypeAdapter
 from typing import List
 
-from scdata.models import Name, Blueprint, Metric
+from scdata.models import Name, Blueprint
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.gets import get_json_from_url
 
@@ -76,7 +76,7 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
+    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhancement/improve-blueprints/'
     _default_file_type = 'json'
 
     calibrations_urls = [
@@ -406,68 +406,10 @@ class Config(object):
     ### ------------VALUES-CHECK---------------
     ### ---------------------------------------
 
-    _default_sampling_rate = {
-        'AMS AS7731 - UVA': 1,
-        'AMS AS7731 - UVB': 1,
-        'AMS AS7731 - UVC': 1,
-        'LIGHT': 1,
-        'BATT': 1,
-        'NOISE_A': 1,
-        'SCD30_CO2': 1,
-        'SCD30_HUM': 1,
-        'SCD30_TEMP': 1,
-        'SD-card': 1,
-        'LPS33_PRESS': 1,
-        'PRESS': 1,
-        'PMS5003_PM_1': 5,
-        'PMS5003_PM_25': 5,
-        'PMS5003_PM_10': 5,
-        'PMS5003_PN_03': 5,
-        'PMS5003_PN_03': 5,
-        'PMS5003_PN_05':5,
-        'PMS5003_PN_1':5,
-        'PMS5003_PN_10':5,
-        'PMS5003_PN_25':5,
-        'PMS5003_PN_5':5,
-        'SEN5X_HUM': 5,
-        'SEN5X_PM_1': 5,
-        'SEN5X_PM_10': 5,
-        'SEN5X_PM_25': 5,
-        'SEN5X_PM_40': 5,
-        'SEN5X_PN_05': 5,
-        'SEN5X_PN_1': 5,
-        'SEN5X_PN_10': 5,
-        'SEN5X_PN_25': 5,
-        'SEN5X_PN_40': 5,
-        'SEN5X_TPS': 5,
-        'SEN5X_TEMP': 5,
-        'SFA30_HCHO': 1,
-        'SFA30_HUM': 1,
-        'SFA30_TEMP': 1,
-        'ADC_48_0': 1,
-        'ADC_48_1': 1,
-        'ADC_48_2': 1,
-        'ADC_48_3': 1,
-        'ADC_49_0': 1,
-        'ADC_49_1': 1,
-        'ADC_49_2': 1,
-        'ADC_49_3': 1,
-        'CCS811_VOCS': 1,
-        'CCS811_ECO2': 1,
-        'HUM': 1,
-        'TEMP': 1,
-        'RSSI': 1,
-        'NO2': 1,
-        'O3': 1,
-        'AS_TEMP': 1,
-        'AS_PH': 1,
-        'AS_COND': 1,
-        'AS_DO_SAT': 1,
-        'AS_DO': 1
-    }
+    _default_gap_size_minutes = 5
 
     # TODO - Review limits
-    _default_unplausible_values = {
+    _default_implausible_values = {
         'CCS811_VOCS': [0, 30000],
         'CCS811_ECO2': [400, 30000],
         'NOISE_A': [20, 99],

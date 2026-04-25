@@ -1,6 +1,6 @@
 import pytest
 import scdata as sc
-from scdata.models import Metric
+from scdata.models import CalculatedChannel
 from scdata._config import config
 import time
 import asyncio
@@ -26,14 +26,14 @@ def test_sc_test_all():
     load_status = asyncio.run(t.load())
 
     # Test processes
-    metric = Metric(name='NOISE_A_SMOOTH',
+    channel = CalculatedChannel(name='NOISE_A_SMOOTH',
                 description='Basic smoothing calculation',
                 function='rolling_avg',
                 kwargs= {'name': ['NOISE_A'], 'window_size': 5}
                )
-    t.get_device(16838).add_metric(metric)
+    t.get_device(16838).add_calculated_channel(channel)
     process_status = t.process()
-    metric_in_df = 'NOISE_A_SMOOTH' in t.get_device(16838).data.columns
+    channel = 'NOISE_A_SMOOTH' in t.get_device(16838).data.columns
 
     # Test plots
     traces = {
@@ -48,7 +48,7 @@ def test_sc_test_all():
     # Test
     assert process_status == True
     assert t.loaded == True
-    assert metric_in_df == True
+    assert channel == True
     for device in t.devices:
         assert (localise_date(min_date, 'UTC') < device.data.index[0])
     assert figure_mpl is not None
