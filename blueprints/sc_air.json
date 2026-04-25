@@ -216,7 +216,7 @@
       "post": true,
       "function": "alphasense_803_04",
       "unit": "ppb",
-      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP"]
+      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP", "NO2"]
     },
     {
       "name":"SO2",
@@ -593,6 +593,8 @@
         "HUM",
         "LIGHT",
         "LPS33_PRESS",
+        "PRESS",
+        "MPL_PRESS",
         "NO",
         "NO2",
         "NOISE_A",
