@@ -2,6 +2,10 @@ from os import makedirs, listdir
 from os.path import exists, join, splitext
 import csv
 
+from pathlib import Path
+import shutil
+import os
+
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.cleaning import clean
@@ -187,6 +191,67 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
 
     return df
 
+def remove_invalid_utf8_lines(file_path, encoding="utf-8"):
+    """
+    Removes lines with invalid UTF-8 encoding from a file.
+
+    If any invalid lines are found:
+      - The original file is renamed to <filename>.corrupt
+      - The cleaned file is written with the original filename
+
+    Returns:
+        (valid_lines, removed_lines)
+    """
+    file_path = Path(file_path)
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+    backup_path = Path(str(file_path) + ".corrupt")
+
+    valid_lines = 0
+    removed_lines = 0
+
+    with open(file_path, "rb") as infile, open(temp_path, "wb") as outfile:
+        for line_num, raw_line in enumerate(infile, start=1):
+            try:
+                raw_line.decode(encoding)
+            except UnicodeDecodeError:
+                removed_lines += 1
+                logger.warning(f"Skipping invalid line {line_num}")
+                continue
+
+            outfile.write(raw_line)
+            valid_lines += 1
+
+    if removed_lines > 0:
+        # Remove an old backup if it exists
+        if backup_path.exists():
+            backup_path.unlink()
+
+        # Rename original to .corrupt
+        shutil.move(file_path, backup_path)
+
+        # Move cleaned file into place
+        shutil.move(temp_path, file_path)
+
+        logger.info(f"Removed {removed_lines} invalid lines.")
+        logger.info(f"Original saved as: {backup_path}")
+    else:
+        # No changes needed
+        temp_path.unlink()
+        logger.info("No invalid lines found.")
+
+    return valid_lines, removed_lines
+
+def is_number(token):
+    try:
+        float(token)
+        return True
+    except ValueError:
+        return False
+
+def is_valid_header_token(token):
+    token = token.strip()
+    return not (is_number(token))
+
 def sdcard_concat(path,
     output = 'CONCAT.CSV',
     index_name = 'TIME',
@@ -257,13 +322,15 @@ def sdcard_concat(path,
         if output in file:
             logger.warning(f'Ignoring {file}')
             continue
-        if any([ign in file for ign in ignore]):
+        if any([ign in file for ign in ignore]) or file.endswith('.corrupt'):
             logger.warning(f'Ignoring {file}')
             continue
 
         logger.info(f'Loading file ({files.index(file)}/{len(files)}): {join(path, file)}')
         filename, _ = splitext(file)
         src_path = join(path, file)
+
+        remove_invalid_utf8_lines(src_path)
 
         try:
             with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
@@ -292,8 +359,17 @@ def sdcard_concat(path,
                 long_tokenized = header[2].strip('\r\n').split(',')
                 id_tokenized = header[3].strip('\r\n').split(',')
 
-            except:
-                logger.warning(f'Problem with header on file: {file}')
+                for name, tokens in [
+                    ("short", short_tokenized),
+                    ("unit", unit_tokenized),
+                    ("long", long_tokenized)
+                ]:
+                    bad = [t for t in tokens if not is_valid_header_token(t)]
+                    if bad:
+                        raise ValueError(f"{name} header contains invalid tokens: {bad}")
+
+            except Exception as e:
+                logger.warning(f'Problem with header on file: {file} - {e}')
                 pass
             else:
                 for item in short_tokenized:
@@ -315,6 +391,7 @@ def sdcard_concat(path,
                 temp.index.rename(index_name, inplace=True)
                 try:
                     check = temp.astype('float64')
+                    check.index = localise_date(temp.index, timezone, tzaware=tzaware, dateformat=dateformat)
                 except Exception as e:
                     logger.error(f'Issue with file {file}: {e}')
                     errors = True

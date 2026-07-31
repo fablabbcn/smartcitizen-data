@@ -34,13 +34,14 @@ def dataframe_row_diff(
     if cutoff is not None:
         cutoff = pd.Timestamp(cutoff)
 
-        if df1.index.tz is not None and cutoff.tzinfo is None:
-            cutoff = cutoff.tz_localize(df1.index.tz)
-        elif df1.index.tz is None and cutoff.tzinfo is not None:
-            cutoff = cutoff.tz_convert(None)
+        if not df1.empty:
+            if df1.index.tz is not None and cutoff.tzinfo is None:
+                cutoff = cutoff.tz_localize(df1.index.tz)
+            elif df1.index.tz is None and cutoff.tzinfo is not None:
+                cutoff = cutoff.tz_convert(None)
 
-        df1 = df1[df1.index >= cutoff]
-        df2 = df2[df2.index >= cutoff]
+            df1 = df1[df1.index >= cutoff]
+            df2 = df2[df2.index >= cutoff]
 
     if ignore_columns:
         df1 = df1.drop(columns=[c for c in ignore_columns if c in df1.columns], errors="ignore")
