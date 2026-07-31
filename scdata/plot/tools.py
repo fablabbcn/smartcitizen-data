@@ -394,11 +394,12 @@ def prepare_test_data(test, traces, options):
     #         df = df.resample(options['frequency']).mean()
 
     # Clean na
-    if options['clean_na'] is not None:
-        if options['clean_na'] == 'fill':
-            df = df.fillna(method='ffill')
-        if options['clean_na'] == 'drop':
-            df.dropna(axis = 0, how='any')
+    if 'clean_na' in options:
+        if options['clean_na'] is not None:
+            if options['clean_na'] == 'fill':
+                df = df.fillna(method='ffill')
+            if options['clean_na'] == 'drop':
+                df.dropna(axis = 0, how='any')
 
     if df.empty: logger.warning('Dataframe for selected options is empty')
 

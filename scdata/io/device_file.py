@@ -2,12 +2,16 @@ from os import makedirs, listdir
 from os.path import exists, join, splitext
 import csv
 
+from pathlib import Path
+import shutil
+import os
+
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.cleaning import clean
 from pandas import read_csv, to_datetime, DataFrame
 from scdata._config import config
-from scdata.models import Metric
+from scdata.models import CalculatedChannel
 
 class CSVHandler:
     ''' Main implementation of the CSV data class '''
@@ -19,7 +23,7 @@ class CSVHandler:
         self.blueprint_url = None
         self.override_url_blueprint = True
         self.data = DataFrame()
-        self._metrics: List[Metric] = []
+        self._calculated_channels: List[CalculatedChannel] = []
         self.latest_postprocessing = None
         if not self.__check__():
             raise FileExistsError(f'File not found: {self.params.path}')
@@ -187,60 +191,187 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
 
     return df
 
-def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True, ignore = ['CONCAT.CSV', 'INFO.TXT'], **kwargs):
+def remove_invalid_utf8_lines(file_path, encoding="utf-8"):
+    """
+    Removes lines with invalid UTF-8 encoding from a file.
+
+    If any invalid lines are found:
+      - The original file is renamed to <filename>.corrupt
+      - The cleaned file is written with the original filename
+
+    Returns:
+        (valid_lines, removed_lines)
+    """
+    file_path = Path(file_path)
+    temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+    backup_path = Path(str(file_path) + ".corrupt")
+
+    valid_lines = 0
+    removed_lines = 0
+
+    with open(file_path, "rb") as infile, open(temp_path, "wb") as outfile:
+        for line_num, raw_line in enumerate(infile, start=1):
+            try:
+                raw_line.decode(encoding)
+            except UnicodeDecodeError:
+                removed_lines += 1
+                logger.warning(f"Skipping invalid line {line_num}")
+                continue
+
+            outfile.write(raw_line)
+            valid_lines += 1
+
+    if removed_lines > 0:
+        # Remove an old backup if it exists
+        if backup_path.exists():
+            backup_path.unlink()
+
+        # Rename original to .corrupt
+        shutil.move(file_path, backup_path)
+
+        # Move cleaned file into place
+        shutil.move(temp_path, file_path)
+
+        logger.info(f"Removed {removed_lines} invalid lines.")
+        logger.info(f"Original saved as: {backup_path}")
+    else:
+        # No changes needed
+        temp_path.unlink()
+        logger.info("No invalid lines found.")
+
+    return valid_lines, removed_lines
+
+def is_number(token):
+    try:
+        float(token)
+        return True
+    except ValueError:
+        return False
+
+def is_valid_header_token(token):
+    token = token.strip()
+    return not (is_number(token))
+
+def sdcard_concat(path,
+    output = 'CONCAT.CSV',
+    index_name = 'TIME',
+    keep = True,
+    ignore = ['CONCAT.CSV', 'INFO.TXT', 'MONITOR.TXT', 'ERROR.TXT', 'DEBUG.TXT'],
+    timezone = '',
+    tzaware=True,
+    dateformat=None,
+    min_date=None,
+    rename_to_blueprint=None,
+    blueprint=None):
     '''
-        Loads files from local directory in text format, for instance
-        SD card files with timestamp, sparse or concatenated
-        Parameters
-        ----------
-            path: String
-                Directory containing the folder
-            output: String
-                CONCAT.CSV
-                Output name (csv file). If '' no output is saved, only
-                returns a pandas.DataFrame()
-            index_name: String
-                'TIME'
-                Name for the index of the pandas.DataFrame()
-            keep: boolean
-                True
-                Keeps the header in the output file
-            ignore: list
-                CONCAT.CSV
-                Ignores this file if present in the folder
-        Returns
-        -------
-            Pandas dataframe
+    Loads files from local directory in text format, for instance
+    SD card files with timestamp, sparse or concatenated
+    Parameters
+    ----------
+        path: String
+            Directory containing the folder
+        output: String
+            CONCAT.CSV
+            Output name (csv file). If '' no output is saved, only
+            returns a pandas.DataFrame()
+        index_name: String
+            'TIME'
+            Name for the index of the pandas.DataFrame()
+        keep: boolean
+            True
+            Keeps the header in the output file
+        ignore: list
+            ['CONCAT.CSV', 'INFO.TXT', 'MONITOR.TXT', 'ERROR.TXT', 'DEBUG.TXT']
+            Ignores this file if present in the folder
+        timezone: String
+            Time zone for the csv file
+        timezone: boolean
+            Index is tzaware
+        dateformat: String
+            None
+            Specific time format for index
+        min_date: String
+            None
+            Date for minimum cut-off
+        blueprint:
+            None
+            Indicate a blueprint for renaming
+    Returns
+    -------
+        Pandas dataframe
     '''
 
     concat = DataFrame()
     header_tokenized = dict()
     marked_for_revision = False
     files = listdir(path)
+
+    # Rename
+    if blueprint is not None:
+        if blueprint not in config.blueprints:
+            logger.warning('Blueprint not in config. Cannot rename')
+            rename = False
+        else:
+            rename = True
+    else:
+        logger.info('No blueprint specified')
+        rename = False
+
+    errors = False
     for file in files:
-        if file != output and file not in ignore:
-            logger.info(f'Loading file ({files.index(file)}/{len(files)}): {join(path, file)}')
-            filename, _ = splitext(file)
-            src_path = join(path, file)
+        if output in file:
+            logger.warning(f'Ignoring {file}')
+            continue
+        if any([ign in file for ign in ignore]) or file.endswith('.corrupt'):
+            logger.warning(f'Ignoring {file}')
+            continue
 
+        logger.info(f'Loading file ({files.index(file)}/{len(files)}): {join(path, file)}')
+        filename, _ = splitext(file)
+        src_path = join(path, file)
+
+        remove_invalid_utf8_lines(src_path)
+
+        try:
+            with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
+                header = csv_file.readlines()[0:5]
+        except:
+            ignore_file = True
+            logger.warning(f'Ignoring file: {file}')
+            pass
+        else:
+            ignore_file = False
+
+        if ignore_file: continue
+
+        first_row = header[4].strip('\r\n').split(',')
+        first_date = localise_date(first_row[0], timezone, tzaware=tzaware, dateformat=dateformat)
+
+        if min_date is not None:
+            if (first_date < min_date):
+                logger.warning(f'Ignoring file: {file} due to cutt-off date')
+                continue
+
+        if keep:
             try:
-                with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
-                    header = csv_file.readlines()[0:4]
-            except:
-                ignore_file = True
-                logger.warning(f'Ignoring file: {file}')
-                pass
-            else:
-                ignore_file = False
-
-            if ignore_file: continue
-
-            if keep:
                 short_tokenized = header[0].strip('\r\n').split(',')
                 unit_tokenized = header[1].strip('\r\n').split(',')
                 long_tokenized = header[2].strip('\r\n').split(',')
                 id_tokenized = header[3].strip('\r\n').split(',')
 
+                for name, tokens in [
+                    ("short", short_tokenized),
+                    ("unit", unit_tokenized),
+                    ("long", long_tokenized)
+                ]:
+                    bad = [t for t in tokens if not is_valid_header_token(t)]
+                    if bad:
+                        raise ValueError(f"{name} header contains invalid tokens: {bad}")
+
+            except Exception as e:
+                logger.warning(f'Problem with header on file: {file} - {e}')
+                pass
+            else:
                 for item in short_tokenized:
                     if item != '' and item not in header_tokenized.keys():
                         index = short_tokenized.index(item)
@@ -250,37 +381,36 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
                         header_tokenized[short_tokenized[index]]['long'] = long_tokenized[index]
                         header_tokenized[short_tokenized[index]]['id'] = id_tokenized[index]
 
-            temp = read_csv(src_path, skiprows=range(1,4),
-                            encoding_errors='ignore', na_values=config._ignore_na_values).set_index("TIME")
-            temp = clean(temp, clean_na='drop', how='all')
-            temp.index.rename(index_name, inplace=True)
-            concat = concat.combine_first(temp)
+                temp = read_csv(src_path,
+                    skiprows=range(1,4),
+                    encoding_errors='ignore',
+                    na_values=config._ignore_na_values,
+                    on_bad_lines='skip').set_index("TIME")
 
+                temp = clean(temp, clean_na='drop', how='all')
+                temp.index.rename(index_name, inplace=True)
+                try:
+                    check = temp.astype('float64')
+                    check.index = localise_date(temp.index, timezone, tzaware=tzaware, dateformat=dateformat)
+                except Exception as e:
+                    logger.error(f'Issue with file {file}: {e}')
+                    errors = True
+                concat = concat.combine_first(temp)
+
+    if errors:
+        logger.error('Errors found')
+        return
     columns = concat.columns
 
     ## Sort index
     concat.sort_index(inplace = True)
 
-    # Rename case
-    if 'rename_to_blueprint' in kwargs:
-        rename = kwargs['rename_to_blueprint']
-    else:
-        rename = False
-
-    if 'blueprint' in kwargs:
-        rename_bp = kwargs['blueprint']
-        if rename_bp not in config.blueprints:
-            logger.warning('Blueprint not in config. Cannot rename')
-            rename = False
-    else:
-        logger.info('No blueprint specified')
-        rename = False
-
+    # Rename
     if rename:
         logger.warning('Keep in mind that renaming doesnt change the units')
         rename_d = dict()
         for old_key in header_tokenized:
-            for key, value in config.blueprints[rename_bp]['sensors'].items():
+            for key, value in config.blueprints[blueprint]['sensors'].items():
                 if value['id'] == header_tokenized[old_key]['id'] and old_key != key:
                     rename_d[old_key] = key
                     break
@@ -289,6 +419,14 @@ def sdcard_concat(path, output = 'CONCAT.CSV', index_name = 'TIME', keep = True,
             logger.info(f'Renaming {old_key} to {rename_d[old_key]}')
             header_tokenized[rename_d[old_key]] = header_tokenized.pop(old_key)
             concat.rename(columns=rename_d, inplace=True)
+
+    # Moot to check this here...
+    if timezone != '':
+        logger.info(f"Setting timezone to {timezone}")
+        # Set index
+        concat.index = localise_date(concat.index, timezone, tzaware=tzaware, dateformat=dateformat)
+    # Remove duplicates
+    concat = concat[~concat.index.duplicated(keep='first')]
 
     ## Save it as CSV
     if output.endswith('.CSV') or output.endswith('.csv'):
