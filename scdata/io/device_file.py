@@ -252,6 +252,7 @@ def sdcard_concat(path,
         logger.info('No blueprint specified')
         rename = False
 
+    errors = False
     for file in files:
         if output in file:
             logger.warning(f'Ignoring {file}')
@@ -279,9 +280,10 @@ def sdcard_concat(path,
         first_row = header[4].strip('\r\n').split(',')
         first_date = localise_date(first_row[0], timezone, tzaware=tzaware, dateformat=dateformat)
 
-        if (first_date < min_date):
-            logger.warning(f'Ignoring file: {file} due to cutt-off date')
-            continue
+        if min_date is not None:
+            if (first_date < min_date):
+                logger.warning(f'Ignoring file: {file} due to cutt-off date')
+                continue
 
         if keep:
             try:
@@ -311,8 +313,16 @@ def sdcard_concat(path,
 
                 temp = clean(temp, clean_na='drop', how='all')
                 temp.index.rename(index_name, inplace=True)
+                try:
+                    check = temp.astype('float64')
+                except Exception as e:
+                    logger.error(f'Issue with file {file}: {e}')
+                    errors = True
                 concat = concat.combine_first(temp)
 
+    if errors:
+        logger.error('Errors found')
+        return
     columns = concat.columns
 
     ## Sort index
@@ -333,6 +343,7 @@ def sdcard_concat(path,
             header_tokenized[rename_d[old_key]] = header_tokenized.pop(old_key)
             concat.rename(columns=rename_d, inplace=True)
 
+    # Moot to check this here...
     if timezone != '':
         logger.info(f"Setting timezone to {timezone}")
         # Set index
