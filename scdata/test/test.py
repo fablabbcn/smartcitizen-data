@@ -103,7 +103,7 @@ class Test(BaseModel):
         logger.info(f'Test {self.name} initialized')
 
     def __str__(self):
-        return self.__full_name__
+        return self.name
 
     def __set_tname__(self, name):
         current_date = datetime.now()
