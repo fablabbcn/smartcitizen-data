@@ -76,7 +76,7 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/enhancement/improve-blueprints/'
+    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
     _default_file_type = 'json'
 
     calibrations_urls = [
@@ -95,7 +95,6 @@ class Config(object):
         # f'{_base_postprocessing_url}blueprints/sck_15.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_20.{_default_file_type}',
         f'{_base_postprocessing_url}blueprints/sc_air.{_default_file_type}',
-        f'{_base_postprocessing_url}blueprints/sc_water.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_sps30.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_sen5x.{_default_file_type}',
         # f'{_base_postprocessing_url}blueprints/sck_21_gps.{_default_file_type}',

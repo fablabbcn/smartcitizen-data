@@ -792,7 +792,7 @@
         "unit": "#/0.1l"
     },
     {
-        "name": "SEN5X_TPS",
+        "name": "SEN5X_TPSIZE",
         "id": "202",
         "description": "Typical Particle Size from SEN5X",
         "unit": "um"
