@@ -2,7 +2,8 @@ include README.md
 include LICENSE
 include setup.py
 include setup.cfg
-include scdata/test/export/templates/sc_template.html
+include scdata/test/export/templates/*.html
+include scdata/plot/templates/*.html
 include scdata/tools/interim/*.csv
 include scdata/tools/zenodo_templates/*.*
 include scdata/tools/uploads/*.*

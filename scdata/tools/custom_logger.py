@@ -1,4 +1,3 @@
-from termcolor import colored
 from scdata._config import config
 from datetime import datetime
 import sys
