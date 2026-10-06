@@ -76,7 +76,11 @@ class Config(object):
     ### -------------SMART CITIZEN-------------
     ### ---------------------------------------
     # # Urls
-    _base_postprocessing_url = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/'
+    # Blueprints and calibrations are read from BASE_POSTPROCESSING_URL, the same variable as
+    # smartcitizen-connector (e.g. flows: https://flows.smartcitizen.me/api/v1/). By default,
+    # the smartcitizen-data repository. These urls are not saved in config.yaml
+    _base_postprocessing_url = environ.get('BASE_POSTPROCESSING_URL',
+        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/').rstrip('/') + '/'
     _default_file_type = 'json'
 
     calibrations_urls = [
@@ -106,6 +110,9 @@ class Config(object):
     # connectors_urls = [
     #     f'{_base_postprocessing_url}connectors/nilu.{_default_file_type}'
     # ]
+
+    # Not saved in config.yaml, derived from _base_postprocessing_url
+    _derived_settings = ['blueprints_urls', 'calibrations_urls', 'names_urls']
 
     names_urls = [
         # Revert to base postprocessing url
@@ -743,6 +750,8 @@ class Config(object):
                 saved_config = yaml.load(cf, Loader = yaml.SafeLoader)
 
             for k, v in saved_config.items():
+                # Urls come from BASE_POSTPROCESSING_URL: ignore those saved by older versions
+                if k in self._derived_settings: continue
 
                 try:
                     self.__setattr__(k, v)
@@ -757,7 +766,7 @@ class Config(object):
         """ Save current config to file. """
         c = dict()
         for setting in self:
-            if not setting.startswith('_') and not callable(self.__getitem__(setting)) and setting not in ['blueprints', 'names', 'calibrations']:
+            if not setting.startswith('_') and not callable(self.__getitem__(setting)) and setting not in ['blueprints', 'names', 'calibrations'] + self._derived_settings:
                 c[setting] = self[setting]
 
         _sccpath = join(self.paths['config'], 'config.yaml')
