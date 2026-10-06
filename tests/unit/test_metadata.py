@@ -20,12 +20,18 @@ HARDWARE = sorted(glob.glob(join(ROOT, 'hardware', '*.json')))
 KNOWN_MISSING_NAMES = {'MPL_PRESS'}
 # Hardware pointing to a blueprint that does not exist
 KNOWN_MISSING_BLUEPRINT = {'SCK21NILU'}
-# Hardware with sensor ids that are not in calibrations.json or have unknown codes
-KNOWN_MISSING_CALIBRATIONS = {'SCAS210030', 'SCAS220051', 'SCAS220052', 'SCAS220053', 'SCAS220054',
-                              'SCAS220055', 'SCAS220117', 'SCAS230006', 'SCAS230007', 'SCAS230008',
-                              'SCAS230009', 'SCAS230010'}
-KNOWN_UNKNOWN_SENSOR_CODES = {'SCAS210030', 'SCAS220051', 'SCAS220052', 'SCAS220053', 'SCAS220054',
-                              'SCAS220055', 'SCAS220117'}
+# (hardware, sensor id) with an unknown Alphasense code
+KNOWN_UNKNOWN_SENSOR_CODES = {
+    ('SCAS210030', '163040003'), ('SCAS220051', '73002320'), ('SCAS220052', '73002016'),
+    ('SCAS220053', '73002157'), ('SCAS220054', '73002644'), ('SCAS220055', '73002265'),
+    ('SCAS220117', 'nan'),
+}
+# (hardware, sensor id) not in calibrations.json
+KNOWN_MISSING_CALIBRATIONS = KNOWN_UNKNOWN_SENSOR_CODES | {
+    ('SCAS210030', '164780964'), ('SCAS210030', '202760040'), ('SCAS210030', '204042163'),
+    ('SCAS230006', '164210262'), ('SCAS230007', '164210264'), ('SCAS230008', '164210263'),
+    ('SCAS230009', '164100628'), ('SCAS230010', '164100629'),
+}
 
 
 def columns_in(item):
@@ -90,7 +96,21 @@ def test_hardware(path):
         assert version.from_date is None or version.to_date is None or version.from_date < version.to_date
         for slot, sensor_id in version.ids.items():
             assert slot[:2] in ['AS', 'PT'], slot
-            if slot.startswith('AS') and name not in KNOWN_UNKNOWN_SENSOR_CODES:
+            if slot.startswith('AS') and (name, sensor_id) not in KNOWN_UNKNOWN_SENSOR_CODES:
                 assert sensor_id[:3] in connector_config._as_sensor_codes, sensor_id
-            if name not in KNOWN_MISSING_CALIBRATIONS:
+            if (name, sensor_id) not in KNOWN_MISSING_CALIBRATIONS:
                 assert sensor_id in calibrations, sensor_id
+
+
+def test_known_hardware_issues_are_still_present():
+    calibrations = load_json('calibrations', 'calibrations.json')
+    used = set()
+    for path in HARDWARE:
+        for version in HardwarePostprocessing.model_validate(load_json(path)).versions:
+            used |= {(basename(path)[:-5], sensor_id) for sensor_id in version.ids.values()}
+
+    # Remove fixed items from the known issues
+    assert KNOWN_MISSING_CALIBRATIONS <= used
+    assert {item for item in KNOWN_MISSING_CALIBRATIONS if item[1] in calibrations} == set()
+    assert {item for item in KNOWN_UNKNOWN_SENSOR_CODES
+            if item[1][:3] in connector_config._as_sensor_codes} == set()
