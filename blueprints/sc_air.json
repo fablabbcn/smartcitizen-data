@@ -317,13 +317,13 @@
         "default_frequency_minutes": 1,
         "gap_sizes": [
           {
-            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
+            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_4", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_4", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
             "gap_size_minutes": 10
           }
         ],
         "frequencies": [
           {
-            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_40", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_40", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
+            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_4", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_4", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
             "frequency_minutes": 5
           }
         ]
@@ -402,7 +402,7 @@
             "limits": [0, 500]
           },
           {
-            "column": "SEN5X_PM_40",
+            "column": "SEN5X_PM_4",
             "limits": [0, 500]
           },
           {
@@ -504,7 +504,7 @@
         "columns": [
           "SEN5X_PM_1",
           "SEN5X_PM_25",
-          "SEN5X_PM_40",
+          "SEN5X_PM_4",
           "SEN5X_PM_10",
           "PMS5003_PM_1",
           "PMS5003_PM_25",
@@ -543,7 +543,7 @@
         "columns": [
           "SEN5X_PM_1",
           "SEN5X_PM_25",
-          "SEN5X_PM_40",
+          "SEN5X_PM_4",
           "SEN5X_PM_10",
           "PMS5003_PM_1",
           "PMS5003_PM_25",
@@ -614,12 +614,12 @@
         "SEN5X_PM_1",
         "SEN5X_PM_10",
         "SEN5X_PM_25",
-        "SEN5X_PM_40",
+        "SEN5X_PM_4",
         "SEN5X_PN_05",
         "SEN5X_PN_1",
         "SEN5X_PN_10",
         "SEN5X_PN_25",
-        "SEN5X_PN_40",
+        "SEN5X_PN_4",
         "SEN5X_TEMP",
         "SEN5X_TPSIZE",
         "TEMP"
