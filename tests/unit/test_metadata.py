@@ -18,8 +18,6 @@ HARDWARE = sorted(glob.glob(join(ROOT, 'hardware', '*.json')))
 # Known issues in the current data. Remove items once fixed, never add new ones
 # Names used in blueprints that are not in names/SCDevice.json
 KNOWN_MISSING_NAMES = {'MPL_PRESS'}
-# Hardware pointing to a blueprint that does not exist
-KNOWN_MISSING_BLUEPRINT = {'SCK21NILU'}
 # (hardware, sensor id) with an unknown Alphasense code
 KNOWN_UNKNOWN_SENSOR_CODES = {
     ('SCAS210030', '163040003'), ('SCAS220051', '73002320'), ('SCAS220052', '73002016'),
@@ -89,8 +87,7 @@ def test_hardware(path):
     blueprints = [basename(blueprint) for blueprint in BLUEPRINTS]
     calibrations = load_json('calibrations', 'calibrations.json')
 
-    if name not in KNOWN_MISSING_BLUEPRINT:
-        assert basename(hardware.blueprint_url) in blueprints
+    assert basename(hardware.blueprint_url) in blueprints
 
     for version in hardware.versions:
         assert version.from_date is None or version.to_date is None or version.from_date < version.to_date
