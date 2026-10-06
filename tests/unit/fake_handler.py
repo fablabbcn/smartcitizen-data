@@ -7,6 +7,7 @@ class FakeHandler:
     # Set by the tests before creating a Device
     sensors = []
     readings = DataFrame()
+    failed_sensors = []
 
     def __init__(self, params):
         self.id = params.id
@@ -15,6 +16,7 @@ class FakeHandler:
         self.timezone = 'UTC'
         self.data = DataFrame()
         self.requested_channels = None
+        self.failed_sensors = list(FakeHandler.failed_sensors)
 
     async def get_data(self, channels=None, **kwargs):
         self.requested_channels = list(channels)

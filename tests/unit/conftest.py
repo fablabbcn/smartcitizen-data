@@ -36,10 +36,11 @@ def make_device(monkeypatch, names):
     ''' Creates an offline Device with the given blueprint, sensors and readings '''
     monkeypatch.setitem(config.names, 'FakeHandler', names)
 
-    def make(blueprint, sensors, readings=None):
+    def make(blueprint, sensors, readings=None, failed_sensors=None):
         monkeypatch.setitem(config.blueprints, 'unit_test', Blueprint.model_validate(blueprint).model_dump())
         monkeypatch.setattr(FakeHandler, 'sensors', sensors)
         monkeypatch.setattr(FakeHandler, 'readings', readings if readings is not None else DataFrame())
+        monkeypatch.setattr(FakeHandler, 'failed_sensors', failed_sensors or [])
         return sc.Device(blueprint='unit_test',
                          source={'type': 'api', 'module': 'fake_handler', 'handler': 'FakeHandler'},
                          params=sc.APIParams(id=1),

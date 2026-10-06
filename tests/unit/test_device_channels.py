@@ -67,13 +67,35 @@ def test_process_with_optional_sensor(make_device, blueprint, index):
     assert (device.data['CO2'] == 500.0).all()
 
 
-def test_process_fails_when_sensor_data_is_missing(make_device, blueprint, index):
-    # The device has the sensor, but its data did not load
+def test_process_skips_sensor_without_readings(make_device, blueprint, index):
+    # The device has the sensor, but it has no readings
     device = make_device(blueprint, [SHT31_TEMP, ADC_48_3, SCD30_CO2])
     device.data = readings(index, TEMP=20.0, ADC_48_3=0.2)
     device.loaded = True
 
+    assert device.process() is True
+    assert 'CO2' not in device.data
+
+
+def test_process_fails_when_sensor_request_failed(make_device, blueprint, index):
+    device = make_device(blueprint, [SHT31_TEMP, ADC_48_3, SCD30_CO2], failed_sensors=['Sensirion SCD30 - CO2'])
+    device.data = readings(index, TEMP=20.0, ADC_48_3=0.2)
+    device.loaded = True
+
     assert device.process() is False
+    assert 'NO2_WE' in device.data
+    assert 'CO2' not in device.data
+
+
+def test_process_without_sensor_registry(make_device, blueprint, index):
+    # As CSV files: no sensors, the data columns are all there is
+    device = make_device(blueprint, [])
+    device.data = readings(index, TEMP=20.0, ADC_48_3=0.2)
+    device.loaded = True
+
+    assert device.process() is True
+    assert 'NO2_WE' in device.data
+    assert 'CO2' not in device.data
 
 
 def test_required_sensors_with_sc_air_blueprint(make_device):

@@ -304,21 +304,32 @@ class Device(BaseModel):
     def __unavailable_inputs__(self, channel, skipped):
         '''
         Returns the inputs of a channel that the device cannot provide: known sensors
-        that the device does not have, or channels that were skipped
+        without data (not in the device, or without readings), or channels that were skipped
         '''
         channel_names = [channel.name for channel in self.channels]
-        sensor_map = self.__sensor_map__()
-        known_sensors = [name.name for name in config.names.get(self.source.handler, [])]
+        known_sensors = {name.name for names in config.names.values() for name in names}
 
         required, _ = self.__channel_inputs__(channel)
         unavailable = [item for item in channel.depends_on if item in skipped]
         for item in required:
             if item in channel_names:
                 if item in skipped: unavailable.append(item)
-            elif item in known_sensors and item not in sensor_map:
+            elif item in known_sensors and item not in self.data.columns:
                 unavailable.append(item)
 
         return sorted(set(unavailable))
+
+    def __failed_inputs__(self, channel):
+        '''
+        Returns the inputs of a channel whose data request failed in the handler
+        '''
+        failed = getattr(self.handler, 'failed_sensors', None) or []
+        rename = getattr(self, '_rename', {})
+        failed = set(failed) | {rename.get(name, name) for name in failed}
+
+        required, _ = self.__channel_inputs__(channel)
+
+        return sorted(required & failed)
 
     def add_channel(self, calculated_channel = dict()):
         '''
@@ -608,10 +619,18 @@ class Device(BaseModel):
             if channel.name not in _channels_list: continue
             logger.info(f'Processing {channel.name}')
 
-            # Skip channels whose inputs the device does not have (and their dependants)
+            # Data that failed to load cannot be skipped: processing fails
+            failed = self.__failed_inputs__(channel)
+            if failed:
+                logger.error(f'Cannot process {channel.name}. Data request failed for: {failed}')
+                process_ok = False
+                skipped.add(channel.name)
+                continue
+
+            # Skip channels whose inputs have no data (and their dependants)
             unavailable = self.__unavailable_inputs__(channel, skipped)
             if unavailable:
-                logger.warning(f'Skipping {channel.name}. Device does not provide: {unavailable}')
+                logger.warning(f'Skipping {channel.name}. No data for: {unavailable}')
                 skipped.add(channel.name)
                 continue
 
