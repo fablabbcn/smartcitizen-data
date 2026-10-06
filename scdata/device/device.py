@@ -65,6 +65,9 @@ from timezonefinder import TimezoneFinder
 
 tf = TimezoneFinder()
 
+# Channel kwargs whose sensors are loaded if available, but are never required
+OPTIONAL_INPUT_KWARGS = ['eager_channels', 'priority']
+
 class Device(BaseModel):
     ''' Main implementation of the device class '''
 
@@ -243,6 +246,79 @@ class Device(BaseModel):
     @property
     def id(self):
         return self.params_parsed.id
+
+    def __channel_inputs__(self, channel):
+        '''
+        Returns the names referenced in the args and kwargs of a channel,
+        split in required and optional inputs
+        '''
+        def strings(value):
+            if isinstance(value, str):
+                yield value
+            elif isinstance(value, dict):
+                for item in value.values(): yield from strings(item)
+            elif isinstance(value, (list, tuple)):
+                for item in value: yield from strings(item)
+
+        required, optional = set(), set()
+        for key, value in (channel.kwargs or {}).items():
+            if key in OPTIONAL_INPUT_KWARGS:
+                optional.update(strings(value))
+            else:
+                required.update(strings(value))
+        required.update(strings(channel.args or {}))
+
+        return required, optional
+
+    def __sensor_map__(self):
+        '''
+        Returns a dict mapping both the internal and the source names
+        of the device sensors to the source name (the one used to load data)
+        '''
+        sensor_map = dict()
+        for sensor in getattr(self, '_sensors', []):
+            sensor_map[sensor.name] = sensor.name
+            if sensor.name in self._rename:
+                sensor_map[self._rename[sensor.name]] = sensor.name
+        return sensor_map
+
+    @property
+    def required_sensors(self):
+        '''
+        Sensors (source names) that the device has and that are needed to process
+        its channels, based on the blueprint
+        '''
+        channel_names = [channel.name for channel in self.channels]
+        sensor_map = self.__sensor_map__()
+
+        sensors = set()
+        for channel in self.channels:
+            required, optional = self.__channel_inputs__(channel)
+            for item in required | optional:
+                if item in channel_names: continue
+                if item in sensor_map:
+                    sensors.add(sensor_map[item])
+
+        return sorted(sensors)
+
+    def __unavailable_inputs__(self, channel, skipped):
+        '''
+        Returns the inputs of a channel that the device cannot provide: known sensors
+        that the device does not have, or channels that were skipped
+        '''
+        channel_names = [channel.name for channel in self.channels]
+        sensor_map = self.__sensor_map__()
+        known_sensors = [name.name for name in config.names.get(self.source.handler, [])]
+
+        required, _ = self.__channel_inputs__(channel)
+        unavailable = [item for item in channel.depends_on if item in skipped]
+        for item in required:
+            if item in channel_names:
+                if item in skipped: unavailable.append(item)
+            elif item in known_sensors and item not in sensor_map:
+                unavailable.append(item)
+
+        return sorted(set(unavailable))
 
     def add_channel(self, calculated_channel = dict()):
         '''
@@ -526,10 +602,18 @@ class Device(BaseModel):
         logger.info('Sorting channels...')
         self.channels = topological_sort(self.channels)
 
+        skipped = set()
         for channel in self.channels:
             logger.info('---')
             if channel.name not in _channels_list: continue
             logger.info(f'Processing {channel.name}')
+
+            # Skip channels whose inputs the device does not have (and their dependants)
+            unavailable = self.__unavailable_inputs__(channel, skipped)
+            if unavailable:
+                logger.warning(f'Skipping {channel.name}. Device does not provide: {unavailable}')
+                skipped.add(channel.name)
+                continue
 
             if only_new and channel.name in self.data:
                 logger.info(f'Skipping. Already in device')
