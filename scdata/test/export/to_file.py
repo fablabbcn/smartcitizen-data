@@ -69,8 +69,9 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
         rendered:
             rendered template
     '''
-    # TODO - Update or remove
-    raise NotImplementedError
+    # TODO - Update or remove: the templates use the old test descriptor format
+    raise NotImplementedError('to_html is disabled: its templates use the old test descriptor, '
+                              'which Test no longer has (descriptor, content)')
 
     # Find the path to the html templates directory
     template_folder = join(dirname(__file__), 'templates')
