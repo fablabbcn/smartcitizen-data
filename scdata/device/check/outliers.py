@@ -42,15 +42,20 @@ def find_outliers_isolation_forest(dataframe, **kwargs):
 
     df = dataframe.copy()
     cols = []
+    prediction = detector.predict(df)
 
     for col in columns:
         if '__' in col: continue # Internal code for healthchecks
         if col not in df.columns:
             logger.warning(f'{col} not in columns. Skipping')
             continue
+        if f'{col}_OUTL' not in prediction.columns:
+            logger.warning(f'{col} not predicted by detector. Skipping')
+            continue
 
         logger.info (f'Calculating outliers for {col}')
-        df[f'__{col}'] = detector.predict(df)
+        # Rows without features (i.e. dropped NaN) are not flagged
+        df[f'__{col}'] = prediction[f'{col}_OUTL'].reindex(df.index).eq(1)
 
         cols.append(f'__{col}')
 
@@ -202,4 +207,4 @@ class MultiDeviceIForest:
         dataframe = pd.concat([dataframe] + all_new_cols, axis=1)
         dataframe = dataframe.copy()
 
-        return True
+        return dataframe

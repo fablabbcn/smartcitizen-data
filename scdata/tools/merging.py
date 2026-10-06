@@ -12,6 +12,17 @@ hv.opts.defaults(
     hv.opts.Overlay(legend_position="top_left")
 )
 
+def _from_cutoff(df, cutoff):
+    ''' Rows of df from cutoff, with cutoff normalised to the df index timezone '''
+    if df.empty:
+        return df
+    cutoff = pd.Timestamp(cutoff)
+    if df.index.tz is not None and cutoff.tzinfo is None:
+        cutoff = cutoff.tz_localize(df.index.tz)
+    elif df.index.tz is None and cutoff.tzinfo is not None:
+        cutoff = cutoff.tz_convert(None)
+    return df[df.index >= cutoff]
+
 def dataframe_row_diff(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
@@ -32,16 +43,8 @@ def dataframe_row_diff(
     df2 = df2.copy()
 
     if cutoff is not None:
-        cutoff = pd.Timestamp(cutoff)
-
-        if not df1.empty:
-            if df1.index.tz is not None and cutoff.tzinfo is None:
-                cutoff = cutoff.tz_localize(df1.index.tz)
-            elif df1.index.tz is None and cutoff.tzinfo is not None:
-                cutoff = cutoff.tz_convert(None)
-
-            df1 = df1[df1.index >= cutoff]
-            df2 = df2[df2.index >= cutoff]
+        df1 = _from_cutoff(df1, cutoff)
+        df2 = _from_cutoff(df2, cutoff)
 
     if ignore_columns:
         df1 = df1.drop(columns=[c for c in ignore_columns if c in df1.columns], errors="ignore")
@@ -59,6 +62,10 @@ def dataframe_row_diff(
     return rows_only_in_df1, rows_only_in_df2
 
 def compare_dataframes(df1: pd.DataFrame, df2: pd.DataFrame):
+    for name, df in [('df1', df1), ('df2', df2)]:
+        if df.index.has_duplicates:
+            raise ValueError(f'{name} has duplicated index labels. Remove them before comparing')
+
     report = {}
 
     cols1 = set(df1.columns)
@@ -83,7 +90,11 @@ def compare_dataframes(df1: pd.DataFrame, df2: pd.DataFrame):
     df1_common = df1.loc[common_idx, common_cols].sort_index()
     df2_common = df2.loc[common_idx, common_cols].sort_index()
 
-    diff_mask = (df1_common != df2_common) & ~(df1_common.isna() & df2_common.isna())
+    # Missing in only one frame, or present in both with different values (pd.NA safe)
+    missing_mismatch = df1_common.isna() != df2_common.isna()
+    both_present = df1_common.notna() & df2_common.notna()
+    value_mismatch = (df1_common != df2_common).where(both_present, False).astype(bool)
+    diff_mask = missing_mismatch | value_mismatch
 
     report["num_value_differences"] = int(diff_mask.sum().sum())
 
@@ -297,6 +308,7 @@ class MergeTool:
             "### Priority per column",
             pn.GridBox(*self.priority.values(), ncols=3),
             self.show_conflicts,
+            self.show_presence,
             self.merge_button
         )
 

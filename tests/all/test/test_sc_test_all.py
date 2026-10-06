@@ -29,9 +29,9 @@ def test_sc_test_all():
     channel = CalculatedChannel(name='NOISE_A_SMOOTH',
                 description='Basic smoothing calculation',
                 function='rolling_avg',
-                kwargs= {'name': ['NOISE_A'], 'window_size': 5}
+                kwargs= {'name': 'NOISE_A', 'window_size': 5}
                )
-    t.get_device(16838).add_calculated_channel(channel)
+    t.get_device(16838).add_channel(channel)
     process_status = t.process()
     channel = 'NOISE_A_SMOOTH' in t.get_device(16838).data.columns
 

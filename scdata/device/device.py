@@ -678,6 +678,10 @@ class Device(BaseModel):
             logger.error('Need to load first (device.load())')
             return False
 
+        if (get_min or get_max) and resample is None:
+            logger.error('get_min and get_max require resample')
+            return False
+
         checked_ok = True
         if remake_qc_data:
             self.qc_data = DataFrame()
@@ -815,7 +819,7 @@ class Device(BaseModel):
 
         return self.postprocessing_updated
 
-    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False, qc_data=False):
+    def export(self, path, forced_overwrite = False, file_format = 'csv', gzip=False, qc_data=False, use_exports=True):
         '''
         Exports Device.data or Device.qc_data to file
         Parameters
@@ -835,6 +839,11 @@ class Device(BaseModel):
             qc_data: bool
                 False
                 Export device.qc_data instead of data
+            use_exports: bool
+                True
+                Export one file per blueprint export, named {id}_{data|qc_data}_{export}.
+                If False, or if there are no exports, export all columns to {id}.csv
+                (or {id}_qc_data.csv)
         Returns
         ---------
             True if exported ok, False otherwise
@@ -855,22 +864,30 @@ class Device(BaseModel):
 
         logger.info(f"Exporting device.{append}")
 
-        for export in self.exports:
-            logger.info(f"Exporting {export.name}")
+        if use_exports and self.exports:
+            targets = [(f"{self.id}_{append}_{export.name}", export.columns) for export in self.exports]
+        else:
+            targets = [(f"{self.id}_qc_data" if qc_data else f"{self.id}", [])]
+
+        export_ok = True
+        for name, columns in targets:
+            logger.info(f"Exporting {name}")
 
             df_export = df.copy()
-            if export.columns:
-                df_export = df_export.loc[:, df_export.columns.intersection(export.columns)]
+            if columns:
+                df_export = df_export.loc[:, df_export.columns.intersection(columns)]
 
             if file_format == 'csv':
                 logger.info(f"Exporting as {file_format}")
-                export_csv_file(path, f"{self.id}_{append}_{export.name}", df_export, forced_overwrite = forced_overwrite, gzip=gzip)
+                export_ok &= bool(export_csv_file(path, name, df_export, forced_overwrite = forced_overwrite, gzip=gzip))
             elif file_format == 'parquet':
                 logger.info(f"Exporting as {file_format}")
-                df_export.to_parquet(f"{join(path, f'{self.id}_{append}_{export.name}')}.parquet", index=True)
+                df_export.to_parquet(f"{join(path, name)}.parquet", index=True)
             else:
                 # TODO Make a list of supported formats
-                raise NotImplementedError (f'Not supported format. Formats: [csv]')
+                raise NotImplementedError (f'Not supported format. Formats: [csv, parquet]')
+
+        return export_ok
 
     async def post(self, columns = 'sensors', clean_na = 'drop', chunk_size = 500,\
         dry_run = False, max_retries = 2, with_postprocessing = False, delay_between_posts=None):

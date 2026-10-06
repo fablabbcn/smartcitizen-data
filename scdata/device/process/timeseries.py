@@ -211,10 +211,10 @@ def rolling_avg(dataframe, **kwargs):
     """
 
     if 'name' not in kwargs:
-        logger.error (f'{kwargs[name]} not in kwargs')
+        logger.error('Problem with input data')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
-    if kwargs['name'] not in dataframe:
+    if kwargs['name'] not in dataframe.columns:
         logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
@@ -260,10 +260,7 @@ def time_derivative(dataframe, **kwargs):
         logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
-    if 'gaussian_filter1d' not in kwargs:
-        gaussian_filter1d = True
-    else:
-        gaussian_filter1d = False
+    gaussian_filter1d = kwargs.get('gaussian_filter1d', True)
 
     df = dataframe.copy()
 

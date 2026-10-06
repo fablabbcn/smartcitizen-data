@@ -45,24 +45,6 @@ def alphasense_803_04(dataframe, **kwargs):
         calculation of pollutant in ppb
     """
 
-    # def comp_t(x, comp_lut):
-    #     if isnull(x['t']): return None
-
-    #     # Below min temperature, we saturate
-    #     if x['t'] < as_t_comp[0]: return comp_lut[0]
-
-    #     # Over max temperature, we saturate
-    #     if x['t'] > as_t_comp[-1]: return comp_lut[-1]
-
-    #     # Otherwise, we calculate
-    #     idx_2 = next(axis[0] for axis in enumerate(as_t_comp) if axis[1] > x['t'])
-    #     idx_1 = idx_2 - 1
-
-    #     delta_y = comp_lut[idx_2] - comp_lut[idx_1]
-    #     delta_x = as_t_comp[idx_2] - as_t_comp[idx_1]
-
-    #     return comp_lut[idx_1] + (x['t'] - as_t_comp[idx_1]) * delta_y / delta_x
-
     # Check inputs
     flag_error = False
     if 'we' not in kwargs: flag_error = True

@@ -1,6 +1,7 @@
 from os import makedirs, listdir
 from os.path import exists, join, splitext
 import csv
+from itertools import islice
 
 from pathlib import Path
 import shutil
@@ -319,7 +320,7 @@ def sdcard_concat(path,
 
     errors = False
     for file in files:
-        if output in file:
+        if output and output in file:
             logger.warning(f'Ignoring {file}')
             continue
         if any([ign in file for ign in ignore]) or file.endswith('.corrupt'):
@@ -334,7 +335,7 @@ def sdcard_concat(path,
 
         try:
             with open(src_path, 'r', newline = '\n', errors = 'replace') as csv_file:
-                header = csv_file.readlines()[0:5]
+                header = list(islice(csv_file, 5))
         except:
             ignore_file = True
             logger.warning(f'Ignoring file: {file}')
@@ -343,6 +344,10 @@ def sdcard_concat(path,
             ignore_file = False
 
         if ignore_file: continue
+
+        if len(header) < 5:
+            logger.warning(f'Ignoring file: {file} without data rows')
+            continue
 
         first_row = header[4].strip('\r\n').split(',')
         first_date = localise_date(first_row[0], timezone, tzaware=tzaware, dateformat=dateformat)
@@ -425,8 +430,8 @@ def sdcard_concat(path,
         logger.info(f"Setting timezone to {timezone}")
         # Set index
         concat.index = localise_date(concat.index, timezone, tzaware=tzaware, dateformat=dateformat)
-    # Remove duplicates
-    concat = concat[~concat.index.duplicated(keep='first')]
+    # Combine rows that are duplicated after localisation (first non-null value per column)
+    concat = concat.groupby(level=0).first()
 
     ## Save it as CSV
     if output.endswith('.CSV') or output.endswith('.csv'):

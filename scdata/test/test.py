@@ -308,7 +308,7 @@ class Test(BaseModel):
             await device.load(cache=device_cache_path)
 
             if self.options.cache and device.loaded and not device.data.empty:
-                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv'):
+                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv', use_exports = False):
                     logger.info(f'Device {device.id} cached')
 
         logger.info('Test load done')
