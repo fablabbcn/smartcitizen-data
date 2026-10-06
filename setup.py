@@ -19,7 +19,7 @@ REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
 setup(
     name='scdata',
-    version='1.4.0',
+    version='1.5.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -45,6 +45,7 @@ setup(
             "panel",
             "branca~=0.4.0",
             "folium~=0.12.1",
+            "hvplot"
         ],
         "dev": [
             "pytest",
@@ -53,6 +54,7 @@ setup(
             "branca~=0.4.0",
             "folium~=0.12.1",
             "awswrangler",
+            "hvplot",
             "boto3"
         ]
     },

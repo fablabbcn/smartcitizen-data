@@ -103,7 +103,7 @@ class Test(BaseModel):
         logger.info(f'Test {self.name} initialized')
 
     def __str__(self):
-        return self.__full_name__
+        return self.name
 
     def __set_tname__(self, name):
         current_date = datetime.now()
@@ -224,7 +224,8 @@ class Test(BaseModel):
             },
             'options': self.options.model_dump(),
             'devices': [{'params': device.params.model_dump(),
-                         'metrics': [metric.model_dump() for metric in device.metrics],
+                         'channels': [channel.model_dump() for channel in device.channels],
+                         'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
                          'blueprint': device.blueprint}
                          for device in self.devices]
@@ -307,7 +308,7 @@ class Test(BaseModel):
             await device.load(cache=device_cache_path)
 
             if self.options.cache and device.loaded and not device.data.empty:
-                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv'):
+                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv', use_exports = False):
                     logger.info(f'Device {device.id} cached')
 
         logger.info('Test load done')
