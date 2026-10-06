@@ -9,4 +9,4 @@ scipy
 scikit-learn
 seaborn
 smartcitizen-connector>=1.5.1
-timezonefinder~=6.1.9
+timezonefinder>=6.5,<10
