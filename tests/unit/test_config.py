@@ -48,7 +48,8 @@ def metadata_server(tmp_path):
 
 
 def run_scdata(tmp_path, base_url):
-    env = dict(os.environ, BASE_POSTPROCESSING_URL=base_url,
+    # Configuration folder: XDG_CONFIG_HOME, or APPDATA on Windows
+    env = dict(os.environ, BASE_POSTPROCESSING_URL=base_url, APPDATA=str(tmp_path / 'config'),
                XDG_CONFIG_HOME=str(tmp_path / 'config'), XDG_CACHE_HOME=str(tmp_path / 'cache'))
     result = subprocess.run([sys.executable, '-c', SCRIPT], env=env, capture_output=True, text=True, timeout=300)
     assert result.returncode == 0, result.stderr
