@@ -11,7 +11,7 @@ requests
 scipy
 scikit-learn
 seaborn
-smartcitizen-connector>=1.5.0
+smartcitizen-connector>=1.5.1
 termcolor==1.1.0
 timezonefinder~=6.1.9
 urllib3
