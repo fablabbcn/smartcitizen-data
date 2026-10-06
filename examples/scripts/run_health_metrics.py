@@ -1,16 +1,18 @@
-import logging
-import numpy as np
-import pandas as pd
 import argparse
 import asyncio
-import matplotlib.pyplot as plt
-import requests
-from tqdm import tqdm
-import scdata as sc
-from concurrent.futures import ThreadPoolExecutor
+import logging
 import multiprocessing
 import time
+from concurrent.futures import ThreadPoolExecutor
 from random import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import requests
+import scdata as sc
+from tqdm import tqdm
+
 
 async def _async_process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None, executor=None):
     """
