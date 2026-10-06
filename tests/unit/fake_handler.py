@@ -8,11 +8,17 @@ class FakeHandler:
     sensors = []
     readings = DataFrame()
     failed_sensors = []
+    # Blueprint and hardware versions, as SCDevice gives them
+    blueprint_url = None
+    properties = {}
+    channels_by_version = []
 
     def __init__(self, params):
         self.id = params.id
         self.sensors = list(FakeHandler.sensors)
-        self.blueprint_url = None
+        self.blueprint_url = FakeHandler.blueprint_url
+        self.properties = FakeHandler.properties
+        self.channels_by_version = FakeHandler.channels_by_version
         self.timezone = 'UTC'
         self.data = DataFrame()
         self.requested_channels = None
