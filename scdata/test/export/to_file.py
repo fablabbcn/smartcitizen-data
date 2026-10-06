@@ -3,8 +3,7 @@
 from os.path import join, dirname, exists
 from os import makedirs
 from scdata.tools.custom_logger import logger
-import flask
-from re import sub
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 def to_csv(self, path = None, forced_overwrite = False):
     """
@@ -68,7 +67,7 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
     Returns
     ----------
         rendered:
-            flask rendered template
+            rendered template
     '''
     # TODO - Update or remove
     raise NotImplementedError
@@ -84,20 +83,16 @@ def to_html(self, title = 'Your title here', template = 'sc_template.html', path
 
     filename = join(path, f'{self.name}.html')
 
-    docname = sub('.','_', self.name)
-    app = flask.Flask(docname, template_folder = template_folder)
-
-    with app.app_context():
-        rendered = flask.render_template(
-            template,
-            title = title,
-            descriptor = self.descriptor,
-            content = self.content,
-            details = details,
-            devices_summary = devices_summary,
-            full = full,
-            header = header
-        )
+    environment = Environment(loader=FileSystemLoader(template_folder), autoescape=select_autoescape())
+    rendered = environment.get_template(template).render(
+        title = title,
+        descriptor = self.descriptor,
+        content = self.content,
+        details = details,
+        devices_summary = devices_summary,
+        full = full,
+        header = header
+    )
 
     with open(filename, 'w') as handle:
         handle.write(rendered)
