@@ -8,5 +8,5 @@ requests
 scipy
 scikit-learn
 seaborn
-smartcitizen-connector>=1.5.2
+smartcitizen-connector>=1.5.3
 timezonefinder>=6.5,<10

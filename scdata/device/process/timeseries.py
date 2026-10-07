@@ -355,6 +355,12 @@ def baseline_als(dataframe, **kwargs):
 
     y = df[kwargs['name']]
     L = len(y)
+    rname = f"{kwargs['name']}_baseline"
+    if L < 3:
+        # Too few points to fit a baseline: the baseline is the values themselves
+        logger.warning(f"{kwargs['name']} has {L} values: not enough for a baseline")
+        df[rname] = y
+        return ProcessResult(df[rname], StatusCode.SUCCESS)
     D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
     w = ones(L)
     for i in range(niter):
@@ -363,7 +369,6 @@ def baseline_als(dataframe, **kwargs):
         z = spsolve(Z, w*y)
         w = p * (y > z) + (1-p) * (y < z)
 
-    rname = f"{kwargs['name']}_baseline"
     df[rname]=z
 
     return ProcessResult(df[rname], StatusCode.SUCCESS)

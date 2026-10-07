@@ -115,3 +115,26 @@ def test_required_sensors_with_sc_air_blueprint(make_device):
 
     assert device.required_sensors == ['ADC_48_2', 'ADC_48_3', 'ADC_49_0', 'ADC_49_1', 'ADC_49_2', 'ADC_49_3',
                                        'Sensirion SHT31 - Temperature']
+
+
+def test_process_skips_sensor_with_empty_column(make_device, blueprint, index):
+    # The column exists (e.g. data of another period) but has no readings here
+    device = make_device(blueprint, [SHT31_TEMP, ADC_48_3, SCD30_CO2])
+    device.data = readings(index, TEMP=20.0, ADC_48_3=0.2, SCD30_CO2=float('nan'))
+    device.loaded = True
+
+    assert device.process() is True
+    assert 'CO2' not in device.data
+
+
+def test_process_survives_a_failing_channel(make_device, index):
+    blueprint = {'channels': [
+        {'name': 'BROKEN', 'function': 'poly_ts', 'kwargs': {'channels': ['TEMP'], 'coefficients': 'x'}},
+        {'name': 'NO2_WE', 'function': 'channel_names', 'kwargs': {'channel': 'ADC_48_3'}},
+    ]}
+    device = make_device(blueprint, [SHT31_TEMP, ADC_48_3])
+    device.data = readings(index, TEMP=20.0, ADC_48_3=0.2)
+    device.loaded = True
+
+    assert device.process() is False
+    assert 'NO2_WE' in device.data

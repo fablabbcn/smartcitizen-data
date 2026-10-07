@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
 from numpy import nan
-from pandas import DataFrame, Series, Timedelta, to_timedelta
+from pandas import DataFrame, Series, Timedelta, concat, to_timedelta
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 from pydantic_core import ValidationError
 
@@ -68,6 +68,16 @@ tf = TimezoneFinder()
 # Channel kwargs whose sensors are loaded if available, but are never required
 OPTIONAL_INPUT_KWARGS = ['eager_channels', 'priority']
 
+
+def window_mask(index, start, end):
+    ''' Rows of index in [start, end). None: open '''
+    mask = Series(True, index=index)
+    if start is not None:
+        mask &= index >= start
+    if end is not None:
+        mask &= index < end
+    return mask
+
 class Device(BaseModel):
     ''' Main implementation of the device class '''
 
@@ -91,6 +101,8 @@ class Device(BaseModel):
     params: object = None
     params_parsed: object = None
     channels: List[CalculatedChannel] = []
+    # Channels of each hardware version, with its period: [{from_date, to_date, channels}]
+    versions: List[dict] = []
     checks: List[Check] = []
     exports: List[Export] = []
     meta: dict = dict()
@@ -145,6 +157,7 @@ class Device(BaseModel):
                 logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
                 self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
                 self.__set_blueprint_attrs__(self.handler.properties)
+                self.versions = getattr(self.handler, 'channels_by_version', None) or []
         elif self.blueprint is not None:
             logger.info("Using defined blueprint")
             if self.blueprint not in config.blueprints:
@@ -290,9 +303,11 @@ class Device(BaseModel):
         '''
         channel_names = [channel.name for channel in self.channels]
         sensor_map = self.__sensor_map__()
+        # Sensors of all the hardware versions: they can use other inputs
+        channels = list(self.channels) + [channel for _, _, version in self.__version_windows__() for channel in version]
 
         sensors = set()
-        for channel in self.channels:
+        for channel in channels:
             required, optional = self.__channel_inputs__(channel)
             for item in required | optional:
                 if item in channel_names: continue
@@ -314,7 +329,7 @@ class Device(BaseModel):
         for item in required:
             if item in channel_names:
                 if item in skipped: unavailable.append(item)
-            elif item in known_sensors and item not in self.data.columns:
+            elif item in known_sensors and (item not in self.data.columns or self.data[item].isna().all()):
                 unavailable.append(item)
 
         return sorted(set(unavailable))
@@ -568,6 +583,106 @@ class Device(BaseModel):
             return True
         return False
 
+    def __version_windows__(self):
+        '''
+        Periods of the hardware versions with their channels: [(start, end, channels)].
+        The first version also covers earlier data; end is the "to" date of the version (None: open)
+        '''
+        windows = []
+        for index, version in enumerate(self.versions):
+            start = None if index == 0 else version.get('from_date')
+            channels = TypeAdapter(List[CalculatedChannel]).validate_python(version['channels'])
+            windows.append((start, version.get('to_date'), channels))
+        return windows
+
+    def __window_channels__(self, channels, version_channels, latest):
+        '''
+        Device channels for the period of a hardware version: channels as given by the hardware (equal to those
+        of the latest version) take the sensors of the version. Channels added or changed keep their definition
+        '''
+        version = {channel.name: channel for channel in version_channels}
+        return topological_sort([version[channel.name]
+                                 if channel.name in version and channel.name in latest
+                                 and channel.kwargs == latest[channel.name].kwargs else channel
+                                 for channel in channels])
+
+    def __process_channels__(self, _channels_list, only_new=False):
+        ''' Processes self.channels on self.data. Returns True if processed ok '''
+        process_ok = True
+        skipped = set()
+        for channel in self.channels:
+            logger.info('---')
+            if channel.name not in _channels_list: continue
+            logger.info(f'Processing {channel.name}')
+
+            # Data that failed to load cannot be skipped: processing fails
+            failed = self.__failed_inputs__(channel)
+            if failed:
+                logger.error(f'Cannot process {channel.name}. Data request failed for: {failed}')
+                process_ok = False
+                skipped.add(channel.name)
+                continue
+
+            # Skip channels whose inputs have no data (and their dependants)
+            unavailable = self.__unavailable_inputs__(channel, skipped)
+            if unavailable:
+                logger.warning(f'Skipping {channel.name}. No data for: {unavailable}')
+                skipped.add(channel.name)
+                continue
+
+            if only_new and channel.name in self.data:
+                logger.info(f'Skipping. Already in device')
+                continue
+
+            if self.__check_callable__(channel.module, channel.function):
+                funct = LazyCallable(f"{channel.module}.{channel.function}")
+            else:
+                process_ok &= False
+                logger.error('Problem adding lazy callable to channels list')
+                continue
+
+            args, kwargs = list(), dict()
+            if 'args' in vars(channel):
+                if channel.args is not None: args = channel.args
+            if 'kwargs' in vars(channel):
+                if channel.kwargs is not None: kwargs = channel.kwargs
+
+            try:
+                process_result = funct(self.data, *args, **kwargs)
+            except Exception as e:
+                # A failing channel makes processing fail, without stopping the other channels
+                logger.error(f'Cannot process {channel.name} with the data provided', exc_info=e)
+                process_ok = False
+            else:
+                # If the result is None, might be for many reasons and shouldn't collapse the process_ok
+                if process_result is not None:
+                    if 'ERROR' in process_result.status_code.name:
+                        # We got an error during the processing
+                        logger.error(process_result.status_code.name)
+                        process_ok &= False
+                    elif 'WARNING' in process_result.status_code.name:
+                        # In this case there is no data to put into the result
+                        # but there is no reason to make deny process_ok
+                        logger.warning(process_result.status_code.name)
+                        process_ok &= True
+                    elif 'SUCCESS' in process_result.status_code.name:
+                        if isinstance(process_result.data, DataFrame):
+                            if len(process_result.data.columns) == 1:
+                                self.data[f'{channel.name}'] = process_result.data
+                            for col in process_result.data.columns:
+                                if 'conc' in col:
+                                    self.data[f'{channel.name}'] = process_result.data[col]
+                                else:
+                                    self.data[f'{channel.name}_{col}'] = process_result.data[col]
+                        elif isinstance(process_result.data, Series):
+                            self.data[channel.name] = process_result.data
+                        else:
+                            logger.error("Not supported format for data results, ignoring")
+                        logger.info(process_result.status_code.name)
+                        process_ok &= True
+
+        return process_ok
+
     def process(self, only_new=False, channels_list=None):
         '''
         Processes devices calculated channels, either added by the blueprint definition
@@ -613,77 +728,35 @@ class Device(BaseModel):
         logger.info('Sorting channels...')
         self.channels = topological_sort(self.channels)
 
-        skipped = set()
-        for channel in self.channels:
-            logger.info('---')
-            if channel.name not in _channels_list: continue
-            logger.info(f'Processing {channel.name}')
-
-            # Data that failed to load cannot be skipped: processing fails
-            failed = self.__failed_inputs__(channel)
-            if failed:
-                logger.error(f'Cannot process {channel.name}. Data request failed for: {failed}')
-                process_ok = False
-                skipped.add(channel.name)
-                continue
-
-            # Skip channels whose inputs have no data (and their dependants)
-            unavailable = self.__unavailable_inputs__(channel, skipped)
-            if unavailable:
-                logger.warning(f'Skipping {channel.name}. No data for: {unavailable}')
-                skipped.add(channel.name)
-                continue
-
-            if only_new and channel.name in self.data:
-                logger.info(f'Skipping. Already in device')
-                continue
-
-            if self.__check_callable__(channel.module, channel.function):
-                funct = LazyCallable(f"{channel.module}.{channel.function}")
-            else:
-                process_ok &= False
-                logger.error('Problem adding lazy callable to channels list')
-                continue
-
-            args, kwargs = list(), dict()
-            if 'args' in vars(channel):
-                if channel.args is not None: args = channel.args
-            if 'kwargs' in vars(channel):
-                if channel.kwargs is not None: kwargs = channel.kwargs
-
+        windows = self.__version_windows__()
+        if not windows:
+            process_ok &= self.__process_channels__(_channels_list, only_new)
+        else:
+            # Each hardware version is processed with its own channels (sensors), on the data of its period
+            data, channels = self.data, self.channels
+            latest = {channel.name: channel for channel in windows[-1][2]}
+            processed = []
+            covered = Series(False, index=data.index)
             try:
-                process_result = funct(self.data, *args, **kwargs)
-            except KeyError as e:
-                logger.error('Cannot process requested function with data provided', exc_info=e)
-                process_ok = False
-                pass
-            else:
-                # If the result is None, might be for many reasons and shouldn't collapse the process_ok
-                if process_result is not None:
-                    if 'ERROR' in process_result.status_code.name:
-                        # We got an error during the processing
-                        logger.error(process_result.status_code.name)
-                        process_ok &= False
-                    elif 'WARNING' in process_result.status_code.name:
-                        # In this case there is no data to put into the result
-                        # but there is no reason to make deny process_ok
-                        logger.warning(process_result.status_code.name)
-                        process_ok &= True
-                    elif 'SUCCESS' in process_result.status_code.name:
-                        if isinstance(process_result.data, DataFrame):
-                            if len(process_result.data.columns) == 1:
-                                self.data[f'{channel.name}'] = process_result.data
-                            for col in process_result.data.columns:
-                                if 'conc' in col:
-                                    self.data[f'{channel.name}'] = process_result.data[col]
-                                else:
-                                    self.data[f'{channel.name}_{col}'] = process_result.data[col]
-                        elif isinstance(process_result.data, Series):
-                            self.data[channel.name] = process_result.data
-                        else:
-                            logger.error("Not supported format for data results, ignoring")
-                        logger.info(process_result.status_code.name)
-                        process_ok &= True
+                for start, end, version_channels in windows:
+                    mask = window_mask(data.index, start, end)
+                    covered |= mask
+                    if not mask.any():
+                        continue
+                    logger.info(f'Processing hardware version from {start} to {end} ({mask.sum()} rows)')
+                    self.data, self.channels = data.loc[mask].copy(), self.__window_channels__(channels, version_channels, latest)
+                    if self.channels is None:
+                        logger.error(f'Channels of hardware version from {start} to {end} have missing or circular dependencies: not processed')
+                        process_ok = False
+                    else:
+                        process_ok &= self.__process_channels__(_channels_list, only_new)
+                    processed.append(self.data)
+                if (~covered).any():
+                    logger.warning(f'{(~covered).sum()} rows are outside the hardware versions: not processed')
+                    processed.append(data.loc[~covered])
+                self.data = concat(processed).sort_index()
+            finally:
+                self.channels = channels
 
         if process_ok:
             logger.info('---')

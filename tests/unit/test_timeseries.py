@@ -3,7 +3,7 @@ from numpy import nan
 from pandas import DataFrame
 
 from scdata.device.process.error_codes import StatusCode
-from scdata.device.process.timeseries import clean_ts, poly_ts, rolling_avg
+from scdata.device.process.timeseries import baseline_als, clean_ts, poly_ts, rolling_avg
 
 
 @pytest.fixture
@@ -61,3 +61,11 @@ def test_rolling_avg(df):
 ])
 def test_rolling_avg_errors(df, kwargs, status):
     assert rolling_avg(df, **kwargs).status_code == status
+
+
+@pytest.mark.parametrize('values', [[nan, nan, 400.0], [nan, nan, nan]])
+def test_baseline_als_with_few_values(values):
+    result = baseline_als(DataFrame({'A': values}), name='A')
+
+    assert result.status_code == StatusCode.SUCCESS
+    assert result.data.tolist() == [value for value in values if value == value]
