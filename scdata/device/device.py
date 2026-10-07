@@ -745,7 +745,11 @@ class Device(BaseModel):
                         continue
                     logger.info(f'Processing hardware version from {start} to {end} ({mask.sum()} rows)')
                     self.data, self.channels = data.loc[mask].copy(), self.__window_channels__(channels, version_channels, latest)
-                    process_ok &= self.__process_channels__(_channels_list, only_new)
+                    if self.channels is None:
+                        logger.error(f'Channels of hardware version from {start} to {end} have missing or circular dependencies: not processed')
+                        process_ok = False
+                    else:
+                        process_ok &= self.__process_channels__(_channels_list, only_new)
                     processed.append(self.data)
                 if (~covered).any():
                     logger.warning(f'{(~covered).sum()} rows are outside the hardware versions: not processed')

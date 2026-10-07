@@ -40,8 +40,6 @@ def device_with_versions(make_device, versions):
 
 
 def test_each_version_processes_its_period(make_device, readings):
-    device = make_device(BLUEPRINT, ADC)
-
     versions = [version(utc(2024, 4, 1), utc(2025, 1, 1), 'ADC_48_3'), version(utc(2025, 1, 1), None, 'ADC_49_1')]
     device = device_with_versions(make_device, versions)
 
@@ -67,6 +65,20 @@ def test_added_and_changed_channels_apply_to_all_periods(make_device, readings):
     device.channels[0].kwargs = {'channel': 'ADC_48_3'}
     assert processed(device, readings, versions)
     assert (device.data['NO2_WE'] == 1.0).all()
+
+
+def test_version_with_circular_dependencies_fails(make_device, readings):
+    versions = [version(utc(2024, 4, 1), utc(2025, 1, 1), 'ADC_48_3'), version(utc(2025, 1, 1), None, 'ADC_49_1')]
+    versions[0]['channels'][0]['depends_on'] = ['NO2_WE']
+    device = device_with_versions(make_device, versions)
+
+    assert not processed(device, readings, versions)
+
+    no2_we = device.data['NO2_WE']
+    assert no2_we[:'2024-12-31 23:00'].isna().all()
+    assert (no2_we['2025-01-01':] == 2.0).all()
+    assert len(device.data) == len(readings)
+    assert device.channels[0].depends_on == []
 
 
 def test_first_version_covers_earlier_data(make_device, readings):
