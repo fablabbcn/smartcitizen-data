@@ -59,3 +59,26 @@ def test_load_from_storage(make_device, backup):
     # The second file ends at 2026-01-11 23:58
     assert device.loaded and len(device.data) == 719 and set(device.data.columns) == {'TEMP', 'HUM'}
     assert not device.load_from_storage(root=str(backup / 'nowhere'))
+
+
+def test_load_from_storage_without_pyarrow(make_device, backup, monkeypatch):
+    import builtins
+    real_import = builtins.__import__
+
+    def no_pyarrow(name, *args, **kwargs):
+        if name.startswith('pyarrow'):
+            raise ModuleNotFoundError("No module named 'pyarrow'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, '__import__', no_pyarrow)
+    device = make_device(SHORT, ADC)
+
+    assert device.load_from_storage(root=str(backup)) is False
+
+
+def test_qc_data_is_only_read_from_s3(make_device, backup):
+    device = make_device(SHORT, ADC)
+
+    # The data loads from the local root; qc data is not looked for elsewhere
+    assert device.load_from_storage(root=str(backup), load_qc_data=True) is True
+    assert device.qc_data.empty

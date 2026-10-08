@@ -1204,6 +1204,9 @@ class Device(BaseModel):
             logger.info(f"Loading data from: {url}")
             try:
                 self.data = read_storage(url, min_date=min_date, max_date=max_date, channels=channels)
+            except ImportError as error:
+                logger.error(f'Reading backups needs pyarrow: pip install "scdata[storage]" ({error})')
+                return False
             except (FileNotFoundError, OSError) as error:
                 logger.error(f'Cannot read {url}: {error}')
                 return False
@@ -1212,12 +1215,18 @@ class Device(BaseModel):
 
         if load_qc_data or load_qc_metrics:
             if not boto_available:
-                logger.error('qc data needs awswrangler and boto3')
+                logger.error('qc data needs awswrangler and boto3: pip install "scdata[storage]"')
                 return loaded
+            if not root.startswith('s3://'):
+                logger.error(f'qc data is only read from S3, not from {root}')
+                return loaded
+            bucket = root[len('s3://'):].split('/')[0]
+            prefix = root[len('s3://'):][len(bucket):].strip('/')
+            prefix = f'{prefix}/' if prefix else ''
             session = boto3.Session(region_name=aws_region())
 
             if load_qc_data:
-                qc_data_s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                qc_data_s3_url = f"{root.rstrip('/')}/{path}/{self.id}/qc_data/"
                 logger.info(f"Loading qc_data from: {qc_data_s3_url}")
 
                 self.qc_data = wr.s3.read_parquet(qc_data_s3_url, boto3_session=session, dataset=True)
@@ -1230,10 +1239,10 @@ class Device(BaseModel):
             if load_qc_metrics:
                 s3 = boto3.resource('s3')
                 try:
-                    qc_metrics_s3_url = f"{os.environ['S3_DATA_BUCKET']}/" + f"{path}/{self.id}/quality_metrics.json"
+                    qc_metrics_s3_url = f"{root.rstrip('/')}/{path}/{self.id}/quality_metrics.json"
                     logger.info(f"Loading qc_metrics from: {qc_metrics_s3_url}")
 
-                    qc_metrics = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json").get()
+                    qc_metrics = s3.Object(bucket, f"{prefix}{path}/{self.id}/quality_metrics.json").get()
                 except botocore.exceptions.ClientError as e:
                     if e.response['Error']['Code'] == "NoSuchKey":
                         # The object does not exist.

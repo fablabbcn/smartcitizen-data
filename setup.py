@@ -47,8 +47,15 @@ setup(
             "folium~=0.12.1",
             "hvplot"
         ],
+        # Device.load_from_storage and backup_to_storage (backups in S3 or a local folder)
+        "storage": [
+            "pyarrow",
+            "awswrangler",
+            "boto3"
+        ],
         "dev": [
             "pytest",
+            "pyarrow",
             "bokeh",
             "panel",
             "branca~=0.4.0",
