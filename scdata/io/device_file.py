@@ -488,7 +488,8 @@ def sdcard_concat(path,
                 content.insert(2, ','.join(long_h))
                 content.insert(3, ','.join(id_h))
 
-            with open(join(path, output), 'w') as csv_file:
+            # newline='': the csv writer ends rows itself (otherwise Windows gets a blank line after each row)
+            with open(join(path, output), 'w', newline='') as csv_file:
                 print ('Saving file to:', output)
                 wr = csv.writer(csv_file, delimiter = '\t')
 
