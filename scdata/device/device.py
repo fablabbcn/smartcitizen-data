@@ -23,24 +23,12 @@ from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.find import find_by_field
-from scdata.tools.lazy import LazyCallable, plot_method
+from scdata.tools.lazy import PLOT_EXTRA, LazyCallable, plot_method
 from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
                                  normalize_central, rolling_deltas)
 from scdata.tools.tree import topological_sort
 from scdata.tools.units import get_units_convf
 from scdata.tools.url_check import url_checker
-
-try:
-    import bokeh
-    import panel
-except ModuleNotFoundError:
-    bokeh_available = False
-    pass
-else:
-    bokeh_available = True
-
-if bokeh_available:
-    from scdata.plot.ts_panel import TimeSeriesPanel
 
 try:
     import awswrangler as wr
@@ -1218,13 +1206,14 @@ class Device(BaseModel):
                 Default: 400
                 Height of each subplot
         '''
-        if bokeh_available:
-            return TimeSeriesPanel(
-                self.get_series_dict(frequency=frequency, plot_qc_data=plot_qc_data),
-                channels=channels,
-                device_id=self.id,
-                **kwargs
-            ).view()
-        else:
-            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
-            return False
+        # Plotting is an optional extra: imported here, not when scdata is imported
+        try:
+            from scdata.plot.ts_panel import TimeSeriesPanel
+        except ImportError as error:
+            raise ImportError(f'ts_panel needs the plotting libraries: {PLOT_EXTRA}') from error
+        return TimeSeriesPanel(
+            self.get_series_dict(frequency=frequency, plot_qc_data=plot_qc_data),
+            channels=channels,
+            device_id=self.id,
+            **kwargs
+        ).view()

@@ -19,19 +19,7 @@ from scdata.models import TestOptions
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
-from scdata.tools.lazy import plot_method
-
-try:
-    import panel
-    import bokeh
-except ModuleNotFoundError:
-    bokeh_available = False
-    pass
-else:
-    bokeh_available = True
-
-if bokeh_available:
-    from scdata.plot.ts_panel import TimeSeriesPanel
+from scdata.tools.lazy import PLOT_EXTRA, plot_method
 
 try:
     from branca import element
@@ -343,11 +331,12 @@ class Test(BaseModel):
                 Default: 400
                 Height of each subplot
         '''
-        if bokeh_available:
-            return TimeSeriesPanel(
-                self.get_series_dict(frequency=frequency),
-                **kwargs
-            ).view()
-        else:
-            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
-            return False
+        # Plotting is an optional extra: imported here, not when scdata is imported
+        try:
+            from scdata.plot.ts_panel import TimeSeriesPanel
+        except ImportError as error:
+            raise ImportError(f'ts_panel needs the plotting libraries: {PLOT_EXTRA}') from error
+        return TimeSeriesPanel(
+            self.get_series_dict(frequency=frequency),
+            **kwargs
+        ).view()
