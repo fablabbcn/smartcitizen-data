@@ -17,6 +17,17 @@ PROJECT_URLS = {
 
 REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]
 
+
+PLOT = [
+    "matplotlib",
+    "seaborn",
+    "bokeh",
+    "panel",
+    "branca~=0.4.0",
+    "folium~=0.12.1",
+    "hvplot"
+]
+
 setup(
     name='scdata',
     version='1.5.5',
@@ -40,14 +51,11 @@ setup(
     ],
     install_requires=[REQUIREMENTS],
     extras_require={
-        "plotting": [
-            "bokeh",
-            "panel",
-            "branca~=0.4.0",
-            "folium~=0.12.1",
-            "hvplot"
-        ],
-        "dev": [
+        # Device and Test plots (device.ts_plot(), ...): scdata imports them on the first plot
+        "plot": PLOT,
+        # Former name of the plot extra
+        "plotting": PLOT,
+        "dev": PLOT + [
             "pytest",
             "bokeh",
             "panel",

@@ -19,6 +19,7 @@ from scdata.models import TestOptions
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
+from scdata.tools.lazy import plot_method
 
 try:
     import panel
@@ -42,17 +43,20 @@ else:
     map_plotting_available = True
 
 class Test(BaseModel):
-
-    from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
-    from scdata.plot import (heatmap_plot, scatter_dispersion_grid, scatter_plot,
-        ts_dendrogram, ts_dispersion_grid, ts_dispersion_plot, ts_plot, ts_scatter)
-        #, report_plot, cat_plot, violin_plot)
-
-    if map_plotting_available:
-        from scdata.plot import device_metric_map, path_plot
-
-    if config._ipython_avail:
-        from scdata.plot import ts_uplot, ts_dispersion_uplot
+    # Plots: scdata.plot is imported on the first call (optional extra, see plot_method)
+    box_plot = plot_method('box_plot')
+    heatmap_plot = plot_method('heatmap_plot')
+    scatter_dispersion_grid = plot_method('scatter_dispersion_grid')
+    scatter_plot = plot_method('scatter_plot')
+    ts_dendrogram = plot_method('ts_dendrogram')
+    ts_dispersion_grid = plot_method('ts_dispersion_grid')
+    ts_dispersion_plot = plot_method('ts_dispersion_plot')
+    ts_plot = plot_method('ts_plot')
+    ts_scatter = plot_method('ts_scatter')
+    device_metric_map = plot_method('device_metric_map')
+    path_plot = plot_method('path_plot')
+    ts_uplot = plot_method('ts_uplot')
+    ts_dispersion_uplot = plot_method('ts_dispersion_uplot')
 
     from .checks import get_common_channels
     from .dispersion import dispersion_analysis, dispersion_summary

@@ -5,7 +5,6 @@ from scdata._config import config
 from scdata.device.process.params import *
 from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
-import matplotlib.pyplot as plt
 import numpy as np
 from pandas import date_range, DataFrame, Series, isnull, Timedelta
 from scdata.device.process.error_codes import StatusCode, ProcessResult
