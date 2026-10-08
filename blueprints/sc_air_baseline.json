@@ -1,7 +1,9 @@
 {
   "meta": {
     "documentation": "https://docs.smartcitizen.me/",
-    "kind": "process"
+    "kind": "long",
+    "window_days": 90,
+    "every_days": 7
   },
   "channels": [
     {
@@ -27,7 +29,9 @@
       "post": false,
       "function": "alphasense_pt1000",
       "unit": "degC",
-      "depends_on": ["PT1000_POS"]
+      "depends_on": [
+        "PT1000_POS"
+      ]
     },
     {
       "name": "EC_SENSOR_TEMP",
@@ -35,12 +39,19 @@
       "id": null,
       "kwargs": {
         "priority": "ASPT1000",
-        "eager_channels": ["Ext SHT31 - Temperature", "Sensirion SHT35 - Temperature", "DS18B20","Sensirion SHT31 - Temperature"]
+        "eager_channels": [
+          "Ext SHT31 - Temperature",
+          "Sensirion SHT35 - Temperature",
+          "DS18B20",
+          "Sensirion SHT31 - Temperature"
+        ]
       },
       "post": false,
       "function": "ec_sensor_temp",
       "unit": "degC",
-      "depends_on": ["ASPT1000"]
+      "depends_on": [
+        "ASPT1000"
+      ]
     },
     {
       "name": "CO_WE",
@@ -175,109 +186,189 @@
       "unit": "V"
     },
     {
-      "name":"CO",
-      "description": "Calculation of CO based on AAN 803-04",
+      "name": "CO",
+      "description": "Calculation of CO based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 152,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
-        "we": null
+        "we": null,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["CO_WE", "CO_AE", "EC_SENSOR_TEMP"]
+      "depends_on": [
+        "CO_WE",
+        "CO_AE",
+        "EC_SENSOR_TEMP"
+      ]
     },
     {
-      "name":"NO2",
-      "description": "Calculation of NO2 based on AAN 803-04",
+      "name": "NO2",
+      "description": "Calculation of NO2 based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 153,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
-        "we": null
+        "we": null,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["NO2_WE", "NO2_AE", "EC_SENSOR_TEMP"]
+      "depends_on": [
+        "NO2_WE",
+        "NO2_AE",
+        "EC_SENSOR_TEMP"
+      ]
     },
     {
-      "name":"O3",
-      "description": "Calculation of O3 based on AAN 803-04",
+      "name": "O3",
+      "description": "Calculation of O3 based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 157,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
-        "we": null
+        "we": null,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6,
+        "no2_channel": "NO2"
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["OX_WE", "OX_AE", "EC_SENSOR_TEMP", "NO2"]
+      "depends_on": [
+        "EC_SENSOR_TEMP",
+        "NO2",
+        "OX_AE",
+        "OX_WE"
+      ]
     },
     {
-      "name":"SO2",
-      "description": "Calculation of SO2 based on AAN 803-04",
+      "name": "SO2",
+      "description": "Calculation of SO2 based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 155,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
         "we": null,
-        "use_alternative": true
+        "use_alternative": true,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["SO2_WE", "SO2_AE", "EC_SENSOR_TEMP"]
+      "depends_on": [
+        "SO2_WE",
+        "SO2_AE",
+        "EC_SENSOR_TEMP"
+      ]
     },
     {
       "name": "NO",
-      "description": "Calculation of NO based on AAN 803-04",
+      "description": "Calculation of NO based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 154,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
-        "we": null
+        "we": null,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["NO_WE", "NO_AE", "EC_SENSOR_TEMP"]
+      "depends_on": [
+        "NO_WE",
+        "NO_AE",
+        "EC_SENSOR_TEMP"
+      ]
     },
     {
       "name": "H2S",
-      "description": "Calculation of H2S based on AAN 803-04",
+      "description": "Calculation of H2S based on AAN 803-04, with the working electrode baseline (ALS)",
       "id": 156,
       "kwargs": {
         "ae": null,
         "alphasense_id": null,
         "t": "EC_SENSOR_TEMP",
-        "we": null
+        "we": null,
+        "n_gaps": 5,
+        "gap_window_removal_h": 6
       },
-      "post": true,
-      "function": "alphasense_803_04",
+      "post": false,
+      "function": "alphasense_als",
       "unit": "ppb",
-      "depends_on": ["H2S_WE", "H2S_AE", "EC_SENSOR_TEMP"]
+      "depends_on": [
+        "H2S_WE",
+        "H2S_AE",
+        "EC_SENSOR_TEMP"
+      ]
     },
     {
-      "name": "CO2",
-      "description": "CO2 without spurious values (baseline correction in the long processing)",
+      "name": "CO2_CLEAN",
+      "description": "Clean CO2 values for baseline calculation",
       "id": null,
       "kwargs": {
         "name": "SCD30_CO2",
-        "limits": [300, 9500],
+        "limits": [
+          300,
+          9500
+        ],
         "window": 5
       },
       "post": false,
       "function": "clean_ts",
       "unit": "ppm",
       "depends_on": []
+    },
+    {
+      "name": "CO2_BASELINE",
+      "description": "Baseline calculation of CO2 with ALS",
+      "id": null,
+      "kwargs": {
+        "name": "CO2_CLEAN",
+        "p": 1e-06,
+        "lam": 10000000000,
+        "niter": 10
+      },
+      "post": false,
+      "function": "baseline_als",
+      "unit": "ppm",
+      "depends_on": [
+        "CO2_CLEAN"
+      ]
+    },
+    {
+      "name": "CO2",
+      "description": "CO2 corrected with its ALS baseline over the window",
+      "id": null,
+      "kwargs": {
+        "channels": [
+          "SCD30_CO2",
+          "CO2_BASELINE"
+        ],
+        "coefficients": [
+          1,
+          -1
+        ],
+        "extra_term": 450
+      },
+      "post": false,
+      "function": "poly_ts",
+      "unit": "ppm",
+      "depends_on": [
+        "CO2_BASELINE"
+      ]
     }
   ],
   "checks": [
@@ -289,13 +380,39 @@
         "default_frequency_minutes": 1,
         "gap_sizes": [
           {
-            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_4", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_4", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
+            "columns": [
+              "SEN5X_PM_1",
+              "SEN5X_PM_10",
+              "SEN5X_PM_25",
+              "SEN5X_PM_4",
+              "SEN5X_PN_05",
+              "SEN5X_PN_1",
+              "SEN5X_PN_10",
+              "SEN5X_PN_25",
+              "SEN5X_PN_4",
+              "SEN5X_TPSIZE",
+              "SEN5X_TEMP",
+              "SEN5X_HUM"
+            ],
             "gap_size_minutes": 10
           }
         ],
         "frequencies": [
           {
-            "columns": ["SEN5X_PM_1", "SEN5X_PM_10", "SEN5X_PM_25", "SEN5X_PM_4", "SEN5X_PN_05", "SEN5X_PN_1", "SEN5X_PN_10", "SEN5X_PN_25", "SEN5X_PN_4", "SEN5X_TPSIZE", "SEN5X_TEMP", "SEN5X_HUM"],
+            "columns": [
+              "SEN5X_PM_1",
+              "SEN5X_PM_10",
+              "SEN5X_PM_25",
+              "SEN5X_PM_4",
+              "SEN5X_PN_05",
+              "SEN5X_PN_1",
+              "SEN5X_PN_10",
+              "SEN5X_PN_25",
+              "SEN5X_PN_4",
+              "SEN5X_TPSIZE",
+              "SEN5X_TEMP",
+              "SEN5X_HUM"
+            ],
             "frequency_minutes": 5
           }
         ]
@@ -311,155 +428,269 @@
         "implausible_values": [
           {
             "column": "CCS811_VOCS",
-            "limits": [0, 30000]
+            "limits": [
+              0,
+              30000
+            ]
           },
           {
             "column": "CCS811_ECO2",
-            "limits": [400, 30000]
+            "limits": [
+              400,
+              30000
+            ]
           },
           {
             "column": "NOISE_A",
-            "limits": [20, 99]
+            "limits": [
+              20,
+              99
+            ]
           },
           {
             "column": "SCD30_CO2",
-            "limits": [300, 9500]
+            "limits": [
+              300,
+              9500
+            ]
           },
           {
             "column": "SCD30_HUM",
-            "limits": [20, 99]
+            "limits": [
+              20,
+              99
+            ]
           },
           {
             "column": "SCD30_TEMP",
-            "limits": [-20, 50]
+            "limits": [
+              -20,
+              50
+            ]
           },
           {
             "column": "BATT",
-            "limits": [0, 100]
+            "limits": [
+              0,
+              100
+            ]
           },
           {
             "column": "LPS33_PRESS",
-            "limits": [50, 110]
+            "limits": [
+              50,
+              110
+            ]
           },
           {
             "column": "PRESS",
-            "limits": [50, 110]
+            "limits": [
+              50,
+              110
+            ]
           },
           {
             "column": "PMS5003_PM_1",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "PMS5003_PM_25",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "PMS5003_PM_10",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "SEN5X_HUM",
-            "limits": [20, 99]
+            "limits": [
+              20,
+              99
+            ]
           },
           {
             "column": "SEN5X_PM_1",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "SEN5X_PM_10",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "SEN5X_PM_25",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "SEN5X_PM_4",
-            "limits": [0, 500]
+            "limits": [
+              0,
+              500
+            ]
           },
           {
             "column": "SEN5X_TEMP",
-            "limits": [-20, 50]
+            "limits": [
+              -20,
+              50
+            ]
           },
           {
             "column": "SFA30_HCHO",
-            "limits": [0, 4500]
+            "limits": [
+              0,
+              4500
+            ]
           },
           {
             "column": "SFA30_HUM",
-            "limits": [20, 99]
+            "limits": [
+              20,
+              99
+            ]
           },
           {
             "column": "SFA30_TEMP",
-            "limits": [-20, 50]
+            "limits": [
+              -20,
+              50
+            ]
           },
           {
             "column": "ADC_48_0",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_48_1",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_48_2",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_48_3",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_49_0",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_49_1",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_49_2",
-            "limits": [0, 5.1]
+            "limits": [
+              0,
+              5.1
+            ]
           },
           {
             "column": "ADC_49_3",
-            "limits": [0, 13]
+            "limits": [
+              0,
+              13
+            ]
           },
           {
             "column": "HUM",
-            "limits": [20, 99]
+            "limits": [
+              20,
+              99
+            ]
           },
           {
             "column": "TEMP",
-            "limits": [-40, 60]
+            "limits": [
+              -40,
+              60
+            ]
           },
           {
             "column": "CO",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "NO2",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "NO",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "O3",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "H2S",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "SO2",
-            "limits": [0, 1000]
+            "limits": [
+              0,
+              1000
+            ]
           },
           {
             "column": "CO2",
-            "limits": [400, 10500]
+            "limits": [
+              400,
+              10500
+            ]
           }
         ]
       },
@@ -472,7 +703,7 @@
       "description": "Find flat values in columns",
       "kwargs": {
         "flat_window_minutes": 1440,
-        "limit_rolling_std": 0.00001,
+        "limit_rolling_std": 1e-05,
         "columns": [
           "SEN5X_PM_1",
           "SEN5X_PM_25",
@@ -550,52 +781,6 @@
   "exports": [
     {
       "name": "all"
-    },
-    {
-      "name": "clean",
-      "columns": [
-        "AS7331_UVA",
-        "AS7331_UVB",
-        "AS7331_UVC",
-        "BATT",
-        "CO",
-        "CO2",
-        "EC_SENSOR_TEMP",
-        "H2S",
-        "HUM",
-        "LIGHT",
-        "LPS33_PRESS",
-        "PRESS",
-        "MPL_PRESS",
-        "NO",
-        "NO2",
-        "NOISE_A",
-        "O3",
-        "SO2",
-        "SCD30_HUM",
-        "SCD30_TEMP",
-        "SFA30_HCHO",
-        "SFA30_HUM",
-        "SFA30_TEMP",
-        "SEN5X_HUM",
-        "PMS5003_PM_1",
-        "PMS5003_PM_25",
-        "PMS5003_PM_10",
-        "CCS811_ECO2",
-        "CCS811_VOCS",
-        "SEN5X_PM_1",
-        "SEN5X_PM_10",
-        "SEN5X_PM_25",
-        "SEN5X_PM_4",
-        "SEN5X_PN_05",
-        "SEN5X_PN_1",
-        "SEN5X_PN_10",
-        "SEN5X_PN_25",
-        "SEN5X_PN_4",
-        "SEN5X_TEMP",
-        "SEN5X_TPSIZE",
-        "TEMP"
-      ]
     }
   ]
 }
