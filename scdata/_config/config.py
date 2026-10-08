@@ -7,7 +7,8 @@ from math import inf
 from numpy import array
 import logging
 from os import pardir, environ, name, makedirs
-from os.path import join, dirname, expanduser, exists, basename
+from os.path import join, dirname, expanduser, exists, basename, isdir
+from copy import deepcopy
 from urllib.parse import urlparse
 import os
 from shutil import copyfile
@@ -740,36 +741,60 @@ class Config(object):
         if 'SC_BEARER' not in environ:
             print('SC_BEARER not in environment variables. You may get throttled when requesting to api.smartcitizen.me')
 
+    def saveable(self):
+        """ Settings that config.yaml can override """
+        return [setting for setting in self if not setting.startswith('_')
+                and not callable(self.__getitem__(setting))
+                and setting not in ['blueprints', 'names', 'calibrations'] + self._derived_settings]
+
     def load(self):
-        """ Override config if config file exists. """
+        """
+        Override the defaults with config.yaml, if it exists. The file only keeps what differs
+        from the defaults, so new defaults of later versions apply. Dicts (data, paths) are merged
+        key by key: keys added by later versions keep their default
+        """
         _sccpath = join(self.paths['config'], 'config.yaml')
+        self._defaults = {setting: deepcopy(self[setting]) for setting in self.saveable()}
 
         # Thankfully inspired in config.py by mps-youtube
         if exists(_sccpath):
             with open(_sccpath, "r") as cf:
-                saved_config = yaml.load(cf, Loader = yaml.SafeLoader)
+                saved_config = yaml.load(cf, Loader = yaml.SafeLoader) or dict()
 
             for k, v in saved_config.items():
                 # Urls come from BASE_POSTPROCESSING_URL: ignore those saved by older versions
                 if k in self._derived_settings: continue
+                if k not in self._defaults:
+                    print (f"Unrecognised config item: {k}")
+                    continue
 
-                try:
+                if k == 'paths' and isinstance(v, dict):
+                    # Older versions saved every path: keep only folders that exist. The config
+                    # folder is where this file was found
+                    v = {key: path for key, path in v.items()
+                         if key != 'config' and key in self.paths and isinstance(path, str) and path and isdir(path)}
+
+                if isinstance(self._defaults[k], dict) and isinstance(v, dict):
+                    self.__setattr__(k, dict(self._defaults[k], **v))
+                else:
                     self.__setattr__(k, v)
-
-                except KeyError:  # Ignore unrecognised data in config
-                    print ("Unrecognised config item: %s", k)
 
         if self.framework != 'chupiflow':
             self.save()
 
     def save(self):
-        """ Save current config to file. """
+        """ Save the settings that differ from the defaults to config.yaml """
         c = dict()
-        for setting in self:
-            if not setting.startswith('_') and not callable(self.__getitem__(setting)) and setting not in ['blueprints', 'names', 'calibrations'] + self._derived_settings:
-                c[setting] = self[setting]
+        for setting in self.saveable():
+            value, default = self[setting], self._defaults.get(setting)
+            if isinstance(value, dict) and isinstance(default, dict):
+                changed = {key: item for key, item in value.items() if default.get(key) != item}
+                if changed: c[setting] = changed
+            elif value != default:
+                c[setting] = value
 
         _sccpath = join(self.paths['config'], 'config.yaml')
         with open(_sccpath, "w") as cf:
+            cf.write('# scdata settings that differ from the defaults\n')
             yaml.dump(c, cf)
 
