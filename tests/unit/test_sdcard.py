@@ -75,3 +75,27 @@ def test_concat_blueprint_is_a_deprecated_rename(tmp_path, monkeypatch):
     concat = sdcard_concat(str(tmp_path), output='', timezone='UTC', blueprint='sc_air')
 
     assert set(concat.columns) == {'TEMP', 'HUMIDITY'}
+
+
+def test_renames_never_use_the_index_name():
+    from scdata.io.device_file import sdcard_renames
+    from scdata.models import Name
+
+    names = [Name(id=55, name='TIME', description='', unit=''), Name(id=56, name='HUM', description='', unit='%')]
+    header = {'TEMP': {'id': '55'}, 'H': {'id': '56'}}
+
+    assert sdcard_renames(header, names, ['TEMP', 'H'], reserved=['TIME']) == {'H': 'HUM'}
+
+
+def test_deprecated_options(tmp_path, monkeypatch):
+    from scdata._config import config
+    from scdata.models import Name
+
+    monkeypatch.setitem(config.names, 'SCDevice', [Name(id=56, name='HUMIDITY', description='', unit='%')])
+    write(tmp_path, '26-01-01.CSV', ['2026-01-01T10:00:00Z,20.0,50.0'])
+
+    # Positional, as before rename and handler were added
+    renamed = sdcard_concat(str(tmp_path), '', 'TIME', True, [], 'UTC', True, None, None, None, 'sc_air')
+    assert set(renamed.columns) == {'TEMP', 'HUMIDITY'}
+    # An explicit False does not rename
+    assert set(sdcard_concat(str(tmp_path), output='', timezone='UTC', rename_to_blueprint=False).columns) == {'TEMP', 'HUM'}

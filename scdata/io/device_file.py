@@ -253,12 +253,12 @@ def is_valid_header_token(token):
     token = token.strip()
     return not (is_number(token))
 
-def sdcard_renames(header, names, columns):
+def sdcard_renames(header, names, columns, reserved=()):
     '''
     {column: name} for the columns of an SD card file whose sensor id has a name.
     header: {column: {'id': ...}} from the header rows. names: list of Name. For an id with
     several names, the first one is used, as when processing. Columns whose new name is already
-    a column are not renamed
+    a column, or reserved (the index name), are not renamed
     '''
     by_id = dict()
     for item in names:
@@ -268,7 +268,7 @@ def sdcard_renames(header, names, columns):
     for column, info in header.items():
         new_name = by_id.get(str(info.get('id', '')).strip())
         if new_name is None or new_name == column: continue
-        if new_name in columns or new_name in renames.values():
+        if new_name in columns or new_name in renames.values() or new_name in reserved:
             logger.warning(f'Not renaming {column} to {new_name}: {new_name} is already a column')
             continue
         renames[column] = new_name
@@ -284,10 +284,10 @@ def sdcard_concat(path,
     tzaware=True,
     dateformat=None,
     min_date=None,
-    rename=False,
-    handler='SCDevice',
     rename_to_blueprint=None,
-    blueprint=None):
+    blueprint=None,
+    rename=False,
+    handler='SCDevice'):
     '''
     Loads files from local directory in text format, for instance
     SD card files with timestamp, sparse or concatenated
@@ -340,7 +340,8 @@ def sdcard_concat(path,
     files = listdir(path)
 
     # Rename
-    if blueprint is not None or rename_to_blueprint is not None:
+    # Deprecated forms: a blueprint name, or rename_to_blueprint=True
+    if blueprint is not None or rename_to_blueprint:
         logger.warning('blueprint is deprecated in sdcard_concat: names do not depend on it. Use rename=True')
         rename = True
     if rename and handler not in config.names:
@@ -442,7 +443,7 @@ def sdcard_concat(path,
     # Rename
     if rename:
         logger.warning('Keep in mind that renaming doesnt change the units')
-        rename_d = sdcard_renames(header_tokenized, config.names[handler], concat.columns)
+        rename_d = sdcard_renames(header_tokenized, config.names[handler], concat.columns, reserved=[index_name])
         for old_key, new_key in rename_d.items():
             logger.info(f'Renaming {old_key} to {new_key}')
             header_tokenized[new_key] = header_tokenized.pop(old_key)
