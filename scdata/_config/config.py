@@ -754,7 +754,9 @@ class Config(object):
         key by key: keys added by later versions keep their default
         """
         _sccpath = join(self.paths['config'], 'config.yaml')
-        self._defaults = {setting: deepcopy(self[setting]) for setting in self.saveable()}
+        # Defaults as the package sets them: taken once, a second load() keeps the overrides out of them
+        if '_defaults' not in vars(self):
+            self._defaults = {setting: deepcopy(self[setting]) for setting in self.saveable()}
 
         # Thankfully inspired in config.py by mps-youtube
         if exists(_sccpath):

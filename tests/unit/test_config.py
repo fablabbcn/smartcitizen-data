@@ -115,3 +115,19 @@ def test_fresh_config_saves_nothing(tmp_path, metadata_server):
     run_scdata(tmp_path, base_url)
 
     assert yaml.safe_load((tmp_path / 'config' / 'scdata' / 'config.yaml').read_text()) == {}
+
+
+def test_second_load_keeps_the_overrides(tmp_path, metadata_server):
+    base_url, _ = metadata_server
+    (tmp_path / 'config' / 'scdata').mkdir(parents=True)
+    (tmp_path / 'config' / 'scdata' / 'config.yaml').write_text(yaml.dump({'data': {'cached_data_margin': '5Min'}}))
+    script = SCRIPT.replace('print(json.dumps({', 'config.load()\nprint(json.dumps({"data": config.data,')
+
+    env = dict(os.environ, BASE_POSTPROCESSING_URL=base_url, APPDATA=str(tmp_path / 'config'),
+               XDG_CONFIG_HOME=str(tmp_path / 'config'), XDG_CACHE_HOME=str(tmp_path / 'cache'))
+    result = subprocess.run([sys.executable, '-c', script], env=env, capture_output=True, text=True, timeout=300)
+    assert result.returncode == 0, result.stderr
+
+    assert json.loads(result.stdout.strip().splitlines()[-1])['data']['cached_data_margin'] == '5Min'
+    saved = yaml.safe_load((tmp_path / 'config' / 'scdata' / 'config.yaml').read_text())
+    assert saved == {'data': {'cached_data_margin': '5Min'}}
