@@ -1,4 +1,5 @@
 ''' scdata works without the plotting libraries (the plot extra). Run apart: it blocks their import '''
+import os
 import subprocess
 import sys
 
@@ -21,8 +22,9 @@ print("LOADED", loaded)
 
 
 def test_scdata_without_plotting_libraries(tmp_path):
-    env = {'HOME': str(tmp_path), 'XDG_CONFIG_HOME': str(tmp_path / 'config'), 'XDG_CACHE_HOME': str(tmp_path / 'cache'),
-           'APPDATA': str(tmp_path / 'config'), 'PATH': ''}
+    # Python on Windows needs the system variables (SYSTEMROOT...): extend the environment
+    env = dict(os.environ, HOME=str(tmp_path), XDG_CONFIG_HOME=str(tmp_path / 'config'),
+               XDG_CACHE_HOME=str(tmp_path / 'cache'), APPDATA=str(tmp_path / 'config'))
     result = subprocess.run([sys.executable, '-c', SCRIPT], env=env, capture_output=True, text=True, timeout=300)
 
     assert result.returncode == 0, result.stderr
