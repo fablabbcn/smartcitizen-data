@@ -29,3 +29,9 @@ class FakeHandler:
         available = [column for column in FakeHandler.readings.columns if column in channels]
         self.data = FakeHandler.readings[available].copy()
         return self.data
+
+    def apply_blueprint(self, blueprint):
+        ''' As SCDevice: the blueprint filled with the hardware (here, as it is) '''
+        self.properties = blueprint
+        self.channels_by_version = []
+        return True
