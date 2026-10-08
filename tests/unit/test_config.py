@@ -19,6 +19,8 @@ from scdata._config import config
 print(json.dumps({
     "calibrations_urls": config.calibrations_urls,
     "blueprints_urls": config.blueprints_urls,
+    "names_urls": config.names_urls,
+    "names": {handler: [name.name for name in names] for handler, names in config.names.items()},
     "blueprints": sorted(config.blueprints),
     "calibrations": sorted(config.calibrations),
 }))
@@ -27,13 +29,16 @@ print(json.dumps({
 
 @pytest.fixture
 def metadata_server(tmp_path):
-    ''' Serves blueprints and calibrations like flows, recording the requested paths '''
+    ''' Serves blueprints, calibrations and names like flows, recording the requested paths '''
     root = tmp_path / 'server'
     api = root / 'api' / 'v1'
     (api / 'blueprints').mkdir(parents=True)
     (api / 'calibrations').mkdir()
     (api / 'blueprints' / 'sc_air.json').write_text(open(join(ROOT, 'blueprints', 'sc_air.json')).read())
     (api / 'calibrations' / 'calibrations.json').write_text(json.dumps({'10-002911': {'t20': 20, 'v20': '0.3'}}))
+    (api / 'names').mkdir()
+    (api / 'names' / 'SCDevice.json').write_text(json.dumps([
+        {'name': 'TEMP', 'id': 55, 'description': 'Temperature', 'unit': 'C'}]))
 
     requested = []
 
@@ -71,7 +76,10 @@ def test_metadata_from_base_url(tmp_path, metadata_server):
     assert result['blueprints_urls'] == [f'{base_url}/blueprints/sc_air.json']
     assert result['blueprints'] == ['sc_air']
     assert result['calibrations'] == ['10-002911']
-    assert requested == ['/api/v1/blueprints/sc_air.json', '/api/v1/calibrations/calibrations.json']
+    assert result['names_urls'] == [f'{base_url}/names/SCDevice.json']
+    assert result['names'] == {'SCDevice': ['TEMP']}
+    assert requested == ['/api/v1/blueprints/sc_air.json', '/api/v1/calibrations/calibrations.json',
+                         '/api/v1/names/SCDevice.json']
 
     saved = yaml.safe_load((tmp_path / 'config' / 'scdata' / 'config.yaml').read_text())
     assert not {'calibrations_urls', 'blueprints_urls', 'names_urls'} & set(saved)
