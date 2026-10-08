@@ -389,10 +389,9 @@ def sdcard_concat(path,
 
         if keep:
             try:
-                short_tokenized = header[0].strip('\r\n').split(',')
-                unit_tokenized = header[1].strip('\r\n').split(',')
-                long_tokenized = header[2].strip('\r\n').split(',')
-                id_tokenized = header[3].strip('\r\n').split(',')
+                # Parsed as CSV, like the rows: a quoted name with commas is one field
+                short_tokenized, unit_tokenized, long_tokenized, id_tokenized = [
+                    next(csv.reader([line.strip('\r\n')])) for line in header[:4]]
 
                 for name, tokens in [
                     ("short", short_tokenized),
@@ -463,38 +462,20 @@ def sdcard_concat(path,
 
         if keep:
             print ('Updating header')
-            with open(join(path, output), 'r') as csv_file:
-                content = csv_file.readlines()
+            # Parsed and written as CSV: names with commas are quoted fields, not several
+            with open(join(path, output), 'r', newline='') as csv_file:
+                rows = list(csv.reader(csv_file))
 
-                final_header = content[0].strip('\n').split(',')
-                short_h = []
-                units_h = []
-                long_h = []
-                id_h = []
-
-                for item in final_header:
-                    if item in header_tokenized.keys():
-                        short_h.append(item)
-                        units_h.append(header_tokenized[item]['unit'])
-                        long_h.append(header_tokenized[item]['long'])
-                        id_h.append(header_tokenized[item]['id'])
-
-                content.pop(0)
-
-                for index_content in range(len(content)):
-                    content[index_content] = content[index_content].strip('\n')
-
-                content.insert(0, ','.join(short_h))
-                content.insert(1, ','.join(units_h))
-                content.insert(2, ','.join(long_h))
-                content.insert(3, ','.join(id_h))
+            columns = rows[0]
+            empty = {'unit': '', 'long': '', 'id': ''}
+            # Every column keeps its place in the four header rows (empty when the files had no header for it)
+            header = [[column for column in columns]]
+            for key in ('unit', 'long', 'id'):
+                header.append([header_tokenized.get(column, empty)[key] for column in columns])
 
             # newline='': the csv writer ends rows itself (otherwise Windows gets a blank line after each row)
             with open(join(path, output), 'w', newline='') as csv_file:
                 print ('Saving file to:', output)
-                wr = csv.writer(csv_file, delimiter = '\t')
-
-                for row in content:
-                    wr.writerow([row])
+                csv.writer(csv_file).writerows(header + rows[1:])
 
     return concat

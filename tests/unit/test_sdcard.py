@@ -99,3 +99,19 @@ def test_deprecated_options(tmp_path, monkeypatch):
     assert set(renamed.columns) == {'TEMP', 'HUMIDITY'}
     # An explicit False does not rename
     assert set(sdcard_concat(str(tmp_path), output='', timezone='UTC', rename_to_blueprint=False).columns) == {'TEMP', 'HUM'}
+
+
+def test_output_header_with_commas(tmp_path):
+    import csv
+
+    (tmp_path / '26-01-01.CSV').write_text('TIME,TEMP,"PM,1"\nUTC,C,ug/m3\nTime,"Temperature, inside",PM 1\n,55,89\n'
+                                           '2026-01-01T10:00:00Z,20.0,3.0\n')
+
+    sdcard_concat(str(tmp_path), output='CONCAT.CSV', timezone='UTC')
+
+    with open(tmp_path / 'CONCAT.CSV', newline='') as file:
+        rows = list(csv.reader(file))
+    names, units, titles, ids = rows[:4]
+    assert dict(zip(names, titles)) == {'TIME': 'Time', 'TEMP': 'Temperature, inside', 'PM,1': 'PM 1'}
+    assert dict(zip(names, ids)) == {'TIME': '', 'TEMP': '55', 'PM,1': '89'}
+    assert len(rows[4]) == len(names)
