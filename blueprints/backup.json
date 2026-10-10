@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "documentation": "https://docs.smartcitizen.me/",
+    "kind": "backup"
+  },
+  "channels": [],
+  "checks": [],
+  "exports": []
+}
