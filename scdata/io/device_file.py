@@ -253,6 +253,28 @@ def is_valid_header_token(token):
     token = token.strip()
     return not (is_number(token))
 
+def sdcard_renames(header, names, columns, reserved=()):
+    '''
+    {column: name} for the columns of an SD card file whose sensor id has a name.
+    header: {column: {'id': ...}} from the header rows. names: list of Name. For an id with
+    several names, the first one is used, as when processing. Columns whose new name is already
+    a column, or reserved (the index name), are not renamed
+    '''
+    by_id = dict()
+    for item in names:
+        if item.id: by_id.setdefault(str(item.id), item.name)
+
+    renames = dict()
+    for column, info in header.items():
+        new_name = by_id.get(str(info.get('id', '')).strip())
+        if new_name is None or new_name == column: continue
+        if new_name in columns or new_name in renames.values() or new_name in reserved:
+            logger.warning(f'Not renaming {column} to {new_name}: {new_name} is already a column')
+            continue
+        renames[column] = new_name
+    return renames
+
+
 def sdcard_concat(path,
     output = 'CONCAT.CSV',
     index_name = 'TIME',
@@ -263,7 +285,9 @@ def sdcard_concat(path,
     dateformat=None,
     min_date=None,
     rename_to_blueprint=None,
-    blueprint=None):
+    blueprint=None,
+    rename=False,
+    handler='SCDevice'):
     '''
     Loads files from local directory in text format, for instance
     SD card files with timestamp, sparse or concatenated
@@ -294,9 +318,17 @@ def sdcard_concat(path,
         min_date: String
             None
             Date for minimum cut-off
-        blueprint:
+        rename: boolean
+            False
+            Renames the columns to the names scdata uses (names of the handler), by the sensor
+            id in the fourth header row. Columns without id (0) keep their name. Units are not
+            converted
+        handler: String
+            'SCDevice'
+            Names to rename with (config.names)
+        blueprint, rename_to_blueprint:
             None
-            Indicate a blueprint for renaming
+            Deprecated: names no longer depend on the blueprint. Same as rename=True
     Returns
     -------
         Pandas dataframe
@@ -308,14 +340,12 @@ def sdcard_concat(path,
     files = listdir(path)
 
     # Rename
-    if blueprint is not None:
-        if blueprint not in config.blueprints:
-            logger.warning('Blueprint not in config. Cannot rename')
-            rename = False
-        else:
-            rename = True
-    else:
-        logger.info('No blueprint specified')
+    # Deprecated forms: a blueprint name, or rename_to_blueprint=True
+    if blueprint is not None or rename_to_blueprint:
+        logger.warning('blueprint is deprecated in sdcard_concat: names do not depend on it. Use rename=True')
+        rename = True
+    if rename and handler not in config.names:
+        logger.warning(f'No names for {handler}. Cannot rename')
         rename = False
 
     errors = False
@@ -359,10 +389,9 @@ def sdcard_concat(path,
 
         if keep:
             try:
-                short_tokenized = header[0].strip('\r\n').split(',')
-                unit_tokenized = header[1].strip('\r\n').split(',')
-                long_tokenized = header[2].strip('\r\n').split(',')
-                id_tokenized = header[3].strip('\r\n').split(',')
+                # Parsed as CSV, like the rows: a quoted name with commas is one field
+                short_tokenized, unit_tokenized, long_tokenized, id_tokenized = [
+                    next(csv.reader([line.strip('\r\n')])) for line in header[:4]]
 
                 for name, tokens in [
                     ("short", short_tokenized),
@@ -413,17 +442,11 @@ def sdcard_concat(path,
     # Rename
     if rename:
         logger.warning('Keep in mind that renaming doesnt change the units')
-        rename_d = dict()
-        for old_key in header_tokenized:
-            for key, value in config.blueprints[blueprint]['sensors'].items():
-                if value['id'] == header_tokenized[old_key]['id'] and old_key != key:
-                    rename_d[old_key] = key
-                    break
-
-        for old_key in rename_d:
-            logger.info(f'Renaming {old_key} to {rename_d[old_key]}')
-            header_tokenized[rename_d[old_key]] = header_tokenized.pop(old_key)
-            concat.rename(columns=rename_d, inplace=True)
+        rename_d = sdcard_renames(header_tokenized, config.names[handler], concat.columns, reserved=[index_name])
+        for old_key, new_key in rename_d.items():
+            logger.info(f'Renaming {old_key} to {new_key}')
+            header_tokenized[new_key] = header_tokenized.pop(old_key)
+        concat.rename(columns=rename_d, inplace=True)
 
     # Moot to check this here...
     if timezone != '':
@@ -439,37 +462,20 @@ def sdcard_concat(path,
 
         if keep:
             print ('Updating header')
-            with open(join(path, output), 'r') as csv_file:
-                content = csv_file.readlines()
+            # Parsed and written as CSV: names with commas are quoted fields, not several
+            with open(join(path, output), 'r', newline='') as csv_file:
+                rows = list(csv.reader(csv_file))
 
-                final_header = content[0].strip('\n').split(',')
-                short_h = []
-                units_h = []
-                long_h = []
-                id_h = []
+            columns = rows[0]
+            empty = {'unit': '', 'long': '', 'id': ''}
+            # Every column keeps its place in the four header rows (empty when the files had no header for it)
+            header = [[column for column in columns]]
+            for key in ('unit', 'long', 'id'):
+                header.append([header_tokenized.get(column, empty)[key] for column in columns])
 
-                for item in final_header:
-                    if item in header_tokenized.keys():
-                        short_h.append(item)
-                        units_h.append(header_tokenized[item]['unit'])
-                        long_h.append(header_tokenized[item]['long'])
-                        id_h.append(header_tokenized[item]['id'])
-
-                content.pop(0)
-
-                for index_content in range(len(content)):
-                    content[index_content] = content[index_content].strip('\n')
-
-                content.insert(0, ','.join(short_h))
-                content.insert(1, ','.join(units_h))
-                content.insert(2, ','.join(long_h))
-                content.insert(3, ','.join(id_h))
-
-            with open(join(path, output), 'w') as csv_file:
+            # newline='': the csv writer ends rows itself (otherwise Windows gets a blank line after each row)
+            with open(join(path, output), 'w', newline='') as csv_file:
                 print ('Saving file to:', output)
-                wr = csv.writer(csv_file, delimiter = '\t')
-
-                for row in content:
-                    wr.writerow([row])
+                csv.writer(csv_file).writerows(header + rows[1:])
 
     return concat
