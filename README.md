@@ -24,6 +24,12 @@ You can just run:
 pip install scdata
 ```
 
+Plots (`device.ts_plot()`, maps, panels...) need the plotting libraries, an optional extra. Without them scdata loads and processes data, and plotting raises an error that says how to install them:
+
+```
+pip install "scdata[plot]"
+```
+
 ### Work on the source code
 
 Simply clone the repository with:
@@ -42,8 +48,7 @@ python setup.py install
 Or if you want to edit:
 
 ```
-cd scdata
-pip install --editable .
+pip install --editable ".[dev]"
 ```
 
 ### Tokens and config
