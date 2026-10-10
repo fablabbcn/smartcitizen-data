@@ -53,16 +53,9 @@ setup(
     extras_require={
         # Device and Test plots (device.ts_plot(), ...): scdata imports them on the first plot
         "plot": PLOT,
-        # Former name of the plot extra
-        "plotting": PLOT,
         "dev": PLOT + [
             "pytest",
-            "bokeh",
-            "panel",
-            "branca~=0.4.0",
-            "folium~=0.12.1",
             "awswrangler",
-            "hvplot",
             "boto3"
         ]
     },
