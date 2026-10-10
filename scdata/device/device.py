@@ -24,6 +24,7 @@ from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.find import find_by_field
 from scdata.tools.lazy import PLOT_EXTRA, LazyCallable, plot_method
+from scdata.device.check.summary import empty_health, summarise_check
 from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
                                  normalize_central, rolling_deltas)
 from scdata.tools.tree import topological_sort
@@ -105,6 +106,8 @@ class Device(BaseModel):
     checked: bool = False
     postprocessing_updated: bool = False
     quality_metrics: dict = dict()
+    # Summary of the last health_checks(), as json: see scdata.device.check.summary
+    health: dict = dict()
 
     def model_post_init(self, __context) -> None:
 
@@ -772,16 +775,21 @@ class Device(BaseModel):
             df = self.data.resample(resample).mean().copy()
         else:
             df = self.data.copy()
+        data = df.copy()
+        self.health = empty_health(data)
 
         for check in self.checks:
             logger.info('---')
             logger.info(f'Checking {check.name}')
+            health = {'name': check.name, 'description': check.description, 'status': 'ok', 'columns': dict()}
+            self.health['checks'].append(health)
 
             if self.__check_callable__(check.module, check.function):
                 funct = LazyCallable(f"{check.module}.{check.function}")
             else:
                 checked_ok &= False
                 logger.error('Problem adding lazy callable to checks list')
+                health['status'] = 'error: function not found'
                 continue
 
             args, kwargs = list(), dict()
@@ -794,25 +802,30 @@ class Device(BaseModel):
 
             try:
                 check_result = funct(df, *args, **kwargs)
-            except KeyError as e:
+            except Exception as e:
                 logger.error('Cannot process requested function with data provided', exc_info=e)
                 checked_ok = False
-                pass
+                health['status'] = f'error: {type(e).__name__}: {e}'
             else:
                 # If the result is None, might be for many reasons and shouldn't collapse the process_ok
-                if check_result is not None:
+                if check_result is None:
+                    health['status'] = 'no result'
+                else:
 
                     if 'ERROR' in check_result.status_code.name:
                         # We got an error during the processing
                         logger.error(check_result.status_code.name)
                         checked_ok &= False
+                        health['status'] = f'error: {check_result.status_code.name}'
                     elif 'WARNING' in check_result.status_code.name:
                         # In this case there is no data to put into the result
                         # but there is no reason to make deny checked_ok
                         logger.warning(check_result.status_code.name)
                         checked_ok &= True
+                        health['status'] = f'warning: {check_result.status_code.name}'
                     elif 'SUCCESS' in check_result.status_code.name:
                         if isinstance(check_result.data, DataFrame):
+                            health['columns'] = summarise_check(check_result, data)
                             for col in check_result.data.columns:
                                 df[f'{check.name}{col}'] = check_result.data.loc[:, col]
                                 # Check if we store QC

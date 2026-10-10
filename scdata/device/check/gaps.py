@@ -1,94 +1,90 @@
+from pandas import DatetimeIndex, Series, Timedelta
+
 from scdata._config import config
 from scdata.tools.custom_logger import logger
 from scdata.device.process.error_codes import StatusCode, ProcessResult
-from pandas import Timedelta, DataFrame
 
-import pandas as pd
+# Readings arrive with some jitter around their frequency
+JITTER = Timedelta(seconds=30)
 
-# def find_gap_in_column(dataframe, frequency):
-# Attempt to avoid having to resample -> Works, but to determine gap size only
 
-    # df = dataframe.copy()
-    # df = df.dropna()
-    # df['time'] = df.index
-    # df['time_lag'] = df['time'].shift(1)
-    # df['time_delta'] = df['time'] - df['time_lag']
-    # df['gap'] = df['time_delta'] > Timedelta(minutes=gap_size)
-    # df['gap_size'] = df.loc[df['gap'], 'time_delta']
+def gap_intervals(series, gap_size_minutes, frequency_minutes, start=None, end=None):
+    '''
+    Periods without readings of the series longer than gap_size_minutes (and than the frequency
+    of the sensor), as [(start, end)]. The start and end of the period checked (by default, of
+    the series) count as readings, so missing data at either end is a gap too
+    '''
+    start = series.index.min() if start is None else start
+    end = series.index.max() if end is None else end
+    threshold = max(Timedelta(minutes=gap_size_minutes), Timedelta(minutes=frequency_minutes)) + JITTER
 
-    # return df['gap']
+    bounds = [start] + list(series.dropna().index) + [end]
+    return [(before, after) for before, after in zip(bounds[:-1], bounds[1:]) if after - before > threshold]
 
-# def find_gap_in_column(
-#     s: pd.Series,
-#     frequency: int | None = None,
-#     gap_size: int = 5,
-#     jitter_tolerance_sec: int = 5
-# ):
-#     """
-#     Detect gaps in timeseries:
-#     - frequency: expected frequency in minutes
-#     - gap_size: minimum gap size in minutes
-#     - jitter_tolerance_sec: tolerance to jitter in seconds
-#     """
 
-#     s = s.sort_index()
-#     s = s[~s.index.duplicated()]
+def find_gap_in_column(series, gap_size_minutes, frequency_minutes, start=None, end=None):
+    ''' Rows of the series without reading that fall in a gap (see gap_intervals) '''
+    index = series.index
+    gap = Series(False, index=index)
+    for before, after in gap_intervals(series, gap_size_minutes, frequency_minutes, start, end):
+        gap |= (index >= before) & (index <= after) & series.isna()
+    return gap
 
-#     if len(s) < 2:
-#         return pd.Series(False, index=s.index)
 
-#     dt = s.index.to_series().diff().dropna()
-#     freq_sec = frequency * 60
-#     gap_threshold = freq_sec + jitter_tolerance_sec
+def column_setting(groups, column, key, default):
+    ''' Value of key in the first group that lists the column ({"columns": [...], key: value}) '''
+    for group in groups or []:
+        if column in group.get('columns', []):
+            return group[key]
+    return default
 
-#     gap_events = dt > pd.Timedelta(seconds=gap_threshold)
-#     gap_mask = pd.Series(False, index=s.index)
-
-#     for idx in dt.index[gap_events]:
-#         start = idx - dt.loc[idx]
-#         end = idx
-
-#         gap_duration_min = dt.loc[idx].total_seconds() / 60
-
-#         if gap_duration_min >= gap_size:
-#             gap_mask.loc[start:end] = True
-
-#     return gap_mask
 
 def find_gaps(dataframe, **kwargs):
+    '''
+    Flags the rows of each column that fall in a gap without readings
 
-    # default_gap_size_minutes = kwargs.get('default_gap_size_minutes',
-    #     config._default_gap_size_minutes)
-    # gap_sizes = kwargs.get('gap_sizes', None)
+    Parameters
+    ----------
+        default_gap_size_minutes: int
+            5
+            Shortest period without readings that is a gap
+        default_frequency_minutes: int
+            1
+            Expected time between readings. Periods up to this long are never gaps
+        gap_sizes: list
+            None
+            Gap sizes of some columns: [{"columns": [...], "gap_size_minutes": 10}]
+        frequencies: list
+            None
+            Frequencies of some columns: [{"columns": [...], "frequency_minutes": 5}]
+        columns: list
+            All columns
+            Columns to check
+    '''
+    if not isinstance(dataframe.index, DatetimeIndex):
+        logger.error('find_gaps requires a DatetimeIndex')
+        return ProcessResult(None, StatusCode.ERROR_WRONG_INDEX)
 
-    # default_frequency_minutes = kwargs.get('default_frequency_minutes', 1)
-    # frequencies = kwargs.get('frequencies', None)
+    default_gap_size = kwargs.get('default_gap_size_minutes', config._default_gap_size_minutes)
+    default_frequency = kwargs.get('default_frequency_minutes', 1)
+    gap_sizes = kwargs.get('gap_sizes')
+    frequencies = kwargs.get('frequencies')
+    columns = kwargs.get('columns', list(dataframe.columns))
 
-    # gaps = []
-    df = dataframe.copy()
-
-    cols = []
-    for col in df.columns:
-        # gap_size = default_gap_size_minutes
-        # frequency = default_frequency_minutes
+    df = dataframe.sort_index()
+    result = df[[]].copy()
+    intervals = dict()
+    for col in columns:
         if '__' in col: continue # Internal code for healthchecks
+        if col not in df.columns:
+            logger.warning(f'{col} not in columns. Skipping')
+            continue
 
-        # if gap_sizes is not None:
-        #     for gap_size_group in gap_sizes:
-        #         if col in gap_size_group["columns"]:
-        #             gap_size = gap_size_group["gap_size_minutes"]
-        #             break
+        gap_size = column_setting(gap_sizes, col, 'gap_size_minutes', default_gap_size)
+        frequency = column_setting(frequencies, col, 'frequency_minutes', default_frequency)
+        logger.info(f'Calculating gaps for {col}, every {frequency} minutes. Gap size: {gap_size} minutes')
+        result[f'__{col}'] = find_gap_in_column(df[col], gap_size, frequency)
+        # Rows only exist when some sensor sent a reading: the periods show gaps without any row
+        intervals[f'__{col}'] = gap_intervals(df[col], gap_size, frequency)
 
-        # if frequencies is not None:
-        #     for frequency_group in frequencies:
-        #         if col in frequency_group["columns"]:
-        #             frequency = frequency_group["frequency_minutes"]
-        #             break
-
-        # logger.info (f'Calculating gaps for {col}, using {frequency} minutes. Gap size: {gap_size} minutes')
-        logger.info (f'Calculating gaps for {col}')
-        # df[f'__{col}'] = find_gap_in_column(df[col], frequency, gap_size)
-        df[f'__{col}'] = df.loc[:, col].isna()
-        cols.append(f'__{col}')
-
-    return ProcessResult(df[cols], StatusCode.SUCCESS)
+    return ProcessResult(result, StatusCode.SUCCESS, intervals=intervals)
