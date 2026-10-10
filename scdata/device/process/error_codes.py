@@ -20,7 +20,10 @@ class StatusCode(Enum):
 class ProcessResult():
     data: DataFrame = None
     status_code: StatusCode = None
+    # Checks: {column: [(start, end), ...]} periods flagged, when rows do not show them (e.g. gaps)
+    intervals: dict = None
 
-    def __init__(self, data = None, code=StatusCode.DEFAULT):
+    def __init__(self, data = None, code=StatusCode.DEFAULT, intervals=None):
         self.data = data
         self.status_code = code
+        self.intervals = intervals
