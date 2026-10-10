@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
 from numpy import nan
-from pandas import DataFrame, Series, Timedelta, concat, to_timedelta
+from pandas import DataFrame, Series, Timedelta, Timestamp, concat, to_timedelta
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 from pydantic_core import ValidationError
 
@@ -56,6 +56,52 @@ tf = TimezoneFinder()
 
 # Channel kwargs whose sensors are loaded if available, but are never required
 OPTIONAL_INPUT_KWARGS = ['eager_channels', 'priority']
+
+
+def aws_region():
+    ''' AWS region from AWS_REGION or AWS_DEFAULT_REGION (the name boto3 reads) '''
+    return os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION')
+
+
+def read_storage(url, min_date=None, max_date=None, channels=None):
+    '''
+    Reads a parquet dataset written by backup_to_storage (an s3:// url or a local folder) into a
+    dataframe indexed by TIME, sorted and without duplicated times. min_date, max_date and
+    channels are pushed down to the files: only what is needed is read
+    '''
+    import pyarrow as pa
+    import pyarrow.dataset as ds
+    from pyarrow import fs
+
+    if url.startswith('s3://'):
+        filesystem = fs.S3FileSystem(region=aws_region()) if aws_region() else fs.S3FileSystem()
+        location = url[len('s3://'):]
+    else:
+        filesystem, location = fs.LocalFileSystem(), url
+    dataset = ds.dataset(location, filesystem=filesystem, format='parquet')
+
+    expression = None
+    time_type = dataset.schema.field('TIME').type
+    for value, compare in ((min_date, lambda field, scalar: field >= scalar),
+                           (max_date, lambda field, scalar: field <= scalar)):
+        if value is None: continue
+        timestamp = Timestamp(value)
+        timestamp = timestamp.tz_localize('UTC') if timestamp.tzinfo is None else timestamp.tz_convert('UTC')
+        scalar = pa.scalar(timestamp, type=time_type) if getattr(time_type, 'tz', None) \
+            else pa.scalar(timestamp.tz_localize(None), type=time_type)
+        condition = compare(ds.field('TIME'), scalar)
+        expression = condition if expression is None else expression & condition
+
+    columns = None
+    if channels is not None:
+        names = set(dataset.schema.names)
+        columns = ['TIME'] + [channel for channel in channels if channel in names and channel != 'TIME']
+    data = dataset.to_table(filter=expression, columns=columns).to_pandas()
+    data = data.set_index('TIME').sort_index()
+    if data.index.tz is None:
+        data.index = data.index.tz_localize('UTC')
+    return data[~data.index.duplicated(keep='first')]
+
 
 
 def window_mask(index, start, end):
@@ -237,6 +283,21 @@ class Device(BaseModel):
         # Calculated channels stay the same
         for channel in self.channels:
             self._rename[channel.name] = channel.name
+
+    def use_blueprint(self, name, blueprint):
+        '''
+        Processes the device with another blueprint (a dict, e.g. a long processing blueprint),
+        filled with the sensors of each version of the device's hardware, as its own blueprint.
+        Returns True if the channels were filled from the hardware
+        '''
+        if not hasattr(self.handler, 'apply_blueprint'):
+            raise NotImplementedError(f'{type(self.handler).__name__} cannot apply another blueprint')
+        filled = self.handler.apply_blueprint(blueprint)
+        self.blueprint = name
+        self.__set_blueprint_attrs__(self.handler.properties)
+        self.versions = getattr(self.handler, 'channels_by_version', None) or []
+        self.processed = False
+        return filled
 
     # TODO - Improve?
     @property
@@ -1109,52 +1170,66 @@ class Device(BaseModel):
 
             return responses
 
-    def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False):
+    def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False,
+                          min_date=None, max_date=None, channels=None, root=None):
         """
-        Load device data from S3 storage (requires AWS env
-         variable set).
+        Load device data from S3 storage (the backups written by backup_to_storage).
             Parameters
             ----------
             path: str
                 'devices'
                 Path for backup directory
                 "s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
+            min_date, max_date: str or datetime
+                None
+                Only the data in [min_date, max_date]. Read with a filter: only the files and
+                row groups of the period are downloaded
+            channels: list
+                None
+                Only these columns (all by default)
+            root: str
+                None
+                Where the backups are: "s3://{S3_DATA_BUCKET}" by default, or a local folder
         Returns
         ----------
-            S3 bucket url if successful, False otherwise
+            True if loaded, False otherwise
         """
-
-        if 'S3_DATA_BUCKET' not in os.environ or \
-            'AWS_ACCESS_KEY_ID' not in os.environ or \
-            'AWS_SECRET_ACCESS_KEY' not in os.environ or \
-            'AWS_REGION' not in os.environ:
-
-            logger.error("Missing environment variables. S3_DATA_BUCKET, AWS_ACCESS_KEY_ID, \
-                AWS_SECRET_ACCESS_KEY and AWS_REGION need to be set.")
-
-            return False
+        if root is None:
+            if 'S3_DATA_BUCKET' not in os.environ:
+                logger.error("S3_DATA_BUCKET needs to be set (or a root)")
+                return False
+            root = f"s3://{os.environ['S3_DATA_BUCKET']}"
 
         loaded = False
 
-        if boto_available:
-            session = boto3.Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-            region_name=os.environ['AWS_REGION'])
+        if load_data:
+            url = f"{root.rstrip('/')}/{path}/{self.id}/data/"
+            logger.info(f"Loading data from: {url}")
+            try:
+                self.data = read_storage(url, min_date=min_date, max_date=max_date, channels=channels)
+            except ImportError as error:
+                logger.error(f'Reading backups needs pyarrow: pip install "scdata[storage]" ({error})')
+                return False
+            except (FileNotFoundError, OSError) as error:
+                logger.error(f'Cannot read {url}: {error}')
+                return False
+            self.loaded = True
+            loaded = True
 
-            if load_data:
-                s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/data/"
-                logger.info(f"Loading data from: {s3_url}")
-
-                self.data = wr.s3.read_parquet(s3_url, boto3_session=session, dataset=True)
-                self.data.set_index('TIME', inplace=True)
-                self.data.sort_index(inplace=True)
-                self.data = self.data[~self.data.index.duplicated(keep='first')]
-
-                self.loaded = True
-                loaded = True
+        if load_qc_data or load_qc_metrics:
+            if not boto_available:
+                logger.error('qc data needs awswrangler and boto3: pip install "scdata[storage]"')
+                return loaded
+            if not root.startswith('s3://'):
+                logger.error(f'qc data is only read from S3, not from {root}')
+                return loaded
+            bucket = root[len('s3://'):].split('/')[0]
+            prefix = root[len('s3://'):][len(bucket):].strip('/')
+            prefix = f'{prefix}/' if prefix else ''
+            session = boto3.Session(region_name=aws_region())
 
             if load_qc_data:
-                qc_data_s3_url = f"s3://{os.environ['S3_DATA_BUCKET']}/{path}/{self.id}/qc_data/"
+                qc_data_s3_url = f"{root.rstrip('/')}/{path}/{self.id}/qc_data/"
                 logger.info(f"Loading qc_data from: {qc_data_s3_url}")
 
                 self.qc_data = wr.s3.read_parquet(qc_data_s3_url, boto3_session=session, dataset=True)
@@ -1167,10 +1242,10 @@ class Device(BaseModel):
             if load_qc_metrics:
                 s3 = boto3.resource('s3')
                 try:
-                    qc_metrics_s3_url = f"{os.environ['S3_DATA_BUCKET']}/" + f"{path}/{self.id}/quality_metrics.json"
+                    qc_metrics_s3_url = f"{root.rstrip('/')}/{path}/{self.id}/quality_metrics.json"
                     logger.info(f"Loading qc_metrics from: {qc_metrics_s3_url}")
 
-                    qc_metrics = s3.Object(f"{os.environ['S3_DATA_BUCKET']}", f"{path}/{self.id}/quality_metrics.json").get()
+                    qc_metrics = s3.Object(bucket, f"{prefix}{path}/{self.id}/quality_metrics.json").get()
                 except botocore.exceptions.ClientError as e:
                     if e.response['Error']['Code'] == "NoSuchKey":
                         # The object does not exist.
@@ -1185,10 +1260,7 @@ class Device(BaseModel):
                     self.quality_metrics = response
             logger.info('Done')
 
-            return loaded
-        else:
-            logger.error("Boto not available. Install awswrangler")
-            return False
+        return loaded
 
     def get_series_dict(self, frequency=None, plot_qc_data=False):
         if plot_qc_data:

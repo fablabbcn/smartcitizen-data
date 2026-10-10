@@ -53,8 +53,15 @@ setup(
     extras_require={
         # Device and Test plots (device.ts_plot(), ...): scdata imports them on the first plot
         "plot": PLOT,
+        # Device.load_from_storage and backup_to_storage (backups in S3 or a local folder)
+        "storage": [
+            "pyarrow",
+            "awswrangler",
+            "boto3"
+        ],
         "dev": PLOT + [
             "pytest",
+            "pyarrow",
             "awswrangler",
             "boto3"
         ]

@@ -6,5 +6,5 @@ PyYAML~=6.0.1
 requests
 scipy
 scikit-learn
-smartcitizen-connector>=1.5.3
+smartcitizen-connector>=1.5.4
 timezonefinder>=6.5,<10
