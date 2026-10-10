@@ -23,24 +23,13 @@ from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.find import find_by_field
-from scdata.tools.lazy import LazyCallable
+from scdata.tools.lazy import PLOT_EXTRA, LazyCallable, plot_method
+from scdata.device.check.summary import empty_health, summarise_check
 from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
                                  normalize_central, rolling_deltas)
 from scdata.tools.tree import topological_sort
 from scdata.tools.units import get_units_convf
 from scdata.tools.url_check import url_checker
-
-try:
-    import bokeh
-    import panel
-except ModuleNotFoundError:
-    bokeh_available = False
-    pass
-else:
-    bokeh_available = True
-
-if bokeh_available:
-    from scdata.plot.ts_panel import TimeSeriesPanel
 
 try:
     import awswrangler as wr
@@ -79,18 +68,20 @@ def window_mask(index, start, end):
     return mask
 
 class Device(BaseModel):
-    ''' Main implementation of the device class '''
-
-    from scdata.plot import box_plot  # ts_iplot, scatter_iplot, heatmap_iplot,
-    from scdata.plot import (heatmap_plot, scatter_dispersion_grid,
-                             scatter_plot, ts_dendrogram, ts_dispersion_grid,
-                             ts_dispersion_plot, ts_plot, ts_scatter)
-        #, report_plot, cat_plot, violin_plot)
-    if map_plotting_available:
-        from scdata.plot import device_metric_map, path_plot
-
-    if config._ipython_avail:
-        from scdata.plot import ts_dispersion_uplot, ts_uplot
+    # Plots: scdata.plot is imported on the first call (optional extra, see plot_method)
+    box_plot = plot_method('box_plot')
+    heatmap_plot = plot_method('heatmap_plot')
+    scatter_dispersion_grid = plot_method('scatter_dispersion_grid')
+    scatter_plot = plot_method('scatter_plot')
+    ts_dendrogram = plot_method('ts_dendrogram')
+    ts_dispersion_grid = plot_method('ts_dispersion_grid')
+    ts_dispersion_plot = plot_method('ts_dispersion_plot')
+    ts_plot = plot_method('ts_plot')
+    ts_scatter = plot_method('ts_scatter')
+    device_metric_map = plot_method('device_metric_map')
+    path_plot = plot_method('path_plot')
+    ts_uplot = plot_method('ts_uplot')
+    ts_dispersion_uplot = plot_method('ts_dispersion_uplot')
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
@@ -115,6 +106,8 @@ class Device(BaseModel):
     checked: bool = False
     postprocessing_updated: bool = False
     quality_metrics: dict = dict()
+    # Summary of the last health_checks(), as json: see scdata.device.check.summary
+    health: dict = dict()
 
     def model_post_init(self, __context) -> None:
 
@@ -782,16 +775,21 @@ class Device(BaseModel):
             df = self.data.resample(resample).mean().copy()
         else:
             df = self.data.copy()
+        data = df.copy()
+        self.health = empty_health(data)
 
         for check in self.checks:
             logger.info('---')
             logger.info(f'Checking {check.name}')
+            health = {'name': check.name, 'description': check.description, 'status': 'ok', 'columns': dict()}
+            self.health['checks'].append(health)
 
             if self.__check_callable__(check.module, check.function):
                 funct = LazyCallable(f"{check.module}.{check.function}")
             else:
                 checked_ok &= False
                 logger.error('Problem adding lazy callable to checks list')
+                health['status'] = 'error: function not found'
                 continue
 
             args, kwargs = list(), dict()
@@ -804,25 +802,30 @@ class Device(BaseModel):
 
             try:
                 check_result = funct(df, *args, **kwargs)
-            except KeyError as e:
+            except Exception as e:
                 logger.error('Cannot process requested function with data provided', exc_info=e)
                 checked_ok = False
-                pass
+                health['status'] = f'error: {type(e).__name__}: {e}'
             else:
                 # If the result is None, might be for many reasons and shouldn't collapse the process_ok
-                if check_result is not None:
+                if check_result is None:
+                    health['status'] = 'no result'
+                else:
 
                     if 'ERROR' in check_result.status_code.name:
                         # We got an error during the processing
                         logger.error(check_result.status_code.name)
                         checked_ok &= False
+                        health['status'] = f'error: {check_result.status_code.name}'
                     elif 'WARNING' in check_result.status_code.name:
                         # In this case there is no data to put into the result
                         # but there is no reason to make deny checked_ok
                         logger.warning(check_result.status_code.name)
                         checked_ok &= True
+                        health['status'] = f'warning: {check_result.status_code.name}'
                     elif 'SUCCESS' in check_result.status_code.name:
                         if isinstance(check_result.data, DataFrame):
+                            health['columns'] = summarise_check(check_result, data)
                             for col in check_result.data.columns:
                                 df[f'{check.name}{col}'] = check_result.data.loc[:, col]
                                 # Check if we store QC
@@ -1216,13 +1219,14 @@ class Device(BaseModel):
                 Default: 400
                 Height of each subplot
         '''
-        if bokeh_available:
-            return TimeSeriesPanel(
-                self.get_series_dict(frequency=frequency, plot_qc_data=plot_qc_data),
-                channels=channels,
-                device_id=self.id,
-                **kwargs
-            ).view()
-        else:
-            logger.error("Bokeh not available. Install with 'pip install scdata[plotting]' or 'pip install bokeh panel'")
-            return False
+        # Plotting is an optional extra: imported here, not when scdata is imported
+        try:
+            from scdata.plot.ts_panel import TimeSeriesPanel
+        except ImportError as error:
+            raise ImportError(f'ts_panel needs the plotting libraries: {PLOT_EXTRA}') from error
+        return TimeSeriesPanel(
+            self.get_series_dict(frequency=frequency, plot_qc_data=plot_qc_data),
+            channels=channels,
+            device_id=self.id,
+            **kwargs
+        ).view()
