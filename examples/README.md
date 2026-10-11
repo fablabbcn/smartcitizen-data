@@ -24,7 +24,7 @@ Run them with `--help` for their options.
 ## Notebooks
 
 - Getting started: configuration, blueprints, load from the API and CSV, tests, export: [notebooks/01_getting_started.ipynb](notebooks/01_getting_started.ipynb)
-- Plots (matplotlib and uPlot): [notebooks/03_data_visualisation.ipynb](notebooks/03_data_visualisation.ipynb)
+- Plots (matplotlib, uPlot and maps): [notebooks/03_data_visualisation.ipynb](notebooks/03_data_visualisation.ipynb)
 - Processing: channels, your own functions, baselines: [notebooks/04_processing_data.ipynb](notebooks/04_processing_data.ipynb)
 - Query the Smart Citizen API to find devices: [notebooks/08_querying_the_sc_api.ipynb](notebooks/08_querying_the_sc_api.ipynb)
 - SD card files: join, rename and post: [notebooks/09_load_and_post.ipynb](notebooks/09_load_and_post.ipynb)
