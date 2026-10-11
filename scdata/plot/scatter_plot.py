@@ -170,7 +170,8 @@ def scatter_plot(self, **kwargs):
                     kwargs['color'] = colors[cind]
                 hashue=False
 
-            scatterplot(df[i[2*j]], df[i[2*j+1]], **kwargs)
+            # Columns of data (seaborn takes data as the first argument)
+            scatterplot(x=i[2*j], y=i[2*j+1], **kwargs)
 
             if hashue:
                 plt.colorbar(sm, ax = ax, orientation = 'vertical', label = i[2])

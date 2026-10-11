@@ -30,6 +30,14 @@ Plots (`device.ts_plot()`, maps, panels...) need the plotting libraries, an opti
 pip install "scdata[plot]"
 ```
 
+Reading and writing the backups in parquet (local or S3: `device.load_from_storage()`, `device.backup_to_storage()`) needs the storage extra:
+
+```
+pip install "scdata[storage]"
+```
+
+Examples (scripts and notebooks) are in [examples](examples).
+
 ### Work on the source code
 
 Simply clone the repository with:
@@ -53,28 +61,18 @@ pip install --editable ".[dev]"
 
 ### Tokens and config
 
-A configuration file is available at `~/.config/scdata/config.yaml`, which contains a set of configurable variables to allow or not the local storage of relevant data in the data folder, normally in `~/.cache/scdata`:
+Blueprints, calibrations and sensor names are read from `BASE_POSTPROCESSING_URL`, the same variable as [smartcitizen-connector](https://github.com/fablabbcn/smartcitizen-connector). By default it is this repository on GitHub; set it to `https://flows.smartcitizen.me/api/v1/` to use the metadata served by Smart Citizen Flows.
+
+Settings can be changed in `~/.config/scdata/config.yaml`. The file only keeps what differs from the defaults (the defaults of new versions apply after upgrading), for instance:
 
 ```
 data:
-  cached_data_margin: 2
-  load_cached_api: true
-  reload_metadata: true
-  store_cached_api: true
+  reload_metadata: false
 paths:
-  config: /Users/username/.config/scdata
-  data: /Users/username/.cache/scdata
-  export: /Users/username/.cache/scdata/export
-  interim: /Users/username/.cache/scdata/interim
-  inventory: ''
-  models: /Users/username/.cache/scdata/models
-  processed: /Users/username/.cache/scdata/processed
-  raw: /Users/username/.cache/scdata/raw
-  reports: /Users/username/.cache/scdata/reports
-  uploads: /Users/username/.cache/scdata/uploads
-zenodo_real_base_url: https://zenodo.org
-zenodo_sandbox_base_url: http://sandbox.zenodo.org
+  data: /data/scdata
 ```
+
+The data folder is `~/.cache/scdata` by default, with the `raw`, `processed`, `export`... folders inside.
 
 Also, `.env` files will be picked from `~/.cache/scdata`. An [env.example](env.example) is provided. If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set an environment variable called `ZENODO_TOKEN` in your environment. The `.env` file is not mandatory for `scdata` to work. It only serves for authentication if you want to `POST` or `GET` data without throttling. You can still do `GET` requests but they will be throttled if not authenticated/authorized by the platform. See [user roles](https://developer.smartcitizen.me/#authentication) for more info.
 
