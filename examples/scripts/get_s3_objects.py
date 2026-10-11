@@ -47,7 +47,9 @@ async def main(args):
             print('Backups are written to S3: set S3_DATA_BUCKET and the AWS credentials')
             return
         device.options.min_date = (pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=args.days)).strftime('%Y-%m-%d')
-        await device.load()
+        if not await device.load():
+            print('No data to back up')
+            return
         print(f'Backing up {len(device.data)} readings')
         device.backup_to_storage(path='devices')
 

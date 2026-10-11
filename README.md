@@ -30,7 +30,7 @@ Plots (`device.ts_plot()`, maps, panels...) need the plotting libraries, an opti
 pip install "scdata[plot]"
 ```
 
-Reading and writing the backups in parquet (local or S3: `device.load_from_storage()`, `device.backup_to_storage()`) needs the storage extra:
+Parquet needs the storage extra: the backups (local or S3: `device.load_from_storage()`, `device.backup_to_storage()`) and exports in parquet (`device.export(..., file_format='parquet')`):
 
 ```
 pip install "scdata[storage]"
@@ -69,10 +69,10 @@ Settings can be changed in `~/.config/scdata/config.yaml`. The file only keeps w
 data:
   reload_metadata: false
 paths:
-  data: /data/scdata
+  export: /home/me/exports
 ```
 
-The data folder is `~/.cache/scdata` by default, with the `raw`, `processed`, `export`... folders inside.
+The data folder is `~/.cache/scdata` by default (`$XDG_CACHE_HOME/scdata` if it is set), with the `raw`, `processed`, `export`... folders inside. Each folder of `paths` is changed on its own, and only to a folder that exists: changing `data` does not move the others. To move them all, set `XDG_CACHE_HOME`.
 
 Also, `.env` files will be picked from `~/.cache/scdata`. An [env.example](env.example) is provided. If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set an environment variable called `ZENODO_TOKEN` in your environment. The `.env` file is not mandatory for `scdata` to work. It only serves for authentication if you want to `POST` or `GET` data without throttling. You can still do `GET` requests but they will be throttled if not authenticated/authorized by the platform. See [user roles](https://developer.smartcitizen.me/#authentication) for more info.
 

@@ -50,8 +50,11 @@ def main(args):
 
     # Tune the parameters of some channels
     for channel_name, kwarg, value in args.set:
-        channel = next(item for item in device.channels if item.name == channel_name)
-        channel.kwargs[kwarg] = value
+        channel = next((item for item in device.channels if item.name == channel_name), None)
+        if channel is None:
+            print(f'{channel_name} is not a channel of {args.blueprint}: {[item.name for item in device.channels]}')
+            return
+        channel.kwargs = dict(channel.kwargs or {}, **{kwarg: value})
         print(f'{channel_name}: {kwarg} = {value}')
 
     days = args.days or blueprint['meta'].get('window_days', 90)

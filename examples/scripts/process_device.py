@@ -46,7 +46,10 @@ async def main(args):
     print('Health checks:', json.dumps([(check['name'], check['status']) for check in device.health['checks']]))
 
     dry_run = not args.post
-    await device.post(columns='channels', dry_run=dry_run)
+    if not await device.post(columns='channels', dry_run=dry_run):
+        # The date stays: the next run posts this data again
+        print('Posting failed: the date of the last processing is not updated')
+        return
     if device.update_postprocessing_date():
         device.update_postprocessing(dry_run=dry_run)
     print('Done' + (' (dry run: nothing posted)' if dry_run else ''))

@@ -30,9 +30,11 @@ async def main(args):
             continue
 
         data = sdcard_concat(folder, output='CONCAT.CSV', timezone=args.timezone, rename=True)
-        print(f'{name}: {len(data)} readings, {data.index.min()} to {data.index.max()}')
-        if data.empty:
+        # None when a file cannot be read (see the log)
+        if data is None or data.empty:
+            print(f'{name}: no readings (or files that cannot be read)')
             continue
+        print(f'{name}: {len(data)} readings, {data.index.min()} to {data.index.max()}')
 
         device = sc.Device(blueprint=args.blueprint, params=sc.APIParams(id=int(name)))
         device.data = data
