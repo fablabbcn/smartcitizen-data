@@ -188,7 +188,19 @@ def channel_bins(channel, series, minmax=False):
             if name in channel:
                 return bins
         logger.warning(f'{channel} not in the bins of config._channel_bins: using its minimum and maximum')
-    return linspace(series.min(), series.max(), len(config._map_colors_palette) + 1)
+    low, high = series.min(), series.max()
+    if low == high:
+        # A constant series: bins around its value (cut needs increasing edges)
+        low, high = low - 0.5, high + 0.5
+    return linspace(low, high, len(config._map_colors_palette) + 1)
+
+
+def colors_of(series, bins):
+    '''
+    Color of each value: the lowest edge included, and values outside the bins (above or below
+    config._channel_bins) with the color of the closest bin. Missing values stay NaN
+    '''
+    return cut(series.clip(bins[0], bins[-1]), bins, labels=config._map_colors_palette, include_lowest=True)
 
 
 def legend_labels(bins):
@@ -272,7 +284,7 @@ def device_metric_map(self, channel, start_date=None, end_date=None, devices='al
 
     bins = channel_bins(channel, concat([series for _, _, series in values]), options['minmax'])
     for device, location, series in values:
-        colors = cut(series, bins, labels=config._map_colors_palette)
+        colors = colors_of(series, bins)
         times = list(series.index)
         for index, date in enumerate(times[:-1]):
             if isnan(series.iloc[index]):
@@ -364,13 +376,14 @@ def path_plot(self, channel=None, map_type='dynamic', devices='all',
         logger.error('Requested devices not found')
         return None
 
-    features, points, labels = [], [], None
+    paths = []
+    columns = ['GPS_LAT', 'GPS_LONG'] + ([channel] if channel is not None else [])
     for device in mdev:
-        columns = ['GPS_LAT', 'GPS_LONG'] + ([channel] if channel is not None else [])
         missing = [column for column in columns if column not in device.data.columns]
         if missing:
-            logger.error(f'{missing} not in the data of device {device.id}')
-            return None
+            # E.g. a fixed device in a test with mobile ones
+            logger.warning(f'{missing} not in the data of device {device.id}, skipping')
+            continue
 
         # Resample and fill the gaps of the path
         dfc = in_period(device.data[columns], start_date, end_date).resample(options['period']).mean()
@@ -378,13 +391,17 @@ def path_plot(self, channel=None, map_type='dynamic', devices='all',
         if len(dfc) < 2:
             logger.warning(f'Device {device.id} has no path in the period')
             continue
+        paths.append((device, dfc))
 
-        if channel is not None:
-            bins = channel_bins(channel, dfc[channel], options['minmax'])
-            dfc['COLOR'] = cut(dfc[channel], bins, labels=config._map_colors_palette)
-            labels = legend_labels(bins)
-        else:
-            dfc['COLOR'] = config._map_colors_palette[0]
+    # The same bins for all devices: a color means the same values on every path
+    labels = None
+    if channel is not None and paths:
+        bins = channel_bins(channel, concat([dfc[channel] for _, dfc in paths]), options['minmax'])
+        labels = legend_labels(bins)
+
+    features, points = [], []
+    for device, dfc in paths:
+        dfc['COLOR'] = colors_of(dfc[channel], bins) if channel is not None else config._map_colors_palette[0]
 
         times = list(dfc.index)
         for index, date in enumerate(times[:-1]):

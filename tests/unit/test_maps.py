@@ -1,3 +1,4 @@
+import re
 from types import SimpleNamespace
 
 import numpy as np
@@ -6,7 +7,8 @@ import pytest
 
 folium = pytest.importorskip('folium')
 
-from scdata.plot.maps import device_metric_map, iso_period, path_plot
+from scdata._config import config
+from scdata.plot.maps import channel_bins, colors_of, device_metric_map, iso_period, path_plot
 
 
 def device(device_id, latitude, longitude, data):
@@ -67,3 +69,55 @@ def test_path_plot_needs_gps():
     test = SimpleNamespace(devices=[device(7, 41.4, 2.18, readings({'PM_25': np.ones(48)}))])
 
     assert path_plot(test, channel='PM_25') is None
+
+
+def test_colors_of_include_the_edges():
+    palette = config._map_colors_palette
+    bins = np.linspace(0, 10 * len(palette), len(palette) + 1)
+    colors = colors_of(pd.Series([0, bins[-1], 1000, -5, np.nan]), bins)
+
+    # The minimum, values above or below the bins with the closest color, missing values without
+    assert list(colors[:4]) == [palette[0], palette[-1], palette[-1], palette[0]]
+    assert pd.isna(colors.iloc[4])
+
+
+def test_bins_of_a_constant_series():
+    bins = channel_bins('X', pd.Series([5.0, 5.0]), minmax=True)
+
+    assert bins[0] < 5 < bins[-1]
+    assert not pd.isna(colors_of(pd.Series([5.0, 5.0]), bins)).any()
+
+
+def path(start, values):
+    return readings({'GPS_LAT': np.linspace(41.38, 41.40, 60), 'GPS_LONG': np.linspace(start, start + 0.02, 60),
+                     'PM_25': values}, periods=60, freq='1min')
+
+
+def test_path_plot_keeps_the_lowest_segment_with_minmax():
+    test = SimpleNamespace(devices=[device(7, 41.4, 2.18, path(2.17, np.linspace(5, 120, 60)))])
+
+    m = path_plot(test, channel='PM_25', map_type='static', options={'period': '5Min', 'minmax': True})
+
+    assert m.get_root().render().count('"device": "7"') == 11
+
+
+def test_path_plot_skips_devices_without_gps_and_shares_the_bins():
+    test = SimpleNamespace(devices=[
+        device(7, 41.4, 2.18, path(2.17, np.linspace(5, 20, 60))),
+        device(8, 41.4, 2.18, path(2.27, np.linspace(100, 120, 60))),
+        # A fixed device: no GPS columns
+        device(9, 41.4, 2.18, readings({'PM_25': np.ones(48)})),
+    ])
+
+    m = path_plot(test, channel='PM_25', map_type='static', options={'period': '5Min', 'minmax': True})
+
+    html = m.get_root().render()
+    assert html.count('"device": "7"') == 11 and html.count('"device": "8"') == 11
+    assert 'Legend' in html
+    palette = config._map_colors_palette
+    # Device 7 is at the bottom of the shared range, device 8 at the top (with bins per device, both span all colors)
+    colors = {}
+    for device_id, color in re.findall(r'"device": "(\d)".*?"color": "([^"]+)"', html):
+        colors.setdefault(device_id, set()).add(color)
+    assert palette[0] in colors['7'] and palette[-1] not in colors['7']
+    assert palette[-1] in colors['8'] and palette[0] not in colors['8']
