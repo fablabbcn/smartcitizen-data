@@ -276,7 +276,8 @@ class Config(object):
             'title_fontsize': 14,
             # 'decorators': None, TODO Not yet
             'legend': True,
-            'style': _plot_style
+            'style': _plot_style,
+            'palette': None
         }
     }
 

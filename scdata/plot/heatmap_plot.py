@@ -84,7 +84,8 @@ def heatmap_plot(self, **kwargs):
     _, ax = plt.subplots(figsize=(formatting['width'], formatting['height']));
 
 
-    xticks = [i.strftime("%Y-%m-%d") for i in dfgb.resample(formatting['session']).mean().index]
+    # session is categorical: only the numeric columns can be averaged
+    xticks = [i.strftime("%Y-%m-%d") for i in dfgb.resample(formatting['session']).mean(numeric_only=True).index]
 
     # Pivot with 'session'
     g = heatmap(dfgb.pivot(columns='session').resample(formatting['session']).mean().T, ax = ax,

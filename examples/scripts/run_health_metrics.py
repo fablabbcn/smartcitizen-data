@@ -1,194 +1,111 @@
+#!/usr/bin/env python
+'''
+Health checks of a group of devices: gaps, flat values, implausible values and outliers, as the
+blueprint of each device describes them.
+
+For each device it writes to the output folder:
+- <id>_health.json: the summary of device.health (per check and column, the readings or time flagged,
+  the ratio and the first periods flagged)
+- <id>_qc_data.csv.gz: the data with a flag column per check and column (with --qc-data)
+and a summary.csv with the highest ratio flagged by each check per device.
+
+Devices are given by id, or read from an Excel file (sheet DEVICES, column id) filtered by a column.
+
+Usage:
+    python run_health_metrics.py --devices 18154 17592 --days 7
+    python run_health_metrics.py --excel deployments.xlsx --criterion Location --value Thriassio --days 30
+'''
 import argparse
 import asyncio
+import json
 import logging
-import multiprocessing
-import time
-from concurrent.futures import ThreadPoolExecutor
-from random import random
+import os
+import warnings
+from os.path import join
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import requests
+
 import scdata as sc
-from tqdm import tqdm
+from scdata.tools.custom_logger import set_logger_level
+
+logger = logging.getLogger('health_metrics')
 
 
-async def _async_process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None, executor=None):
-    """
-    Async worker that loads a device and computes health metrics.
-
-    Parameters:
-    - device_id: int
-    - folder: str - output folder for CSVs
-    - min_date, max_date: optional date strings to set device.options
-    - logger: optional logger instance
-
-    Returns True on success, False on error or when no data.
-    """
-    _logger = logging.getLogger(__name__)
-
-    sleepytime = random() * 6
-    _logger.info("Sleeping %.2f seconds before starting device %s", sleepytime, device_id)
-    time.sleep(sleepytime)  # Stagger start times to reduce API load
-
-    try:
-        device = sc.Device(blueprint='sc_air', params=sc.APIParams(id=device_id))
-        if min_date is not None:
-            device.options.min_date = min_date
-        if max_date is not None:
-            device.options.max_date = max_date
-
-        _logger.info("Getting data for device %s", device_id)
-        await device.load()
-
-    except requests.exceptions.HTTPError as e:
-        _logger.error("Failed to instantiate or load device %s: %s", device_id, e)
-        return False
-    except Exception:
-        _logger.exception("Unexpected error loading device %s", device_id)
-        return False
-
-    if device.data.empty:
-        _logger.warning("No data for device %s, skipping health metrics", device_id)
-        return False
-
-    try:
-        # Offload metric computation to a thread from the provided executor
-        loop = asyncio.get_running_loop()
-        success = await loop.run_in_executor(executor, _sync_compute_metrics, device, device_id, folder)
-        if not success:
-            _logger.error("Metric computation failed for device %s", device_id)
-            return False
-    except Exception:
-        _logger.exception("Failed processing metrics for device %s", device_id)
-        return False
-
-    return True
+def devices_from_excel(path, criterion, value):
+    devices = pd.read_excel(path, sheet_name='DEVICES')
+    devices['id'] = pd.to_numeric(devices['id'], errors='coerce')
+    devices = devices.dropna(subset=['id'])
+    if criterion:
+        devices = devices[devices[criterion] == value]
+    return [int(device_id) for device_id in devices['id']]
 
 
-def process_device(device_id, folder="twinair_health_metrics", min_date=None, max_date=None):
-    """Synchronous wrapper that runs the async device worker to completion.
-
-    Call this from synchronous code. For parallel execution you can call
-    `_async_process_device` directly inside an asyncio event loop.
-    """
-    return asyncio.run(_async_process_device(device_id, folder=folder, min_date=min_date, max_date=max_date))
-
-
-def _sync_compute_metrics(device, device_id, folder):
-    """Synchronous metric computation that runs inside a worker thread.
-
-    Runs Device.get_* methods and writes CSVs to `folder`.
-    """
-    logger = logging.getLogger(__name__)
-    try:
-        logger.info("Exporting device %s raw data", device_id)
-        # keep an exported raw CSV for debugging/archive
+async def check_device(device_id, args, semaphore):
+    ''' Loads, processes and checks a device. Returns {check: highest ratio flagged}, or None '''
+    async with semaphore:
         try:
-            device.export(folder, forced_overwrite=True, gzip=True)
+            blueprint = {'blueprint': args.blueprint} if args.blueprint else {}
+            device = sc.Device(params=sc.APIParams(id=device_id), **blueprint)
+            device.options.min_date = (pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=args.days)).strftime('%Y-%m-%d')
+            if not await device.load():
+                logger.warning(f'{device_id}: no data')
+                return None
         except Exception:
-            logger.info("Raw export failed for device %s (non-fatal)", device_id)
+            logger.exception(f'{device_id}: cannot load')
+            return None
 
-        logger.info("get_nan_ratio for device %s", device_id)
-        device.get_nan_ratio().to_csv(f"{folder}/{device_id}_nan_ratios.csv.gz")
-        logger.info("get_implausible_ratio for device %s", device_id)
-        device.get_implausible_ratio().to_csv(f"{folder}/{device_id}_implausible_ratios.csv.gz")
-        logger.info("get_outlier_ratio for device %s", device_id)
-        device.get_outlier_ratio().to_csv(f"{folder}/{device_id}_outlier_ratios.csv.gz")
-        logger.info("get_top_value_ratio for device %s", device_id)
-        device.get_top_value_ratio().to_csv(f"{folder}/{device_id}_top_value_ratios.csv.gz")
+    # Processing and checks are CPU work: in a thread, so that other devices keep loading
+    def checks():
+        device.process()
+        device.health_checks()
+        with open(join(args.output, f'{device_id}_health.json'), 'w') as file:
+            json.dump(device.health, file, indent=2)
+        if args.qc_data:
+            device.qc_data.to_csv(join(args.output, f'{device_id}_qc_data.csv.gz'))
+        return {check['name']: max([summary['ratio'] for summary in check['columns'].values()], default=0)
+                for check in device.health['checks']}
+
+    try:
+        result = await asyncio.to_thread(checks)
     except Exception:
-        logger.exception("Synchronous metric computation failed for device %s", device_id)
-        return False
-    return True
+        logger.exception(f'{device_id}: checks failed')
+        return None
+    logger.info(f'{device_id}: {result}')
+    return result
 
 
+async def main(args):
+    device_ids = args.devices or devices_from_excel(args.excel, args.criterion, args.value)
+    logger.info(f'Checking {len(device_ids)} devices, last {args.days} days')
+    os.makedirs(args.output, exist_ok=True)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run TwinAIR device health metric calculations.")
-    parser.add_argument(
-        "source",
-        help="Path to the Excel file containing device info",
-    )
-    parser.add_argument(
-        "criterion",
-        help="Name of the Column to filter devices (e.g. 'Location')",
-    )
+    # A few devices at a time: the Smart Citizen API throttles many requests
+    semaphore = asyncio.Semaphore(args.concurrency)
+    results = await asyncio.gather(*[check_device(device_id, args, semaphore) for device_id in device_ids])
 
-    parser.add_argument(
-        "value",
-        help="Value used to filter devices (e.g. 'Thriassio')",
-    )
+    summary = pd.DataFrame({device_id: result for device_id, result in zip(device_ids, results) if result is not None}).T
+    summary.index.name = 'device'
+    summary.to_csv(join(args.output, 'summary.csv'))
+    print(summary)
 
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-        help="Log level (DEBUG, INFO, WARNING, ERROR)",
-    )
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument('--devices', type=int, nargs='+', help='Device ids')
+    source.add_argument('--excel', help='Excel file with a DEVICES sheet and an id column')
+    parser.add_argument('--criterion', help='Column of the Excel file to filter by (e.g. Location)')
+    parser.add_argument('--value', help='Value of that column (e.g. Thriassio)')
+    parser.add_argument('--days', type=int, default=7, help='Days of data to check (default 7)')
+    parser.add_argument('--blueprint', default=None, help='Blueprint, for devices without hardware (e.g. sc_air)')
+    parser.add_argument('--output', default='health_metrics', help='Output folder (default health_metrics)')
+    parser.add_argument('--qc-data', action='store_true', help='Also write the flags (qc_data) of each device')
+    parser.add_argument('--concurrency', type=int, default=3, help='Devices loaded at the same time (default 3)')
+    parser.add_argument('--log-level', default='INFO', help='DEBUG, INFO, WARNING or ERROR')
     args = parser.parse_args()
 
-    # configure logging from CLI
-    logging.basicConfig(
-        level=getattr(logging, args.log_level.upper(), logging.INFO),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-    )
-    logger = logging.getLogger(__name__)
-    logger.info("Running scdata version %s", sc.__version__)
-
-    criterion = args.criterion
-    value = args.value
-
-
-    source = args.source
-    logger.info("Loading sensor list from file %s", source)
-
-    criterion = args.criterion
-    logger.info("Filtering by %s == %s", criterion, value)
-
-
-    devices = pd.read_excel(source, sheet_name="DEVICES")
-    devices["id"] = pd.to_numeric(devices["id"], errors="coerce")
-    devices = devices.dropna(subset="id")
-    devices["id"] = devices["id"].astype(int)
-
-    logger.info(f"Found {len(devices['id'])} devices")
-
-    if criterion == "None":
-        these = devices
-    else:
-        these = devices[devices[criterion] == value]
-
-    logger.info(f"Filtered devices, remaining {len(these['id'])}")
-
-    # Schedule all device tasks concurrently (no semaphore / batching)
-    device_ids = list(these["id"]) if len(these["id"]) else []
-    if device_ids:
-        logger.info("Processing %d devices concurrently", len(device_ids))
-
-        # Create a thread pool sized to CPU cores for metric computation
-        executor = ThreadPoolExecutor(max_workers=multiprocessing.cpu_count())
-
-        async def _run_all(device_ids, folder, min_date, max_date, executor):
-            tasks = [asyncio.create_task(_async_process_device(int(d), folder=folder, min_date=min_date, max_date=max_date, executor=executor)) for d in device_ids]
-
-            pbar = tqdm(total=len(tasks))
-            results = []
-            for fut in asyncio.as_completed(tasks):
-                try:
-                    res = await fut
-                except Exception:
-                    logger.exception("Unhandled exception in device task")
-                    res = False
-                results.append(res)
-                pbar.update(1)
-            pbar.close()
-            return results
-
-        try:
-            asyncio.run(_run_all(device_ids, "twinair_health_metrics", "2025-01-01", None, executor))
-        finally:
-            executor.shutdown(wait=True)
-    else:
-        logger.info("No devices to process")
+    logging.basicConfig(level=args.log_level.upper(), format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+    # scdata warns for every column of the blueprint a device does not have
+    set_logger_level('ERROR')
+    warnings.simplefilter('ignore', pd.errors.PerformanceWarning)
+    asyncio.run(main(args))

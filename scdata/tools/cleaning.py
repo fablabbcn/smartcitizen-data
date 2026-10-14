@@ -18,5 +18,5 @@ def clean(df, clean_na = None, how = 'all'):
         if clean_na == 'drop':
             df.dropna(axis = 0, how = how, inplace = True)
         elif clean_na == 'fill':
-            df = df.fillna(method = 'bfill').fillna(method = 'ffill')
+            df = df.bfill().ffill()
     return df
