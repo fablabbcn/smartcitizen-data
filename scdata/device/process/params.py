@@ -20,20 +20,21 @@ baseline_deltas = arange(30, 45, 5)
 # Lambdas for baseline ALS algorithm
 baseline_als_lambdas = [1e5]
 
-# Alphasense sensor codes
+# Alphasense sensor codes: first three digits of the serial number (as in smartcitizen-connector).
+# B-series = A-series + 30 for CO, SO2, NO and H2S
 alphasense_sensor_codes =  {
+    '130':  'ASA4_NO',
     '132':  'ASA4_CO',
     '133':  'ASA4_H2S',
-    '130':  'ASA4_NO',
+    '134':  'ASA4_SO2',
     '212':  'ASA4_NO2',
     '214':  'ASA4_OX',
-    '134':  'ASA4_SO2',
+    '160':  'ASB4_NO',
     '162':  'ASB4_CO',
-    '133':  'ASB4_H2S',#
-    '130':  'ASB4_NO', #
+    '163':  'ASB4_H2S',
+    '164':  'ASB4_SO2',
     '202':  'ASB4_NO2',
-    '204':  'ASB4_OX',
-    '164':  'ASB4_SO2'
+    '204':  'ASB4_OX'
 }
 
 # Alphasense temperature channels (in order of priority)
