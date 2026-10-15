@@ -1074,6 +1074,9 @@ class Device(BaseModel):
             True if posted ok, False otherwise
         '''
 
+        # The handler posts its own data: give it the processed data (processing per hardware version
+        # puts the periods back together in a new dataframe)
+        self.handler.data = self.data
         post_ok = await self.handler.post_data(columns=columns, \
             rename = self._rename, clean_na = clean_na, chunk_size = chunk_size, \
             dry_run = dry_run, max_retries = max_retries, delay_between_posts=delay_between_posts)

@@ -143,3 +143,20 @@ def test_sensor_added_in_a_later_version(make_device, readings):
 
     assert device.data['SUM'][:'2024-12-31 23:00'].isna().all()
     assert (device.data['SUM']['2025-01-01':] == 2.0).all()
+
+
+def test_processed_channels_are_posted(make_device, readings):
+    import asyncio
+    versions = [version(utc(2024, 4, 1), utc(2025, 1, 1), 'ADC_48_3'), version(utc(2025, 1, 1), None, 'ADC_49_1')]
+    device = device_with_versions(make_device, versions)
+    device.versions = versions
+    # As load: device and handler share the data
+    device.handler.data = readings.copy()
+    device.data = device.handler.data
+    device.loaded = True
+
+    assert device.process()
+    assert asyncio.run(device.post(columns='channels', dry_run=True))
+
+    # The handler posts the processed channels, not only the readings it loaded
+    assert 'NO2_WE' in device.handler.posted
