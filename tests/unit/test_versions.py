@@ -81,13 +81,46 @@ def test_version_with_circular_dependencies_fails(make_device, readings):
     assert device.channels[0].depends_on == []
 
 
-def test_first_version_covers_earlier_data(make_device, readings):
+def test_data_before_the_first_version_is_not_processed(make_device, readings):
+    # The sensors were not there yet (e.g. a new kit sending readings before its boards are fitted)
     versions = [version(utc(2024, 12, 15), None, 'ADC_48_3')]
     device = device_with_versions(make_device, versions)
 
     assert processed(device, readings, versions)
 
-    assert (device.data['NO2_WE'] == 1.0).all()
+    no2_we = device.data['NO2_WE']
+    assert no2_we[:'2024-12-14 23:00'].isna().all()
+    assert (no2_we['2024-12-15':] == 1.0).all()
+    assert len(device.data) == len(readings)
+
+
+@pytest.mark.parametrize('min_date, loaded_from', [
+    (None, utc(2024, 12, 15)),
+    ('2024-10-01T00:00:00Z', utc(2024, 12, 15)),
+    ('2024-12-20T10:00:00Z', utc(2024, 12, 20, 10)),
+])
+def test_loads_from_the_first_version(make_device, min_date, loaded_from):
+    import asyncio
+    versions = [version(utc(2024, 12, 15), utc(2025, 1, 1), 'ADC_48_3'), version(utc(2025, 1, 1), None, 'ADC_49_1')]
+    device = device_with_versions(make_device, versions)
+    device.versions = versions
+    device.options.min_date = min_date
+
+    asyncio.run(device.load())
+
+    assert pd.Timestamp(device.handler.requested_min_date) == pd.Timestamp(loaded_from)
+
+
+@pytest.mark.parametrize('versions', [[], [version(None, None, 'ADC_48_3')]])
+def test_loads_from_min_date_without_a_first_version_date(make_device, versions):
+    import asyncio
+    device = make_device(BLUEPRINT, ADC)
+    device.versions = versions
+    device.options.min_date = None
+
+    asyncio.run(device.load())
+
+    assert device.handler.requested_min_date is None
 
 
 def test_gap_between_versions_is_not_processed(make_device, readings):

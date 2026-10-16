@@ -24,8 +24,9 @@ class FakeHandler:
         self.requested_channels = None
         self.failed_sensors = list(FakeHandler.failed_sensors)
 
-    async def get_data(self, channels=None, **kwargs):
+    async def get_data(self, channels=None, min_date=None, **kwargs):
         self.requested_channels = list(channels)
+        self.requested_min_date = min_date
         available = [column for column in FakeHandler.readings.columns if column in channels]
         self.data = FakeHandler.readings[available].copy()
         return self.data

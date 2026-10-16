@@ -510,6 +510,12 @@ class Device(BaseModel):
         dateformat = self.options.dateformat
         cached_data = DataFrame()
 
+        # Data before the first hardware version is not processed: do not load it
+        start = self.__versions_start__()
+        if start is not None and (min_date is None or localise_date(min_date, 'UTC') < start):
+            logger.info(f'Loading from {start}, the start of the first hardware version (min_date was {min_date})')
+            min_date = start
+
         # Only case where cache makes sense
         if self.source.type == 'api':
             if cache is not None and cache:
@@ -639,15 +645,23 @@ class Device(BaseModel):
 
     def __version_windows__(self):
         '''
-        Periods of the hardware versions with their channels: [(start, end, channels)].
-        The first version also covers earlier data; end is the "to" date of the version (None: open)
+        Periods of the hardware versions with their channels: [(start, end, channels)], from the "from" to the
+        "to" date of each version (None: open). Data before the first version is not processed: the sensors were
+        not there yet
         '''
         windows = []
-        for index, version in enumerate(self.versions):
-            start = None if index == 0 else version.get('from_date')
+        for version in self.versions:
+            start = version.get('from_date')
             channels = TypeAdapter(List[CalculatedChannel]).validate_python(version['channels'])
             windows.append((start, version.get('to_date'), channels))
         return windows
+
+    def __versions_start__(self):
+        ''' "from" date (UTC) of the first hardware version, or None if a version has none (or no versions) '''
+        starts = [version.get('from_date') for version in self.versions or []]
+        if not starts or any(start is None for start in starts):
+            return None
+        return localise_date(min(localise_date(start, 'UTC') for start in starts), 'UTC')
 
     def __window_channels__(self, channels, version_channels, latest):
         '''
