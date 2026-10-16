@@ -61,6 +61,17 @@ def test_load_from_storage(make_device, backup):
     assert not device.load_from_storage(root=str(backup / 'nowhere'))
 
 
+def test_load_from_storage_with_the_sensors_of_the_api(make_device, backup):
+    # required_sensors gives API names: the backups keep the converted ones (TEMP)
+    from conftest import SHT31_TEMP
+    device = make_device(SHORT, ADC + [SHT31_TEMP])
+
+    assert device.load_from_storage(root=str(backup), min_date='2026-01-11 12:00',
+                                    channels=['Sensirion SHT31 - Temperature', 'ADC_48_3'])
+
+    assert list(device.data.columns) == ['TEMP']
+
+
 def test_load_from_storage_without_pyarrow(make_device, backup, monkeypatch):
     import builtins
     real_import = builtins.__import__

@@ -1222,6 +1222,11 @@ class Device(BaseModel):
         if load_data:
             url = f"{root.rstrip('/')}/{path}/{self.id}/data/"
             logger.info(f"Loading data from: {url}")
+            if channels is not None:
+                # Backups keep the converted names (TEMP for Sensirion SHT31 - Temperature, as required_sensors
+                # gives it): ask for both
+                rename = getattr(self, '_rename', {}) or {}
+                channels = list(dict.fromkeys([rename.get(channel, channel) for channel in channels] + list(channels)))
             try:
                 self.data = read_storage(url, min_date=min_date, max_date=max_date, channels=channels)
             except ImportError as error:
