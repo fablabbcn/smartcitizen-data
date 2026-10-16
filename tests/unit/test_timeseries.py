@@ -69,3 +69,27 @@ def test_baseline_als_with_few_values(values):
 
     assert result.status_code == StatusCode.SUCCESS
     assert result.data.tolist() == [value for value in values if value == value]
+
+
+@pytest.mark.parametrize('dates', [
+    ['2026-10-16T19:57:35Z', '2026-10-16T19:58:35.123Z'],
+    ['2026-10-16 19:57:35+00:00', '2026-10-16 19:58:35+00:00'],
+])
+def test_localise_iso_dates_without_warnings(dates):
+    import warnings
+    from pandas import Index, Timestamp
+    from scdata.tools.date import localise_date
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        result = localise_date(Index(dates), 'Europe/Madrid')
+
+    assert result[0] == Timestamp(dates[0]) and str(result.tz) == 'Europe/Madrid'
+
+
+def test_localise_with_a_format_and_other_dates():
+    from pandas import Timestamp
+    from scdata.tools.date import localise_date
+
+    assert localise_date('02-01-2024', 'UTC', dateformat='%d-%m-%Y') == Timestamp('2024-01-02', tz='UTC')
+    assert localise_date('01/02/2024', 'UTC') == Timestamp('2024-01-02', tz='UTC')

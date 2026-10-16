@@ -17,7 +17,15 @@ def localise_date(date, timezone, tzaware=True, dateformat = None):
     if date is not None:
         # Per default, we consider that timestamps are tz-aware or UTC.
         # If not, preprocessing should be done to get there
-        result_date = to_datetime(date, utc = tzaware, format=dateformat)
+        if dateformat is None:
+            # ISO 8601 dates, with or without fractions of a second: parsing them by a format guessed from
+            # the first one warns, or fails when the others differ
+            try:
+                result_date = to_datetime(date, utc = tzaware, format = 'ISO8601')
+            except (ValueError, TypeError):
+                result_date = to_datetime(date, utc = tzaware)
+        else:
+            result_date = to_datetime(date, utc = tzaware, format=dateformat)
         if result_date.tzinfo is not None:
             result_date = result_date.tz_convert(timezone)
         else:
