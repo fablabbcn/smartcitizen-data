@@ -1,6 +1,7 @@
 from requests import get
 
-# Seconds to connect and to wait for a response: generous, but a request never hangs forever
+# Seconds to connect, and seconds without receiving data (not a deadline for the whole request):
+# generous, but a request the server stops answering does not hang forever
 TIMEOUT = (30, 300)
 
 def process_headers(headers):
