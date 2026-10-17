@@ -1,5 +1,8 @@
 from requests import get
 
+# Seconds to connect and to wait for a response: generous, but a request never hangs forever
+TIMEOUT = (30, 300)
+
 def process_headers(headers):
     result = {}
     if 'total' in headers: result['total_pages'] = headers['total']
@@ -25,7 +28,7 @@ def get_json_from_url(url):
     rjson = None
     rheaders = None
     try:
-        r = get(url)
+        r = get(url, timeout = TIMEOUT)
         r.raise_for_status()
         rjson = r.json()
         rheaders = process_headers(r.headers)
