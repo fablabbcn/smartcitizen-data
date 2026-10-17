@@ -14,7 +14,7 @@ def find_implausible_values(dataframe, **kwargs):
         min_val = item['limits'][0]
         max_val = item['limits'][1]
         if col not in df.columns:
-            logger.warning(f'{col} not in columns. Skipping')
+            logger.info(f'{col} not in columns. Skipping')
             continue
 
         logger.info (f'Calculating implausible values for {col} using [{min_val}, {max_val}]')

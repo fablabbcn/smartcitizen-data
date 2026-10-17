@@ -691,10 +691,11 @@ class Device(BaseModel):
                 skipped.add(channel.name)
                 continue
 
-            # Skip channels whose inputs have no data (and their dependants)
+            # Skip channels whose inputs have no data (and their dependants): blueprints list every
+            # sensor a kit can have, so it is expected
             unavailable = self.__unavailable_inputs__(channel, skipped)
             if unavailable:
-                logger.warning(f'Skipping {channel.name}. No data for: {unavailable}')
+                logger.info(f'Skipping {channel.name}. No data for: {unavailable}')
                 skipped.add(channel.name)
                 continue
 
@@ -730,8 +731,9 @@ class Device(BaseModel):
                         process_ok &= False
                     elif 'WARNING' in process_result.status_code.name:
                         # In this case there is no data to put into the result
-                        # but there is no reason to make deny process_ok
-                        logger.warning(process_result.status_code.name)
+                        # but there is no reason to make deny process_ok: the channel is not
+                        # in the hardware (no id or no channel for its slot)
+                        logger.info(process_result.status_code.name)
                         process_ok &= True
                     elif 'SUCCESS' in process_result.status_code.name:
                         if isinstance(process_result.data, DataFrame):

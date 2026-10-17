@@ -58,6 +58,19 @@ def test_process_skips_channels_without_sensors(make_device, blueprint, index):
     assert 'CO2' not in device.data
 
 
+def test_channels_without_sensors_are_not_warnings(make_device, blueprint, index, caplog):
+    import logging
+    device = make_device(blueprint, [SHT31_TEMP, ADC_48_3])
+    device.data = readings(index, TEMP=20.0, ADC_48_3=0.2)
+    device.loaded = True
+
+    # Blueprints list every sensor a kit can have: a device without some is processed fine
+    with caplog.at_level(logging.INFO, logger='scdata'):
+        assert device.process() is True
+    assert 'Skipping CO2' in caplog.text
+    assert [record.getMessage() for record in caplog.records if record.levelno >= logging.WARNING] == []
+
+
 def test_process_with_optional_sensor(make_device, blueprint, index):
     device = make_device(blueprint, [SHT31_TEMP, ADC_48_3, SCD30_CO2])
     device.data = readings(index, TEMP=20.0, ADC_48_3=0.2, SCD30_CO2=500.0)

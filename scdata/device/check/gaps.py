@@ -77,7 +77,7 @@ def find_gaps(dataframe, **kwargs):
     for col in columns:
         if '__' in col: continue # Internal code for healthchecks
         if col not in df.columns:
-            logger.warning(f'{col} not in columns. Skipping')
+            logger.info(f'{col} not in columns. Skipping')
             continue
 
         gap_size = column_setting(gap_sizes, col, 'gap_size_minutes', default_gap_size)
