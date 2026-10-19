@@ -14,5 +14,5 @@ def test_known_conversions():
 
 
 def test_unknown_conversion_is_not_converted():
-    # As in names/SCDevice.json
+    # Unit used in names/SCDevice.json
     assert get_units_convf('TEMP', from_units='C') == 1

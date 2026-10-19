@@ -97,7 +97,7 @@ def test_localise_with_a_format_and_other_dates():
 
 @pytest.fixture
 def squares():
-    # t² every 2 minutes, t in minutes
+    # t² sampled every 2 minutes, with t in minutes
     import pandas as pd
     index = pd.date_range('2026-01-01', periods=20, freq='2min', tz='UTC')
     minutes = [2.0 * i for i in range(20)]
@@ -120,7 +120,7 @@ def test_time_derivative_smoothed(squares):
 
     assert result.status_code == StatusCode.SUCCESS
     assert len(result.data) == len(df)
-    # 2t away from the ends (the gaussian is truncated)
+    # 2t away from the edges, within the error of the truncated gaussian kernel
     assert list(result.data[5:-5]) == pytest.approx([2 * t for t in minutes[5:-5]], rel=1e-4)
 
 

@@ -248,7 +248,7 @@ def time_derivative(dataframe, **kwargs):
         gaussian_filter1d: bool, optional
             True
             Derivative of the readings smoothed with a gaussian (sigma of one reading).
-            If False, difference with the next reading
+            If False, the difference with the next reading is used
     Returns
     -------
         pandas series containing derivative
@@ -269,7 +269,7 @@ def time_derivative(dataframe, **kwargs):
     gaussian_filter1d = kwargs.get('gaussian_filter1d', True)
 
     y = dataframe[kwargs['name']].to_numpy(dtype = float)
-    # Minutes to the next reading (the last one, as the one before)
+    # Minutes to the next reading. The last reading uses the previous interval
     minutes = dataframe.index.to_series().diff().dt.total_seconds().to_numpy() / 60
     dx = append(minutes[1:], minutes[-1])
 

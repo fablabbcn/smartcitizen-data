@@ -18,8 +18,8 @@ def ts_dendrogram(self, **kwargs):
     Parameters
     ----------
         devices: list
-            All the devices of the test (a device: itself)
-            Ids of the devices
+            All the devices of the test, or the device itself
+            IDs of the devices to include
         channels: list
             'all'
             If 'all', uses all channels in the devices
@@ -42,7 +42,7 @@ def ts_dendrogram(self, **kwargs):
     if 'method' not in kwargs: method = 'single'
     else: method = kwargs['method']
 
-    # A test, or a device
+    # Either a test or a single device
     by_id = {device.id: device for device in getattr(self, 'devices', [self])}
     if 'devices' not in kwargs: devices = list(by_id)
     else: devices = kwargs['devices']
@@ -84,7 +84,7 @@ def ts_dendrogram(self, **kwargs):
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
 
-    # One row per channel of each device, one column per time
+    # One row per channel of each device, and one column per timestamp
     series = []
     for device in devices:
         dfd = by_id[device].data.select_dtypes('number')
@@ -96,7 +96,7 @@ def ts_dendrogram(self, **kwargs):
     df = concat(series, axis = 1).T
 
     if options['clean_na'] is not None:
-        # Times without all the channels, or filled from the previous time
+        # Timestamps missing any channel are dropped, or filled with the previous value
         if options['clean_na'] == 'drop': df = df.dropna(axis = 1)
         if options['clean_na'] == 'fill': df = df.ffill(axis = 1)
 

@@ -25,14 +25,14 @@ def test_devices_of_a_test():
 
     Z = ts_dendrogram(test, channels=['TEMP', 'HUM'], options={'show': False, 'clean_na': 'fill', 'frequency': '5T'})
 
-    # Four channels: three joins
+    # Four channels result in three merges
     assert Z.shape == (3, 4)
-    # TEMP of both devices are the closest, as HUM of both
+    # The TEMP channels of both devices are merged first, as are the HUM channels
     assert sorted(Z[:2, :2].astype(int).tolist()) == [[0, 2], [1, 3]]
 
 
 def test_a_device():
     Z = ts_dendrogram(device(1, 0), options={'show': False, 'clean_na': 'drop'})
 
-    # Its numeric channels: TEMP and HUM
+    # Only the numeric channels (TEMP and HUM) are used
     assert Z.shape == (1, 4)
