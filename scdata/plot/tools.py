@@ -5,6 +5,7 @@ from numpy import arange
 from pandas import DataFrame, cut, option_context, to_datetime, to_numeric
 
 from scdata.tools.custom_logger import logger
+from smartcitizen_connector.tools import pandas_freq
 
 '''
 Available styles
@@ -163,12 +164,12 @@ def prepare_device_data(device, traces, options):
 
                 if 'resample' in options:
                     # TODO move this to common function
-                    if options['resample'] == 'max': dfdev = dfdev.resample(options['frequency']).max()
-                    if options['resample'] == 'min': dfdev = dfdev.resample(options['frequency']).min()
-                    if options['resample'] == 'mean': dfdev = dfdev.resample(options['frequency']).mean()
+                    if options['resample'] == 'max': dfdev = dfdev.resample(pandas_freq(options['frequency'])).max()
+                    if options['resample'] == 'min': dfdev = dfdev.resample(pandas_freq(options['frequency'])).min()
+                    if options['resample'] == 'mean': dfdev = dfdev.resample(pandas_freq(options['frequency'])).mean()
 
                 else:
-                    dfdev = dfdev.resample(options['frequency']).mean()
+                    dfdev = dfdev.resample(pandas_freq(options['frequency'])).mean()
 
             # Combine it in the df
             df = df.combine_first(dfdev)
@@ -307,12 +308,12 @@ def prepare_test_data(test, traces, options):
 
                     if 'resample' in options:
 
-                        if options['resample'] == 'max': dfdev = dfdev.resample(options['frequency']).max()
-                        if options['resample'] == 'min': dfdev = dfdev.resample(options['frequency']).min()
-                        if options['resample'] == 'mean': dfdev = dfdev.resample(options['frequency']).mean()
+                        if options['resample'] == 'max': dfdev = dfdev.resample(pandas_freq(options['frequency'])).max()
+                        if options['resample'] == 'min': dfdev = dfdev.resample(pandas_freq(options['frequency'])).min()
+                        if options['resample'] == 'mean': dfdev = dfdev.resample(pandas_freq(options['frequency'])).mean()
 
                     else:
-                        dfdev = dfdev.resample(options['frequency']).mean()
+                        dfdev = dfdev.resample(pandas_freq(options['frequency'])).mean()
 
                 # Combine it in the df
                 df = df.combine_first(dfdev)

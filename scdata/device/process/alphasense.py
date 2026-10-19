@@ -7,6 +7,7 @@ from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import numpy as np
 from pandas import date_range, DataFrame, Series, isnull, Timedelta
+from smartcitizen_connector.tools import pandas_freq
 from scdata.device.process.error_codes import StatusCode, ProcessResult
 
 def alphasense_803_04(dataframe, **kwargs):
@@ -134,8 +135,8 @@ def alphasense_803_04(dataframe, **kwargs):
 
     # Resample if requested
     if rolling_frequency is not None:
-        df['we_t'] = df['we_t'].rolling(rolling_frequency).mean()
-        df['ae_t'] = df['ae_t'].rolling(rolling_frequency).mean()
+        df['we_t'] = df['we_t'].rolling(pandas_freq(rolling_frequency)).mean()
+        df['ae_t'] = df['ae_t'].rolling(pandas_freq(rolling_frequency)).mean()
 
     # Find gaps
     found_gaps = False
@@ -339,8 +340,8 @@ def alphasense_als(dataframe, **kwargs):
     # Roll if requested
     if rolling_frequency is not None:
         logger.info(f'Rolling on sensor data {rolling_frequency}')
-        df['we_t'] = df['we_t'].rolling(rolling_frequency).mean()
-        df['ae_t'] = df['ae_t'].rolling(rolling_frequency).mean()
+        df['we_t'] = df['we_t'].rolling(pandas_freq(rolling_frequency)).mean()
+        df['ae_t'] = df['ae_t'].rolling(pandas_freq(rolling_frequency)).mean()
     else:
         logger.warning('Not doing rolling on sensor data')
 

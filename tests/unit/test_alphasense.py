@@ -34,8 +34,10 @@ def test_negative_concentrations(electrodes):
     assert conc(electrodes, offset_negative_conc=True).min() == pytest.approx(0)
 
 
-def test_rolling_frequency_smooths(electrodes):
-    rolled = conc(electrodes, rolling_frequency='10min')
+# Parameter sets can have the units before pandas 3 (10Min, 1H)
+@pytest.mark.parametrize('rolling_frequency', ['10min', '10Min', '1H'])
+def test_rolling_frequency_smooths(electrodes, rolling_frequency):
+    rolled = conc(electrodes, rolling_frequency=rolling_frequency)
 
     assert rolled.notna().all()
     assert rolled.std() < conc(electrodes).std() / 2
