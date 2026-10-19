@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 from matplotlib import rcParams, style
-from pandas import DataFrame
+from pandas import concat
 from scipy.cluster import hierarchy as hc
+from seaborn import set_palette
+from smartcitizen_connector.tools import pandas_freq
 
 from scdata._config import config
 from scdata.tools.cleaning import clean
@@ -15,9 +17,9 @@ def ts_dendrogram(self, **kwargs):
     in channels that are in the test `devices`
     Parameters
     ----------
-        devices: list or string
-            'all'
-            If 'all', uses all devices in the test
+        devices: list
+            All the devices of the test (a device: itself)
+            Ids of the devices
         channels: list
             'all'
             If 'all', uses all channels in the devices
@@ -40,7 +42,9 @@ def ts_dendrogram(self, **kwargs):
     if 'method' not in kwargs: method = 'single'
     else: method = kwargs['method']
 
-    if 'devices' not in kwargs: devices = list(self.devices.keys())
+    # A test, or a device
+    by_id = {device.id: device for device in getattr(self, 'devices', [self])}
+    if 'devices' not in kwargs: devices = list(by_id)
     else: devices = kwargs['devices']
 
     if 'channels' not in kwargs: channels = 'all'
@@ -80,20 +84,21 @@ def ts_dendrogram(self, **kwargs):
     if formatting['fontsize'] is not None:
             rcParams.update({'font.size': formatting['fontsize']});
 
-    df = DataFrame()
-
+    # One row per channel of each device, one column per time
+    series = []
     for device in devices:
-        dfd = self.devices[device].readings.copy()
-        dfd = dfd.resample(options['frequency']).mean()
+        dfd = by_id[device].data.select_dtypes('number')
+        if options['frequency'] is not None:
+            dfd = dfd.resample(pandas_freq(options['frequency'])).mean()
 
-        if channels != 'all':
-            for channel in channels:
-                if channel in dfd.columns: df = df.append(dfd[channel].rename(device+'_'+channel))
-        else: df = df.append(dfd)
+        for channel in (dfd.columns if channels == 'all' else channels):
+            if channel in dfd.columns: series.append(dfd[channel].rename(f'{device}_{channel}'))
+    df = concat(series, axis = 1).T
 
     if options['clean_na'] is not None:
-        if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
-        if options['clean_na'] == 'fill': df = df.ffill()
+        # Times without all the channels, or filled from the previous time
+        if options['clean_na'] == 'drop': df = df.dropna(axis = 1)
+        if options['clean_na'] == 'fill': df = df.ffill(axis = 1)
 
     Z = hc.linkage(df, method = method, metric = metric)
 
@@ -110,6 +115,6 @@ def ts_dendrogram(self, **kwargs):
         labels=df.index
     )
 
-    plt.show()
+    if options['show']: plt.show()
 
     return Z
