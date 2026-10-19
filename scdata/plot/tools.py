@@ -191,7 +191,7 @@ def prepare_device_data(device, traces, options):
     # Clean na
     if options.get('clean_na') is not None:
         if options['clean_na'] == 'fill':
-            df = df.fillna(method='ffill')
+            df = df.ffill()
         if options['clean_na'] == 'drop':
             df = df.dropna(axis = 0, how='any')
 
@@ -396,7 +396,7 @@ def prepare_test_data(test, traces, options):
     # Clean na
     if options.get('clean_na') is not None:
         if options['clean_na'] == 'fill':
-            df = df.fillna(method='ffill')
+            df = df.ffill()
         if options['clean_na'] == 'drop':
             df = df.dropna(axis = 0, how='any')
 
