@@ -1,4 +1,5 @@
 from numpy import nan, full, power, ones, diff, convolve, append
+from pandas import Series
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 from scipy import ndimage
@@ -239,17 +240,18 @@ def rolling_avg(dataframe, **kwargs):
 
 def time_derivative(dataframe, **kwargs):
     """
-    Performs timeseries derivative of input
+    Performs timeseries derivative of input, per minute
     Parameters
     ----------
         name: str
             Name of the channel to perform the derivative onto
-        gaussian_filter: bool, optional
+        gaussian_filter1d: bool, optional
             True
-            Gaussian filter of output
+            Derivative of the readings smoothed with a gaussian (sigma of one reading).
+            If False, difference with the next reading
     Returns
     -------
-        pandas series containing derivative using simple np.diff
+        pandas series containing derivative
     """
 
     if 'name' not in kwargs:
@@ -260,20 +262,23 @@ def time_derivative(dataframe, **kwargs):
         logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
+    if len(dataframe) < 2:
+        logger.error(f"{kwargs['name']} needs two readings for a derivative")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
     gaussian_filter1d = kwargs.get('gaussian_filter1d', True)
 
-    df = dataframe.copy()
-
-    #Normalization:
-    dx = diff(df.index).astype("timedelta64[m]").astype(int)
-
-    #First derivatives:
-    df['diff'] = append(diff(dataframe[kwargs['name']]) / dx, 0)
+    y = dataframe[kwargs['name']].to_numpy(dtype = float)
+    # Minutes to the next reading (the last one, as the one before)
+    minutes = dataframe.index.to_series().diff().dt.total_seconds().to_numpy() / 60
+    dx = append(minutes[1:], minutes[-1])
 
     if gaussian_filter1d:
-        df['diff_filter1d']  = ndimage.gaussian_filter1d(df['diff'], sigma=1, order=1, mode='wrap') / dx
-        return ProcessResult(df['diff_filter1d'], StatusCode.SUCCESS)
-    return ProcessResult(df['diff'], StatusCode.SUCCESS)
+        dy = ndimage.gaussian_filter1d(y, sigma=1, order=1, mode='nearest')
+    else:
+        dy = append(diff(y), 0)
+
+    return ProcessResult(Series(dy / dx, index = dataframe.index), StatusCode.SUCCESS)
 
 def within(dataframe, **kwargs):
     """
