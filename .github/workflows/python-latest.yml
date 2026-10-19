@@ -13,8 +13,16 @@ jobs:
   build-latest:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11"]
+        # The lowest pandas and numpy allowed, and the latest
+        pandas: ["2.2.*", "3.*"]
+        include:
+          - pandas: "2.2.*"
+            numpy: "1.26.*"
+          - pandas: "3.*"
+            numpy: "2.*"
     steps:
     - uses: actions/checkout@v7
       with:
@@ -30,7 +38,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        pip install .[dev]
+        pip install .[dev] "pandas==${{ matrix.pandas }}" "numpy==${{ matrix.numpy }}"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
