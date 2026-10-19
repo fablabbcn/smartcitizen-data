@@ -8,8 +8,8 @@ MAX_INTERVALS = 10
 def flagged_runs(mask):
     ''' Consecutive flagged rows as [(first, last)] timestamps '''
     mask = Series(mask)
-    # Missing values are not flagged (fillna would downcast an object mask)
-    mask = mask.notna() & mask.astype(bool)
+    # Missing values (NaN, None, pd.NA) are not flagged. Without fillna, which would downcast an object mask
+    mask = Series(mask.to_numpy(dtype = object, na_value = False).astype(bool), index = mask.index)
     runs, start, last = [], None, None
     for timestamp, flagged in mask.items():
         if flagged and start is None:

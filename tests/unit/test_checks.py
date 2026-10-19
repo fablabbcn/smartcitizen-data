@@ -67,10 +67,12 @@ def test_find_gaps_uses_the_settings_of_each_column():
 
 # Summary
 
-def test_flagged_runs():
+@pytest.mark.parametrize('missing, dtype', [(np.nan, None), (None, object), (pd.NA, 'boolean')])
+def test_flagged_runs(missing, dtype):
     index = minutes(0, 1, 2, 3, 4)
 
-    assert flagged_runs(pd.Series([True, True, False, True, np.nan], index=index)) == [
+    # Missing values are not flagged
+    assert flagged_runs(pd.Series([True, True, False, True, missing], index=index, dtype=dtype)) == [
         (index[0], index[1]), (index[3], index[3])]
 
 
