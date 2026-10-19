@@ -56,7 +56,7 @@ def alphasense_803_04(dataframe, **kwargs):
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
     if kwargs['alphasense_id'] is None:
-        logger.warning(f"Empty ID. Ignoring")
+        logger.info(f"Empty ID. Ignoring")
         return ProcessResult(None, StatusCode.WARNING_EMPTY_ID)
 
     # Get Sensor data
@@ -273,7 +273,7 @@ def alphasense_als(dataframe, **kwargs):
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
     if kwargs['alphasense_id'] is None:
-        logger.warning(f"Empty ID. Ignoring")
+        logger.info(f"Empty ID. Ignoring")
         return ProcessResult(None, StatusCode.WARNING_EMPTY_ID)
 
     # Get Sensor data
@@ -503,7 +503,7 @@ def alphasense_pt1000(dataframe, **kwargs):
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
     if kwargs['afe_id'] is None:
-        logger.warning(f"Empty ID. Ignoring")
+        logger.info(f"Empty ID. Ignoring")
         return ProcessResult(None, StatusCode.WARNING_EMPTY_ID)
 
     # Get Sensor data
@@ -556,7 +556,7 @@ def channel_names(dataframe, **kwargs):
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
     if kwargs['channel'] is None:
-        logger.warning(f"Requested channel is None. Ignoring")
+        logger.info(f"Requested channel is None. Ignoring")
         return ProcessResult(None, StatusCode.WARNING_NULL_CHANNEL)
 
     if kwargs['channel'] not in dataframe:

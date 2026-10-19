@@ -18,7 +18,7 @@ def find_outliers(dataframe, **kwargs):
     for col in columns:
         if '__' in col: continue # Internal code for healthchecks
         if col not in df.columns:
-            logger.warning(f'{col} not in columns. Skipping')
+            logger.info(f'{col} not in columns. Skipping')
             continue
 
         logger.info (f'Calculating outliers for {col}')
@@ -47,7 +47,7 @@ def find_outliers_isolation_forest(dataframe, **kwargs):
     for col in columns:
         if '__' in col: continue # Internal code for healthchecks
         if col not in df.columns:
-            logger.warning(f'{col} not in columns. Skipping')
+            logger.info(f'{col} not in columns. Skipping')
             continue
         if f'{col}_OUTL' not in prediction.columns:
             logger.warning(f'{col} not predicted by detector. Skipping')
