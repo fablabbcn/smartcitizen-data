@@ -1,5 +1,5 @@
-''' What flows does with a device: load, process, checks, post, backup to S3, and long processing
-read from the backup. With the sc_air blueprints filled by the connector with the hardware of two kits '''
+''' Processing of a device as performed by flows: loading, processing, health checks, posting, backup to S3,
+and long processing from the backup. The sc_air blueprints are filled by the connector with the hardware of two kits '''
 import asyncio
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -22,21 +22,21 @@ moto = pytest.importorskip('moto')
 
 SENSORS = ['ADC_48_0', 'ADC_48_1', 'ADC_48_2', 'ADC_48_3', 'ADC_49_0', 'ADC_49_1', 'ADC_49_2', 'ADC_49_3',
            'ADC_4A_0', 'ADC_4A_1', 'ADC_4A_2', 'ADC_4A_3', 'TEMP', 'SCD30_CO2']
-# As the API names them: ec_sensor_temp looks for the SHT31 by its name
+# Sensor names and units as provided by the API (ec_sensor_temp looks up the SHT31 by its name)
 API_NAMES = {'TEMP': 'Sensirion SHT31 - Temperature'}
 API_UNITS = {'TEMP': 'ºC'}
 URL = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json'
 
-# Means of the channels with these readings: a pandas or numpy version that changes them fails.
-# Long processing: the channels from baselines, which differ a little with the machine
+# Expected channel means for these readings: any pandas or numpy version that changes them makes the test fail.
+# For long processing only the channels are listed, as values derived from baselines vary slightly between machines
 KITS = {
-    # Two electrochemical sensors, and the PT1000 of the AFE for their temperature
+    # Two electrochemical sensors, with temperature from the PT1000 of the AFE
     'SCAS210028': {
         'process': {'ASPT1000': -52.184088, 'EC_SENSOR_TEMP': -52.184088, 'NO2': -11.058876, 'O3': -356.238999,
                     'CO2': 485.209411},
         'long': ['NO2', 'O3'],
     },
-    # Four electrochemical sensors, temperature from the SHT31
+    # Four electrochemical sensors, with temperature from the SHT31
     'SCAS210001': {
         'process': {'EC_SENSOR_TEMP': 19.983711, 'CO': 351.493898, 'NO2': 60.315641, 'SO2': 159.660376,
                     'O3': -122.478473, 'CO2': 485.209411},
@@ -46,7 +46,7 @@ KITS = {
 
 
 def readings():
-    ''' Three days every minute, with a gap of 30 minutes and an hour of outliers in the CO2 '''
+    ''' Three days of readings every minute, with a 30-minute gap and one hour of outliers in the CO2 '''
     names = {name['name']: name for name in load_json('names', 'SCDevice.json')}
     rng = np.random.default_rng(0)
     index = pd.date_range('2026-01-01', periods=3 * 1440, freq='1min', tz='UTC')
@@ -61,7 +61,7 @@ def readings():
             columns[name] = 450 + 50 * day + rng.normal(0, 5, len(index))
     data = pd.DataFrame({API_NAMES.get(name, f'API {name}'): values for name, values in columns.items()}, index=index)
     data.iloc[100:130] = np.nan
-    # find_outliers looks at the hourly mean: a single reading does not move it
+    # find_outliers evaluates the hourly mean, which a single reading does not shift significantly
     data.iloc[2000:2060, data.columns.get_loc('API SCD30_CO2')] = 3000.0
     sensors = [{'id': int(names[name]['id']), 'name': API_NAMES.get(name, f'API {name}'), 'description': name,
                 'unit': API_UNITS.get(name, names[name]['unit'])} for name in SENSORS]
@@ -69,7 +69,7 @@ def readings():
 
 
 def connector_device(hardware):
-    ''' SCDevice without network, to fill blueprints with the hardware as the connector does '''
+    ''' Offline SCDevice, used to fill blueprints with the hardware as the connector does '''
     device = SCDevice.__new__(SCDevice)
     device.id = 1
     device.json = SimpleNamespace(last_reading_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
@@ -120,7 +120,7 @@ def test_process(kit):
     assert d.health_checks()
     assert [item['name'] for item in d.health['checks']] == ['GAPS', 'IMPLAUSIBLE', 'FLAT', 'OUTLIERS']
     assert check(d.health, 'GAPS')['columns']['SCD30_CO2']['flagged'] == 30
-    # Outliers from 09:20 to 10:19: the hourly mean is off from 09:37 to 11:00
+    # The outliers span 09:20 to 10:19, and the hourly mean deviates from 09:37 to 11:00
     outlier = check(d.health, 'OUTLIERS')['columns']['SCD30_CO2']
     assert outlier['flagged'] == 84
     assert [[str(time) for time in interval] for interval in outlier['intervals']] == [
@@ -144,7 +144,7 @@ def test_backup_and_long_processing(kit, monkeypatch, tmp_path):
         s3 = boto3.client('s3')
         s3.create_bucket(Bucket='bucket')
         assert d.backup_to_storage(mode='append')
-        # pyarrow reads S3 with its own client, which moto does not mock: read a local copy
+        # pyarrow uses its own S3 client, which moto does not mock, so the files are read from a local copy
         for item in s3.list_objects_v2(Bucket='bucket')['Contents']:
             target = tmp_path / item['Key']
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -160,18 +160,18 @@ def test_backup_and_long_processing(kit, monkeypatch, tmp_path):
     long.handler.apply_blueprint = apply_blueprint
     assert long.use_blueprint('sc_air_baseline', load_json('blueprints', 'sc_air_baseline.json'))
     assert long.load_from_storage(channels=long.required_sensors, root=str(tmp_path))
-    # The backup keeps the index as TIME, in nanoseconds (pandas 3 makes dates in microseconds)
+    # The backup stores the index as TIME in nanoseconds, whereas pandas 3 creates dates in microseconds
     pd.testing.assert_frame_equal(long.data.set_axis(long.data.index.as_unit('ns')),
                                   backed_up[long.data.columns].set_axis(backed_up.index.as_unit('ns')),
                                   check_freq=False, check_names=False)
 
     assert long.process()
     data = long.data
-    # The baselines (lam of 1e10) differ about 1e-4 between machines (solver, CPU)
+    # Baselines (lam of 1e10) differ by about 1e-4 between machines, depending on the solver and the CPU
     assert data['CO2_BASELINE'].mean() == pytest.approx(396.31466, rel=1e-3)
     pd.testing.assert_series_equal(data['CO2'], data['SCD30_CO2'] - data['CO2_BASELINE'] + 450, check_names=False)
     for channel in KITS[name]['long']:
-        # Without the hours after the gaps, and clipped at 0
+        # The hours after each gap are removed, and negative concentrations are clipped at 0
         assert data[channel].notna().sum() > 0.8 * len(data), channel
         assert (data[channel].dropna() >= 0).all(), channel
     assert long.health_checks()

@@ -1,4 +1,4 @@
-''' Electrochemical sensors (alphasense_803_04) with the options of a blueprint or a parameter set '''
+''' Tests of alphasense_803_04 with the options available in blueprints and parameter sets '''
 import numpy as np
 import pandas as pd
 import pytest
@@ -7,14 +7,14 @@ from scdata._config import config
 from scdata.device.process.alphasense import alphasense_803_04
 from scdata.device.process.params import as_sensor_algs, as_t_comp
 
-# ASA4_NO2: algorithm 1. ASA4_CO: algorithm 4 as the alternative
+# ASA4_NO2 uses algorithm 1, and ASA4_CO uses algorithm 4 as its alternative
 NO2 = '212070552'
 CO = '132070362'
 
 
 @pytest.fixture
 def electrodes():
-    ''' A day every minute, without readings from 12:00 to 13:00. Concentrations around 0 '''
+    ''' One day of readings every minute, without readings from 12:00 to 13:00, and concentrations close to zero '''
     index = pd.date_range('2026-01-01', periods=1440, freq='1min', tz='UTC')
     index = index[(index < '2026-01-01 12:00') | (index >= '2026-01-01 13:00')]
     rng = np.random.default_rng(0)
@@ -34,7 +34,7 @@ def test_negative_concentrations(electrodes):
     assert conc(electrodes, offset_negative_conc=True).min() == pytest.approx(0)
 
 
-# Parameter sets can have the units before pandas 3 (10Min, 1H)
+# Parameter sets may contain frequency units that pandas 3 no longer accepts (10Min, 1H)
 @pytest.mark.parametrize('rolling_frequency', ['10min', '10Min', '1H'])
 def test_rolling_frequency_smooths(electrodes, rolling_frequency):
     rolled = conc(electrodes, rolling_frequency=rolling_frequency)
@@ -46,7 +46,7 @@ def test_rolling_frequency_smooths(electrodes, rolling_frequency):
 def test_hours_after_a_gap_are_removed(electrodes):
     result = conc(electrodes, n_gaps=10, gap_window_removal_h=1)
 
-    # The start counts as a gap
+    # The beginning of the data is treated as a gap
     for start, end in (('2026-01-01 00:00', '2026-01-01 01:00'), ('2026-01-01 13:00', '2026-01-01 14:00')):
         assert result[start:end].isna().all()
     assert result['2026-01-01 01:01':'2026-01-01 11:59'].notna().all()

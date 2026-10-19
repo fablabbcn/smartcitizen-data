@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11"]
-        # The lowest pandas and numpy allowed (pandas 2.2.2 is the first with numpy 2), and the latest
+        # Lowest supported pandas and numpy versions (pandas 2.2.2 is the first release compatible with numpy 2), and the latest ones
         pandas: ["2.2.2", "3.*"]
         include:
           - pandas: "2.2.2"

@@ -1,4 +1,4 @@
-''' Data of the device plots, with missing values filled or dropped '''
+''' Data preparation for device plots, with missing values filled or dropped '''
 from types import SimpleNamespace
 
 import numpy as np
@@ -33,5 +33,5 @@ def test_drop_removes_the_missing_values(index):
 def test_resample_with_the_units_before_pandas_3(index):
     df, _ = plot_data(index, None, frequency='5T')
 
-    # The missing reading is not counted in the mean
+    # The missing reading is excluded from the mean
     assert df['TEMP'].tolist() == [3.0, 4.0]

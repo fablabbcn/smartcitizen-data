@@ -64,7 +64,7 @@ setup(
             "pyarrow",
             "awswrangler",
             "boto3",
-            # S3 for the backups in the tests
+            # Mocked S3 for the backup tests
             "moto[s3]"
         ]
     },
