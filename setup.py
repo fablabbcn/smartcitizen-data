@@ -63,7 +63,9 @@ setup(
             "pytest",
             "pyarrow",
             "awswrangler",
-            "boto3"
+            "boto3",
+            # S3 for the backups in the tests
+            "moto[s3]"
         ]
     },
     setup_requires=['wheel'],

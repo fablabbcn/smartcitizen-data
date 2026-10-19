@@ -51,6 +51,20 @@ def test_read_storage_with_period_and_columns(backup):
     assert data.loc['2026-01-10 23:59', 'TEMP'] == 0.0
 
 
+@pytest.mark.parametrize('units', [('ns', 'us'), ('us', 'ns')])
+def test_read_storage_with_times_in_ns_and_us(tmp_path, units):
+    # Backups written with pandas 2 (ns) and pandas 3 (us) in the same folder
+    for number, unit in enumerate(units):
+        index = pd.date_range(f'2026-01-0{number + 1}', periods=3, freq='1min', tz='UTC').as_unit(unit)
+        pd.DataFrame({'TEMP': float(number), 'TIME': index}).to_parquet(tmp_path / f'part-{number}.parquet', index=False)
+
+    data = read_storage(str(tmp_path), min_date='2026-01-01 00:01')
+
+    assert len(data) == 5 and data.index.is_monotonic_increasing
+    assert data.index.min() == pd.Timestamp('2026-01-01 00:01', tz='UTC')
+    assert data.index.max() == pd.Timestamp('2026-01-02 00:02', tz='UTC')
+
+
 def test_load_from_storage(make_device, backup):
     device = make_device(SHORT, ADC)
 
