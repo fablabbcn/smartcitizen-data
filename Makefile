@@ -20,7 +20,8 @@ release:
 	@test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/$(BRANCH))" || { echo "$(BRANCH) is not origin/$(BRANCH)"; exit 1; }
 	@git diff --quiet HEAD || { echo "Uncommitted changes"; exit 1; }
 	@! git rev-parse -q --verify "refs/tags/$(TAG)" >/dev/null || { echo "$(TAG) is already released"; exit 1; }
-	gh release create $(TAG) --target $(BRANCH) --title $(TAG) --generate-notes
+# The commit checked above, even if the branch moves on
+	gh release create $(TAG) --target $$(git rev-parse HEAD) --title $(TAG) --generate-notes
 
 clean:
 	rm -rf dist build *.egg-info
