@@ -21,6 +21,7 @@ from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, Expor
                              CSVParams, DeviceOptions, Sensor, Source)
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
+from smartcitizen_connector.tools import pandas_freq
 from scdata.tools.dictmerge import dict_fmerge
 from scdata.tools.find import find_by_field
 from scdata.tools.lazy import PLOT_EXTRA, LazyCallable, plot_method
@@ -539,7 +540,7 @@ class Device(BaseModel):
                 # Make request with a logical min_date
                 if not cached_data.empty:
                     # Update min_date
-                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(frequency)
+                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(pandas_freq(frequency))
 
         # Not implemented "for now"
         elif self.source.type == 'stream':

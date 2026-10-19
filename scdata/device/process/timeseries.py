@@ -361,7 +361,7 @@ def baseline_als(dataframe, **kwargs):
         logger.warning(f"{kwargs['name']} has {L} values: not enough for a baseline")
         df[rname] = y
         return ProcessResult(df[rname], StatusCode.SUCCESS)
-    D = sparse.diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
+    D = sparse.diags([1.,-2.,1.],[0,-1,-2], shape=(L,L-2))
     w = ones(L)
     for i in range(niter):
         W = sparse.spdiags(w, 0, L, L)

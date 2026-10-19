@@ -30,7 +30,7 @@ PLOT = [
 
 setup(
     name='scdata',
-    version='1.6.5',
+    version='1.6.6',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -63,7 +63,9 @@ setup(
             "pytest",
             "pyarrow",
             "awswrangler",
-            "boto3"
+            "boto3",
+            # Mocked S3 for the backup tests
+            "moto[s3]"
         ]
     },
     setup_requires=['wheel'],

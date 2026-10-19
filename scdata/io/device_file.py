@@ -11,6 +11,7 @@ from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.cleaning import clean
 from pandas import read_csv, to_datetime, DataFrame
+from smartcitizen_connector.tools import pandas_freq
 from scdata._config import config
 from scdata.models import CalculatedChannel
 
@@ -185,7 +186,7 @@ def read_csv_file(path, timezone, frequency=None, clean_na=None, index_name='', 
     # Resample
     if (resample):
         logger.info ('Resampling', 'INFO')
-        df = df.resample(frequency).mean()
+        df = df.resample(pandas_freq(frequency)).mean()
 
     # Remove na
     df = clean(df, clean_na, how = 'all')

@@ -93,7 +93,7 @@ def ts_dendrogram(self, **kwargs):
 
     if options['clean_na'] is not None:
         if options['clean_na'] == 'drop': df.dropna(axis = 1, inplace=True)
-        if options['clean_na'] == 'fill': df = df.fillna(method='ffill')
+        if options['clean_na'] == 'fill': df = df.ffill()
 
     Z = hc.linkage(df, method = method, metric = metric)
 
