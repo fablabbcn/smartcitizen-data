@@ -95,6 +95,7 @@ def get_units_convf(sensor, from_units):
         # Check if channel is in look-up table
         if channel_lut[channel] != from_units and from_units != "" and from_units is not None:
             logger.info(f"Converting units for {sensor}. From {from_units} to {channel_lut[channel]}")
+            factor = None
             for unit in unit_convertion_lut:
                 # Get units
                 logger.debug(f"Is it {unit[0]} to {unit[1]}?")
@@ -106,7 +107,10 @@ def get_units_convf(sensor, from_units):
                     factor = 1/unit[2]
                     requires_conc = unit[3]
                     break
-            if requires_conc: rfactor = factor/molecular_weight
+            if factor is None:
+                logger.warning(f"No conversion from {from_units} to {channel_lut[channel]} for {sensor}. Not converted")
+                rfactor = 1
+            elif requires_conc: rfactor = factor/molecular_weight
             else: rfactor = factor
         else:
             logger.info(f"No units conversion needed for {sensor}. Same units")

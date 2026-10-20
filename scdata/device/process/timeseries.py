@@ -1,7 +1,7 @@
-from numpy import nan, full, power, ones, diff, convolve, append
+from numpy import nan, full, power, ones, diff, convolve, append, errstate, exp, isnan, median, pad, stack, where
+from pandas import Series
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
-from scipy import ndimage
 from scdata.device.process import is_within_circle
 from scdata.tools.custom_logger import logger
 from scdata.device.process.error_codes import StatusCode, ProcessResult
@@ -239,17 +239,20 @@ def rolling_avg(dataframe, **kwargs):
 
 def time_derivative(dataframe, **kwargs):
     """
-    Performs timeseries derivative of input
+    Performs timeseries derivative of input, per minute
     Parameters
     ----------
         name: str
             Name of the channel to perform the derivative onto
-        gaussian_filter: bool, optional
+        gaussian_filter1d: bool, optional
             True
-            Gaussian filter of output
+            Slope of a local linear fit with gaussian weights on the time distance to each
+            reading (sigma of the median interval, up to four readings on each side).
+            Irregular intervals and missing readings are supported.
+            If False, the difference with the next reading is used
     Returns
     -------
-        pandas series containing derivative using simple np.diff
+        pandas series containing derivative
     """
 
     if 'name' not in kwargs:
@@ -260,20 +263,45 @@ def time_derivative(dataframe, **kwargs):
         logger.error(f"{kwargs['name']} not in dataframe")
         return ProcessResult(None, StatusCode.ERROR_MISSING_CHANNEL)
 
+    if len(dataframe) < 2:
+        logger.error(f"{kwargs['name']} needs two readings for a derivative")
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+
     gaussian_filter1d = kwargs.get('gaussian_filter1d', True)
 
-    df = dataframe.copy()
+    y = dataframe[kwargs['name']].to_numpy(dtype = float)
+    # Minutes since the first reading
+    t = (dataframe.index - dataframe.index[0]).total_seconds().to_numpy() / 60
 
-    #Normalization:
-    dx = diff(df.index).astype("timedelta64[m]").astype(int)
+    if not (diff(t) > 0).all():
+        logger.error(f"{kwargs['name']} needs increasing timestamps for a derivative")
+        return ProcessResult(None, StatusCode.ERROR_WRONG_INDEX)
 
-    #First derivatives:
-    df['diff'] = append(diff(dataframe[kwargs['name']]) / dx, 0)
+    if not gaussian_filter1d:
+        return ProcessResult(Series(append(diff(y) / diff(t), 0), index = dataframe.index), StatusCode.SUCCESS)
 
-    if gaussian_filter1d:
-        df['diff_filter1d']  = ndimage.gaussian_filter1d(df['diff'], sigma=1, order=1, mode='wrap') / dx
-        return ProcessResult(df['diff_filter1d'], StatusCode.SUCCESS)
-    return ProcessResult(df['diff'], StatusCode.SUCCESS)
+    sigma = median(diff(t))
+
+    # Neighbouring readings in columns, padded with missing values at the edges
+    window = 4
+    t_n = stack([pad(t, window, constant_values = nan)[k:k + len(t)] for k in range(2 * window + 1)], axis = 1)
+    y_n = stack([pad(y, window, constant_values = nan)[k:k + len(y)] for k in range(2 * window + 1)], axis = 1)
+    dt = t_n - t[:, None]
+    # The weights depend on the time distance, so the fit does not assume uniform intervals
+    w = where(isnan(dt) | isnan(y_n), 0, exp(-0.5 * (dt / sigma) ** 2))
+    dt, y_n = where(w > 0, dt, 0), where(w > 0, y_n, 0)
+
+    # A reading without weighted neighbours, such as one isolated by long gaps, has no slope
+    with errstate(invalid = 'ignore', divide = 'ignore'):
+        sw = w.sum(axis = 1)
+        dt_mean = (w * dt).sum(axis = 1) / sw
+        y_mean = (w * y_n).sum(axis = 1) / sw
+        dt_c = dt - dt_mean[:, None]
+        dy_dt = (w * dt_c * (y_n - y_mean[:, None])).sum(axis = 1) / (w * dt_c ** 2).sum(axis = 1)
+    # Missing readings remain missing
+    dy_dt[isnan(y)] = nan
+
+    return ProcessResult(Series(dy_dt, index = dataframe.index), StatusCode.SUCCESS)
 
 def within(dataframe, **kwargs):
     """
