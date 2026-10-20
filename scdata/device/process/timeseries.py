@@ -273,12 +273,13 @@ def time_derivative(dataframe, **kwargs):
     # Minutes since the first reading
     t = (dataframe.index - dataframe.index[0]).total_seconds().to_numpy() / 60
 
-    if not gaussian_filter1d:
-        return ProcessResult(Series(append(diff(y) / diff(t), 0), index = dataframe.index), StatusCode.SUCCESS)
-
     if not (diff(t) > 0).all():
         logger.error(f"{kwargs['name']} needs increasing timestamps for a derivative")
         return ProcessResult(None, StatusCode.ERROR_WRONG_INDEX)
+
+    if not gaussian_filter1d:
+        return ProcessResult(Series(append(diff(y) / diff(t), 0), index = dataframe.index), StatusCode.SUCCESS)
+
     sigma = median(diff(t))
 
     # Neighbouring readings in columns, padded with missing values at the edges

@@ -167,10 +167,12 @@ def test_time_derivative_smoothed_with_an_isolated_reading():
     assert isnan(result.data.iloc[-1])
 
 
+@pytest.mark.parametrize('gaussian_filter1d', [True, False])
 @pytest.mark.parametrize('minutes', [[0, 1, 1, 2], [0, 2, 1, 3, 4]])
-def test_time_derivative_smoothed_with_timestamps_that_do_not_increase(minutes):
+def test_time_derivative_with_timestamps_that_do_not_increase(minutes, gaussian_filter1d):
     import pandas as pd
     index = pd.Timestamp('2026-01-01', tz='UTC') + pd.to_timedelta(minutes, unit='min')
-    result = time_derivative(DataFrame({'A': [float(m) for m in minutes]}, index=index), name='A')
+    result = time_derivative(DataFrame({'A': [float(m) for m in minutes]}, index=index), name='A',
+                             gaussian_filter1d=gaussian_filter1d)
 
     assert result.status_code == StatusCode.ERROR_WRONG_INDEX
