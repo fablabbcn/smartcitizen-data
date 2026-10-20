@@ -36,3 +36,16 @@ def test_a_device():
 
     # Only the numeric channels (TEMP and HUM) are used
     assert Z.shape == (1, 4)
+
+
+@pytest.mark.parametrize('clean_na', [None, 'fill'])
+def test_devices_with_different_timestamps(clean_na):
+    late = device(2, 0.1)
+    # The second device starts ten minutes later
+    late.data.iloc[:10, :2] = np.nan
+    test = SimpleNamespace(devices=[device(1, 0), late])
+
+    Z = ts_dendrogram(test, channels=['TEMP', 'HUM'], options={'show': False, 'clean_na': clean_na})
+
+    assert Z.shape == (3, 4)
+    assert np.isfinite(Z).all()

@@ -95,10 +95,10 @@ def ts_dendrogram(self, **kwargs):
             if channel in dfd.columns: series.append(dfd[channel].rename(f'{device}_{channel}'))
     df = concat(series, axis = 1).T
 
-    if options['clean_na'] is not None:
-        # Timestamps missing any channel are dropped, or filled with the previous value
-        if options['clean_na'] == 'drop': df = df.dropna(axis = 1)
-        if options['clean_na'] == 'fill': df = df.ffill(axis = 1)
+    # Missing readings are filled with the previous value if configured
+    if options['clean_na'] == 'fill': df = df.ffill(axis = 1)
+    # The linkage needs complete timestamps, so those still missing any channel are dropped
+    df = df.dropna(axis = 1)
 
     Z = hc.linkage(df, method = method, metric = metric)
 
