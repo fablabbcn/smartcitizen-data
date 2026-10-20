@@ -165,3 +165,12 @@ def test_time_derivative_smoothed_with_an_isolated_reading():
     assert result.status_code == StatusCode.SUCCESS
     assert list(result.data[:3]) == pytest.approx([2, 2, 2])
     assert isnan(result.data.iloc[-1])
+
+
+@pytest.mark.parametrize('minutes', [[0, 1, 1, 2], [0, 2, 1, 3, 4]])
+def test_time_derivative_smoothed_with_timestamps_that_do_not_increase(minutes):
+    import pandas as pd
+    index = pd.Timestamp('2026-01-01', tz='UTC') + pd.to_timedelta(minutes, unit='min')
+    result = time_derivative(DataFrame({'A': [float(m) for m in minutes]}, index=index), name='A')
+
+    assert result.status_code == StatusCode.ERROR_WRONG_INDEX

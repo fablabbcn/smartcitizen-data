@@ -276,10 +276,10 @@ def time_derivative(dataframe, **kwargs):
     if not gaussian_filter1d:
         return ProcessResult(Series(append(diff(y) / diff(t), 0), index = dataframe.index), StatusCode.SUCCESS)
 
-    sigma = median(diff(t))
-    if not sigma > 0:
+    if not (diff(t) > 0).all():
         logger.error(f"{kwargs['name']} needs increasing timestamps for a derivative")
         return ProcessResult(None, StatusCode.ERROR_WRONG_INDEX)
+    sigma = median(diff(t))
 
     # Neighbouring readings in columns, padded with missing values at the edges
     window = 4
