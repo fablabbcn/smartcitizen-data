@@ -3,7 +3,7 @@
 import asyncio
 import json
 from datetime import datetime, timedelta
-from os import getcwd, makedirs
+from os import getcwd, makedirs, replace
 from os.path import abspath, basename, dirname, exists, expanduser, isdir, join
 from re import sub
 from shutil import copyfile, make_archive, rmtree
@@ -130,8 +130,12 @@ class Test(BaseModel):
         if abspath(tj['meta'].get('path', '')) != path:
             # The test folder was moved: keep the new location
             logger.warning(f"Test moved from {tj['meta'].get('path')} to {path}")
-            test.__dump__()
-            register(path)
+            try:
+                test.__dump__()
+                register(path)
+            except OSError as error:
+                # i.e. a read-only folder: the test is opened anyway
+                logger.warning(f'Could not keep the new location of test {test.name}: {error}')
 
         logger.info(f'Test {test.name} opened from {path}')
         return test
@@ -316,7 +320,9 @@ class Test(BaseModel):
                 'type': self.type
             },
             'options': self.options.model_dump(),
-            'devices': [{'params': device.params.model_dump(),
+            # Devices opened from test.json have their params as a dict
+            'devices': [{'params': device.params.model_dump() if isinstance(device.params, BaseModel)
+                                   else dict(device.params),
                          'channels': [channel.model_dump() for channel in device.channels],
                          'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
@@ -327,8 +333,12 @@ class Test(BaseModel):
         }
 
     def __dump__(self):
-        with open(join(self.path, 'test.json'), 'w') as file:
-            json.dump(self.ser_model(), file, indent=4)
+        # Serialised first, and replaced at once: an error never leaves test.json empty
+        content = json.dumps(self.ser_model(), indent=4)
+        path = join(self.path, 'test.json')
+        with open(path + '.tmp', 'w') as file:
+            file.write(content)
+        replace(path + '.tmp', path)
 
     def compress(self, cformat = 'zip', selection = 'full'):
         '''

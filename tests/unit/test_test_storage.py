@@ -381,3 +381,48 @@ def test_reopened_with_a_new_channel(make_device, index):
     assert len(device.data) == 10
     assert len(device.data.columns) == 2
     assert not device.data.isna().any().any()
+
+
+def test_open_moved_read_only(paths):
+    import os
+    import shutil
+    import stat
+
+    test = sc.Test(name='READ_ONLY').save(root=str(paths / 'tests'))
+    copy = paths / 'archive' / test.name
+    shutil.copytree(test.path, copy)
+    os.chmod(copy / 'test.json', stat.S_IRUSR)
+    os.chmod(copy, stat.S_IRUSR | stat.S_IXUSR)
+    try:
+        opened = sc.Test.open(str(copy))
+    finally:
+        os.chmod(copy, stat.S_IRWXU)
+
+    # Opened, although its new path could not be stored
+    assert opened.path == str(copy)
+    assert stored_meta(opened)['path'] == test.path
+
+
+def test_save_opened_test(device):
+    sc.Test(name='RESAVE', devices=[device]).save()
+    test = sc.Test.open('RESAVE')
+    test.devices[0].options.min_date = '2026-01-01'
+    test.save()
+
+    opened = sc.Test.open('RESAVE')
+    assert [d.id for d in opened.devices] == [1]
+    assert opened.devices[0].options.min_date == '2026-01-01'
+
+
+def test_failed_save_keeps_test_json(device):
+    test = sc.Test(name='KEPT', devices=[device]).save()
+    with open(join(test.path, 'test.json')) as file:
+        before = file.read()
+
+    # Not serialisable
+    test.type = object()
+    with pytest.raises(TypeError):
+        test.save()
+
+    with open(join(test.path, 'test.json')) as file:
+        assert file.read() == before
