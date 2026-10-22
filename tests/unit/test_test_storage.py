@@ -1,10 +1,12 @@
 ''' Creating, saving and opening tests: in the scdata cache by default, or in a custom folder '''
+import asyncio
 import builtins
 import json
 from datetime import datetime
 from os.path import exists, join
 
 import pytest
+from pandas import DataFrame, Timedelta, Timestamp
 
 import scdata as sc
 from scdata._config import config
@@ -288,3 +290,80 @@ def test_compress(paths):
     test = sc.Test(name='ZIP').save(root=str(paths / 'tests'))
 
     assert test.compress() == str(paths / 'tests' / f"{full_name('ZIP')}_full.zip")
+
+
+# A reopened test reads the cached data first, and requests only what the cache doesn't have
+
+def loaded_test(make_device, index, min_date=None, max_date=None):
+    # Named as the API data
+    readings = DataFrame({SHT31_TEMP['name']: range(len(index))}, index=index.rename('TIME'), dtype=float)
+    device = make_device({'channels': []}, [SHT31_TEMP], readings=readings)
+    device.options.channels = [SHT31_TEMP['name']]
+    device.options.min_date = min_date
+    device.options.max_date = max_date
+    test = sc.Test(name='CACHED', devices=[device]).save()
+    assert asyncio.run(test.load())
+    assert exists(join(test.path, 'cached', '1.csv'))
+    return test
+
+
+def reload(min_date='stored', max_date='stored'):
+    test = sc.Test.open('CACHED')
+    device = test.devices[0]
+    if min_date != 'stored': device.options.min_date = min_date
+    if max_date != 'stored': device.options.max_date = max_date
+    assert asyncio.run(test.load())
+    return device
+
+
+def dates(requests):
+    return [tuple(None if date is None else Timestamp(date, tz='UTC') if Timestamp(date).tzinfo is None
+                  else Timestamp(date).tz_convert('UTC') for date in request) for request in requests]
+
+
+def test_reopened_cache_covers_dates(make_device, index):
+    loaded_test(make_device, index, '2026-01-01 00:00', '2026-01-01 00:09')
+    device = reload()
+
+    # No request: the cache reaches max_date
+    assert device.handler.requests == []
+    assert len(device.data) == 10
+
+
+def test_reopened_requests_new_data(make_device, index):
+    loaded_test(make_device, index)
+    device = reload()
+
+    assert dates(device.handler.requests) == [(index[-1] + Timedelta('1min'), None)]
+    assert len(device.data) == 10
+
+
+def test_reopened_with_earlier_min_date(make_device, index):
+    loaded_test(make_device, index, '2026-01-01 00:05', '2026-01-01 00:09')
+    device = reload(min_date='2026-01-01 00:00')
+
+    # Only the period before the cache
+    assert dates(device.handler.requests) == [(index[0], index[4])]
+    assert len(device.data) == 10
+    assert device.data.index.is_monotonic_increasing
+
+
+def test_reopened_with_narrower_dates(make_device, index):
+    loaded_test(make_device, index, '2026-01-01 00:00', '2026-01-01 00:09')
+    device = reload(min_date='2026-01-01 00:03', max_date='2026-01-01 00:06')
+
+    # Only the cached data between the dates
+    assert device.handler.requests == []
+    assert list(device.data.index) == list(index[3:7])
+
+
+def test_unreadable_cache(make_device, index, caplog):
+    test = loaded_test(make_device, index)
+    with open(join(test.path, 'cached', '1.csv'), 'w') as file:
+        file.write(',TEMP\n2026-01-01 00:00:00+00:00,0.0\n')
+    device = reload()
+
+    # All the data is requested again
+    assert dates(device.handler.requests) == [(None, None)]
+    assert 'could not be read' in caplog.text
+    assert len(device.data) == 10
