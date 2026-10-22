@@ -19,8 +19,7 @@ def test_sc_test_all():
     t = sc.Test(name=f'CHECK_{now.tm_year}-{now.tm_mon}-{now.tm_mday}',
         devices=[sc.Device(blueprint='sc_air',
         params=sc.APIParams(id=d),
-        options=sc.DeviceOptions(min_date=min_date)) for d in devices_list],
-            force_recreate=True)
+        options=sc.DeviceOptions(min_date=min_date)) for d in devices_list]).save(overwrite=True)
 
     # Test requests
     load_status = asyncio.run(t.load())
