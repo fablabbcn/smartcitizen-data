@@ -478,7 +478,7 @@ class Device(BaseModel):
         return False
 
     async def load(self, cache=None, convert_units=True,
-    convert_names=True, ignore_error = True):
+    convert_names=True, ignore_error = True, fill_gaps = None):
         '''
         Loads the device with some options
 
@@ -496,6 +496,10 @@ class Device(BaseModel):
         ignore_error: bool
             Default: True
             Ignore if the cache does not exist
+        fill_gaps: String
+            Default: None
+            Also request the gaps of the cache longer than this (pandas
+            frequency, i.e. '1h'), in case the device posted their data later
         Returns
         ----------
             True if loaded correctly
@@ -561,6 +565,16 @@ class Device(BaseModel):
                     if max_date is None or last + step <= localise_date(max_date, 'UTC'):
                         periods.append((last + step, max_date))
 
+                    # Gaps of the cache, if asked: the device could have posted them later
+                    if fill_gaps is not None:
+                        index = cached_data.index.tz_convert('UTC')
+                        threshold = Timedelta(pandas_freq(fill_gaps))
+                        gaps = [(start + step, end - step) for start, end in zip(index[:-1], index[1:])
+                                if end - start > threshold]
+                        if gaps:
+                            logger.info(f'Requesting {len(gaps)} gaps of the cache of device {self.id}')
+                        periods.extend(gaps)
+
                     # Channels that the cache doesn't have: requested over the cached dates
                     rename = getattr(self, '_rename', {}) if self.options.convert_names else {}
                     missing = [channel for channel in self.options.channels
@@ -582,9 +596,10 @@ class Device(BaseModel):
             if data is not None and not data.empty:
                 requested.append(data)
 
-        if len(requested) == 1: self.data = requested[0]
-        elif requested: self.data = concat(requested).sort_index()
-        else: self.data = DataFrame()
+        # The periods can overlap (the gaps and the channels missing in the cache)
+        self.data = DataFrame()
+        for data in requested:
+            self.data = data if self.data.empty else self.data.combine_first(data)
         self.handler.data = self.data
 
         # Wrap it all up

@@ -428,3 +428,44 @@ def test_failed_save_keeps_test_json(device):
 
     with open(join(test.path, 'test.json')) as file:
         assert file.read() == before
+
+
+def posted_later(make_device, index, monkeypatch):
+    ''' A test cached while the device had not posted 00:03 to 00:06 yet, which it posts afterwards '''
+    from fake_handler import FakeHandler
+
+    readings = DataFrame({SHT31_TEMP['name']: range(len(index))}, index=index.rename('TIME'), dtype=float)
+    device = make_device({'channels': []}, [SHT31_TEMP], readings=readings.drop(index[3:7]))
+    device.options.channels = [SHT31_TEMP['name']]
+    device.options.max_date = '2026-01-01 00:09'
+    test = sc.Test(name='CACHED', devices=[device]).save()
+    assert asyncio.run(test.load())
+    monkeypatch.setattr(FakeHandler, 'readings', readings)
+
+
+def test_gaps_not_requested_by_default(make_device, index, monkeypatch):
+    posted_later(make_device, index, monkeypatch)
+    test = sc.Test.open('CACHED')
+    asyncio.run(test.load())
+
+    assert test.devices[0].handler.requests == []
+    assert len(test.devices[0].data) == 6
+
+
+def test_fill_gaps(make_device, index, monkeypatch):
+    posted_later(make_device, index, monkeypatch)
+    test = sc.Test.open('CACHED')
+    asyncio.run(test.load(fill_gaps='2min'))
+
+    device = test.devices[0]
+    assert dates(device.handler.requests) == [(index[3], index[6])]
+    assert list(device.data.index) == list(index)
+    assert not device.data.isna().any().any()
+
+
+def test_fill_gaps_shorter_than_threshold(make_device, index, monkeypatch):
+    posted_later(make_device, index, monkeypatch)
+    test = sc.Test.open('CACHED')
+    asyncio.run(test.load(fill_gaps='1h'))
+
+    assert test.devices[0].handler.requests == []

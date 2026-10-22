@@ -385,9 +385,18 @@ class Test(BaseModel):
 
         return fname
 
-    async def load(self):
+    async def load(self, fill_gaps = None):
         '''
-        Loads the test data and the different devices.
+        Loads the test data and the different devices. The cached data is
+        read first, and only the dates and channels it doesn't have are
+        requested.
+
+        Parameters
+        ----------
+        fill_gaps: str
+            None
+            Also request the gaps of the cache longer than this (i.e. '1h'),
+            in case the devices posted their data later
 
         Returns
         ----------
@@ -417,7 +426,7 @@ class Test(BaseModel):
                     device_cache_path = tentative_path
 
             # Load device (no need to go async, it's fast enough)
-            await device.load(cache=device_cache_path)
+            await device.load(cache=device_cache_path, fill_gaps=fill_gaps)
 
             if cache and device.loaded and not device.data.empty:
                 if device.export(cache_dir, forced_overwrite = True, file_format = 'csv', use_exports = False):
