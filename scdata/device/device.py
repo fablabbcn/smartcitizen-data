@@ -569,7 +569,8 @@ class Device(BaseModel):
                     if fill_gaps is not None:
                         index = cached_data.index.tz_convert('UTC')
                         threshold = Timedelta(pandas_freq(fill_gaps))
-                        gaps = [(start + step, end - step) for start, end in zip(index[:-1], index[1:])
+                        # The whole gap: readings are irregular, and the merge keeps one row per time
+                        gaps = [(start, end) for start, end in zip(index[:-1], index[1:])
                                 if end - start > threshold]
                         if gaps:
                             logger.info(f'Requesting {len(gaps)} gaps of the cache of device {self.id}')

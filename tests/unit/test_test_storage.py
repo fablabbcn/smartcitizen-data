@@ -458,7 +458,7 @@ def test_fill_gaps(make_device, index, monkeypatch):
     asyncio.run(test.load(fill_gaps='2min'))
 
     device = test.devices[0]
-    assert dates(device.handler.requests) == [(index[3], index[6])]
+    assert dates(device.handler.requests) == [(index[2], index[7])]
     assert list(device.data.index) == list(index)
     assert not device.data.isna().any().any()
 
@@ -469,3 +469,15 @@ def test_fill_gaps_shorter_than_threshold(make_device, index, monkeypatch):
     asyncio.run(test.load(fill_gaps='1h'))
 
     assert test.devices[0].handler.requests == []
+
+
+def test_fill_gaps_shorter_than_two_steps(make_device, index, monkeypatch):
+    posted_later(make_device, index, monkeypatch)
+    test = sc.Test.open('CACHED')
+    asyncio.run(test.load(fill_gaps='1min'))
+
+    # The whole gap, never reversed dates
+    requests = dates(test.devices[0].handler.requests)
+    assert requests == [(index[2], index[7])]
+    assert all(start <= end for start, end in requests)
+    assert list(test.devices[0].data.index) == list(index)
