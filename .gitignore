@@ -158,3 +158,5 @@ tests/local
 .vscode
 .virtual_documents
 TODO
+# Tests stored next to the example notebooks
+examples/notebooks/tests/
