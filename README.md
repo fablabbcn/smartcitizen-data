@@ -92,7 +92,7 @@ sc.tests('MY')                                  # stored tests whose name contai
 
 Tests stored out of the cache are registered in `tests.json` in the data folder, so they are opened by name from anywhere. `sc.Test.open` fails if several tests match the name (for instance `2026_09_MY_TEST` and `2026_10_MY_TEST`): open them by their full name.
 
-`test.json`, in the test folder, keeps the options of the test and, for each device, its params, source, blueprint (and `override_url_blueprint`), options (`min_date`, `max_date`, `frequency`...), channels and checks. After changing any of them, `test.save()` stores them again. The data loaded from the API is cached in the `cached` subfolder (`test.options.cache`), so loading the test again only requests new data. A test that is not saved is loaded without cache.
+`test.json`, in the test folder, keeps the options of the test and, for each device, its params, source, blueprint (and `override_url_blueprint`), options (`min_date`, `max_date`, `frequency`...), channels and checks. After changing any of them, `test.save()` stores them again. The data loaded from the API is cached in the `cached` subfolder (`test.options.cache`). Loading the test again reads the cache first, and only requests the dates of each device that the cache doesn't have: none if it reaches `max_date`, the new data if there is no `max_date`, and the period before it if `min_date` was moved earlier. A test that is not saved is loaded without cache.
 
 A test folder can be moved or copied: open it by its path (`sc.Test.open('path/to/2026_10_MY_TEST')`), which updates its path and registers it. `sc.tests(root=...)` and `sc.Test.open(name, root=...)` also look into a folder with tests that are not registered.
 
