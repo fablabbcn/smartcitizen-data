@@ -80,9 +80,12 @@ A test groups devices. Its name starts with the year and month it is created (`2
 
 ```
 test = sc.Test(name='MY_TEST', devices=[...])   # in memory
-test.save()                                     # in processed/<year>/<month>/2026_10_MY_TEST
-test.save(root='tests')                         # in ./tests/2026_10_MY_TEST instead
+
+# Stored in one of these places
+test.save()                                     # processed/<year>/<month>/2026_10_MY_TEST
+test.save(root='tests')                         # ./tests/2026_10_MY_TEST
 test.save(root='ask')                           # asks: scdata cache, current folder or another folder
+
 test.save(overwrite=True)                       # replaces a stored test with the same name
 
 test = sc.Test.open('MY_TEST')                  # by name, with or without the date, or by folder
