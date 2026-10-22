@@ -120,6 +120,50 @@ def test_open(device):
         assert [d.id for d in test.devices] == [1]
 
 
+def test_device_options_stored(device):
+    device.options.min_date = '2026-01-01'
+    device.options.frequency = '5Min'
+    device.options.channels = ['TEMP']
+    sc.Test(name='OPTIONS', devices=[device]).save()
+
+    options = sc.Test.open('OPTIONS').devices[0].options
+    assert options.min_date == '2026-01-01'
+    assert options.frequency == '5Min'
+    assert options.channels == ['TEMP']
+    assert options.convert_units is False
+
+
+def test_device_options_missing(device):
+    # Tests saved before the device options were stored
+    test = sc.Test(name='NO_OPTIONS', devices=[device]).save()
+    with open(join(test.path, 'test.json')) as file:
+        stored = json.load(file)
+    del stored['devices'][0]['options']
+    with open(join(test.path, 'test.json'), 'w') as file:
+        json.dump(stored, file)
+
+    assert sc.Test.open('NO_OPTIONS').devices[0].options == sc.DeviceOptions()
+
+
+def test_override_url_blueprint_stored(monkeypatch, make_device):
+    from fake_handler import FakeHandler
+    import scdata.device.device as device_module
+
+    device = make_device({'channels': []}, [SHT31_TEMP])
+    device.override_url_blueprint = True
+    sc.Test(name='OVERRIDE', devices=[device]).save()
+
+    # The blueprint url is not checked when it is overridden
+    monkeypatch.setattr(FakeHandler, 'blueprint_url', 'https://example.com/blueprints/other.json')
+    def no_url_check(url):
+        raise AssertionError('The blueprint url should not be checked')
+    monkeypatch.setattr(device_module, 'url_checker', no_url_check)
+
+    opened = sc.Test.open('OVERRIDE').devices[0]
+    assert opened.override_url_blueprint is True
+    assert opened.blueprint == 'unit_test'
+
+
 def test_open_exact_name():
     sc.Test(name='CLIENT_A_2').save()
 
