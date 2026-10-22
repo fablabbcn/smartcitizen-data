@@ -2,6 +2,7 @@
 import asyncio
 import builtins
 import json
+import os
 from datetime import datetime
 from os.path import exists, join
 
@@ -383,8 +384,9 @@ def test_reopened_with_a_new_channel(make_device, index):
     assert not device.data.isna().any().any()
 
 
+@pytest.mark.skipif(hasattr(os, 'geteuid') and os.geteuid() == 0,
+                    reason='Folder permissions are not enforced for root')
 def test_open_moved_read_only(paths):
-    import os
     import shutil
     import stat
 
