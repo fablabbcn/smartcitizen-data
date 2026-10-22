@@ -296,8 +296,9 @@ def test_compress(paths):
 
 def loaded_test(make_device, index, min_date=None, max_date=None):
     # Named as the API data
-    readings = DataFrame({SHT31_TEMP['name']: range(len(index))}, index=index.rename('TIME'), dtype=float)
-    device = make_device({'channels': []}, [SHT31_TEMP], readings=readings)
+    readings = DataFrame({SHT31_TEMP['name']: range(len(index)), SCD30_CO2['name']: 400},
+                         index=index.rename('TIME'), dtype=float)
+    device = make_device({'channels': []}, [SHT31_TEMP, SCD30_CO2], readings=readings)
     device.options.channels = [SHT31_TEMP['name']]
     device.options.min_date = min_date
     device.options.max_date = max_date
@@ -307,11 +308,12 @@ def loaded_test(make_device, index, min_date=None, max_date=None):
     return test
 
 
-def reload(min_date='stored', max_date='stored'):
+def reload(min_date='stored', max_date='stored', channels='stored'):
     test = sc.Test.open('CACHED')
     device = test.devices[0]
     if min_date != 'stored': device.options.min_date = min_date
     if max_date != 'stored': device.options.max_date = max_date
+    if channels != 'stored': device.options.channels = channels
     assert asyncio.run(test.load())
     return device
 
@@ -367,3 +369,15 @@ def test_unreadable_cache(make_device, index, caplog):
     assert dates(device.handler.requests) == [(None, None)]
     assert 'could not be read' in caplog.text
     assert len(device.data) == 10
+
+
+def test_reopened_with_a_new_channel(make_device, index):
+    loaded_test(make_device, index, '2026-01-01 00:00', '2026-01-01 00:09')
+    device = reload(channels=[SHT31_TEMP['name'], SCD30_CO2['name']])
+
+    # Only the new channel, over the cached dates
+    assert dates([request[:2] for request in device.handler.requests]) == [(index[0], index[-1])]
+    assert device.handler.requested_channels == [SCD30_CO2['name']]
+    assert len(device.data) == 10
+    assert len(device.data.columns) == 2
+    assert not device.data.isna().any().any()

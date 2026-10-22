@@ -560,6 +560,15 @@ class Device(BaseModel):
                     # After the cache (new data), unless it reaches max_date
                     if max_date is None or last + step <= localise_date(max_date, 'UTC'):
                         periods.append((last + step, max_date))
+
+                    # Channels that the cache doesn't have: requested over the cached dates
+                    rename = getattr(self, '_rename', {}) if self.options.convert_names else {}
+                    missing = [channel for channel in self.options.channels
+                               if rename.get(channel, channel) not in cached_data.columns]
+                    if missing:
+                        logger.info(f'Channels not in the cache of device {self.id}: {missing}')
+                        periods.append((first, last, missing))
+
                     if not periods:
                         logger.info(f'Device {self.id} loaded from cache: no request needed')
 
@@ -568,8 +577,8 @@ class Device(BaseModel):
             raise NotImplementedError('Source type stream not implemented yet')
 
         requested = []
-        for period_min_date, period_max_date in periods:
-            data = await self.__request__(period_min_date, period_max_date)
+        for period in periods:
+            data = await self.__request__(*period)
             if data is not None and not data.empty:
                 requested.append(data)
 
@@ -584,8 +593,9 @@ class Device(BaseModel):
 
         return self.loaded
 
-    async def __request__(self, min_date, max_date):
-        ''' Requests the data between the dates with the handler '''
+    async def __request__(self, min_date, max_date, channels = None):
+        ''' Requests the data between the dates with the handler (of channels, or the ones in the options) '''
+        if channels is None: channels = self.options.channels
         # The methods below should be implemented from the handler type
         if self.handler.method == 'async':
             await self.handler.get_data(
@@ -594,7 +604,7 @@ class Device(BaseModel):
                 frequency = self.options.frequency,
                 clean_na = self.options.clean_na,
                 limit = self.options.limit,
-                channels = self.options.channels,
+                channels = channels,
                 resample = self.options.resample)
         else:
             self.handler.get_data(
