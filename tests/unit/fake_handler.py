@@ -1,5 +1,5 @@
 ''' Offline handler used as Device source in unit tests '''
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
 
 
 class FakeHandler:
@@ -22,13 +22,22 @@ class FakeHandler:
         self.timezone = 'UTC'
         self.data = DataFrame()
         self.requested_channels = None
+        # (min_date, max_date) of each get_data
+        self.requests = []
         self.failed_sensors = list(FakeHandler.failed_sensors)
 
-    async def get_data(self, channels=None, min_date=None, **kwargs):
+    async def get_data(self, channels=None, min_date=None, max_date=None, **kwargs):
         self.requested_channels = list(channels)
         self.requested_min_date = min_date
+        self.requests.append((min_date, max_date))
         available = [column for column in FakeHandler.readings.columns if column in channels]
-        self.data = FakeHandler.readings[available].copy()
+        data = FakeHandler.readings[available].copy()
+        # As the API: only the readings between the dates
+        if min_date is not None and not data.empty:
+            data = data[data.index >= to_datetime(min_date, utc=True)]
+        if max_date is not None and not data.empty:
+            data = data[data.index <= to_datetime(max_date, utc=True)]
+        self.data = data
         return self.data
 
     async def post_data(self, columns=None, rename=None, dry_run=False, **kwargs):

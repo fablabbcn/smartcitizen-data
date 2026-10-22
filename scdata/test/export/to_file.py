@@ -22,7 +22,11 @@ def to_csv(self, path = None, forced_overwrite = False):
     """
     export_ok = True
 
-    if path is None: epath = join(self.path, 'processed')
+    if path is None:
+        if not self.path:
+            logger.error(f'Test {self.name} is not saved: pass a path or use test.save()')
+            return False
+        epath = join(self.path, 'processed')
     else: epath = path
 
     # Export to csv

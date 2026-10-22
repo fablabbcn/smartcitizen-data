@@ -23,7 +23,7 @@ Run them with `--help` for their options.
 
 ## Notebooks
 
-- Getting started: configuration, blueprints, load from the API and CSV, tests, export: [notebooks/01_getting_started.ipynb](notebooks/01_getting_started.ipynb)
+- Getting started: configuration, blueprints, load from the API and CSV, tests (create, save, open and find them), export: [notebooks/01_getting_started.ipynb](notebooks/01_getting_started.ipynb)
 - Plots (matplotlib, uPlot and maps): [notebooks/03_data_visualisation.ipynb](notebooks/03_data_visualisation.ipynb)
 - Processing: channels, your own functions, baselines: [notebooks/04_processing_data.ipynb](notebooks/04_processing_data.ipynb)
 - Query the Smart Citizen API to find devices: [notebooks/08_querying_the_sc_api.ipynb](notebooks/08_querying_the_sc_api.ipynb)
@@ -37,5 +37,7 @@ Run them with `--help` for their options.
 - Health checks: summary, flags, clean data: [notebooks/20_health_checks.ipynb](notebooks/20_health_checks.ipynb)
 - Long processing: backups, long blueprints, baselines: [notebooks/21_long_processing.ipynb](notebooks/21_long_processing.ipynb)
 - Basic data exploration: [notebooks/learning/01_basic_data_exploration.ipynb](notebooks/learning/01_basic_data_exploration.ipynb)
+
+The notebooks that use a test store it in the scdata cache (`~/.cache/scdata/processed/<year>/<month>`) and replace it on each run, except [notebooks/01_getting_started.ipynb](notebooks/01_getting_started.ipynb), which also stores one next to it, in `notebooks/tests` (ignored by git), and [notebooks/learning/01_basic_data_exploration.ipynb](notebooks/learning/01_basic_data_exploration.ipynb), which opens its test once created. List them with `sc.tests()`.
 
 Notebooks in [notebooks/todo](notebooks/todo) are not up to date.

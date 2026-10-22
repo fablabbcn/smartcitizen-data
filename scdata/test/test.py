@@ -3,8 +3,8 @@
 import asyncio
 import json
 from datetime import datetime, timedelta
-from os import makedirs
-from os.path import exists, join
+from os import getcwd, makedirs, replace
+from os.path import abspath, basename, dirname, exists, expanduser, isdir, join
 from re import sub
 from shutil import copyfile, make_archive, rmtree
 from traceback import print_exc
@@ -20,6 +20,7 @@ from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from scdata.tools.find import find_by_field
 from scdata.tools.lazy import PLOT_EXTRA, plot_method
+from .store import default_root, find, full_name, register
 
 try:
     from branca import element
@@ -49,10 +50,12 @@ class Test(BaseModel):
     from .checks import get_common_channels
     from .dispersion import dispersion_analysis, dispersion_summary
     from .export import to_csv, to_html
-    from .tools import combine, history, prepare
+    from .tools import combine, prepare
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
+    # <year>_<month>_<name>: the date prefix is added if the name doesn't have it
     name: str
+    # Test folder, set when the test is saved or opened
     path: str = ''
     devices: List[Device] = []
     options: TestOptions = TestOptions()
@@ -60,31 +63,15 @@ class Test(BaseModel):
     # dev
     # deployment...
     type: str = 'dev'
-    new: bool = False
     loaded: bool = False
-    force_recreate: bool = False
     # results: List[TestResult] = []
 
     def model_post_init(self, __context) -> None:
-
-        if self.__check_tname__(self.name):
-            self.__set_tname__(self.name)
-
-        if self.new or self.force_recreate:
-            logger.info('New test')
-            self.create()
-        else:
-            with open(join(self.path, 'test.json'), 'r') as file:
-                tj = json.load(file)
-
-            self.devices = TypeAdapter(List[Device]).validate_python(tj['devices'])
-            self.options = TypeAdapter(TestOptions).validate_python(tj['options'])
-            self.type = tj['meta']['type']
-            if self.name != tj['meta']['name']:
-                raise ValueError('Name not matching')
-
-            if self.path != tj['meta']['path']:
-                raise ValueError('Path not matching')
+        '''
+        Creates a test in memory. It is stored with save(), and stored
+        tests are opened with Test.open() (or Test.open_or_create())
+        '''
+        self.name = full_name(self.name)
 
         # TODO
         # Dispersion analysis
@@ -97,78 +84,196 @@ class Test(BaseModel):
     def __str__(self):
         return self.name
 
-    def __set_tname__(self, name):
-        current_date = datetime.now()
-        self.name = f'{current_date.year}_{str(current_date.month).zfill(2)}_{name}'
-        self.path = join(config.paths['processed'], str(current_date.year), \
-                str(current_date.month).zfill(2), self.name)
+    @classmethod
+    def open(cls, name, root = None):
+        '''
+        Opens a stored test
 
-        logger.info (f'Full Name: {self.name}')
+        Parameters
+        ----------
+        name: str
+            Name of the test, with or without the date prefix, or path
+            to its folder (or test.json)
+        root: str
+            None
+            Folder with tests to look into, besides config.paths['processed']
+            and the registered tests
 
-    def __check_tname__(self, name):
-        test_log = self.history()
-        test_logn = list(test_log.keys())
-
-        if not any([name in tlog for tlog in test_logn]):
-            logger.info ('Test is new')
-            self.new = True
-            return name
+        Returns
+        ----------
+        Test. Raises FileNotFoundError if not found, or ValueError if several
+        tests match the name
+        '''
+        if exists(join(name, 'test.json')):
+            path = abspath(name)
+        elif basename(name) == 'test.json' and exists(name):
+            path = dirname(abspath(name))
         else:
-            self.new = False
-            undef_test = True
-            while undef_test:
-                # Wait for input
-                possible_names = list()
-                logger.info ('Possible tests found:')
-                for ctest in test_logn:
-                    if name in ctest:
-                        possible_names.append(test_logn.index(ctest) + 1)
-                        logger.info (str(test_logn.index(ctest) + 1) + ' --- ' + ctest)
-                logger.info ('// --- \\\\')
-                if len(possible_names) == 1:
-                    which_test = str(possible_names[0])
-                else:
-                    which_test = input('Similar tests found, please select one or input other name [New]: ')
+            if root is not None: root = abspath(expanduser(root))
+            found = find(name, root)
+            if not found:
+                raise FileNotFoundError(f'Test {name} not found. Stored tests are listed with sc.tests()')
+            if len(found) > 1:
+                raise ValueError(f'Several tests match {name}:\n' + '\n'.join(found) +
+                                 '\nOpen one by its full name or path')
+            path = found[0]
 
-                if which_test == 'New':
-                    new_name = input('Enter new name: ')
-                    break
-                elif which_test.isdigit():
-                    if int(which_test) in possible_names:
-                        self.name = test_logn[int(which_test)-1]
-                        self.path = test_log[self.name]['path']
-                        logger.info(f'Test full name, {self.name}')
-                        return False
-                    else:
-                        logger.error("Type 'New' for other name, or test number in possible tests")
-                else:
-                    logger.error("Type 'New' for other name, or test number")
+        with open(join(path, 'test.json'), 'r') as file:
+            tj = json.load(file)
 
-            if self.__check_tname__(new_name):
-                self.__set_tname__(new_name)
+        test = cls(name = tj['meta']['name'],
+                   type = tj['meta']['type'],
+                   options = TypeAdapter(TestOptions).validate_python(tj['options']),
+                   devices = TypeAdapter(List[Device]).validate_python(tj['devices']))
+        test.path = path
 
-    def create(self):
-        # Create folder structure under data subdir
-        if not exists(self.path):
-            logger.info('Creating new test')
-            makedirs(self.path)
-        else:
-            if not self.force_recreate:
-                logger.error (f'Test already exists with this name. \
-                    Full name: {self.name}. Maybe force_recreate = True?')
-                return None
-            else:
-                logger.info (f'Overwriting test. Full name: {self.name}')
+        if abspath(tj['meta'].get('path', '')) != path:
+            # The test folder was moved: keep the new location
+            logger.warning(f"Test moved from {tj['meta'].get('path')} to {path}")
+            try:
+                test.__dump__()
+                register(path)
+            except OSError as error:
+                # i.e. a read-only folder: the test is opened anyway
+                logger.warning(f'Could not keep the new location of test {test.name}: {error}')
 
-        # TODO Remove
-        # self.__preprocess__()
+        logger.info(f'Test {test.name} opened from {path}')
+        return test
+
+    @classmethod
+    def open_or_create(cls, name, devices = None, options = None, type = 'dev', root = None):
+        '''
+        Opens the test if it is stored, otherwise creates and saves it
+
+        Parameters
+        ----------
+        name: str
+            Name of the test, with or without the date prefix
+        devices, options, type:
+            Of the new test. When the test is stored, its own are used
+            (with a warning if the devices are different)
+        root: str
+            None
+            Folder to store a new test, see save(). It is also looked into
+            when opening
+
+        Returns
+        ----------
+        Test
+        '''
+        try:
+            test = cls.open(name, root = None if root == 'ask' else root)
+        except FileNotFoundError:
+            test = cls(name = name, devices = devices or [],
+                       options = options or TestOptions(), type = type)
+            return test.save(root = root)
+
+        if devices is not None:
+            stored = sorted((str(device.id), device.blueprint) for device in test.devices)
+            given = sorted((str(device.id), device.blueprint) for device in devices)
+            if stored != given:
+                logger.warning(f'Test {test.name} is stored with other devices: {stored}. '
+                               'Its stored devices are used. To change them, set '
+                               'test.devices and test.save()')
+        return test
+
+    def save(self, root = None, overwrite = False):
+        '''
+        Stores the test (test.json) in its folder
+
+        Parameters
+        ----------
+        root: str
+            None
+            Folder to store the test folder in. If None, the folder where
+            it is already stored, or config.paths['processed']/<year>/<month>.
+            'ask' asks where to store it (the scdata cache, the current
+            folder, which is the notebook folder in jupyter, or another one)
+        overwrite: bool
+            False
+            Replace a stored test with the same name. The cached data of
+            the stored test is kept
+
+        Returns
+        ----------
+        The test. Raises FileExistsError if a test with the same name is
+        stored somewhere else (and overwrite is False)
+        '''
+        if root == 'ask': root = self.__ask_root__()
+
+        if root is not None: path = join(abspath(expanduser(root)), self.name)
+        elif self.path: path = abspath(self.path)
+        else: path = join(default_root(self.name), self.name)
+
+        if exists(path) and not isdir(path):
+            raise FileExistsError(f'{path} is not a folder')
+
+        # Saving the test in its own folder updates it
+        current = abspath(self.path) if self.path else None
+        conflicts = [found for found in find(self.name, dirname(path))
+                     if not found == path == current]
+        if path != current and exists(join(path, 'test.json')) and path not in conflicts:
+            conflicts.append(path)
+
+        if conflicts:
+            if not overwrite:
+                raise FileExistsError(f'Test {self.name} is already stored in:\n' + '\n'.join(conflicts) +
+                                      '\nOpen it with sc.Test.open, or save with overwrite=True')
+            if conflicts != [path]:
+                logger.warning(f'Test {self.name} is also stored in: ' +
+                               ', '.join(c for c in conflicts if c != path))
+            logger.info(f'Overwriting test {self.name}')
+
+        makedirs(path, exist_ok = True)
+        self.path = path
         self.__dump__()
+        register(path)
 
-        logger.info (f'Test creation finished. Name: {self.name}')
-        return self.name
+        logger.info(f'Test {self.name} saved in {self.path}')
+        return self
+
+    def __ask_root__(self):
+        '''
+        Asks where to store the test: the scdata cache, the current folder
+        (the notebook folder in jupyter) or another folder.
+        Returns the root folder, or None for the default one
+        '''
+        options = {'1': ('scdata cache', default_root(self.name)),
+                   '2': ('current folder', getcwd()),
+                   '3': ('other folder', None)}
+        if self.path: options['1'] = ('where it is stored', dirname(self.path))
+        print (f'Where should test {self.name} be stored?')
+        for key, (description, path) in options.items():
+            print (f'  {key} - {description}' + (f': {path}' if path else ''))
+
+        while True:
+            try:
+                which = input('Select an option [1]: ').strip() or '1'
+                if which == '3':
+                    root = input('Folder: ').strip()
+                    if not root: continue
+                    root = abspath(expanduser(root))
+                    if exists(root) and not isdir(root):
+                        logger.error(f'{root} is not a folder')
+                        continue
+                    return root
+            except (EOFError, NotImplementedError):
+                # No input available (i.e. a notebook run with nbconvert)
+                logger.warning(f'Input not available. Using {options["1"][1]}')
+                return None
+
+            if which == '1': return None
+            if which == '2': return options['2'][1]
+            logger.error('Type 1, 2 or 3')
+
+    def __saved__(self):
+        if not self.path:
+            logger.error(f'Test {self.name} is not saved: use test.save()')
+        return bool(self.path)
 
     def purge(self):
         # Check if the folder structure exists
+        if not self.__saved__(): return False
         if not exists(self.path):
             logger.error('Test folder doesnt exist')
         else:
@@ -215,17 +320,25 @@ class Test(BaseModel):
                 'type': self.type
             },
             'options': self.options.model_dump(),
-            'devices': [{'params': device.params.model_dump(),
+            # Devices opened from test.json have their params as a dict
+            'devices': [{'params': device.params.model_dump() if isinstance(device.params, BaseModel)
+                                   else dict(device.params),
                          'channels': [channel.model_dump() for channel in device.channels],
                          'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
-                         'blueprint': device.blueprint}
+                         'options': device.options.model_dump(),
+                         'blueprint': device.blueprint,
+                         'override_url_blueprint': device.override_url_blueprint}
                          for device in self.devices]
         }
 
     def __dump__(self):
-        with open(join(self.path, 'test.json'), 'w') as file:
-            json.dump(self.ser_model(), file, indent=4)
+        # Serialised first, and replaced at once: an error never leaves test.json empty
+        content = json.dumps(self.ser_model(), indent=4)
+        path = join(self.path, 'test.json')
+        with open(path + '.tmp', 'w') as file:
+            file.write(content)
+        replace(path + '.tmp', path)
 
     def compress(self, cformat = 'zip', selection = 'full'):
         '''
@@ -247,6 +360,8 @@ class Test(BaseModel):
         ----------
         True if all good, False otherwise
         '''
+        if not self.__saved__(): return False
+
         if cformat not in ['zip', 'tar', 'gztar', 'bztar', 'xztar']:
             logger.error('Invalid format')
             return False
@@ -262,7 +377,7 @@ class Test(BaseModel):
         elif selection == 'raw':
             _root_dir = join(self.path, 'raw')
 
-        fname_t = join(self.path.strip(f'{self.full_name}')[:-1], self.full_name + f'_{selection}')
+        fname_t = join(dirname(abspath(self.path)), self.name + f'_{selection}')
         make_archive(fname_t, cformat, root_dir=_root_dir)
 
         fname = fname_t + '.' + cformat
@@ -270,9 +385,18 @@ class Test(BaseModel):
 
         return fname
 
-    async def load(self):
+    async def load(self, fill_gaps = None):
         '''
-        Loads the test data and the different devices.
+        Loads the test data and the different devices. The cached data is
+        read first, and only the dates and channels it doesn't have are
+        requested.
+
+        Parameters
+        ----------
+        fill_gaps: str
+            None
+            Also request the gaps of the cache longer than this (i.e. '1h'),
+            in case the devices posted their data later
 
         Returns
         ----------
@@ -280,7 +404,12 @@ class Test(BaseModel):
         '''
         logger.info('Loading test...')
 
-        if self.options.cache:
+        cache = self.options.cache
+        if cache and not self.path:
+            logger.warning(f'Test {self.name} is not saved: its data is not cached (use test.save())')
+            cache = False
+
+        if cache:
             cache_dir = join(self.path, 'cached')
             if not exists(cache_dir):
                     logger.info('Creating path for exporting cached data...')
@@ -291,15 +420,15 @@ class Test(BaseModel):
             logger.info(f"Loading device {device.id}")
             # Check for cached data
             device_cache_path = ''
-            if self.options.cache:
+            if cache:
                 tentative_path = join(self.path, 'cached', f'{device.id}.csv')
                 if exists(tentative_path):
                     device_cache_path = tentative_path
 
             # Load device (no need to go async, it's fast enough)
-            await device.load(cache=device_cache_path)
+            await device.load(cache=device_cache_path, fill_gaps=fill_gaps)
 
-            if self.options.cache and device.loaded and not device.data.empty:
+            if cache and device.loaded and not device.data.empty:
                 if device.export(cache_dir, forced_overwrite = True, file_format = 'csv', use_exports = False):
                     logger.info(f'Device {device.id} cached')
 

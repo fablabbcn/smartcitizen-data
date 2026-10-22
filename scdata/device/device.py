@@ -478,7 +478,7 @@ class Device(BaseModel):
         return False
 
     async def load(self, cache=None, convert_units=True,
-    convert_names=True, ignore_error = True):
+    convert_names=True, ignore_error = True, fill_gaps = None):
         '''
         Loads the device with some options
 
@@ -496,6 +496,10 @@ class Device(BaseModel):
         ignore_error: bool
             Default: True
             Ignore if the cache does not exist
+        fill_gaps: String
+            Default: None
+            Also request the gaps of the cache longer than this (pandas
+            frequency, i.e. '1h'), in case the device posted their data later
         Returns
         ----------
             True if loaded correctly
@@ -506,9 +510,6 @@ class Device(BaseModel):
         frequency = self.options.frequency
         clean_na = self.options.clean_na
         resample = self.options.resample
-        limit = self.options.limit
-        channels = self.options.channels
-        dateformat = self.options.dateformat
         cached_data = DataFrame()
 
         # Data before the first hardware version is not processed: do not load it
@@ -516,6 +517,9 @@ class Device(BaseModel):
         if start is not None and (min_date is None or localise_date(min_date, 'UTC') < start):
             logger.info(f'Loading from {start}, the start of the first hardware version (min_date was {min_date})')
             min_date = start
+
+        # Periods to request: all of them, unless the cache has part of the data
+        periods = [(min_date, max_date)]
 
         # Only case where cache makes sense
         if self.source.type == 'api':
@@ -537,42 +541,97 @@ class Device(BaseModel):
                     else:
                         raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
 
-                # Make request with a logical min_date
+                    if cached_data is None:
+                        logger.warning(f'Cache file could not be read, requesting all the data: {cache}')
+                        cached_data = DataFrame()
+
+                # Only the cached data between the dates of the device
                 if not cached_data.empty:
-                    # Update min_date
-                    min_date=cached_data.index[-1].tz_convert('UTC')+Timedelta(pandas_freq(frequency))
+                    if min_date is not None:
+                        cached_data = cached_data[cached_data.index >= localise_date(min_date, 'UTC')]
+                    if max_date is not None:
+                        cached_data = cached_data[cached_data.index <= localise_date(max_date, 'UTC')]
+
+                # Request only what the cache doesn't have
+                if not cached_data.empty:
+                    step = Timedelta(pandas_freq(frequency))
+                    first = cached_data.index[0].tz_convert('UTC')
+                    last = cached_data.index[-1].tz_convert('UTC')
+                    periods = []
+                    # Before the cache, if min_date is earlier
+                    if min_date is not None and localise_date(min_date, 'UTC') < first - step:
+                        periods.append((min_date, first - step))
+                    # After the cache (new data), unless it reaches max_date
+                    if max_date is None or last + step <= localise_date(max_date, 'UTC'):
+                        periods.append((last + step, max_date))
+
+                    # Gaps of the cache, if asked: the device could have posted them later
+                    if fill_gaps is not None:
+                        index = cached_data.index.tz_convert('UTC')
+                        threshold = Timedelta(pandas_freq(fill_gaps))
+                        # The whole gap: readings are irregular, and the merge keeps one row per time
+                        gaps = [(start, end) for start, end in zip(index[:-1], index[1:])
+                                if end - start > threshold]
+                        if gaps:
+                            logger.info(f'Requesting {len(gaps)} gaps of the cache of device {self.id}')
+                        periods.extend(gaps)
+
+                    # Channels that the cache doesn't have: requested over the cached dates
+                    rename = getattr(self, '_rename', {}) if self.options.convert_names else {}
+                    missing = [channel for channel in self.options.channels
+                               if rename.get(channel, channel) not in cached_data.columns]
+                    if missing:
+                        logger.info(f'Channels not in the cache of device {self.id}: {missing}')
+                        periods.append((first, last, missing))
+
+                    if not periods:
+                        logger.info(f'Device {self.id} loaded from cache: no request needed')
 
         # Not implemented "for now"
         elif self.source.type == 'stream':
             raise NotImplementedError('Source type stream not implemented yet')
 
-        # The methods below should be implemented from the handler type
-        if self.handler.method == 'async':
-            await self.handler.get_data(
-                min_date = min_date,
-                max_date = max_date,
-                frequency = frequency,
-                clean_na = clean_na,
-                limit = limit,
-                channels = channels,
-                resample = resample)
-        else:
-            self.handler.get_data(
-                min_date = min_date,
-                max_date = max_date,
-                frequency = frequency,
-                clean_na = clean_na,
-                resample = resample,
-                dateformat = dateformat)
+        requested = []
+        for period in periods:
+            data = await self.__request__(*period)
+            if data is not None and not data.empty:
+                requested.append(data)
 
-        # In principle this links both dataframes as they are unmutable
-        self.data = self.handler.data
+        # The periods can overlap (the gaps and the channels missing in the cache)
+        self.data = DataFrame()
+        for data in requested:
+            self.data = data if self.data.empty else self.data.combine_first(data)
+        self.handler.data = self.data
 
         # Wrap it all up
         self.loaded = self.__load_wrapup__(cached_data=cached_data)
         self.processed = False
 
         return self.loaded
+
+    async def __request__(self, min_date, max_date, channels = None):
+        ''' Requests the data between the dates with the handler (of channels, or the ones in the options) '''
+        if channels is None: channels = self.options.channels
+        # The methods below should be implemented from the handler type
+        if self.handler.method == 'async':
+            await self.handler.get_data(
+                min_date = min_date,
+                max_date = max_date,
+                frequency = self.options.frequency,
+                clean_na = self.options.clean_na,
+                limit = self.options.limit,
+                channels = channels,
+                resample = self.options.resample)
+        else:
+            self.handler.get_data(
+                min_date = min_date,
+                max_date = max_date,
+                frequency = self.options.frequency,
+                clean_na = self.options.clean_na,
+                resample = self.options.resample,
+                dateformat = self.options.dateformat)
+
+        return self.handler.data
 
     def __load_wrapup__(self, cached_data=None):
 

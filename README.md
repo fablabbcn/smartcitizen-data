@@ -74,6 +74,42 @@ paths:
 
 The data folder is `~/.cache/scdata` by default (`$XDG_CACHE_HOME/scdata` if it is set), with the `raw`, `processed`, `export`... folders inside. Each folder of `paths` is changed on its own, and only to a folder that exists: changing `data` does not move the others. To move them all, set `XDG_CACHE_HOME`.
 
+### Tests
+
+A test groups devices. Its name starts with the year and month it is created (`2026_10_MY_TEST`). Creating, storing and opening a test are separate steps:
+
+```
+test = sc.Test(name='MY_TEST', devices=[...])   # in memory
+
+# Stored in one of these places
+test.save()                                     # processed/<year>/<month>/2026_10_MY_TEST
+test.save(root='tests')                         # ./tests/2026_10_MY_TEST
+test.save(root='ask')                           # asks: scdata cache, current folder or another folder
+
+test.save(overwrite=True)                       # replaces a stored test with the same name
+
+test = sc.Test.open('MY_TEST')                  # by name, with or without the date, or by folder
+test = sc.Test.open_or_create('MY_TEST', devices=[...], root='tests')
+sc.tests('MY')                                  # stored tests whose name contains MY
+```
+
+Tests stored out of the cache are registered in `tests.json` in the data folder, so they are opened by name from anywhere. `sc.Test.open` fails if several tests match the name (for instance `2026_09_MY_TEST` and `2026_10_MY_TEST`): open them by their full name.
+
+`test.json`, in the test folder, keeps the options of the test and, for each device, its params, source, blueprint (and `override_url_blueprint`), options (`min_date`, `max_date`, `frequency`...), channels and checks. After changing any of them, `test.save()` stores them again. The data loaded from the API is cached in the `cached` subfolder (`test.options.cache`). Loading the test again reads the cache first, and only requests the dates of each device that the cache doesn't have: none if it reaches `max_date`, the new data if there is no `max_date`, and the period before it if `min_date` was moved earlier. Gaps inside the cache are not requested, unless `test.load(fill_gaps='1h')` is used: then the gaps longer than an hour are requested too, in case the devices posted that data later. A test that is not saved is loaded without cache.
+
+A test folder can be moved or copied: open it by its path (`sc.Test.open('path/to/2026_10_MY_TEST')`), which updates its path and registers it. `sc.tests(root=...)` and `sc.Test.open(name, root=...)` also look into a folder with tests that are not registered.
+
+#### Upgrading from 1.x
+
+| 1.x | 2.0 |
+| --- | --- |
+| `sc.Test(name='X', devices=[...])`: created or opened, depending on what was stored | `sc.Test.open_or_create('X', devices=[...])` |
+| `sc.Test(name='X', devices=[...], force_recreate=True)` | `sc.Test(name='X', devices=[...]).save(overwrite=True)` |
+| `sc.Test(name='X')` to open a test, asking which one if several names contain `X` | `sc.Test.open('X')`: the exact name, with or without the date |
+| `test.history()` | `sc.tests()` |
+
+Tests saved with 1.x open as they are. Their devices get the default options, which 1.x did not store: set them and `test.save()`.
+
 Also, `.env` files will be picked from `~/.cache/scdata`. An [env.example](env.example) is provided. If you want to upload data to [Zenodo](http://zenodo.org), you will need to fill set an environment variable called `ZENODO_TOKEN` in your environment. The `.env` file is not mandatory for `scdata` to work. It only serves for authentication if you want to `POST` or `GET` data without throttling. You can still do `GET` requests but they will be throttled if not authenticated/authorized by the platform. See [user roles](https://developer.smartcitizen.me/#authentication) for more info.
 
 ### Using with jupyter lab (optional)
