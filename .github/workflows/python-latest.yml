@@ -21,8 +21,11 @@ jobs:
         include:
           - pandas: "2.2.2"
             numpy: "1.26.*"
+            # pyarrow 26 needs numpy 2, without saying so in its requirements
+            pyarrow: "<26"
           - pandas: "3.*"
             numpy: "2.*"
+            pyarrow: ">=0"
     steps:
     - uses: actions/checkout@v7
       with:
@@ -38,7 +41,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        pip install .[dev] "pandas==${{ matrix.pandas }}" "numpy==${{ matrix.numpy }}"
+        pip install .[dev] "pandas==${{ matrix.pandas }}" "numpy==${{ matrix.numpy }}" "pyarrow${{ matrix.pyarrow }}"
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
