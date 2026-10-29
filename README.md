@@ -16,7 +16,7 @@ Welcome to **SmartCitizen Data**. This is a data analysis framework for working 
 
 ## Installation
 
-You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with `Python 3.*` (tested between 3.9 and 3.11).
+You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with Python 3.10 or later (tested from 3.10 to 3.13).
 
 You can just run:
 
