@@ -129,3 +129,50 @@ def test_with_or_without_hardware_and_blueprint(monkeypatch, names, hardware, gi
     assert sorted(device.data.columns) == ['SCD30_CO2', 'TEMP']
     assert device.process() is True
     assert sorted(device.data.columns) == sorted(['SCD30_CO2', 'TEMP'] + ([channel] if channel else []))
+
+
+class ParamsOnlyHandler(FakeHandler):
+    ''' An API handler that only takes params '''
+    def __init__(self, params):
+        super().__init__(params)
+
+
+def test_handlers_that_only_take_params(monkeypatch, names):
+    import fake_handler
+    monkeypatch.setattr(fake_handler, 'ParamsOnlyHandler', ParamsOnlyHandler, raising=False)
+    monkeypatch.setitem(config.names, 'ParamsOnlyHandler', names)
+    monkeypatch.setattr(FakeHandler, 'sensors', [SHT31_TEMP])
+    monkeypatch.setattr(FakeHandler, 'blueprint_name', None)
+
+    device = sc.Device(source={'type': 'api', 'module': 'fake_handler', 'handler': 'ParamsOnlyHandler'},
+                       params=sc.APIParams(id=1))
+
+    assert isinstance(device.handler, ParamsOnlyHandler)
+
+
+@pytest.mark.parametrize('hardware, asked, override', [
+    # A long blueprint asked for that the hardware does not have: the device is created again without one
+    (None, 'long', False),
+    ('sc_air_baseline', 'long', False),
+    ('sc_air', None, True),
+])
+def test_the_test_keeps_how_the_device_was_created(monkeypatch, names, hardware, asked, override):
+    from pydantic import TypeAdapter
+    from typing import List
+
+    monkeypatch.setitem(config.names, 'FakeHandler', names)
+    monkeypatch.setitem(config.blueprints, 'unit_test', Blueprint.model_validate(GIVEN_BLUEPRINT).model_dump())
+    monkeypatch.setattr(FakeHandler, 'sensors', [SHT31_TEMP])
+    monkeypatch.setattr(FakeHandler, 'blueprint_name', hardware)
+    monkeypatch.setattr(FakeHandler, 'properties', {'meta': {'kind': asked or 'process'}, 'channels': []})
+    device = sc.Device(source=SOURCE, params=sc.APIParams(id=1), blueprint_kind=asked,
+                       **({'blueprint': 'unit_test', 'override_hardware_blueprint': True} if override else {}))
+
+    # What test.json stores of the device (without creating a test)
+    from types import SimpleNamespace
+    test = SimpleNamespace(name='TEST', path='', type='dev', options=sc.TestOptions(), devices=[device])
+    stored = sc.Test.ser_model(test)['devices'][0]
+
+    assert (stored['blueprint_kind'], stored['override_hardware_blueprint']) == (asked, override)
+    again = TypeAdapter(List[sc.Device]).validate_python([stored])[0]
+    assert (again.blueprint, again.blueprint_kind) == (device.blueprint, device.blueprint_kind)

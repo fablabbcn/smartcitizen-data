@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from numpy import nan
 from pandas import DataFrame, Series, Timedelta, Timestamp, concat, to_timedelta
-from pydantic import BaseModel, ConfigDict, TypeAdapter
+from pydantic import BaseModel, ConfigDict, PrivateAttr, TypeAdapter
 from pydantic_core import ValidationError
 
 from scdata._config import config
@@ -135,10 +135,12 @@ class Device(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
-    blueprint: str = None
+    blueprint: Optional[str] = None
     # Kind of the blueprint of the hardware to use (API devices): 'process' or 'long'. None: the process one,
     # else the long one. Once created, the kind of the blueprint the device uses (None without a blueprint)
     blueprint_kind: Optional[str] = None
+    # The kind asked for when the device was created (blueprint_kind is then the one used)
+    _requested_blueprint_kind: Optional[str] = PrivateAttr(default=None)
     # Uses blueprint instead of the blueprint of the hardware
     override_hardware_blueprint: bool = False
     source: Source = Source()
@@ -195,6 +197,7 @@ class Device(BaseModel):
         '''
 
         # Set handler
+        self._requested_blueprint_kind = self.blueprint_kind
         self.__set_handler__()
 
         # Set blueprint: the one of the hardware (filled with its sensors by the handler), or the one given
@@ -268,7 +271,8 @@ class Device(BaseModel):
             raise NotImplementedError(f'No handler for {self.source.type} yet')
 
         if self.hclass is not None:
-            if self.source.type == 'api':
+            # Only when a kind is asked for: other API handlers may only take params
+            if self.source.type == 'api' and self.blueprint_kind is not None:
                 self.handler = self.hclass(params = self.params_parsed, blueprint_kind = self.blueprint_kind)
             else:
                 self.handler = self.hclass(params = self.params_parsed)
