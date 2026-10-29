@@ -8,7 +8,7 @@ pip install "scdata[plot]"      # plots (notebooks 03, 13, 17, 18, 19)
 pip install "scdata[storage]"   # parquet: backups (local or S3) and exports (notebooks 01 and 21, get_s3_objects.py, long_processing.py)
 ```
 
-Blueprints, calibrations and sensor names are read from `BASE_POSTPROCESSING_URL` (by default this repository on GitHub; `https://flows.smartcitizen.me/api/v1/` for Smart Citizen Flows). Posting data needs a token of the owner of the device in `SC_BEARER` (environment, or `~/.cache/scdata/.env`): the examples that post are dry runs unless told otherwise.
+Blueprints, calibrations and sensor names are read from `BASE_POSTPROCESSING_URL` (Smart Citizen Flows, `https://flows.smartcitizen.me/api/v1/`, by default). Posting data needs a token of the owner of the device in `SC_BEARER` (environment, or `~/.cache/scdata/.env`): the examples that post are dry runs unless told otherwise.
 
 ## Scripts
 

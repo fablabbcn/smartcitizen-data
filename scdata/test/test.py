@@ -219,7 +219,8 @@ class Test(BaseModel):
                          'channels': [channel.model_dump() for channel in device.channels],
                          'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
-                         'blueprint': device.blueprint}
+                         'blueprint': device.blueprint,
+                         'blueprint_kind': device.blueprint_kind}
                          for device in self.devices]
         }
 

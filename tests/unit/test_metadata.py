@@ -87,7 +87,7 @@ def test_hardware(path):
     blueprints = [basename(blueprint) for blueprint in BLUEPRINTS]
     calibrations = load_json('calibrations', 'calibrations.json')
 
-    assert basename(hardware.blueprint_url) in blueprints
+    assert hardware.blueprints and all(f'{name}.json' in blueprints for name in hardware.blueprints)
 
     for version in hardware.versions:
         assert version.from_date is None or version.to_date is None or version.from_date < version.to_date

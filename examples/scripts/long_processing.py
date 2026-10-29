@@ -3,8 +3,8 @@
 Long processing: process months of the backups of a device with a long blueprint (baselines).
 
 Reads the window of the blueprint (meta.window_days, 90 days) from the backups, from the first day of
-that month, processes it with the long blueprint (e.g. sc_air_baseline) filled with the sensors of the
-device's hardware, runs its health checks and exports the result as parquet. This is what Smart Citizen
+that month, processes it with the long blueprint of the device's hardware (e.g. sc_air_baseline), or
+another one (--blueprint), filled with the sensors of the hardware, runs its health checks and exports the result as parquet. This is what Smart Citizen
 Flows runs every week for the hardware with a long blueprint.
 
 Needs pip install "scdata[storage]" and the backups: S3 (S3_DATA_BUCKET and the AWS credentials) or a
@@ -38,14 +38,18 @@ def parameter(text):
 
 
 def main(args):
-    blueprint = requests.get(f'{config._base_postprocessing_url}blueprints/{args.blueprint}.json', timeout=30).json()
-    if blueprint.get('meta', {}).get('kind') != 'long':
-        print(f'{args.blueprint} is not a long blueprint')
-        return
-
-    device = sc.Device(params=sc.APIParams(id=args.device))
-    if not device.use_blueprint(args.blueprint, blueprint):
-        print(f'Device {device.id} has no hardware to fill the blueprint with')
+    # The long blueprint of the hardware
+    device = sc.Device(params=sc.APIParams(id=args.device), blueprint_kind='long')
+    if args.blueprint:
+        blueprint = requests.get(f'{config._base_postprocessing_url}blueprints/{args.blueprint}.json', timeout=30).json()
+        if blueprint.get('meta', {}).get('kind') != 'long':
+            print(f'{args.blueprint} is not a long blueprint')
+            return
+        if not device.use_blueprint(args.blueprint, blueprint):
+            print(f'Device {device.id} has no hardware to fill the blueprint with')
+            return
+    elif device.blueprint is None:
+        print(f'The hardware of device {device.id} has no long blueprint: use --blueprint')
         return
 
     # Tune the parameters of some channels
@@ -57,9 +61,9 @@ def main(args):
         channel.kwargs = dict(channel.kwargs or {}, **{kwarg: value})
         print(f'{channel_name}: {kwarg} = {value}')
 
-    days = args.days or blueprint['meta'].get('window_days', 90)
+    days = args.days or device.meta.get('window_days', 90)
     start = (pd.Timestamp.now(tz='UTC') - pd.Timedelta(days=days)).replace(day=1).strftime('%Y-%m-%d')
-    print(f'Device {device.id}, {args.blueprint}: backups since {start}, sensors {device.required_sensors}')
+    print(f'Device {device.id}, {device.blueprint}: backups since {start}, sensors {device.required_sensors}')
     root = os.path.expanduser(args.root) if args.root else None
     if not device.load_from_storage(min_date=start, channels=device.required_sensors, root=root) or device.data.empty:
         print('No backups for the window')
@@ -72,7 +76,7 @@ def main(args):
 
     channels = [channel.name for channel in device.channels if channel.name in device.data.columns]
     print(device.data[channels].describe().T)
-    path = os.path.join(args.output, f'{device.id}_{args.blueprint}.parquet')
+    path = os.path.join(args.output, f'{device.id}_{device.blueprint}.parquet')
     os.makedirs(args.output, exist_ok=True)
     device.data[channels].to_parquet(path)
     print(f'Saved {path}')
@@ -81,7 +85,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('device', type=int, help='Device id')
-    parser.add_argument('--blueprint', default='sc_air_baseline', help='Long blueprint (default sc_air_baseline)')
+    parser.add_argument('--blueprint', default=None, help='Another long blueprint (default: the one of the hardware)')
     parser.add_argument('--days', type=int, default=None, help='Window in days (default: window_days of the blueprint)')
     parser.add_argument('--root', default=None, help='Local folder with the backups, instead of S3')
     parser.add_argument('--set', type=parameter, action='append', default=[], metavar='CHANNEL.KWARG=VALUE',

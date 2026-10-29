@@ -154,7 +154,7 @@ def test_required_sensors_of_all_versions(make_device):
 
 def test_versions_come_from_the_handler(make_device, monkeypatch):
     versions = [version(utc(2025, 1, 1), None, 'ADC_49_1')]
-    monkeypatch.setattr(FakeHandler, 'blueprint_url', 'https://flows.smartcitizen.me/api/v1/blueprints/sc_air.json')
+    monkeypatch.setattr(FakeHandler, 'blueprint_name', 'sc_air')
     monkeypatch.setattr(FakeHandler, 'properties', {'channels': versions[0]['channels']})
     monkeypatch.setattr(FakeHandler, 'channels_by_version', versions)
 

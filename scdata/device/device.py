@@ -7,7 +7,6 @@ from io import StringIO
 from json import dumps, loads
 from os.path import basename, exists, join
 from typing import Dict, List, Optional
-from urllib.parse import urlparse
 
 from numpy import nan
 from pandas import DataFrame, Series, Timedelta, Timestamp, concat, to_timedelta
@@ -30,7 +29,6 @@ from scdata.tools.series import (count_nas, infer_sampling_rate, mode_ratio,
                                  normalize_central, rolling_deltas)
 from scdata.tools.tree import topological_sort
 from scdata.tools.units import get_units_convf
-from scdata.tools.url_check import url_checker
 
 try:
     import awswrangler as wr
@@ -105,6 +103,11 @@ def read_storage(url, min_date=None, max_date=None, channels=None):
 
 
 
+def kind_of(blueprint):
+    ''' Kind of a blueprint (process, long or backup): meta.kind, process when missing '''
+    return ((blueprint or {}).get('meta') or {}).get('kind') or 'process'
+
+
 def window_mask(index, start, end):
     ''' Rows of index in [start, end). None: open '''
     mask = Series(True, index=index)
@@ -133,7 +136,11 @@ class Device(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed = True)
 
     blueprint: str = None
-    override_url_blueprint: bool = False
+    # Kind of the blueprint of the hardware to use (API devices): 'process' or 'long'. None: the process one,
+    # else the long one. Once created, the kind of the blueprint the device uses (None without a blueprint)
+    blueprint_kind: Optional[str] = None
+    # Uses blueprint instead of the blueprint of the hardware
+    override_hardware_blueprint: bool = False
     source: Source = Source()
     options: DeviceOptions = DeviceOptions()
     params: object = None
@@ -190,21 +197,27 @@ class Device(BaseModel):
         # Set handler
         self.__set_handler__()
 
-        # Set blueprint
-        if self.handler.blueprint_url is not None and not self.override_url_blueprint:
-            logger.info("Checking blueprint in URL")
-            if url_checker(self.handler.blueprint_url):
-                logger.info(f'Loading postprocessing blueprint from:\n{self.handler.blueprint_url}')
-                self.blueprint = basename(urlparse(self.handler.blueprint_url).path).split('.')[0]
-                self.__set_blueprint_attrs__(self.handler.properties)
-                self.versions = getattr(self.handler, 'channels_by_version', None) or []
+        # Set blueprint: the one of the hardware (filled with its sensors by the handler), or the one given
+        hardware_blueprint = getattr(self.handler, 'blueprint_name', None)
+        if hardware_blueprint is not None and not self.override_hardware_blueprint:
+            logger.info(f'Using the blueprint of the hardware: {hardware_blueprint}')
+            self.blueprint = hardware_blueprint
+            self.__set_blueprint_attrs__(self.handler.properties)
+            self.blueprint_kind = kind_of(self.handler.properties)
+            self.versions = getattr(self.handler, 'channels_by_version', None) or []
         elif self.blueprint is not None:
             logger.info("Using defined blueprint")
             if self.blueprint not in config.blueprints:
                 raise ValueError(f'Specified blueprint {self.blueprint} is not in available blueprints')
             self.__set_blueprint_attrs__(config.blueprints[self.blueprint])
+            self.blueprint_kind = kind_of(config.blueprints[self.blueprint])
         else:
-            raise ValueError(f'Specified blueprint url {self.handler.blueprint_url} is not valid')
+            # No postprocessing, a hardware that is only backed up, or without a blueprint of the kind asked for:
+            # its sensors are loaded, with nothing to process
+            kind = f'{self.blueprint_kind} ' if self.blueprint_kind else ''
+            logger.warning(f'Device {self.params_parsed.id} has no {kind}blueprint: no channels to process')
+            self.blueprint_kind = None
+            self.__set_names__()
 
         logger.info(f'Device {self.params_parsed.id} initialised')
 
@@ -255,7 +268,10 @@ class Device(BaseModel):
             raise NotImplementedError(f'No handler for {self.source.type} yet')
 
         if self.hclass is not None:
-            self.handler = self.hclass(params = self.params_parsed)
+            if self.source.type == 'api':
+                self.handler = self.hclass(params = self.params_parsed, blueprint_kind = self.blueprint_kind)
+            else:
+                self.handler = self.hclass(params = self.params_parsed)
         else:
             raise ValueError("Devices need one handler")
 
@@ -268,8 +284,10 @@ class Device(BaseModel):
                 # Workaround for postponed fields
                 item_type = self.model_fields[item].annotation
                 self.__setattr__(item, TypeAdapter(item_type).validate_python(blueprint[item]))
+        self.__set_names__()
 
-        # Sensors renaming dict
+    def __set_names__(self):
+        ''' Names of the sensors (from their ids) and of the channels, to rename the loaded data '''
         self._sensors = TypeAdapter(List[Sensor]).validate_python(self.handler.sensors)
 
         self._rename = dict()
@@ -296,6 +314,7 @@ class Device(BaseModel):
         filled = self.handler.apply_blueprint(blueprint)
         self.blueprint = name
         self.__set_blueprint_attrs__(self.handler.properties)
+        self.blueprint_kind = kind_of(blueprint)
         self.versions = getattr(self.handler, 'channels_by_version', None) or []
         self.processed = False
         return filled
@@ -306,7 +325,7 @@ class Device(BaseModel):
         if self.blueprint is not None and \
             self.handler.hardware_postprocessing is not None and \
             self.handler.postprocessing is not None and \
-            self.handler.blueprint_url is not None:
+            self.handler.blueprint_name is not None:
             return True
         else:
             return False

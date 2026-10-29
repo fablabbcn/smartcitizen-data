@@ -30,7 +30,7 @@ PLOT = [
 
 setup(
     name='scdata',
-    version='1.6.6',
+    version='1.7.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
