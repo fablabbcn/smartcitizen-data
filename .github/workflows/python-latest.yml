@@ -16,11 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11"]
-        # Lowest supported pandas and numpy versions (pandas 2.2.2 is the first release compatible with numpy 2), and the latest ones
+        # Lowest supported pandas and numpy versions (pandas 2.2.2 is the first release compatible with numpy 2,
+        # and pyarrow 26 needs numpy 2), and the latest ones
         pandas: ["2.2.2", "3.*"]
         include:
           - pandas: "2.2.2"
-            numpy: "1.26.*"
+            numpy: "2.0.*"
           - pandas: "3.*"
             numpy: "2.*"
     steps:

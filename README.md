@@ -16,7 +16,7 @@ Welcome to **SmartCitizen Data**. This is a data analysis framework for working 
 
 ## Installation
 
-You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with `Python 3.*` (tested between 3.9 and 3.11).
+You can check it out in the [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fablabbcn/smartcitizen-data-framework/master?filepath=%2Fexamples%2Fnotebooks) before installing if you want. Works with Python 3.10 or later (tested from 3.10 to 3.13).
 
 You can just run:
 
@@ -61,7 +61,19 @@ pip install --editable ".[dev]"
 
 ### Tokens and config
 
-Blueprints, calibrations and sensor names are read from `BASE_POSTPROCESSING_URL`, the same variable as [smartcitizen-connector](https://github.com/fablabbcn/smartcitizen-connector). By default it is this repository on GitHub; set it to `https://flows.smartcitizen.me/api/v1/` to use the metadata served by Smart Citizen Flows.
+Blueprints, calibrations and sensor names are read from `BASE_POSTPROCESSING_URL`, the same variable as [smartcitizen-connector](https://github.com/fablabbcn/smartcitizen-connector). By default it is [Smart Citizen Flows](https://flows.smartcitizen.me/api/v1/), which manages this metadata.
+
+A device of the Smart Citizen API is processed with a blueprint of its hardware (`hardware_url` in its postprocessing). A hardware lists its blueprints, at most one of each kind: `process`, `long` and `backup`. `blueprint_kind` selects the one to use, which also defines the sensors to load. Without it, the `process` blueprint, else the `long` one:
+
+```
+device = sc.Device(params=sc.APIParams(id=18154))
+device.blueprint, device.blueprint_kind     # ('sc_air', 'process')
+device.handler.blueprints                   # {'process': 'sc_air'}: the blueprints of its hardware
+
+device = sc.Device(params=sc.APIParams(id=<device-id>), blueprint_kind='long')
+```
+
+The blueprint of the hardware is used before the one given (`blueprint`), unless `override_hardware_blueprint=True`. `device.blueprint_kind` is the kind of the blueprint the device uses. A device without a blueprint (no postprocessing, a hardware that is only backed up, or without a blueprint of the kind asked for) loads its sensors, but has no channels to process, and its `blueprint` and `blueprint_kind` are `None`.
 
 Settings can be changed in `~/.config/scdata/config.yaml`. The file only keeps what differs from the defaults (the defaults of new versions apply after upgrading), for instance:
 

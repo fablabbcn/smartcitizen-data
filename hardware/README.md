@@ -1,3 +1,3 @@
 # Hardware description
 
-Find more info on this topic [in this link](https://docs.smartcitizen.me/Guides/data/Handling%20calibration%20data/).
+Hardware descriptions are managed in [Smart Citizen Flows](https://flows.smartcitizen.me/api/v1/hardware): these files are a copy. Each one lists its blueprints by name (`blueprints`), the history of its sensors (`versions`) and a `description`. Find more info [in the docs](https://docs.smartcitizen.me/guides/data/handling-calibration-data/).

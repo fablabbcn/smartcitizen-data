@@ -25,7 +25,6 @@ SENSORS = ['ADC_48_0', 'ADC_48_1', 'ADC_48_2', 'ADC_48_3', 'ADC_49_0', 'ADC_49_1
 # Sensor names and units as provided by the API (ec_sensor_temp looks up the SHT31 by its name)
 API_NAMES = {'TEMP': 'Sensirion SHT31 - Temperature'}
 API_UNITS = {'TEMP': 'ºC'}
-URL = 'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/blueprints/sc_air.json'
 
 # Expected channel means for these readings: any pandas or numpy version that changes them makes the test fail.
 # For long processing only the channels are listed, as values derived from baselines vary slightly between machines
@@ -86,7 +85,7 @@ def kit(request, monkeypatch):
     connector.apply_blueprint(load_json('blueprints', 'sc_air.json'))
     sensors, data = readings()
     monkeypatch.setitem(config.names, 'FakeHandler', config.names['SCDevice'])
-    for name, value in dict(sensors=sensors, readings=data, failed_sensors=[], blueprint_url=URL,
+    for name, value in dict(sensors=sensors, readings=data, failed_sensors=[], blueprint_name='sc_air',
                             properties=connector.properties,
                             channels_by_version=connector.channels_by_version).items():
         monkeypatch.setattr(FakeHandler, name, value)
@@ -152,8 +151,8 @@ def test_backup_and_long_processing(kit, monkeypatch, tmp_path):
 
     long = device()
 
-    def apply_blueprint(blueprint):
-        filled = connector.apply_blueprint(blueprint)
+    def apply_blueprint(blueprint, name=None):
+        filled = connector.apply_blueprint(blueprint, name=name)
         long.handler.properties, long.handler.channels_by_version = connector.properties, connector.channels_by_version
         return filled
 

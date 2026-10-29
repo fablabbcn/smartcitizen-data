@@ -219,7 +219,10 @@ class Test(BaseModel):
                          'channels': [channel.model_dump() for channel in device.channels],
                          'checks': [check.model_dump() for check in device.checks],
                          'source': device.source.model_dump(),
-                         'blueprint': device.blueprint}
+                         'blueprint': device.blueprint,
+                         # The kind asked for, to create the device again as it was
+                         'blueprint_kind': device._requested_blueprint_kind,
+                         'override_hardware_blueprint': device.override_hardware_blueprint}
                          for device in self.devices]
         }
 

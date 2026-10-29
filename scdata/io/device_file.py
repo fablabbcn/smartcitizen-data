@@ -22,8 +22,7 @@ class CSVHandler:
         self.id = params.id
         self.params = params
         self.method = 'sync'
-        self.blueprint_url = None
-        self.override_url_blueprint = True
+        self.blueprint_name = None
         self.data = DataFrame()
         self._calculated_channels: List[CalculatedChannel] = []
         self.latest_postprocessing = None

@@ -78,10 +78,9 @@ class Config(object):
     ### ---------------------------------------
     # # Urls
     # Blueprints, calibrations and sensor names are read from BASE_POSTPROCESSING_URL, the same variable as
-    # smartcitizen-connector (e.g. flows: https://flows.smartcitizen.me/api/v1/). By default,
-    # the smartcitizen-data repository. These urls are not saved in config.yaml
+    # smartcitizen-connector: Smart Citizen Flows by default. These urls are not saved in config.yaml
     _base_postprocessing_url = environ.get('BASE_POSTPROCESSING_URL',
-        'https://raw.githubusercontent.com/fablabbcn/smartcitizen-data/master/').rstrip('/') + '/'
+        'https://flows.smartcitizen.me/api/v1/').rstrip('/') + '/'
     _default_file_type = 'json'
 
     calibrations_urls = [
