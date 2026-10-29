@@ -151,8 +151,8 @@ def test_backup_and_long_processing(kit, monkeypatch, tmp_path):
 
     long = device()
 
-    def apply_blueprint(blueprint):
-        filled = connector.apply_blueprint(blueprint)
+    def apply_blueprint(blueprint, name=None):
+        filled = connector.apply_blueprint(blueprint, name=name)
         long.handler.properties, long.handler.channels_by_version = connector.properties, connector.channels_by_version
         return filled
 

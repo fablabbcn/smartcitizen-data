@@ -38,8 +38,9 @@ class FakeHandler:
         self.posted = [column for column in (rename or {}).values() if column in self.data]
         return True
 
-    def apply_blueprint(self, blueprint):
+    def apply_blueprint(self, blueprint, name=None):
         ''' As SCDevice: the blueprint filled with the hardware (here, as it is) '''
         self.properties = blueprint
+        self.blueprint_name = name
         self.channels_by_version = []
         return True

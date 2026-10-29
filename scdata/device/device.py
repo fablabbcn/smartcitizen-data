@@ -311,7 +311,7 @@ class Device(BaseModel):
         '''
         if not hasattr(self.handler, 'apply_blueprint'):
             raise NotImplementedError(f'{type(self.handler).__name__} cannot apply another blueprint')
-        filled = self.handler.apply_blueprint(blueprint)
+        filled = self.handler.apply_blueprint(blueprint, name=name)
         self.blueprint = name
         self.__set_blueprint_attrs__(self.handler.properties)
         self.blueprint_kind = kind_of(blueprint)
