@@ -107,3 +107,41 @@ def test_qc_data_is_only_read_from_s3(make_device, backup):
     # The data loads from the local root; qc data is not looked for elsewhere
     assert device.load_from_storage(root=str(backup), load_qc_data=True) is True
     assert device.qc_data.empty
+
+
+def test_s3_uses_the_region_of_the_bucket(monkeypatch):
+    # A region in the environment that is not the one of the bucket made reads fail
+    from pyarrow import fs
+    import pyarrow.dataset as ds
+    import scdata.device.device as device
+
+    monkeypatch.setenv('AWS_REGION', 'eu-south-1')
+    monkeypatch.setattr(device, '_bucket_regions', {})
+    asked, opened = [], []
+    monkeypatch.setattr(fs, 'resolve_s3_region', lambda bucket: asked.append(bucket) or 'eu-west-1')
+    monkeypatch.setattr(ds, 'dataset', lambda location, filesystem, format: opened.append((location, filesystem.region))
+                        or (_ for _ in ()).throw(FileNotFoundError(location)))
+
+    for _ in range(2):
+        with pytest.raises(FileNotFoundError):
+            read_storage('s3://bucket/devices/1/data')
+
+    assert opened == [('bucket/devices/1/data', 'eu-west-1')] * 2
+    assert asked == ['bucket']
+
+
+def test_bucket_region_from_the_environment_if_s3_cannot_be_asked(monkeypatch):
+    from pyarrow import fs
+    import scdata.device.device as device
+
+    monkeypatch.setenv('AWS_REGION', 'eu-west-1')
+    monkeypatch.setattr(device, '_bucket_regions', {})
+
+    def unreachable(bucket):
+        raise OSError('unreachable')
+
+    monkeypatch.setattr(fs, 'resolve_s3_region', unreachable)
+    assert device.bucket_region('bucket') == 'eu-west-1'
+    # Asked again next time
+    monkeypatch.setattr(fs, 'resolve_s3_region', lambda bucket: 'eu-central-1')
+    assert device.bucket_region('bucket') == 'eu-central-1'
