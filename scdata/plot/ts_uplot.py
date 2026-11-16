@@ -1,14 +1,13 @@
 import io
 import json
 import re
-import uuid
 
 # uPlot
 from IPython.display import HTML
 from jinja2 import Template
 
 from scdata._config import config
-from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -173,8 +172,7 @@ def ts_uplot(self, **kwargs):
     udf = df.copy()
     udf.index = udf.index.astype('int64')/10**9
 
-    # Unique per figure, so that different figures on the same page do not sync
-    sync_key = uuid.uuid4().hex
+    sync_key = uplot_sync_key()
 
     for isbplt in range(n_subplots):
 
@@ -277,12 +275,6 @@ def ts_uplot(self, **kwargs):
             useries.append(nser)
             color_idx += 1
 
-        # Multiple sides use 'left' and 'right' scales instead of 'y'
-        sync_scales = [
-            'x' if options['sync_x'] else None,
-            'y' if options['sync_y'] and not multiple_sides else None
-        ]
-
         u_options = {
                         'width': formatting['width'],
                         'height': formatting['height'],
@@ -293,11 +285,7 @@ def ts_uplot(self, **kwargs):
                                     'focus': {
                                                 'prox': 16,
                                     },
-                                    'sync': {
-                                                'key': sync_key,
-                                                'setSeries': options['sync_series'],
-                                                'scales': sync_scales,
-                                    },
+                                    'sync': uplot_sync(options, sync_key, multiple_sides),
                                     'drag': {
                                                 'x': True,
                                                 'y': True,

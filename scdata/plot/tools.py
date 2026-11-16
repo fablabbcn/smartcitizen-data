@@ -1,5 +1,6 @@
 import base64
 import io
+import uuid
 
 from numpy import arange
 from pandas import DataFrame, cut, option_context, to_datetime, to_numeric
@@ -45,6 +46,37 @@ YlOrBr_r, YlOrRd, YlOrRd_r, afmhot, afmhot_r, autumn, autumn_r, binary, binary_r
   tab20c_r, terrain, terrain_r, twilight, twilight_r, twilight_shifted, twilight_shifted_r,
   viridis, viridis_r, vlag, vlag_r, winter, winter_r
 '''
+
+def uplot_sync(options, key, multiple_sides = False):
+    """
+        Builds the uPlot cursor sync options shared by all subplots of a figure
+        Parameters
+        ----------
+            options: dict
+                Plot options with sync_x, sync_y and sync_series
+            key: string
+                Sync key for the figure. See uplot_sync_key
+            multiple_sides:
+                False
+                Whether the subplots use 'left' and 'right' scales instead of 'y'
+        Returns
+        -------
+            Dict for uPlot cursor.sync
+    """
+    return {
+        'key': key,
+        'setSeries': options['sync_series'],
+        'scales': [
+            'x' if options['sync_x'] else None,
+            'y' if options['sync_y'] and not multiple_sides else None
+        ]
+    }
+
+def uplot_sync_key():
+    """
+        Unique sync key, so that different figures on the same page do not sync
+    """
+    return uuid.uuid4().hex
 
 def to_png_b64(fig, dpi = 150):
     """

@@ -7,7 +7,7 @@ from IPython.display import HTML
 from jinja2 import Template
 
 from scdata._config import config
-from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -32,6 +32,10 @@ def heatmap_uplot(self, **kwargs):
                         }
         options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
+            Subplot syncing:
+                sync_x: bool (True) - share x zoom and cursor between subplots
+                sync_y: bool (False) - share y zoom between subplots
+                sync_series: bool (False) - share legend show/hide between subplots
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
     Returns
@@ -119,6 +123,8 @@ def heatmap_uplot(self, **kwargs):
     udf = df.copy()
     udf.index = udf.index.astype(int)/10**9
 
+    sync_key = uplot_sync_key()
+
     for isbplt in range(n_subplots):
 
         sdf = udf.loc[:, subplots[isbplt]]
@@ -168,10 +174,7 @@ def heatmap_uplot(self, **kwargs):
                                     'focus': {
                                                 'prox': 16,
                                     },
-                                    'sync': {
-                                                'key': 'moo',
-                                                'setSeries': True,
-                                    },
+                                    'sync': uplot_sync(options, sync_key),
                                     'drag': {
                                                 'x': True,
                                                 'y': True,
