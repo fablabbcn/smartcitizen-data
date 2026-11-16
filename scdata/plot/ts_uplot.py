@@ -86,7 +86,7 @@ def ts_uplot(self, **kwargs):
         ]**'''
 
     head_template = '''
-        <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css">
         <style>
             .u-axis:hover {
                 cursor: move;
@@ -98,7 +98,7 @@ def ts_uplot(self, **kwargs):
                 background-color: white;
             }
         </style>
-        <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js"></script>
 
         <div class="plot-area" style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>

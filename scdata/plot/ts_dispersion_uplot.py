@@ -31,8 +31,8 @@ def ts_dispersion_uplot(self, **kwargs):
     '''
 
     head_template = '''
-        <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
-        <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js"></script>
 
         <div style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
