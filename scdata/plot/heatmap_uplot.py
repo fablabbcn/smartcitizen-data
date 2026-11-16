@@ -7,7 +7,7 @@ from IPython.display import HTML
 from jinja2 import Template
 
 from scdata._config import config
-from scdata.plot.tools import colors, prepare_test_data, prepare_device_data, uplot_sync, uplot_sync_key
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data, uplot_keep_scales, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -70,7 +70,7 @@ def heatmap_uplot(self, **kwargs):
                     options['series'][i]["paths"] = u => null;
                 }
             }
-
+{{keep_scales}}
             u = new uPlot(options, data, document.getElementById("plot{{subplot}}"))
         </script>
         '''
@@ -192,7 +192,8 @@ def heatmap_uplot(self, **kwargs):
 
         h2 = Template(uplot_template).render(data=json.dumps(data),
                                  options=json.dumps(u_options),
-                                 subplot=isbplt)
+                                 subplot=isbplt,
+                                 keep_scales=uplot_keep_scales)
 
 
         h += h2

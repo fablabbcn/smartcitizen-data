@@ -72,6 +72,20 @@ def uplot_sync(options, key, multiple_sides = False):
         ]
     }
 
+# uPlot fits the y axis again when showing or hiding a series. This keeps the current range
+uplot_keep_scales = '''
+            options.hooks = options.hooks || {};
+            options.hooks.setSeries = (options.hooks.setSeries || []).concat([
+                (u, i, opts) => {
+                    if (opts.show == null) return;
+                    for (let key in u.scales) {
+                        let sc = u.scales[key];
+                        if (key != 'x' && sc.min != null) u.setScale(key, {min: sc.min, max: sc.max});
+                    }
+                }
+            ]);
+'''
+
 def uplot_sync_key():
     """
         Unique sync key, so that different figures on the same page do not sync
