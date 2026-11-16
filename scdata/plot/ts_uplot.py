@@ -1,6 +1,7 @@
 import io
 import json
 import re
+import uuid
 
 # uPlot
 from IPython.display import HTML
@@ -32,6 +33,10 @@ def ts_uplot(self, **kwargs):
                         }
         options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
+            Subplot syncing:
+                sync_x: bool (True) - share x zoom and cursor between subplots
+                sync_y: bool (False) - share y zoom between subplots
+                sync_series: bool (False) - share legend show/hide between subplots
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
     Returns
@@ -168,6 +173,9 @@ def ts_uplot(self, **kwargs):
     udf = df.copy()
     udf.index = udf.index.astype('int64')/10**9
 
+    # Unique per figure, so that different figures on the same page do not sync
+    sync_key = uuid.uuid4().hex
+
     for isbplt in range(n_subplots):
 
         sdf = udf.loc[:, subplots[isbplt]]
@@ -269,6 +277,12 @@ def ts_uplot(self, **kwargs):
             useries.append(nser)
             color_idx += 1
 
+        # Multiple sides use 'left' and 'right' scales instead of 'y'
+        sync_scales = [
+            'x' if options['sync_x'] else None,
+            'y' if options['sync_y'] and not multiple_sides else None
+        ]
+
         u_options = {
                         'width': formatting['width'],
                         'height': formatting['height'],
@@ -280,8 +294,9 @@ def ts_uplot(self, **kwargs):
                                                 'prox': 16,
                                     },
                                     'sync': {
-                                                'key': 'moo',
-                                                'setSeries': True,
+                                                'key': sync_key,
+                                                'setSeries': options['sync_series'],
+                                                'scales': sync_scales,
                                     },
                                     'drag': {
                                                 'x': True,
