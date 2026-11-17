@@ -1268,11 +1268,17 @@ class Device(BaseModel):
         # As awswrangler: the times in a TIME column, one more file per backup. It is written aside first:
         # if it fails, the backups in data stay as they were (no partial file, nothing overwritten)
         staging = join(folder, f'.staging-{uuid4().hex}')
+        # metadata.json is written aside before the data, and replaced, not truncated, after it: if it fails,
+        # the data is put back as it was
+        temporary = join(folder, f'.metadata-{uuid4().hex}.json')
         os.makedirs(staging)
         try:
             data = self.data.copy()
             data['TIME'] = data.index
             data.to_parquet(join(staging, name), index=False)
+            with open(temporary, 'w') as file:
+                file.write(self.handler.json.model_dump_json())
+            previous = None
             if mode == 'overwrite' and exists(data_folder):
                 previous = join(folder, f'.previous-{uuid4().hex}')
                 os.replace(data_folder, previous)
@@ -1281,22 +1287,23 @@ class Device(BaseModel):
                 except OSError:
                     os.replace(previous, data_folder)
                     raise
-                shutil.rmtree(previous)
             else:
                 os.makedirs(data_folder, exist_ok=True)
                 os.replace(join(staging, name), join(data_folder, name))
+            try:
+                os.replace(temporary, join(folder, 'metadata.json'))
+            except OSError:
+                if previous is None:
+                    os.remove(join(data_folder, name))
+                else:
+                    shutil.rmtree(data_folder)
+                    os.replace(previous, data_folder)
+                raise
+            if previous is not None: shutil.rmtree(previous)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
-        data_file = join(data_folder, name)
-        # metadata.json is replaced, not truncated: if writing it fails, the previous one stays
-        metadata = self.handler.json.model_dump_json()
-        temporary = join(folder, f'.metadata-{uuid4().hex}.json')
-        try:
-            with open(temporary, 'w') as file:
-                file.write(metadata)
-            os.replace(temporary, join(folder, 'metadata.json'))
-        finally:
             if exists(temporary): os.remove(temporary)
+        data_file = join(data_folder, name)
         return {'data_upload': {'paths': [data_file]}}
 
     def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False,

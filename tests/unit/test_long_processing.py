@@ -215,19 +215,21 @@ def test_failed_backup_to_a_local_folder_keeps_the_previous_one(tmp_path, monkey
     assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
 
 
-@pytest.mark.parametrize('failing', ['model_dump_json', 'write'])
-def test_failed_metadata_of_a_local_backup_keeps_the_previous_one(tmp_path, monkeypatch, failing):
+@pytest.mark.parametrize('mode', ['overwrite', 'append'])
+@pytest.mark.parametrize('failing', ['model_dump_json', 'write', 'replace'])
+def test_failed_metadata_of_a_local_backup_keeps_the_previous_one(tmp_path, monkeypatch, failing, mode):
     import builtins
     from scdata.device.device import Device
 
     assert Device.backup_to_storage(local_device('2026-01-01', 60), root=str(tmp_path))
 
     device = local_device('2026-02-01', 10)
+    device.handler.json.model_dump_json = lambda: '{"id": 2}'
     if failing == 'model_dump_json':
         def fail():
             raise ValueError('Cannot serialize')
         device.handler.json.model_dump_json = fail
-    else:
+    elif failing == 'write':
         # The disk fills while writing it
         class Full:
             def __init__(self, file): self.file = file
@@ -237,10 +239,20 @@ def test_failed_metadata_of_a_local_backup_keeps_the_previous_one(tmp_path, monk
         real_open = builtins.open
         monkeypatch.setattr(builtins, 'open', lambda path, *args, **kwargs: Full(real_open(path, *args, **kwargs))
                             if str(path).endswith('.json') else real_open(path, *args, **kwargs))
+    else:
+        # The data is in place, but metadata.json cannot be replaced
+        real_replace = os.replace
+        def replace(source, destination):
+            if str(destination).endswith('metadata.json'):
+                raise OSError('Permission denied')
+            real_replace(source, destination)
+        monkeypatch.setattr(os, 'replace', replace)
     with pytest.raises((ValueError, OSError)):
-        Device.backup_to_storage(device, mode='append', root=str(tmp_path))
+        Device.backup_to_storage(device, mode=mode, root=str(tmp_path))
     monkeypatch.undo()
 
+    # The previous backup: its data and its metadata
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 60
     assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text() == '{"id": 1}'
     assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
 
