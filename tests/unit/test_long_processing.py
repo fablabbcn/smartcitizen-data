@@ -215,6 +215,35 @@ def test_failed_backup_to_a_local_folder_keeps_the_previous_one(tmp_path, monkey
     assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
 
 
+@pytest.mark.parametrize('failing', ['model_dump_json', 'write'])
+def test_failed_metadata_of_a_local_backup_keeps_the_previous_one(tmp_path, monkeypatch, failing):
+    import builtins
+    from scdata.device.device import Device
+
+    assert Device.backup_to_storage(local_device('2026-01-01', 60), root=str(tmp_path))
+
+    device = local_device('2026-02-01', 10)
+    if failing == 'model_dump_json':
+        def fail():
+            raise ValueError('Cannot serialize')
+        device.handler.json.model_dump_json = fail
+    else:
+        # The disk fills while writing it
+        class Full:
+            def __init__(self, file): self.file = file
+            def __enter__(self): return self
+            def __exit__(self, *args): self.file.close()
+            def write(self, text): raise OSError('No space left on device')
+        real_open = builtins.open
+        monkeypatch.setattr(builtins, 'open', lambda path, *args, **kwargs: Full(real_open(path, *args, **kwargs))
+                            if str(path).endswith('.json') else real_open(path, *args, **kwargs))
+    with pytest.raises((ValueError, OSError)):
+        Device.backup_to_storage(device, mode='append', root=str(tmp_path))
+    monkeypatch.undo()
+
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text() == '{"id": 1}'
+    assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
+
 def test_backup_to_s3_only_goes_to_the_bucket(monkeypatch):
     from scdata.device.device import Device
 

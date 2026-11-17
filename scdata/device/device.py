@@ -1288,8 +1288,15 @@ class Device(BaseModel):
         finally:
             shutil.rmtree(staging, ignore_errors=True)
         data_file = join(data_folder, name)
-        with open(join(folder, 'metadata.json'), 'w') as file:
-            file.write(self.handler.json.model_dump_json())
+        # metadata.json is replaced, not truncated: if writing it fails, the previous one stays
+        metadata = self.handler.json.model_dump_json()
+        temporary = join(folder, f'.metadata-{uuid4().hex}.json')
+        try:
+            with open(temporary, 'w') as file:
+                file.write(metadata)
+            os.replace(temporary, join(folder, 'metadata.json'))
+        finally:
+            if exists(temporary): os.remove(temporary)
         return {'data_upload': {'paths': [data_file]}}
 
     def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False,
