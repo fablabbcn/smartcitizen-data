@@ -66,15 +66,23 @@ def ts_uplot(self, **kwargs):
                             let d = i == 0 ?  x0 - e.clientX : e.clientY - y0
                             let shiftyBy = d * unitsPerPx;
 
-                            u.setScale(scaleKey, {
+                            let range = {
                                 min: e.shiftKey ? (min - shiftyBy) : min + shiftyBy,
                                 max: max + shiftyBy,
-                            });
+                            };
+
+                            u.setScale(scaleKey, range);
+
+                            // setScale does not sync: move the synced scale on the other subplots
+                            let sync = u.cursor.sync;
+                            if (!sync.onlySeries && sync.scales.includes(scaleKey)) {
+                                uPlot.sync(sync.key).plots.forEach(p => p != u && p.setScale(scaleKey, range));
+                            }
                         };
 
                         let mouseup = e => {
                             document.removeEventListener('mousemove', mousemove);
-                            document.removeEventListener('mousemove', mouseup);
+                            document.removeEventListener('mouseup', mouseup);
                         };
 
                         document.addEventListener('mousemove', mousemove);
