@@ -55,13 +55,13 @@ setup(
         "plot": PLOT,
         # Device.load_from_storage and backup_to_storage (backups in S3 or a local folder)
         "storage": [
-            "pyarrow",
+            "pyarrow>=14",
             "awswrangler",
             "boto3"
         ],
         "dev": PLOT + [
             "pytest",
-            "pyarrow",
+            "pyarrow>=14",
             "awswrangler",
             "boto3",
             # Mocked S3 for the backup tests

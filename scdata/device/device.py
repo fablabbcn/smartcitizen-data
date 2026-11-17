@@ -98,6 +98,16 @@ def read_storage(url, min_date=None, max_date=None, channels=None):
     else:
         filesystem, location = fs.LocalFileSystem(), url
     dataset = ds.dataset(location, filesystem=filesystem, format='parquet')
+    # Each backup is one more file, with the channels of that moment: the dataset would only take the
+    # columns of the first one. Read those of all of them (times in ns and us are read in ns)
+    schemas = [fragment.physical_schema for fragment in dataset.get_fragments()]
+    if len(schemas) > 1:
+        try:
+            schema = pa.unify_schemas(schemas, promote_options='permissive')
+            dataset = ds.dataset(location, filesystem=filesystem, format='parquet', schema=schema)
+        except (pa.ArrowInvalid, pa.ArrowTypeError) as error:
+            logger.warning(f'The backups in {url} have columns that cannot be read together, reading those of '
+                           f'the first file ({error})')
 
     expression = None
     time_type = dataset.schema.field('TIME').type

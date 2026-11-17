@@ -171,3 +171,18 @@ def test_backup_to_a_local_folder(tmp_path):
     assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 10
     # qc data is only backed up to S3
     assert not Device.backup_to_storage(device, root=str(tmp_path), add_qc_data=True)
+
+
+def test_read_storage_with_channels_of_later_backups(tmp_path):
+    # A channel added after the first backup is read too, empty before
+    for number, columns in enumerate([{'TEMP': 1.0}, {'TEMP': 2.0, 'NEW': 3.0}]):
+        index = pd.date_range(f'2026-01-0{number + 1}', periods=3, freq='1min', tz='UTC')
+        pd.DataFrame({**columns, 'TIME': index}).to_parquet(tmp_path / f'part-{number}.parquet', index=False)
+
+    data = read_storage(str(tmp_path))
+
+    assert sorted(data.columns) == ['NEW', 'TEMP'] and len(data) == 6
+    assert data.loc['2026-01-01', 'NEW'].isna().all()
+    assert (data.loc['2026-01-02', 'NEW'] == 3.0).all()
+    assert list(read_storage(str(tmp_path), channels=['NEW']).columns) == ['NEW']
+
