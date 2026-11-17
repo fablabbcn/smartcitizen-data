@@ -186,3 +186,31 @@ def test_read_storage_with_channels_of_later_backups(tmp_path):
     assert (data.loc['2026-01-02', 'NEW'] == 3.0).all()
     assert list(read_storage(str(tmp_path), channels=['NEW']).columns) == ['NEW']
 
+
+def local_device(start, periods):
+    from types import SimpleNamespace
+    from scdata.device.device import Device
+
+    device = SimpleNamespace(id=1, handler=SimpleNamespace(json=SimpleNamespace(model_dump_json=lambda: '{"id": 1}')))
+    device._backup_to_folder = lambda *args: Device._backup_to_folder(device, *args)
+    device.data = pd.DataFrame({'TEMP': 20.0}, index=pd.date_range(start, periods=periods, freq='1min', tz='UTC',
+                                                                   name='TIME'))
+    return device
+
+
+@pytest.mark.parametrize('mode', ['overwrite', 'append'])
+def test_failed_backup_to_a_local_folder_keeps_the_previous_one(tmp_path, monkeypatch, mode):
+    from scdata.device.device import Device
+
+    assert Device.backup_to_storage(local_device('2026-01-01', 60), root=str(tmp_path))
+
+    def fail(*args, **kwargs):
+        raise OSError('No space left on device')
+    monkeypatch.setattr(pd.DataFrame, 'to_parquet', fail)
+    with pytest.raises(OSError):
+        Device.backup_to_storage(local_device('2026-02-01', 10), mode=mode, root=str(tmp_path))
+
+    # The previous backup, without partial files or what was written aside
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 60
+    assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
+

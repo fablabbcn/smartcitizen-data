@@ -1260,14 +1260,30 @@ class Device(BaseModel):
 
         folder = join(root, path, str(self.id))
         data_folder = join(folder, 'data')
-        if mode == 'overwrite' and exists(data_folder):
-            shutil.rmtree(data_folder)
-        os.makedirs(data_folder, exist_ok=True)
-        # As awswrangler: the times in a TIME column, one more file per backup
-        data = self.data.copy()
-        data['TIME'] = data.index
-        data_file = join(data_folder, f'{uuid4().hex}.parquet')
-        data.to_parquet(data_file, index=False)
+        name = f'{uuid4().hex}.parquet'
+        # As awswrangler: the times in a TIME column, one more file per backup. It is written aside first:
+        # if it fails, the backups in data stay as they were (no partial file, nothing overwritten)
+        staging = join(folder, f'.staging-{uuid4().hex}')
+        os.makedirs(staging)
+        try:
+            data = self.data.copy()
+            data['TIME'] = data.index
+            data.to_parquet(join(staging, name), index=False)
+            if mode == 'overwrite' and exists(data_folder):
+                previous = join(folder, f'.previous-{uuid4().hex}')
+                os.replace(data_folder, previous)
+                try:
+                    os.replace(staging, data_folder)
+                except OSError:
+                    os.replace(previous, data_folder)
+                    raise
+                shutil.rmtree(previous)
+            else:
+                os.makedirs(data_folder, exist_ok=True)
+                os.replace(join(staging, name), join(data_folder, name))
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
+        data_file = join(data_folder, name)
         with open(join(folder, 'metadata.json'), 'w') as file:
             file.write(self.handler.json.model_dump_json())
         return {'data_upload': {'paths': [data_file]}}
