@@ -62,6 +62,25 @@ def aws_region():
     return os.environ.get('AWS_REGION') or os.environ.get('AWS_DEFAULT_REGION')
 
 
+# {bucket: region}, only for regions S3 answered
+_bucket_regions = {}
+
+
+def bucket_region(bucket):
+    '''
+    Region of a bucket, asked to S3. Requests sent to another region fail (IllegalLocationConstraintException),
+    so aws_region() is only used if S3 cannot be asked
+    '''
+    if bucket not in _bucket_regions:
+        try:
+            from pyarrow import fs
+            _bucket_regions[bucket] = fs.resolve_s3_region(bucket)
+        except (ImportError, OSError) as error:
+            logger.warning(f'Cannot find the region of bucket {bucket} ({error}), using {aws_region() or "the default"}')
+            return aws_region()
+    return _bucket_regions[bucket]
+
+
 def read_storage(url, min_date=None, max_date=None, channels=None):
     '''
     Reads a parquet dataset written by backup_to_storage (an s3:// url or a local folder) into a
@@ -73,8 +92,9 @@ def read_storage(url, min_date=None, max_date=None, channels=None):
     from pyarrow import fs
 
     if url.startswith('s3://'):
-        filesystem = fs.S3FileSystem(region=aws_region()) if aws_region() else fs.S3FileSystem()
         location = url[len('s3://'):]
+        region = bucket_region(location.split('/', 1)[0])
+        filesystem = fs.S3FileSystem(region=region) if region else fs.S3FileSystem()
     else:
         filesystem, location = fs.LocalFileSystem(), url
     dataset = ds.dataset(location, filesystem=filesystem, format='parquet')
@@ -1274,7 +1294,7 @@ class Device(BaseModel):
             bucket = root[len('s3://'):].split('/')[0]
             prefix = root[len('s3://'):][len(bucket):].strip('/')
             prefix = f'{prefix}/' if prefix else ''
-            session = boto3.Session(region_name=aws_region())
+            session = boto3.Session(region_name=bucket_region(bucket))
 
             if load_qc_data:
                 qc_data_s3_url = f"{root.rstrip('/')}/{path}/{self.id}/qc_data/"
