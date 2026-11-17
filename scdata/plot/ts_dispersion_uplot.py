@@ -9,7 +9,7 @@ from jinja2 import Template
 from scipy.stats import t
 
 from scdata._config import config
-from scdata.plot.tools import colors
+from scdata.plot.tools import colors, uplot_js, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -23,6 +23,10 @@ def ts_dispersion_uplot(self, **kwargs):
             Channel
         options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
+            Subplot syncing:
+                sync_x: bool (True) - share x zoom and cursor between subplots
+                sync_y: bool (False) - share y zoom between subplots (with sync_x)
+                sync_series: bool (False) - share legend show/hide between subplots
         formatting: dict
             Formatting dict. Defaults in config._ts_plot_def_fmt
     Returns
@@ -31,8 +35,8 @@ def ts_dispersion_uplot(self, **kwargs):
     '''
 
     head_template = '''
-        <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
-        <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js"></script>
 
         <div style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
@@ -55,7 +59,7 @@ def ts_dispersion_uplot(self, **kwargs):
                     options['series'][i]["paths"] = u => null;
                 }
             }
-
+{{uplot_js}}
             u = new uPlot(options, data, document.getElementById("plot{{subplot}}"))
         </script>
         '''
@@ -194,6 +198,8 @@ def ts_dispersion_uplot(self, **kwargs):
     else:
         ylabels = [channel]
 
+    sync_key = uplot_sync_key()
+
     # Make subplots
     for isbplt in range(n_subplots):
 
@@ -249,10 +255,7 @@ def ts_dispersion_uplot(self, **kwargs):
                                     'focus': {
                                                 'prox': 16,
                                     },
-                                    'sync': {
-                                                'key': 'moo',
-                                                'setSeries': True,
-                                    },
+                                    'sync': uplot_sync(options, sync_key),
                                     'drag': {
                                                 'x': True,
                                                 'y': True,
@@ -270,7 +273,8 @@ def ts_dispersion_uplot(self, **kwargs):
 
         h2 = Template(uplot_template).render(data=json.dumps(data),
                                  options=json.dumps(u_options),
-                                 subplot=isbplt)
+                                 subplot=isbplt,
+                                 uplot_js=uplot_js)
 
 
         h += h2

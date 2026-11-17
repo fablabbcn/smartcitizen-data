@@ -7,7 +7,7 @@ from IPython.display import HTML
 from jinja2 import Template
 
 from scdata._config import config
-from scdata.plot.tools import colors, prepare_test_data, prepare_device_data
+from scdata.plot.tools import colors, prepare_test_data, prepare_device_data, uplot_js, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -32,6 +32,10 @@ def ts_uplot(self, **kwargs):
                         }
         options: dict
             Options including data processing prior to plot. Defaults in config._plot_def_opt
+            Subplot syncing:
+                sync_x: bool (True) - share x zoom and cursor between subplots
+                sync_y: bool (False) - share y zoom between subplots (with sync_x)
+                sync_series: bool (False) - share legend show/hide between subplots
         formatting: dict
             Name of auxiliary electrode found in dataframe. Defaults in config._ts_plot_def_fmt
     Returns
@@ -62,15 +66,23 @@ def ts_uplot(self, **kwargs):
                             let d = i == 0 ?  x0 - e.clientX : e.clientY - y0
                             let shiftyBy = d * unitsPerPx;
 
-                            u.setScale(scaleKey, {
+                            let range = {
                                 min: e.shiftKey ? (min - shiftyBy) : min + shiftyBy,
                                 max: max + shiftyBy,
-                            });
+                            };
+
+                            u.setScale(scaleKey, range);
+
+                            // setScale does not sync: move the synced scale on the other subplots
+                            let sync = u.cursor.sync;
+                            if (!sync.onlySeries && sync.scales.includes(scaleKey)) {
+                                uPlot.sync(sync.key).plots.forEach(p => p != u && p.setScale(scaleKey, range));
+                            }
                         };
 
                         let mouseup = e => {
                             document.removeEventListener('mousemove', mousemove);
-                            document.removeEventListener('mousemove', mouseup);
+                            document.removeEventListener('mouseup', mouseup);
                         };
 
                         document.addEventListener('mousemove', mousemove);
@@ -81,7 +93,7 @@ def ts_uplot(self, **kwargs):
         ]**'''
 
     head_template = '''
-        <link rel="stylesheet" href="https://leeoniya.github.io/uPlot/dist/uPlot.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.min.css">
         <style>
             .u-axis:hover {
                 cursor: move;
@@ -93,7 +105,7 @@ def ts_uplot(self, **kwargs):
                 background-color: white;
             }
         </style>
-        <script src="https://leeoniya.github.io/uPlot/dist/uPlot.iife.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js"></script>
 
         <div class="plot-area" style="text-align:center">
             <h2 style="font-family: Roboto"> {{title}} </h2>
@@ -115,7 +127,7 @@ def ts_uplot(self, **kwargs):
                     options['series'][i]["paths"] = u => null;
                 }
             }
-
+{{uplot_js}}
             u = new uPlot(options, data, document.getElementById("plot{{subplot}}"))
         </script>
         '''
@@ -167,6 +179,8 @@ def ts_uplot(self, **kwargs):
     # Get data in uplot expected format
     udf = df.copy()
     udf.index = udf.index.astype('int64')/10**9
+
+    sync_key = uplot_sync_key()
 
     for isbplt in range(n_subplots):
 
@@ -279,10 +293,7 @@ def ts_uplot(self, **kwargs):
                                     'focus': {
                                                 'prox': 16,
                                     },
-                                    'sync': {
-                                                'key': 'moo',
-                                                'setSeries': True,
-                                    },
+                                    'sync': uplot_sync(options, sync_key, multiple_sides),
                                     'drag': {
                                                 'x': True,
                                                 'y': True,
@@ -299,10 +310,11 @@ def ts_uplot(self, **kwargs):
                         'axes': uaxes
                     }
 
-        h2 = Template(uplot_template).render(
+        h2 = Template(uplot_template).render( 
             data=json.dumps(data),
             options=json.dumps(u_options),
-            subplot=isbplt
+            subplot=isbplt,
+            uplot_js=uplot_js
         )
 
         h += h2
