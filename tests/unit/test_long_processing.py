@@ -145,3 +145,29 @@ def test_bucket_region_from_the_environment_if_s3_cannot_be_asked(monkeypatch):
     # Asked again next time
     monkeypatch.setattr(fs, 'resolve_s3_region', lambda bucket: 'eu-central-1')
     assert device.bucket_region('bucket') == 'eu-central-1'
+
+
+def test_backup_to_a_local_folder(tmp_path):
+    # Backups written to a local folder are read back as those in S3
+    from types import SimpleNamespace
+    from scdata.device.device import Device
+
+    device = SimpleNamespace(id=1, handler=SimpleNamespace(json=SimpleNamespace(model_dump_json=lambda: '{"id": 1}')))
+    device._backup_to_folder = lambda *args: Device._backup_to_folder(device, *args)
+
+    def backup(start, periods, mode):
+        index = pd.date_range(start, periods=periods, freq='1min', tz='UTC', name='TIME')
+        device.data = pd.DataFrame({'TEMP': 20.0}, index=index)
+        return Device.backup_to_storage(device, mode=mode, root=str(tmp_path))
+
+    assert backup('2026-01-01', 60, 'overwrite')
+    assert backup('2026-01-01 01:00', 60, 'append')
+    data = read_storage(str(tmp_path / 'devices' / '1' / 'data'))
+    assert len(data) == 120 and data.index[0] == pd.Timestamp('2026-01-01', tz='UTC')
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text() == '{"id": 1}'
+
+    # Overwrite starts again
+    assert backup('2026-02-01', 10, 'overwrite')
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 10
+    # qc data is only backed up to S3
+    assert not Device.backup_to_storage(device, root=str(tmp_path), add_qc_data=True)

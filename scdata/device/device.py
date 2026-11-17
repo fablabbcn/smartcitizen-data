@@ -1172,10 +1172,10 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.params_parsed.id}")
         return post_ok
 
-    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False):
+    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False, root=None):
         """
         Backup device data into S3 storage (requires S3_DATA_BUCKET env
-         variable set).
+         variable set), or into a local folder (root).
             Parameters
             ----------
             mode: str
@@ -1191,6 +1191,10 @@ class Device(BaseModel):
             add_qc_metrics: bool
                 False
                 Add quality metrics to export as json
+            root: str
+                None
+                Where the backups go: "s3://{S3_DATA_BUCKET}" by default, or a local folder (read
+                with load_from_storage(root=...))
         Returns
         ----------
             False or response from awswrangler
@@ -1198,6 +1202,9 @@ class Device(BaseModel):
         if self.data.empty:
             logger.error("Device data empty")
             return False
+
+        if root is not None and not root.startswith('s3://'):
+            return self._backup_to_folder(root, mode, path, add_qc_data or add_qc_metrics)
 
         if 'S3_DATA_BUCKET' not in os.environ:
             logger.error("S3_DATA_BUCKET not set in environment")
@@ -1232,6 +1239,28 @@ class Device(BaseModel):
                         )
 
             return responses
+
+    def _backup_to_folder(self, root, mode, path, qc):
+        ''' backup_to_storage into a local folder, with the layout of S3: data/*.parquet and metadata.json '''
+        if qc:
+            logger.error('qc data and metrics are only backed up to S3')
+            return False
+        import shutil
+        from uuid import uuid4
+
+        folder = join(root, path, str(self.id))
+        data_folder = join(folder, 'data')
+        if mode == 'overwrite' and exists(data_folder):
+            shutil.rmtree(data_folder)
+        os.makedirs(data_folder, exist_ok=True)
+        # As awswrangler: the times in a TIME column, one more file per backup
+        data = self.data.copy()
+        data['TIME'] = data.index
+        data_file = join(data_folder, f'{uuid4().hex}.parquet')
+        data.to_parquet(data_file, index=False)
+        with open(join(folder, 'metadata.json'), 'w') as file:
+            file.write(self.handler.json.model_dump_json())
+        return {'data_upload': {'paths': [data_file]}}
 
     def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False,
                           min_date=None, max_date=None, channels=None, root=None):
