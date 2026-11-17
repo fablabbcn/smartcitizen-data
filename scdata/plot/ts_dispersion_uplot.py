@@ -9,7 +9,7 @@ from jinja2 import Template
 from scipy.stats import t
 
 from scdata._config import config
-from scdata.plot.tools import colors, uplot_keep_scales, uplot_sync, uplot_sync_key
+from scdata.plot.tools import colors, uplot_js, uplot_sync, uplot_sync_key
 from scdata.tools.custom_logger import logger
 from scdata.tools.dictmerge import dict_fmerge
 
@@ -25,7 +25,7 @@ def ts_dispersion_uplot(self, **kwargs):
             Options including data processing prior to plot. Defaults in config._plot_def_opt
             Subplot syncing:
                 sync_x: bool (True) - share x zoom and cursor between subplots
-                sync_y: bool (False) - share y zoom between subplots
+                sync_y: bool (False) - share y zoom between subplots (with sync_x)
                 sync_series: bool (False) - share legend show/hide between subplots
         formatting: dict
             Formatting dict. Defaults in config._ts_plot_def_fmt
@@ -59,7 +59,7 @@ def ts_dispersion_uplot(self, **kwargs):
                     options['series'][i]["paths"] = u => null;
                 }
             }
-{{keep_scales}}
+{{uplot_js}}
             u = new uPlot(options, data, document.getElementById("plot{{subplot}}"))
         </script>
         '''
@@ -274,7 +274,7 @@ def ts_dispersion_uplot(self, **kwargs):
         h2 = Template(uplot_template).render(data=json.dumps(data),
                                  options=json.dumps(u_options),
                                  subplot=isbplt,
-                                 keep_scales=uplot_keep_scales)
+                                 uplot_js=uplot_js)
 
 
         h += h2

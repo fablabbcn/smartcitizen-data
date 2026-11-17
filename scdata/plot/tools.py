@@ -63,17 +63,26 @@ def uplot_sync(options, key, multiple_sides = False):
         -------
             Dict for uPlot cursor.sync
     """
+    # A null x scale breaks the drag on the other subplots: without sync_x, uplot_js
+    # filters out everything but showing and hiding series. The y zoom needs sync_x
     return {
         'key': key,
         'setSeries': options['sync_series'],
+        'onlySeries': not options['sync_x'],
         'scales': [
-            'x' if options['sync_x'] else None,
-            'y' if options['sync_y'] and not multiple_sides else None
+            'x',
+            'y' if options['sync_x'] and options['sync_y'] and not multiple_sides else None
         ]
     }
 
-# uPlot fits the y axis again when showing or hiding a series. This keeps the current range
-uplot_keep_scales = '''
+# Before creating each uPlot:
+# - Without sync_x, only share showing and hiding series (not the cursor, the zoom or the reset)
+# - uPlot fits the y axis again when showing or hiding a series. This keeps the current range
+uplot_js = '''
+            if (options.cursor.sync.onlySeries) {
+                options.cursor.sync.filters = {pub: type => type == 'setSeries', sub: () => true};
+            }
+
             options.hooks = options.hooks || {};
             options.hooks.setSeries = (options.hooks.setSeries || []).concat([
                 (u, i, opts) => {
