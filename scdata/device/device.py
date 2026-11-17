@@ -1203,8 +1203,8 @@ class Device(BaseModel):
                 Add quality metrics to export as json
             root: str
                 None
-                Where the backups go: "s3://{S3_DATA_BUCKET}" by default, or a local folder (read
-                with load_from_storage(root=...))
+                Where the backups go: "s3://{S3_DATA_BUCKET}" by default (the only S3 root), or a local
+                folder (read with load_from_storage(root=...))
         Returns
         ----------
             False or response from awswrangler
@@ -1218,6 +1218,10 @@ class Device(BaseModel):
 
         if 'S3_DATA_BUCKET' not in os.environ:
             logger.error("S3_DATA_BUCKET not set in environment")
+            return False
+
+        if root is not None and root.rstrip('/') != f"s3://{os.environ['S3_DATA_BUCKET']}":
+            logger.error(f"Backups to S3 only go to s3://{os.environ['S3_DATA_BUCKET']}, not {root}")
             return False
 
         # TODO Add more formats

@@ -214,3 +214,9 @@ def test_failed_backup_to_a_local_folder_keeps_the_previous_one(tmp_path, monkey
     assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 60
     assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
 
+
+def test_backup_to_s3_only_goes_to_the_bucket(monkeypatch):
+    from scdata.device.device import Device
+
+    monkeypatch.setenv('S3_DATA_BUCKET', 'bucket')
+    assert not Device.backup_to_storage(local_device('2026-01-01', 10), root='s3://another/devices')
