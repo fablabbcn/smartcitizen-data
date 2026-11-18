@@ -195,6 +195,24 @@ def test_processed_channels_are_posted(make_device, readings):
     assert 'NO2_WE' in device.handler.posted
 
 
+def test_a_channel_that_exists_is_only_added_with_overwrite(make_device, readings):
+    versions = [version(utc(2024, 4, 1), None, 'ADC_48_3')]
+    device = device_with_versions(make_device, versions)
+    total = {'name': 'ADC_SUM', 'function': 'poly_ts', 'kwargs': {'channels': ['ADC_48_3', 'ADC_49_1']}}
+    assert device.add_channel(total)
+
+    # A notebook cell run again
+    assert not device.add_channel(total)
+    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
+    assert processed(device, readings, versions)
+
+    difference = dict(total, kwargs={'channels': ['ADC_48_3', 'ADC_49_1'], 'coefficients': [1, -1]})
+    assert device.add_channel(difference, overwrite=True)
+    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
+    assert processed(device, readings, versions)
+    assert (device.data['ADC_SUM'] == -1.0).all()
+
+
 def test_channels_that_cannot_be_sorted_are_kept(make_device, readings):
     versions = [version(utc(2024, 4, 1), None, 'ADC_48_3')]
     device = device_with_versions(make_device, versions)

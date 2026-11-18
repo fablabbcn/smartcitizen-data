@@ -454,7 +454,7 @@ class Device(BaseModel):
 
         return sorted(required & failed)
 
-    def add_channel(self, calculated_channel = dict()):
+    def add_channel(self, calculated_channel = dict(), overwrite = False):
         '''
         Add a CalculatedChannel to the device to be processed by a callable function
         Parameters
@@ -482,6 +482,10 @@ class Device(BaseModel):
                 }
             The 'module' parameter is only needed if the process is not
             already available in scdata.device.process.
+            overwrite: bool
+            False
+            Replace a channel of the device with the same name. Without it, a channel
+            that exists is not added
         Example:
         --------
         d.calculated_channel(calculated_channel={
@@ -496,7 +500,7 @@ class Device(BaseModel):
             })
         Returns
         ----------
-            True if calculated_channel added
+            True if calculated_channel added (or replaced), False if it exists and overwrite is False
         '''
 
         if 'channels' not in vars(self):
@@ -505,10 +509,18 @@ class Device(BaseModel):
 
         _calculated_channel = TypeAdapter(CalculatedChannel).validate_python(calculated_channel)
 
-        if self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
-            self.channels.append(_calculated_channel)
+        existing = find_by_field(self.channels, _calculated_channel.name, 'name')
+        if existing is not None and not overwrite:
+            logger.error(f'Channel {_calculated_channel.name} already in device {self.id}: not added (overwrite=True replaces it)')
+            return False
 
-            logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
+        if self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
+            if existing is not None:
+                self.channels[self.channels.index(existing)] = _calculated_channel
+                logger.info(f"Channel {_calculated_channel.name} replaced in device {self.id}")
+            else:
+                self.channels.append(_calculated_channel)
+                logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
             self._rename[_calculated_channel.name] = _calculated_channel.name
             return True
 
