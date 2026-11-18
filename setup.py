@@ -30,7 +30,7 @@ PLOT = [
 
 setup(
     name='scdata',
-    version='1.7.1',
+    version='1.8.0',
     description='Analysis of sensors and time series data',
     author='oscgonfer',
     license='GNU-GPL3.0',
@@ -55,13 +55,13 @@ setup(
         "plot": PLOT,
         # Device.load_from_storage and backup_to_storage (backups in S3 or a local folder)
         "storage": [
-            "pyarrow",
+            "pyarrow>=14",
             "awswrangler",
             "boto3"
         ],
         "dev": PLOT + [
             "pytest",
-            "pyarrow",
+            "pyarrow>=14",
             "awswrangler",
             "boto3",
             # Mocked S3 for the backup tests

@@ -98,6 +98,16 @@ def read_storage(url, min_date=None, max_date=None, channels=None):
     else:
         filesystem, location = fs.LocalFileSystem(), url
     dataset = ds.dataset(location, filesystem=filesystem, format='parquet')
+    # Each backup is one more file, with the channels of that moment: the dataset would only take the
+    # columns of the first one. Read those of all of them (times in ns and us are read in ns)
+    schemas = [fragment.physical_schema for fragment in dataset.get_fragments()]
+    if len(schemas) > 1:
+        try:
+            schema = pa.unify_schemas(schemas, promote_options='permissive')
+            dataset = ds.dataset(location, filesystem=filesystem, format='parquet', schema=schema)
+        except (pa.ArrowInvalid, pa.ArrowTypeError) as error:
+            logger.warning(f'The backups in {url} have columns that cannot be read together, reading those of '
+                           f'the first file ({error})')
 
     expression = None
     time_type = dataset.schema.field('TIME').type
@@ -1172,10 +1182,10 @@ class Device(BaseModel):
         if post_ok: logger.info(f"Postprocessing posted for device {self.params_parsed.id}")
         return post_ok
 
-    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False):
+    def backup_to_storage(self, mode='append', path='devices', add_qc_data=False, add_qc_metrics=False, root=None):
         """
         Backup device data into S3 storage (requires S3_DATA_BUCKET env
-         variable set).
+         variable set), or into a local folder (root).
             Parameters
             ----------
             mode: str
@@ -1191,6 +1201,10 @@ class Device(BaseModel):
             add_qc_metrics: bool
                 False
                 Add quality metrics to export as json
+            root: str
+                None
+                Where the backups go: "s3://{S3_DATA_BUCKET}" by default (the only S3 root), or a local
+                folder (read with load_from_storage(root=...))
         Returns
         ----------
             False or response from awswrangler
@@ -1199,8 +1213,15 @@ class Device(BaseModel):
             logger.error("Device data empty")
             return False
 
+        if root is not None and not root.startswith('s3://'):
+            return self._backup_to_folder(root, mode, path, add_qc_data or add_qc_metrics)
+
         if 'S3_DATA_BUCKET' not in os.environ:
             logger.error("S3_DATA_BUCKET not set in environment")
+            return False
+
+        if root is not None and root.rstrip('/') != f"s3://{os.environ['S3_DATA_BUCKET']}":
+            logger.error(f"Backups to S3 only go to s3://{os.environ['S3_DATA_BUCKET']}, not {root}")
             return False
 
         # TODO Add more formats
@@ -1232,6 +1253,58 @@ class Device(BaseModel):
                         )
 
             return responses
+
+    def _backup_to_folder(self, root, mode, path, qc):
+        ''' backup_to_storage into a local folder, with the layout of S3: data/*.parquet and metadata.json '''
+        if qc:
+            logger.error('qc data and metrics are only backed up to S3')
+            return False
+        import shutil
+        from uuid import uuid4
+
+        folder = join(root, path, str(self.id))
+        data_folder = join(folder, 'data')
+        name = f'{uuid4().hex}.parquet'
+        # As awswrangler: the times in a TIME column, one more file per backup. It is written aside first:
+        # if it fails, the backups in data stay as they were (no partial file, nothing overwritten)
+        staging = join(folder, f'.staging-{uuid4().hex}')
+        # metadata.json is written aside before the data, and replaced, not truncated, after it: if it fails,
+        # the data is put back as it was
+        temporary = join(folder, f'.metadata-{uuid4().hex}.json')
+        os.makedirs(staging)
+        try:
+            data = self.data.copy()
+            data['TIME'] = data.index
+            data.to_parquet(join(staging, name), index=False)
+            with open(temporary, 'w', encoding='utf-8') as file:
+                file.write(self.handler.json.model_dump_json())
+            previous = None
+            if mode == 'overwrite' and exists(data_folder):
+                previous = join(folder, f'.previous-{uuid4().hex}')
+                os.replace(data_folder, previous)
+                try:
+                    os.replace(staging, data_folder)
+                except OSError:
+                    os.replace(previous, data_folder)
+                    raise
+            else:
+                os.makedirs(data_folder, exist_ok=True)
+                os.replace(join(staging, name), join(data_folder, name))
+            try:
+                os.replace(temporary, join(folder, 'metadata.json'))
+            except OSError:
+                if previous is None:
+                    os.remove(join(data_folder, name))
+                else:
+                    shutil.rmtree(data_folder)
+                    os.replace(previous, data_folder)
+                raise
+            if previous is not None: shutil.rmtree(previous)
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
+            if exists(temporary): os.remove(temporary)
+        data_file = join(data_folder, name)
+        return {'data_upload': {'paths': [data_file]}}
 
     def load_from_storage(self, path='devices', load_data=True, load_qc_data=False, load_qc_metrics=False,
                           min_date=None, max_date=None, channels=None, root=None):
