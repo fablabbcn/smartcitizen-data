@@ -198,16 +198,17 @@ def ts_uplot(self, **kwargs):
             }
         ]
 
+        # Left, unless all the traces are on the right
         side = 3
         multiple_sides = False
-        if all([sides[side] == 'right' for side in sides]):
+        if sides and all([sides[channel] == 'right' for channel in sides]):
             side = 1
-        elif all([sides[side] == 'left' for side in sides]):
+        elif all([sides[channel] == 'left' for channel in sides]):
             side = 3
         else:
-            for side in sides:
-                if sides[side] not in ['right', 'left']:
-                    logger.warning(f'Unknown side {sides[side]}. Valid options: "left", "right"')
+            for channel in sides:
+                if sides[channel] not in ['right', 'left']:
+                    logger.warning(f'Unknown side {sides[channel]}. Valid options: "left", "right"')
                     continue
                 else:
                     multiple_sides = True
