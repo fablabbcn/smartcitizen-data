@@ -193,3 +193,19 @@ def test_processed_channels_are_posted(make_device, readings):
 
     # The handler posts the processed channels, not only the readings it loaded
     assert 'NO2_WE' in device.handler.posted
+
+
+def test_channels_that_cannot_be_sorted_are_kept(make_device, readings):
+    versions = [version(utc(2024, 4, 1), None, 'ADC_48_3')]
+    device = device_with_versions(make_device, versions)
+    device.add_channel({'name': 'NO2_DOUBLE', 'function': 'poly_ts', 'depends_on': ['NO2_WE'],
+                        'kwargs': {'channels': ['NO2_WE'], 'coefficients': [2]}})
+    # A channel with dependencies, twice
+    device.channels.append(device.channels[-1].model_copy())
+
+    assert not processed(device, readings, versions)
+    # Not None: they can be fixed and processed again
+    assert [channel.name for channel in device.channels] == ['NO2_WE', 'NO2_DOUBLE', 'NO2_DOUBLE']
+    device.channels.pop()
+    assert processed(device, readings, versions)
+    assert (device.data['NO2_DOUBLE'] == 2.0).all()

@@ -850,7 +850,12 @@ class Device(BaseModel):
 
         # Sort channels
         logger.info('Sorting channels...')
-        self.channels = topological_sort(self.channels)
+        channels = topological_sort(self.channels)
+        if channels is None:
+            # The channels are kept as they are, to be fixed
+            logger.error(f'Channels of device {self.params_parsed.id} have missing, repeated or circular dependencies: not processed')
+            return False
+        self.channels = channels
 
         windows = self.__version_windows__()
         if not windows:
