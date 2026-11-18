@@ -1276,7 +1276,7 @@ class Device(BaseModel):
             data = self.data.copy()
             data['TIME'] = data.index
             data.to_parquet(join(staging, name), index=False)
-            with open(temporary, 'w') as file:
+            with open(temporary, 'w', encoding='utf-8') as file:
                 file.write(self.handler.json.model_dump_json())
             previous = None
             if mode == 'overwrite' and exists(data_folder):

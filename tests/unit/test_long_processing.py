@@ -262,3 +262,21 @@ def test_backup_to_s3_only_goes_to_the_bucket(monkeypatch):
 
     monkeypatch.setenv('S3_DATA_BUCKET', 'bucket')
     assert not Device.backup_to_storage(local_device('2026-01-01', 10), root='s3://another/devices')
+
+
+def test_metadata_of_a_local_backup_is_utf8(tmp_path, monkeypatch):
+    # Whatever the encoding of the system, as in S3
+    import builtins
+    from scdata.device.device import Device
+
+    real_open = builtins.open
+    def ascii_open(path, mode='r', *args, **kwargs):
+        if 'b' not in mode:
+            kwargs.setdefault('encoding', 'ascii')
+        return real_open(path, mode, *args, **kwargs)
+    monkeypatch.setattr(builtins, 'open', ascii_open)
+    device = local_device('2026-01-01', 10)
+    device.handler.json.model_dump_json = lambda: '{"name": "Plaça del Sol"}'
+
+    assert Device.backup_to_storage(device, root=str(tmp_path))
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text(encoding='utf-8') == '{"name": "Plaça del Sol"}'
