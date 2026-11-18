@@ -514,15 +514,20 @@ class Device(BaseModel):
             logger.error(f'Channel {_calculated_channel.name} already in device {self.id}: not added (overwrite=True replaces it)')
             return False
 
-        if self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
-            if existing is not None:
-                self.channels[self.channels.index(existing)] = _calculated_channel
-                logger.info(f"Channel {_calculated_channel.name} replaced in device {self.id}")
-            else:
-                self.channels.append(_calculated_channel)
-                logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
-            self._rename[_calculated_channel.name] = _calculated_channel.name
-            return True
+        if not self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
+            return False
+
+        if existing is not None:
+            self.channels[self.channels.index(existing)] = _calculated_channel
+            # The values of the previous definition are not current anymore
+            if _calculated_channel.name in self.data.columns:
+                self.data = self.data.drop(columns=_calculated_channel.name)
+            logger.info(f"Channel {_calculated_channel.name} replaced in device {self.id}")
+        else:
+            self.channels.append(_calculated_channel)
+            logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
+        self._rename[_calculated_channel.name] = _calculated_channel.name
+        return True
 
     def del_channel(self, channel_name = ''):
         if 'channels' not in vars(self):
@@ -697,17 +702,15 @@ class Device(BaseModel):
         logger.info('Units check done')
 
     def __check_callable__(self, module, function):
-        # Check if the calculated_channel contains a custom module
-        lazy_name = f"{module}.{function}"
-
+        # The function is looked up (not called): a wrong name fails here, not when processing
+        from importlib import import_module
         try:
-            funct = LazyCallable(lazy_name)
-        except ModuleNotFoundError:
-            logger.error(f'Callable {lazy_name} not available')
-            return False
-        else:
-            return True
-        return False
+            available = callable(getattr(import_module(module), function, None))
+        except ImportError:
+            available = False
+        if not available:
+            logger.error(f'Callable {module}.{function} not available')
+        return available
 
     def __version_windows__(self):
         '''
@@ -866,6 +869,7 @@ class Device(BaseModel):
         if channels is None:
             # The channels are kept as they are, to be fixed
             logger.error(f'Channels of device {self.params_parsed.id} have missing, repeated or circular dependencies: not processed')
+            self.processed = False
             return False
         self.channels = channels
 

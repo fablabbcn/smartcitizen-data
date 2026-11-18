@@ -206,9 +206,15 @@ def test_a_channel_that_exists_is_only_added_with_overwrite(make_device, reading
     assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
     assert processed(device, readings, versions)
 
+    # A function that does not exist does not replace it
+    assert not device.add_channel(dict(total, function='poly_tss'), overwrite=True)
+    assert device.channels[1].function == 'poly_ts'
+
     difference = dict(total, kwargs={'channels': ['ADC_48_3', 'ADC_49_1'], 'coefficients': [1, -1]})
     assert device.add_channel(difference, overwrite=True)
     assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
+    # The values of the previous definition are dropped
+    assert 'ADC_SUM' not in device.data.columns
     assert processed(device, readings, versions)
     assert (device.data['ADC_SUM'] == -1.0).all()
 
@@ -218,10 +224,12 @@ def test_channels_that_cannot_be_sorted_are_kept(make_device, readings):
     device = device_with_versions(make_device, versions)
     device.add_channel({'name': 'NO2_DOUBLE', 'function': 'poly_ts', 'depends_on': ['NO2_WE'],
                         'kwargs': {'channels': ['NO2_WE'], 'coefficients': [2]}})
+    assert processed(device, readings, versions)
     # A channel with dependencies, twice
     device.channels.append(device.channels[-1].model_copy())
 
     assert not processed(device, readings, versions)
+    assert not device.processed
     # Not None: they can be fixed and processed again
     assert [channel.name for channel in device.channels] == ['NO2_WE', 'NO2_DOUBLE', 'NO2_DOUBLE']
     device.channels.pop()
