@@ -200,23 +200,43 @@ def test_a_channel_that_exists_is_only_added_with_overwrite(make_device, reading
     device = device_with_versions(make_device, versions)
     total = {'name': 'ADC_SUM', 'function': 'poly_ts', 'kwargs': {'channels': ['ADC_48_3', 'ADC_49_1']}}
     assert device.add_channel(total)
+    # Calculated from it, with the path to the function as LazyCallable takes it
+    assert device.add_channel({'name': 'ADC_SUM_2', 'module': 'scdata.device', 'function': 'process.poly_ts',
+                               'depends_on': ['ADC_SUM'], 'kwargs': {'channels': ['ADC_SUM'], 'coefficients': [2]}})
 
     # A notebook cell run again
     assert not device.add_channel(total)
-    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
+    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM', 'ADC_SUM_2']
     assert processed(device, readings, versions)
+    assert (device.data['ADC_SUM_2'] == 6.0).all()
 
     # A function that does not exist does not replace it
     assert not device.add_channel(dict(total, function='poly_tss'), overwrite=True)
     assert device.channels[1].function == 'poly_ts'
 
+    # Two definitions with that name: both are replaced
+    device.channels.insert(2, device.channels[1].model_copy())
     difference = dict(total, kwargs={'channels': ['ADC_48_3', 'ADC_49_1'], 'coefficients': [1, -1]})
     assert device.add_channel(difference, overwrite=True)
-    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM']
-    # The values of the previous definition are dropped
-    assert 'ADC_SUM' not in device.data.columns
+    assert [channel.name for channel in device.channels] == ['NO2_WE', 'ADC_SUM', 'ADC_SUM_2']
+    # The values of the previous definition, and those calculated from them, are dropped
+    assert not {'ADC_SUM', 'ADC_SUM_2'} & set(device.data.columns)
     assert processed(device, readings, versions)
-    assert (device.data['ADC_SUM'] == -1.0).all()
+    assert (device.data['ADC_SUM'] == -1.0).all() and (device.data['ADC_SUM_2'] == -2.0).all()
+
+
+def test_a_module_that_fails_to_import_is_an_error_of_its_channel(make_device, readings, tmp_path, monkeypatch):
+    (tmp_path / 'broken_channels.py').write_text("raise RuntimeError('broken')\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    versions = [version(utc(2024, 4, 1), None, 'ADC_48_3')]
+    device = device_with_versions(make_device, versions)
+
+    assert not device.add_channel({'name': 'BROKEN', 'module': 'broken_channels', 'function': 'f'})
+    device.channels.append(device.channels[0].model_copy(update={'name': 'BROKEN', 'module': 'broken_channels',
+                                                                 'function': 'f'}))
+    # The other channels are processed, on all the data
+    assert not processed(device, readings, versions)
+    assert (device.data['NO2_WE'] == 1.0).all() and len(device.data) == len(readings)
 
 
 def test_channels_that_cannot_be_sorted_are_kept(make_device, readings):

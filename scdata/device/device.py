@@ -518,11 +518,19 @@ class Device(BaseModel):
             return False
 
         if existing is not None:
-            self.channels[self.channels.index(existing)] = _calculated_channel
-            # The values of the previous definition are not current anymore
-            if _calculated_channel.name in self.data.columns:
-                self.data = self.data.drop(columns=_calculated_channel.name)
-            logger.info(f"Channel {_calculated_channel.name} replaced in device {self.id}")
+            name, position = _calculated_channel.name, self.channels.index(existing)
+            # All the definitions with that name are replaced by this one
+            self.channels = [channel for channel in self.channels if channel.name != name]
+            self.channels.insert(position, _calculated_channel)
+            # The values of the previous definition, and of the channels calculated from them, are not current anymore
+            stale = {name}
+            while True:
+                dependents = {channel.name for channel in self.channels
+                              if channel.name not in stale and stale & set(channel.depends_on or [])}
+                if not dependents: break
+                stale |= dependents
+            self.data = self.data.drop(columns=[column for column in self.data.columns if column in stale])
+            logger.info(f"Channel {name} replaced in device {self.id}")
         else:
             self.channels.append(_calculated_channel)
             logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
@@ -702,11 +710,15 @@ class Device(BaseModel):
         logger.info('Units check done')
 
     def __check_callable__(self, module, function):
-        # The function is looked up (not called): a wrong name fails here, not when processing
+        # The function is looked up (not called): a wrong name fails here, not when processing. As LazyCallable,
+        # the module is all before the last dot
         from importlib import import_module
+        module_name, function_name = f'{module}.{function}'.rsplit('.', 1)
         try:
-            available = callable(getattr(import_module(module), function, None))
-        except ImportError:
+            available = callable(getattr(import_module(module_name), function_name, None))
+        except Exception as error:
+            # Any error importing it (not only ImportError) is that of this channel or check
+            logger.error(f'Cannot import {module_name}: {error}')
             available = False
         if not available:
             logger.error(f'Callable {module}.{function} not available')
