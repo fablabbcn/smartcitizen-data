@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal
 from datetime import datetime
 
 class TestOptions(BaseModel):
     cache: Optional[bool] = True
+    cache_format: Literal['csv', 'parquet'] = 'csv'
 
 class CalculatedChannel(BaseModel):
     id: Optional[int] = None
