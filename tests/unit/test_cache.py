@@ -36,3 +36,8 @@ def test_the_cache_is_only_written_with_new_data_and_in_the_format_of_the_test(m
     assert asyncio.run(test.load())
     assert device.data.iloc[:, 0].tolist() == list(range(len(index)))
     assert str(device.data.index.tz) == 'UTC'
+
+    # Resampled as a csv cache is
+    device.options.resample, device.options.frequency = True, '2Min'
+    assert asyncio.run(test.load())
+    assert len(device.data) == len(index) / 2

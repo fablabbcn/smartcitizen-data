@@ -3,10 +3,11 @@
 import asyncio
 import json
 from datetime import datetime, timedelta
-from os import makedirs, remove
+from os import makedirs, remove, replace
 from os.path import exists, join
 from re import sub
 from shutil import copyfile, make_archive, rmtree
+from tempfile import TemporaryDirectory
 from traceback import print_exc
 from typing import Any, Dict, List, Optional
 
@@ -312,10 +313,15 @@ class Test(BaseModel):
                 cache_path = join(cache_dir, f'{device.id}.{cache_format}')
                 if not device.updated and device_cache_path == cache_path:
                     logger.info(f'No new data for device {device.id}, cache kept')
-                elif device.export(cache_dir, forced_overwrite = True, file_format = cache_format, use_exports = False):
-                    logger.info(f'Device {device.id} cached as {cache_format}')
-                    if device_cache_path and device_cache_path != cache_path:
-                        remove(device_cache_path)
+                    continue
+                # Written aside and then moved: an interrupted write leaves the previous cache as it was
+                with TemporaryDirectory(dir = cache_dir) as writing:
+                    if not device.export(writing, forced_overwrite = True, file_format = cache_format, use_exports = False):
+                        continue
+                    replace(join(writing, f'{device.id}.{cache_format}'), cache_path)
+                logger.info(f'Device {device.id} cached as {cache_format}')
+                if device_cache_path and device_cache_path != cache_path:
+                    remove(device_cache_path)
 
         logger.info('Test load done')
 

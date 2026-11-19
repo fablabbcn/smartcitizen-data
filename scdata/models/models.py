@@ -4,7 +4,7 @@ from datetime import datetime
 
 class TestOptions(BaseModel):
     cache: Optional[bool] = True
-    cache_format: Optional[Literal['csv', 'parquet']] = 'csv'
+    cache_format: Literal['csv', 'parquet'] = 'csv'
 
 class CalculatedChannel(BaseModel):
     id: Optional[int] = None

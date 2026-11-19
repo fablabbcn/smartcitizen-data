@@ -18,6 +18,7 @@ from scdata.io import export_csv_file, read_csv_file
 from scdata.io.device_api import *
 from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, Export,
                              CSVParams, DeviceOptions, Sensor, Source)
+from scdata.tools.cleaning import clean
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from smartcitizen_connector.tools import pandas_freq
@@ -617,6 +618,10 @@ class Device(BaseModel):
                     elif cache.endswith('.parquet'):
                         cached_data = read_parquet(cache)
                         cached_data.index = localise_date(cached_data.index, timezone)
+                        # As read_csv_file does with a csv cache
+                        if resample:
+                            cached_data = cached_data.resample(pandas_freq(frequency)).mean()
+                        cached_data = clean(cached_data, clean_na, how = 'all')
                     else:
                         raise NotImplementedError(f'Cache needs to be a .csv or .parquet file. Got {cache}.')
 
