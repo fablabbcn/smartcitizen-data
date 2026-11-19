@@ -9,7 +9,7 @@ from os.path import basename, exists, join
 from typing import Dict, List, Optional
 
 from numpy import nan
-from pandas import DataFrame, Series, Timedelta, Timestamp, concat, to_timedelta
+from pandas import DataFrame, Series, Timedelta, Timestamp, concat, read_parquet, to_timedelta
 from pydantic import BaseModel, ConfigDict, PrivateAttr, TypeAdapter
 from pydantic_core import ValidationError
 
@@ -188,6 +188,8 @@ class Device(BaseModel):
     data: DataFrame = DataFrame()
     qc_data: DataFrame = DataFrame()
     loaded: bool = False
+    # Whether the last load brought data from the source, not only from the cache
+    updated: bool = False
     processed: bool = False
     checked: bool = False
     postprocessing_updated: bool = False
@@ -612,8 +614,11 @@ class Device(BaseModel):
                             clean_na = clean_na,
                             resample = resample,
                             index_name = 'TIME')
+                    elif cache.endswith('.parquet'):
+                        cached_data = read_parquet(cache)
+                        cached_data.index = localise_date(cached_data.index, timezone)
                     else:
-                        raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
+                        raise NotImplementedError(f'Cache needs to be a .csv or .parquet file. Got {cache}.')
 
                 # Make request with a logical min_date
                 if not cached_data.empty:
@@ -645,6 +650,7 @@ class Device(BaseModel):
 
         # In principle this links both dataframes as they are unmutable
         self.data = self.handler.data
+        self.updated = self.data is not None and not self.data.empty
 
         # Wrap it all up
         self.loaded = self.__load_wrapup__(cached_data=cached_data)

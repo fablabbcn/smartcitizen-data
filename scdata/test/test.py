@@ -3,7 +3,7 @@
 import asyncio
 import json
 from datetime import datetime, timedelta
-from os import makedirs
+from os import makedirs, remove
 from os.path import exists, join
 from re import sub
 from shutil import copyfile, make_archive, rmtree
@@ -290,21 +290,32 @@ class Test(BaseModel):
                     makedirs(cache_dir)
                     logger.info(f'Cache will be available in: {cache_dir}')
 
+        cache_format = self.options.cache_format
+        # A cache in the other format is read, and replaced by one in the format of the test
+        cache_formats = [cache_format] + [f for f in ['csv', 'parquet'] if f != cache_format]
+
         for device in self.devices:
             logger.info(f"Loading device {device.id}")
             # Check for cached data
             device_cache_path = ''
             if self.options.cache:
-                tentative_path = join(self.path, 'cached', f'{device.id}.csv')
-                if exists(tentative_path):
-                    device_cache_path = tentative_path
+                for extension in cache_formats:
+                    tentative_path = join(self.path, 'cached', f'{device.id}.{extension}')
+                    if exists(tentative_path):
+                        device_cache_path = tentative_path
+                        break
 
             # Load device (no need to go async, it's fast enough)
             await device.load(cache=device_cache_path)
 
             if self.options.cache and device.loaded and not device.data.empty:
-                if device.export(cache_dir, forced_overwrite = True, file_format = 'csv', use_exports = False):
-                    logger.info(f'Device {device.id} cached')
+                cache_path = join(cache_dir, f'{device.id}.{cache_format}')
+                if not device.updated and device_cache_path == cache_path:
+                    logger.info(f'No new data for device {device.id}, cache kept')
+                elif device.export(cache_dir, forced_overwrite = True, file_format = cache_format, use_exports = False):
+                    logger.info(f'Device {device.id} cached as {cache_format}')
+                    if device_cache_path and device_cache_path != cache_path:
+                        remove(device_cache_path)
 
         logger.info('Test load done')
 
