@@ -526,9 +526,11 @@ class Device(BaseModel):
             self.channels = [channel for channel in self.channels if channel.name != name]
             self.channels.insert(position, _calculated_channel)
             # The values of the previous definition, and of the channels calculated from them, are not current anymore
+            # Dependencies of the channels as they are, and as they were in each hardware version
+            definitions = self.channels + [channel for _, _, channels in self.__version_windows__() for channel in channels]
             stale = {name}
             while True:
-                dependents = {channel.name for channel in self.channels
+                dependents = {channel.name for channel in definitions
                               if channel.name not in stale and stale & set(channel.depends_on or [])}
                 if not dependents: break
                 stale |= dependents

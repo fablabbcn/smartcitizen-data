@@ -225,6 +225,19 @@ def test_a_channel_that_exists_is_only_added_with_overwrite(make_device, reading
     assert (device.data['ADC_SUM'] == -1.0).all() and (device.data['ADC_SUM_2'] == -2.0).all()
 
 
+def test_an_overwritten_channel_drops_what_older_versions_calculated_from_it(make_device, readings):
+    old = version(utc(2024, 4, 1), utc(2025, 1, 1), 'ADC_48_3')
+    old['channels'].append({'name': 'DOUBLE', 'function': 'poly_ts', 'depends_on': ['NO2_WE'],
+                            'kwargs': {'channels': ['NO2_WE'], 'coefficients': [2]}})
+    versions = [old, version(utc(2025, 1, 1), None, 'ADC_49_1')]
+    device = device_with_versions(make_device, versions)
+    device.versions = versions
+    device.data = readings.assign(NO2_WE=1.0, DOUBLE=2.0)
+
+    assert device.add_channel({'name': 'NO2_WE', 'function': 'channel_names', 'kwargs': {'channel': 'ADC_49_1'}},
+                              overwrite=True)
+    assert not {'NO2_WE', 'DOUBLE'} & set(device.data.columns)
+
 def test_a_module_that_fails_to_import_is_an_error_of_its_channel(make_device, readings, tmp_path, monkeypatch):
     (tmp_path / 'broken_channels.py').write_text("raise RuntimeError('broken')\n")
     monkeypatch.syspath_prepend(str(tmp_path))
