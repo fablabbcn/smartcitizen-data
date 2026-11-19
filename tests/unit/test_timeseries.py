@@ -176,3 +176,20 @@ def test_time_derivative_with_timestamps_that_do_not_increase(minutes, gaussian_
                              gaussian_filter1d=gaussian_filter1d)
 
     assert result.status_code == StatusCode.ERROR_WRONG_INDEX
+
+
+def test_a_csv_device_reads_its_dates_with_its_format(tmp_path):
+    import asyncio
+    import scdata as sc
+    from pandas import Timestamp
+
+    # Day first: guessed month first from the first date, the 13th fails
+    path = tmp_path / 'dayfirst.csv'
+    path.write_text('TIME,A\n' + ''.join(f'{day:02d}.06.2025 00:00,{day}\n' for day in range(1, 15)))
+    device = sc.Device(blueprint='sc_air',
+        source={'type': 'csv', 'handler': 'CSVHandler', 'module': 'scdata.io.device_file'},
+        params=sc.CSVParams(id=0, path=str(path), header_skip=None, date_format='%d.%m.%Y %H:%M'))
+
+    assert asyncio.run(device.load())
+    assert device.data.index[0] == Timestamp('2025-06-01', tz='UTC')
+    assert device.data.index[-1] == Timestamp('2025-06-14', tz='UTC')

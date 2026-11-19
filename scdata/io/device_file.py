@@ -65,7 +65,8 @@ class CSVHandler:
             sep=self.params.separator,
             tzaware=self.params.tzaware,
             resample=kwargs['resample'],
-            dateformat=kwargs['dateformat']
+            # The format of the device (saved with the test), unless one is given when loading
+            dateformat=kwargs.get('dateformat') or self.params.date_format
             # TODO Pandas read_csv kwargs???
         )
 
