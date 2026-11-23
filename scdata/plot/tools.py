@@ -1,5 +1,6 @@
 import base64
 import io
+import uuid
 
 from numpy import arange
 from pandas import DataFrame, cut, option_context, to_datetime, to_numeric
@@ -45,6 +46,60 @@ YlOrBr_r, YlOrRd, YlOrRd_r, afmhot, afmhot_r, autumn, autumn_r, binary, binary_r
   tab20c_r, terrain, terrain_r, twilight, twilight_r, twilight_shifted, twilight_shifted_r,
   viridis, viridis_r, vlag, vlag_r, winter, winter_r
 '''
+
+def uplot_sync(options, key, multiple_sides = False):
+    """
+        Builds the uPlot cursor sync options shared by all subplots of a figure
+        Parameters
+        ----------
+            options: dict
+                Plot options with sync_x, sync_y and sync_series
+            key: string
+                Sync key for the figure. See uplot_sync_key
+            multiple_sides:
+                False
+                Whether the subplots use 'left' and 'right' scales instead of 'y'
+        Returns
+        -------
+            Dict for uPlot cursor.sync
+    """
+    # A null x scale breaks the drag on the other subplots: without sync_x, uplot_js
+    # filters out everything but showing and hiding series. The y zoom needs sync_x
+    return {
+        'key': key,
+        'setSeries': options['sync_series'],
+        'onlySeries': not options['sync_x'],
+        'scales': [
+            'x',
+            'y' if options['sync_x'] and options['sync_y'] and not multiple_sides else None
+        ]
+    }
+
+# Before creating each uPlot:
+# - Without sync_x, only share showing and hiding series (not the cursor, the zoom or the reset)
+# - uPlot fits the y axis again when showing or hiding a series. This keeps the current range
+uplot_js = '''
+            if (options.cursor.sync.onlySeries) {
+                options.cursor.sync.filters = {pub: type => type == 'setSeries', sub: () => true};
+            }
+
+            options.hooks = options.hooks || {};
+            options.hooks.setSeries = (options.hooks.setSeries || []).concat([
+                (u, i, opts) => {
+                    if (opts.show == null) return;
+                    for (let key in u.scales) {
+                        let sc = u.scales[key];
+                        if (key != 'x' && sc.min != null) u.setScale(key, {min: sc.min, max: sc.max});
+                    }
+                }
+            ]);
+'''
+
+def uplot_sync_key():
+    """
+        Unique sync key, so that different figures on the same page do not sync
+    """
+    return uuid.uuid4().hex
 
 def to_png_b64(fig, dpi = 150):
     """

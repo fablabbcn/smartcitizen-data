@@ -141,7 +141,11 @@ class Config(object):
         'frequency': None,
         'resample': 'mean',
         'clean_na': None,
-        'show': True
+        'show': True,
+        # uplot only: what is shared between subplots
+        'sync_x': True,
+        'sync_y': False,
+        'sync_series': False
     }
 
     _map_def_opt = {

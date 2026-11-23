@@ -1,4 +1,5 @@
 ''' Long processing: another blueprint for the same device, and data read from the backups '''
+import os
 import pandas as pd
 import pytest
 
@@ -107,3 +108,175 @@ def test_qc_data_is_only_read_from_s3(make_device, backup):
     # The data loads from the local root; qc data is not looked for elsewhere
     assert device.load_from_storage(root=str(backup), load_qc_data=True) is True
     assert device.qc_data.empty
+
+
+def test_s3_uses_the_region_of_the_bucket(monkeypatch):
+    # A region in the environment that is not the one of the bucket made reads fail
+    from pyarrow import fs
+    import pyarrow.dataset as ds
+    import scdata.device.device as device
+
+    monkeypatch.setenv('AWS_REGION', 'eu-south-1')
+    monkeypatch.setattr(device, '_bucket_regions', {})
+    asked, opened = [], []
+    monkeypatch.setattr(fs, 'resolve_s3_region', lambda bucket: asked.append(bucket) or 'eu-west-1')
+    monkeypatch.setattr(ds, 'dataset', lambda location, filesystem, format: opened.append((location, filesystem.region))
+                        or (_ for _ in ()).throw(FileNotFoundError(location)))
+
+    for _ in range(2):
+        with pytest.raises(FileNotFoundError):
+            read_storage('s3://bucket/devices/1/data')
+
+    assert opened == [('bucket/devices/1/data', 'eu-west-1')] * 2
+    assert asked == ['bucket']
+
+
+def test_bucket_region_from_the_environment_if_s3_cannot_be_asked(monkeypatch):
+    from pyarrow import fs
+    import scdata.device.device as device
+
+    monkeypatch.setenv('AWS_REGION', 'eu-west-1')
+    monkeypatch.setattr(device, '_bucket_regions', {})
+
+    def unreachable(bucket):
+        raise OSError('unreachable')
+
+    monkeypatch.setattr(fs, 'resolve_s3_region', unreachable)
+    assert device.bucket_region('bucket') == 'eu-west-1'
+    # Asked again next time
+    monkeypatch.setattr(fs, 'resolve_s3_region', lambda bucket: 'eu-central-1')
+    assert device.bucket_region('bucket') == 'eu-central-1'
+
+
+def test_backup_to_a_local_folder(tmp_path):
+    # Backups written to a local folder are read back as those in S3
+    from types import SimpleNamespace
+    from scdata.device.device import Device
+
+    device = SimpleNamespace(id=1, handler=SimpleNamespace(json=SimpleNamespace(model_dump_json=lambda: '{"id": 1}')))
+    device._backup_to_folder = lambda *args: Device._backup_to_folder(device, *args)
+
+    def backup(start, periods, mode):
+        index = pd.date_range(start, periods=periods, freq='1min', tz='UTC', name='TIME')
+        device.data = pd.DataFrame({'TEMP': 20.0}, index=index)
+        return Device.backup_to_storage(device, mode=mode, root=str(tmp_path))
+
+    assert backup('2026-01-01', 60, 'overwrite')
+    assert backup('2026-01-01 01:00', 60, 'append')
+    data = read_storage(str(tmp_path / 'devices' / '1' / 'data'))
+    assert len(data) == 120 and data.index[0] == pd.Timestamp('2026-01-01', tz='UTC')
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text() == '{"id": 1}'
+
+    # Overwrite starts again
+    assert backup('2026-02-01', 10, 'overwrite')
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 10
+    # qc data is only backed up to S3
+    assert not Device.backup_to_storage(device, root=str(tmp_path), add_qc_data=True)
+
+
+def test_read_storage_with_channels_of_later_backups(tmp_path):
+    # A channel added after the first backup is read too, empty before
+    for number, columns in enumerate([{'TEMP': 1.0}, {'TEMP': 2.0, 'NEW': 3.0}]):
+        index = pd.date_range(f'2026-01-0{number + 1}', periods=3, freq='1min', tz='UTC')
+        pd.DataFrame({**columns, 'TIME': index}).to_parquet(tmp_path / f'part-{number}.parquet', index=False)
+
+    data = read_storage(str(tmp_path))
+
+    assert sorted(data.columns) == ['NEW', 'TEMP'] and len(data) == 6
+    assert data.loc['2026-01-01', 'NEW'].isna().all()
+    assert (data.loc['2026-01-02', 'NEW'] == 3.0).all()
+    assert list(read_storage(str(tmp_path), channels=['NEW']).columns) == ['NEW']
+
+
+def local_device(start, periods):
+    from types import SimpleNamespace
+    from scdata.device.device import Device
+
+    device = SimpleNamespace(id=1, handler=SimpleNamespace(json=SimpleNamespace(model_dump_json=lambda: '{"id": 1}')))
+    device._backup_to_folder = lambda *args: Device._backup_to_folder(device, *args)
+    device.data = pd.DataFrame({'TEMP': 20.0}, index=pd.date_range(start, periods=periods, freq='1min', tz='UTC',
+                                                                   name='TIME'))
+    return device
+
+
+@pytest.mark.parametrize('mode', ['overwrite', 'append'])
+def test_failed_backup_to_a_local_folder_keeps_the_previous_one(tmp_path, monkeypatch, mode):
+    from scdata.device.device import Device
+
+    assert Device.backup_to_storage(local_device('2026-01-01', 60), root=str(tmp_path))
+
+    def fail(*args, **kwargs):
+        raise OSError('No space left on device')
+    monkeypatch.setattr(pd.DataFrame, 'to_parquet', fail)
+    with pytest.raises(OSError):
+        Device.backup_to_storage(local_device('2026-02-01', 10), mode=mode, root=str(tmp_path))
+
+    # The previous backup, without partial files or what was written aside
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 60
+    assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
+
+
+@pytest.mark.parametrize('mode', ['overwrite', 'append'])
+@pytest.mark.parametrize('failing', ['model_dump_json', 'write', 'replace'])
+def test_failed_metadata_of_a_local_backup_keeps_the_previous_one(tmp_path, monkeypatch, failing, mode):
+    import builtins
+    from scdata.device.device import Device
+
+    assert Device.backup_to_storage(local_device('2026-01-01', 60), root=str(tmp_path))
+
+    device = local_device('2026-02-01', 10)
+    device.handler.json.model_dump_json = lambda: '{"id": 2}'
+    if failing == 'model_dump_json':
+        def fail():
+            raise ValueError('Cannot serialize')
+        device.handler.json.model_dump_json = fail
+    elif failing == 'write':
+        # The disk fills while writing it
+        class Full:
+            def __init__(self, file): self.file = file
+            def __enter__(self): return self
+            def __exit__(self, *args): self.file.close()
+            def write(self, text): raise OSError('No space left on device')
+        real_open = builtins.open
+        monkeypatch.setattr(builtins, 'open', lambda path, *args, **kwargs: Full(real_open(path, *args, **kwargs))
+                            if str(path).endswith('.json') else real_open(path, *args, **kwargs))
+    else:
+        # The data is in place, but metadata.json cannot be replaced
+        real_replace = os.replace
+        def replace(source, destination):
+            if str(destination).endswith('metadata.json'):
+                raise OSError('Permission denied')
+            real_replace(source, destination)
+        monkeypatch.setattr(os, 'replace', replace)
+    with pytest.raises((ValueError, OSError)):
+        Device.backup_to_storage(device, mode=mode, root=str(tmp_path))
+    monkeypatch.undo()
+
+    # The previous backup: its data and its metadata
+    assert len(read_storage(str(tmp_path / 'devices' / '1' / 'data'))) == 60
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text() == '{"id": 1}'
+    assert sorted(path.name for path in (tmp_path / 'devices' / '1').iterdir()) == ['data', 'metadata.json']
+
+def test_backup_to_s3_only_goes_to_the_bucket(monkeypatch):
+    from scdata.device.device import Device
+
+    monkeypatch.setenv('S3_DATA_BUCKET', 'bucket')
+    assert not Device.backup_to_storage(local_device('2026-01-01', 10), root='s3://another/devices')
+
+
+def test_metadata_of_a_local_backup_is_utf8(tmp_path, monkeypatch):
+    # Whatever the encoding of the system, as in S3
+    import builtins
+    from scdata.device.device import Device
+
+    real_open = builtins.open
+    def ascii_open(path, mode='r', *args, **kwargs):
+        if 'b' not in mode:
+            kwargs.setdefault('encoding', 'ascii')
+        return real_open(path, mode, *args, **kwargs)
+    monkeypatch.setattr(builtins, 'open', ascii_open)
+    device = local_device('2026-01-01', 10)
+    device.handler.json.model_dump_json = lambda: '{"name": "Plaça del Sol"}'
+
+    assert Device.backup_to_storage(device, root=str(tmp_path))
+    assert (tmp_path / 'devices' / '1' / 'metadata.json').read_text(encoding='utf-8') == '{"name": "Plaça del Sol"}'
