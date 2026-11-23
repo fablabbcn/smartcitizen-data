@@ -161,3 +161,13 @@ def test_electrodes_that_are_not_in_the_data_are_skipped():
     result = find_insensitive_electrodes(electrode_pair(False), electrodes=[{'channel': 'NO2', 'we': 'NO2_WE', 'ae': 'NO2_AE'}])
 
     assert result.data.empty and list(result.data.columns) == []
+
+
+def test_only_readings_with_the_channel_are_flagged():
+    data = electrode_pair(False)
+    data['SO2'] = 1.0
+    data.iloc[:360, data.columns.get_loc('SO2')] = np.nan
+
+    flags = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}]).data['__SO2']
+
+    assert not flags.iloc[:360].any() and flags.iloc[360:].all()

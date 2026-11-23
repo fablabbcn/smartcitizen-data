@@ -56,8 +56,10 @@ def find_insensitive_electrodes(dataframe, **kwargs):
             residual = window[we] - (a * window[ae] + b)
             if residual.quantile(0.95) - residual.quantile(0.05) < min_range_mv:
                 df.loc[(df.index >= start) & (df.index < start + np.timedelta64(window_hours, 'h')), flag] = True
-        # Only the rows with readings of the electrodes
+        # Only the rows with readings of the electrodes, and of the channel if it is there (summaries count its values)
         df[flag] &= df[we].notna() & df[ae].notna()
+        if channel in df.columns:
+            df[flag] &= df[channel].notna()
 
         cols.append(flag)
 
