@@ -1,6 +1,6 @@
 from os.path import exists, join
 
-from pandas import DataFrame
+from pandas import DataFrame, read_csv
 
 from conftest import SHT31_TEMP
 
@@ -48,3 +48,21 @@ def test_export_empty_data(make_device, tmp_path):
     device = make_device({'channels': []}, [SHT31_TEMP])
 
     assert device.export(str(tmp_path)) is False
+
+
+def test_export_selected_and_renamed_columns(make_device, index, tmp_path):
+    device = processed_device(make_device, index)
+    device.data = device.data.assign(SO2=1.0, SO2_WE=2.0, SO2_ALS=3.0, SO2_custom=4.0, SO2_custom_ugm3=5.0)
+
+    assert device.export(str(tmp_path), exclude=['SO2', 'SO2_ALS*'], rename={'SO2_custom*': 'SO2*'}) is True
+
+    exported = read_csv(join(tmp_path, '1.csv'), index_col=0)
+    assert list(exported.columns) == ['TEMP', 'HUM', 'SO2_WE', 'SO2', 'SO2_ugm3']
+    assert exported['SO2'].iloc[0] == 4.0 and exported['SO2_ugm3'].iloc[0] == 5.0
+
+
+def test_export_only_some_columns(make_device, index, tmp_path):
+    device = processed_device(make_device, index)
+
+    assert device.export(str(tmp_path), columns=['T*']) is True
+    assert list(read_csv(join(tmp_path, '1.csv'), index_col=0).columns) == ['TEMP']
