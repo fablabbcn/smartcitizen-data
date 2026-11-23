@@ -9,7 +9,7 @@ from os.path import basename, exists, join
 from typing import Dict, List, Optional
 
 from numpy import nan
-from pandas import DataFrame, Series, Timedelta, Timestamp, concat, to_timedelta
+from pandas import DataFrame, Series, Timedelta, Timestamp, concat, read_parquet, to_timedelta
 from pydantic import BaseModel, ConfigDict, PrivateAttr, TypeAdapter
 from pydantic_core import ValidationError
 
@@ -18,6 +18,7 @@ from scdata.io import export_csv_file, read_csv_file
 from scdata.io.device_api import *
 from scdata.models import (APIParams, Blueprint, CalculatedChannel, Check, Export,
                              CSVParams, DeviceOptions, Sensor, Source)
+from scdata.tools.cleaning import clean
 from scdata.tools.custom_logger import logger
 from scdata.tools.date import localise_date
 from smartcitizen_connector.tools import pandas_freq
@@ -188,6 +189,8 @@ class Device(BaseModel):
     data: DataFrame = DataFrame()
     qc_data: DataFrame = DataFrame()
     loaded: bool = False
+    # Whether the last load brought data from the source, not only from the cache
+    updated: bool = False
     processed: bool = False
     checked: bool = False
     postprocessing_updated: bool = False
@@ -454,7 +457,7 @@ class Device(BaseModel):
 
         return sorted(required & failed)
 
-    def add_channel(self, calculated_channel = dict()):
+    def add_channel(self, calculated_channel = dict(), overwrite = False):
         '''
         Add a CalculatedChannel to the device to be processed by a callable function
         Parameters
@@ -482,6 +485,10 @@ class Device(BaseModel):
                 }
             The 'module' parameter is only needed if the process is not
             already available in scdata.device.process.
+            overwrite: bool
+            False
+            Replace a channel of the device with the same name. Without it, a channel
+            that exists is not added
         Example:
         --------
         d.calculated_channel(calculated_channel={
@@ -496,7 +503,7 @@ class Device(BaseModel):
             })
         Returns
         ----------
-            True if calculated_channel added
+            True if calculated_channel added (or replaced), False if it exists and overwrite is False
         '''
 
         if 'channels' not in vars(self):
@@ -505,12 +512,35 @@ class Device(BaseModel):
 
         _calculated_channel = TypeAdapter(CalculatedChannel).validate_python(calculated_channel)
 
-        if self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
-            self.channels.append(_calculated_channel)
+        existing = find_by_field(self.channels, _calculated_channel.name, 'name')
+        if existing is not None and not overwrite:
+            logger.error(f'Channel {_calculated_channel.name} already in device {self.id}: not added (overwrite=True replaces it)')
+            return False
 
+        if not self.__check_callable__(_calculated_channel.module, _calculated_channel.function):
+            return False
+
+        if existing is not None:
+            name, position = _calculated_channel.name, self.channels.index(existing)
+            # All the definitions with that name are replaced by this one
+            self.channels = [channel for channel in self.channels if channel.name != name]
+            self.channels.insert(position, _calculated_channel)
+            # The values of the previous definition, and of the channels calculated from them, are not current anymore
+            # Dependencies of the channels as they are, and as they were in each hardware version
+            definitions = self.channels + [channel for _, _, channels in self.__version_windows__() for channel in channels]
+            stale = {name}
+            while True:
+                dependents = {channel.name for channel in definitions
+                              if channel.name not in stale and stale & set(channel.depends_on or [])}
+                if not dependents: break
+                stale |= dependents
+            self.data = self.data.drop(columns=[column for column in self.data.columns if column in stale])
+            logger.info(f"Channel {name} replaced in device {self.id}")
+        else:
+            self.channels.append(_calculated_channel)
             logger.info(f"Channel {_calculated_channel.name} added to device {self.id}")
-            self._rename[_calculated_channel.name] = _calculated_channel.name
-            return True
+        self._rename[_calculated_channel.name] = _calculated_channel.name
+        return True
 
     def del_channel(self, channel_name = ''):
         if 'channels' not in vars(self):
@@ -587,8 +617,15 @@ class Device(BaseModel):
                             clean_na = clean_na,
                             resample = resample,
                             index_name = 'TIME')
+                    elif cache.endswith('.parquet'):
+                        cached_data = read_parquet(cache)
+                        cached_data.index = localise_date(cached_data.index, timezone)
+                        # As read_csv_file does with a csv cache
+                        if resample:
+                            cached_data = cached_data.resample(pandas_freq(frequency)).mean()
+                        cached_data = clean(cached_data, clean_na, how = 'all')
                     else:
-                        raise NotImplementedError(f'Cache needs to be a .csv file. Got {cache}.')
+                        raise NotImplementedError(f'Cache needs to be a .csv or .parquet file. Got {cache}.')
 
                 # Make request with a logical min_date
                 if not cached_data.empty:
@@ -620,6 +657,7 @@ class Device(BaseModel):
 
         # In principle this links both dataframes as they are unmutable
         self.data = self.handler.data
+        self.updated = self.data is not None and not self.data.empty
 
         # Wrap it all up
         self.loaded = self.__load_wrapup__(cached_data=cached_data)
@@ -685,17 +723,19 @@ class Device(BaseModel):
         logger.info('Units check done')
 
     def __check_callable__(self, module, function):
-        # Check if the calculated_channel contains a custom module
-        lazy_name = f"{module}.{function}"
-
+        # The function is looked up (not called): a wrong name fails here, not when processing. As LazyCallable,
+        # the module is all before the last dot
+        from importlib import import_module
+        module_name, function_name = f'{module}.{function}'.rsplit('.', 1)
         try:
-            funct = LazyCallable(lazy_name)
-        except ModuleNotFoundError:
-            logger.error(f'Callable {lazy_name} not available')
-            return False
-        else:
-            return True
-        return False
+            available = callable(getattr(import_module(module_name), function_name, None))
+        except Exception as error:
+            # Any error importing it (not only ImportError) is that of this channel or check
+            logger.error(f'Cannot import {module_name}: {error}')
+            available = False
+        if not available:
+            logger.error(f'Callable {module}.{function} not available')
+        return available
 
     def __version_windows__(self):
         '''
@@ -850,7 +890,13 @@ class Device(BaseModel):
 
         # Sort channels
         logger.info('Sorting channels...')
-        self.channels = topological_sort(self.channels)
+        channels = topological_sort(self.channels)
+        if channels is None:
+            # The channels are kept as they are, to be fixed
+            logger.error(f'Channels of device {self.params_parsed.id} have missing, repeated or circular dependencies: not processed')
+            self.processed = False
+            return False
+        self.channels = channels
 
         windows = self.__version_windows__()
         if not windows:
