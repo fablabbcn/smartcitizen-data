@@ -171,3 +171,26 @@ def test_only_readings_with_the_channel_are_flagged():
     flags = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}]).data['__SO2']
 
     assert not flags.iloc[:360].any() and flags.iloc[360:].all()
+
+
+@pytest.mark.parametrize('peaks, flagged', [(False, True), (True, False)])
+def test_a_constant_auxiliary_electrode_is_checked_without_fit(peaks, flagged):
+    data = electrode_pair(peaks)
+    data['SO2_AE'] = 0.0
+    if not peaks:
+        # Nothing for the AE to explain either
+        data['SO2_WE'] = 0.33
+
+    result = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}])
+
+    assert result.data['__SO2'].all() == flagged
+
+
+def test_windows_without_readings_are_skipped():
+    data = electrode_pair(False)
+    data.iloc[:4320] = np.nan
+
+    flags = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}],
+                                        min_coverage=0).data['__SO2']
+
+    assert not flags.iloc[:4320].any() and flags.iloc[4320:].all()

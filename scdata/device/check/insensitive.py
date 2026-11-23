@@ -50,10 +50,14 @@ def find_insensitive_electrodes(dataframe, **kwargs):
         averages = df[[we, ae]].resample('10min').mean() * 1000 # in mV
         for start, window in averages.groupby(Grouper(freq=f'{window_hours}h')):
             window = window.dropna()
-            if len(window) < min_coverage * window_hours * 6:
+            if len(window) < max(min_coverage * window_hours * 6, 2):
                 continue
-            a, b = np.polyfit(window[ae], window[we], 1)
-            residual = window[we] - (a * window[ae] + b)
+            if window[ae].nunique() > 1:
+                a, b = np.polyfit(window[ae], window[we], 1)
+                residual = window[we] - (a * window[ae] + b)
+            else:
+                # A constant AE (0 if disconnected) cannot be fitted: WE around its mean
+                residual = window[we] - window[we].mean()
             if residual.quantile(0.95) - residual.quantile(0.05) < min_range_mv:
                 df.loc[(df.index >= start) & (df.index < start + np.timedelta64(window_hours, 'h')), flag] = True
         # Only the rows with readings of the electrodes, and of the channel if it is there (summaries count its values)
