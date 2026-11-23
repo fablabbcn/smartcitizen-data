@@ -1,5 +1,6 @@
 from os.path import exists, join
 
+import pytest
 from pandas import DataFrame, read_csv
 
 from conftest import SHT31_TEMP
@@ -66,3 +67,12 @@ def test_export_only_some_columns(make_device, index, tmp_path):
 
     assert device.export(str(tmp_path), columns=['T*']) is True
     assert list(read_csv(join(tmp_path, '1.csv'), index_col=0).columns) == ['TEMP']
+
+
+def test_export_fails_with_columns_renamed_to_the_same_name(make_device, index, tmp_path):
+    device = processed_device(make_device, index)
+    device.data = device.data.assign(SO2=1.0, SO2_custom=4.0)
+
+    with pytest.raises(ValueError, match='SO2'):
+        device.export(str(tmp_path), rename={'SO2_custom*': 'SO2*', 'SO2': 'SO2'})
+    assert not exists(join(tmp_path, '1.csv'))

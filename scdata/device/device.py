@@ -169,7 +169,8 @@ def renamed(column, rename):
 def select_columns(df, columns=None, exclude=None, rename=None):
     '''
     Columns of df to export: the ones in columns (all if None) that are not in exclude, by name or pattern,
-    with the new names of rename. Renamed columns are always kept, and replace the ones with their new name
+    with the new names of rename. Renamed columns are always kept, and replace the ones with their new name.
+    Raises ValueError if two columns end up with the same name
     '''
     names = {column: renamed(column, rename) for column in df.columns}
     replaced = {name for name in names.values() if name is not None}
@@ -178,7 +179,11 @@ def select_columns(df, columns=None, exclude=None, rename=None):
             or (column not in replaced
                 and (columns is None or any(fnmatchcase(column, pattern) for pattern in columns))
                 and not any(fnmatchcase(column, pattern) for pattern in exclude or []))]
-    return df.loc[:, kept].rename(columns={column: names[column] for column in kept if names[column] is not None})
+    selected = df.loc[:, kept].rename(columns={column: names[column] for column in kept if names[column] is not None})
+    duplicated = selected.columns[selected.columns.duplicated()].unique().tolist()
+    if duplicated:
+        raise ValueError(f'More than one column would be exported as {duplicated}. Check rename')
+    return selected
 
 
 class Device(BaseModel):
@@ -1159,7 +1164,7 @@ class Device(BaseModel):
             rename: dict
                 None
                 New names of columns, by name or pattern ({'SO2_custom*': 'SO2*'}). A renamed column
-                replaces the one that had its new name
+                replaces the one that had its new name. Nothing is exported if two columns would have the same name
         Returns
         ---------
             True if exported ok, False otherwise
@@ -1185,14 +1190,17 @@ class Device(BaseModel):
         else:
             targets = [(f"{self.id}_qc_data" if qc_data else f"{self.id}", [])]
 
-        export_ok = True
+        # All the columns are selected before exporting any file
+        exports = []
         for name, target_columns in targets:
-            logger.info(f"Exporting {name}")
-
             df_export = df.copy()
             if target_columns:
                 df_export = df_export.loc[:, df_export.columns.intersection(target_columns)]
-            df_export = select_columns(df_export, columns, exclude, rename)
+            exports.append((name, select_columns(df_export, columns, exclude, rename)))
+
+        export_ok = True
+        for name, df_export in exports:
+            logger.info(f"Exporting {name}")
 
             if file_format == 'csv':
                 logger.info(f"Exporting as {file_format}")
