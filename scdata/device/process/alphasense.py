@@ -46,7 +46,12 @@ def alphasense_803_04(dataframe, **kwargs):
             can follow the temperature hours after the AE. 'auto' takes the one in AE_TAUS_MINUTES that fits best
         regressors: list
             Default None
-            Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour
+            Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour. A
+            regressor can be delayed as the AE: {'column': 'HUM', 'tau_minutes': 360}
+        regressors_min_ae_tau_minutes: number
+            Default None
+            Only use the regressors in windows where the AE delay ('auto') is at least these minutes (when the WE
+            lags the temperature, e.g. in summer). Without it, the regressors are always used
     Returns
     -------
         calculation of pollutant in ppb
@@ -244,33 +249,55 @@ def first_order(series, tau_minutes):
     return delayed.where(series.notna())
 
 
-def ae_correction(df, ae_tau_minutes, regressors):
+def regressor_column(regressor):
+    ''' Column and delay (minutes) of a regressor: a column name, or {'column': name, 'tau_minutes': delay} '''
+    if isinstance(regressor, str):
+        return regressor, 0
+    return regressor['column'], regressor.get('tau_minutes', 0)
+
+
+def regressor_series(df, regressors):
+    ''' Each regressor (delayed if asked) and its change per hour, averaged over an hour '''
+    series = []
+    hours = Series(df.index, index=df.index).diff().dt.total_seconds() / 3600
+    for regressor in regressors:
+        column, tau = regressor_column(regressor)
+        values = first_order(df[column].astype(float), tau)
+        series += [values, (values.diff() / hours).rolling('1h').mean()]
+    return series
+
+
+def fit_to_baseline(df, tau, extra):
+    ''' Least squares of the AE (delayed tau minutes) and extra series on the WE baseline: (residual variance, fit) '''
+    X = concat([first_order(df['ae_t'], tau)] + extra, axis=1)
+    mask = X.notna().all(axis=1) & df['we_baseline'].notna()
+    if mask.sum() < X.shape[1] + 2:
+        return None
+    A = np.column_stack([X[mask].values, np.ones(mask.sum())])
+    coef, *_ = np.linalg.lstsq(A, df.loc[mask, 'we_baseline'].values, rcond=None)
+    return np.var(df.loc[mask, 'we_baseline'].values - A @ coef), Series(X.values @ coef[:-1] + coef[-1], index=df.index)
+
+
+def ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau=None):
     '''
     The AE (delayed ae_tau_minutes, or the delay of AE_TAUS_MINUTES that fits best with 'auto') and the
-    regressors (each with its change per hour), fitted by least squares to the WE baseline. Returns the fitted
-    series and the delay used
+    regressors, fitted by least squares to the WE baseline. With regressors_min_tau, the delay is chosen with
+    the AE alone, and the regressors are only used if it is at least regressors_min_tau minutes. Returns the
+    fit, the delay and whether the regressors were used
     '''
-    extra = []
-    hours = Series(df.index, index=df.index).diff().dt.total_seconds() / 3600
-    for column in regressors:
-        values = df[column].astype(float)
-        # Its change per hour, averaged over an hour
-        extra += [values, (values.diff() / hours).rolling('1h').mean()]
     taus = AE_TAUS_MINUTES if ae_tau_minutes == 'auto' else [ae_tau_minutes or 0]
-    best = None
-    for tau in taus:
-        X = concat([first_order(df['ae_t'], tau)] + extra, axis=1)
-        mask = X.notna().all(axis=1) & df['we_baseline'].notna()
-        if mask.sum() < X.shape[1] + 2:
-            continue
-        A = np.column_stack([X[mask].values, np.ones(mask.sum())])
-        coef, *_ = np.linalg.lstsq(A, df.loc[mask, 'we_baseline'].values, rcond=None)
-        residual = np.var(df.loc[mask, 'we_baseline'].values - A @ coef)
-        if best is None or residual < best[0]:
-            best = (residual, tau, X.values @ coef[:-1] + coef[-1])
-    if best is None:
-        return None, None
-    return Series(best[2], index=df.index), best[1]
+    extra = regressor_series(df, regressors)
+    scan = extra if regressors_min_tau is None else []
+    fits = [(fit, tau) for tau in taus for fit in [fit_to_baseline(df, tau, scan)] if fit is not None]
+    if not fits:
+        return None, None, False
+    (residual, fitted), tau = min(fits, key=lambda item: item[0][0])
+    used = bool(regressors) and (regressors_min_tau is None or tau >= regressors_min_tau)
+    if used and regressors_min_tau is not None:
+        result = fit_to_baseline(df, tau, extra)
+        if result is not None:
+            fitted = result[1]
+    return fitted, tau, used
 
 
 def alphasense_als(dataframe, **kwargs):
@@ -355,7 +382,9 @@ def alphasense_als(dataframe, **kwargs):
     # Delay of the AE, and other columns fitted with it
     ae_tau_minutes = kwargs.get('ae_tau_minutes', None)
     regressors = kwargs.get('regressors', None) or []
-    missing = [column for column in regressors if column not in dataframe.columns]
+    regressors_min_tau = kwargs.get('regressors_min_ae_tau_minutes', None)
+    missing = [regressor_column(regressor)[0] for regressor in regressors
+               if regressor_column(regressor)[0] not in dataframe.columns]
     if missing:
         logger.error(f'Regressors not in the data: {missing}')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
@@ -456,12 +485,12 @@ def alphasense_als(dataframe, **kwargs):
         df['ae_cor'] = a * df['ae_t'] + b
     else:
         # The delayed AE and the regressors, fitted to the baseline
-        correction, tau = ae_correction(df, ae_tau_minutes, regressors)
+        correction, tau, used = ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau)
         if correction is None or correction.notna().sum() < 2:
             logger.error('Not enough values of the electrodes and regressors for the baseline')
             return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
         df['ae_cor'] = correction
-        logger.info(f'AE delayed {tau} minutes, with regressors: {regressors}')
+        logger.info(f'AE delayed {tau} minutes' + (f', with regressors: {regressors}' if used else ''))
     df['we_c'] = df['we_t'] - df['ae_cor']
     if found_gaps:
         df.loc[df['we_mask'], 'we_c'] = np.nan

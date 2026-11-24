@@ -129,3 +129,17 @@ def test_regressors_not_in_the_data_are_an_error(lagging):
     result = alphasense_als(lagging, we='WE', ae='AE', t='T', alphasense_id=NO2, regressors=['PRESS'])
 
     assert result.status_code.name == 'ERROR_MISSING_INPUTS'
+
+
+def test_regressors_can_be_delayed(lagging):
+    delayed = als(lagging, ae_tau_minutes='auto', regressors=[{'column': 'HUM', 'tau_minutes': 60}])
+
+    assert delayed.notna().sum() > 0 and not delayed.equals(als(lagging, ae_tau_minutes='auto', regressors=['HUM']))
+
+
+def test_regressors_only_with_a_long_ae_delay(lagging):
+    # The WE lags four hours: the AE delay is long, and the regressors are used above a shorter minimum only
+    without = als(lagging, ae_tau_minutes='auto')
+
+    assert als(lagging, ae_tau_minutes='auto', regressors=['HUM'], regressors_min_ae_tau_minutes=120).std() < without.std()
+    assert als(lagging, ae_tau_minutes='auto', regressors=['HUM'], regressors_min_ae_tau_minutes=1440).equals(without)
