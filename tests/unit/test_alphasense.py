@@ -143,3 +143,17 @@ def test_regressors_only_with_a_long_ae_delay(lagging):
 
     assert als(lagging, ae_tau_minutes='auto', regressors=['HUM'], regressors_min_ae_tau_minutes=120).std() < without.std()
     assert als(lagging, ae_tau_minutes='auto', regressors=['HUM'], regressors_min_ae_tau_minutes=1440).equals(without)
+
+
+def test_an_ae_factor_that_changes_with_the_temperature(lagging):
+    # The WE follows the AE with a factor that grows with the temperature
+    data = lagging.copy()
+    data['WE'] = 0.29 + (data['AE'] - 0.30) * (1 + 0.1 * (data['T'] - 20))
+
+    assert als(data, ae_factor='linear').std() < als(data).std() / 2
+
+
+def test_unknown_ae_factors_are_an_error(lagging):
+    result = alphasense_als(lagging, we='WE', ae='AE', t='T', alphasense_id=NO2, ae_factor='quadratic')
+
+    assert result.status_code.name == 'ERROR_MISSING_INPUTS'

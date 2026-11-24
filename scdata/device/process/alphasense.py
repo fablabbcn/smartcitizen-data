@@ -48,6 +48,10 @@ def alphasense_803_04(dataframe, **kwargs):
             Default None
             Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour. A
             regressor can be delayed as the AE: {'column': 'HUM', 'tau_minutes': 360}
+        ae_factor: string
+            Default None (one factor for the AE in each window)
+            'n_t': the factor of the AE follows n(T) of AAN 803-04 for the sensor type, scaled to the window.
+            'linear': it changes linearly with the temperature
         regressors_min_ae_tau_minutes: number
             Default None
             Only use the regressors in windows where the AE delay ('auto') is at least these minutes (when the WE
@@ -267,9 +271,25 @@ def regressor_series(df, regressors):
     return series
 
 
-def fit_to_baseline(df, tau, extra):
-    ''' Least squares of the AE (delayed tau minutes) and extra series on the WE baseline: (residual variance, fit) '''
-    X = concat([first_order(df['ae_t'], tau)] + extra, axis=1)
+def ae_terms(df, ae_factor, n_t=None):
+    '''
+    The AE as it is fitted to the WE baseline. ae_factor: None (one factor), 'n_t' (its factor follows n(T) of
+    AAN 803-04, n_t: the values of its table at as_t_comp) or 'linear' (a factor that changes linearly with T)
+    '''
+    if ae_factor == 'n_t':
+        return [Series(np.interp(df['t'], as_t_comp, n_t), index=df.index).where(df['t'].notna()) * df['ae_t']]
+    if ae_factor == 'linear':
+        return [df['ae_t'], df['ae_t'] * (df['t'] - 20)]
+    return [df['ae_t']]
+
+
+def fit_to_baseline(df, tau, extra, terms=None):
+    '''
+    Least squares of the AE terms (delayed tau minutes) and extra series on the WE baseline: (residual variance,
+    fit)
+    '''
+    terms = terms if terms is not None else [df['ae_t']]
+    X = concat([first_order(term, tau) for term in terms] + extra, axis=1)
     mask = X.notna().all(axis=1) & df['we_baseline'].notna()
     if mask.sum() < X.shape[1] + 2:
         return None
@@ -278,7 +298,7 @@ def fit_to_baseline(df, tau, extra):
     return np.var(df.loc[mask, 'we_baseline'].values - A @ coef), Series(X.values @ coef[:-1] + coef[-1], index=df.index)
 
 
-def ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau=None):
+def ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau=None, terms=None):
     '''
     The AE (delayed ae_tau_minutes, or the delay of AE_TAUS_MINUTES that fits best with 'auto') and the
     regressors, fitted by least squares to the WE baseline. With regressors_min_tau, the delay is chosen with
@@ -288,13 +308,13 @@ def ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau=None):
     taus = AE_TAUS_MINUTES if ae_tau_minutes == 'auto' else [ae_tau_minutes or 0]
     extra = regressor_series(df, regressors)
     scan = extra if regressors_min_tau is None else []
-    fits = [(fit, tau) for tau in taus for fit in [fit_to_baseline(df, tau, scan)] if fit is not None]
+    fits = [(fit, tau) for tau in taus for fit in [fit_to_baseline(df, tau, scan, terms)] if fit is not None]
     if not fits:
         return None, None, False
     (residual, fitted), tau = min(fits, key=lambda item: item[0][0])
     used = bool(regressors) and (regressors_min_tau is None or tau >= regressors_min_tau)
     if used and regressors_min_tau is not None:
-        result = fit_to_baseline(df, tau, extra)
+        result = fit_to_baseline(df, tau, extra, terms)
         if result is not None:
             fitted = result[1]
     return fitted, tau, used
@@ -383,6 +403,10 @@ def alphasense_als(dataframe, **kwargs):
     ae_tau_minutes = kwargs.get('ae_tau_minutes', None)
     regressors = kwargs.get('regressors', None) or []
     regressors_min_tau = kwargs.get('regressors_min_ae_tau_minutes', None)
+    ae_factor = kwargs.get('ae_factor', None)
+    if ae_factor not in (None, 'n_t', 'linear'):
+        logger.error(f'ae_factor {ae_factor} is not None, n_t or linear')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
     missing = [regressor_column(regressor)[0] for regressor in regressors
                if regressor_column(regressor)[0] not in dataframe.columns]
     if missing:
@@ -477,7 +501,7 @@ def alphasense_als(dataframe, **kwargs):
         # E.g. a period shorter than gap_window_removal_h, all of it removed: load more data before it
         logger.error('Not enough values of the electrodes for the baseline')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
-    if not ae_tau_minutes and not regressors:
+    if not ae_tau_minutes and not regressors and not ae_factor:
         coef = np.polyfit(df.loc[mask, 'ae_t'], df.loc[mask, 'we_baseline'], 1)
         a, b = coef
 
@@ -485,7 +509,12 @@ def alphasense_als(dataframe, **kwargs):
         df['ae_cor'] = a * df['ae_t'] + b
     else:
         # The delayed AE and the regressors, fitted to the baseline
-        correction, tau, used = ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau)
+        n_t = next((table for name, table in as_sensor_algs[as_type].values() if name == 'n_t'), None)
+        if ae_factor == 'n_t' and n_t is None:
+            logger.error(f'{as_type} has no n(T) in AAN 803-04')
+            return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+        terms = ae_terms(df, ae_factor, n_t)
+        correction, tau, used = ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau, terms)
         if correction is None or correction.notna().sum() < 2:
             logger.error('Not enough values of the electrodes and regressors for the baseline')
             return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
