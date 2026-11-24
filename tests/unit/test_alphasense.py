@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from scdata._config import config
-from scdata.device.process.alphasense import alphasense_803_04, alphasense_als
+from scdata.device.process.alphasense import alphasense_803_04, alphasense_als, first_order
 from scdata.device.process.params import as_sensor_algs, as_t_comp
 
 # ASA4_NO2 uses algorithm 1, and ASA4_CO uses algorithm 4 as its alternative
@@ -72,5 +72,60 @@ def test_baseline_of_a_period_shorter_than_the_hours_removed_is_an_error(electro
     # The first hours after the start are removed: with only those, there is nothing to fit
     result = alphasense_als(electrodes.iloc[:120], we='WE', ae='AE', t='T', alphasense_id=NO2,
                             n_gaps=10, gap_window_removal_h=6, lam=100, p=1e-8)
+
+    assert result.status_code.name == 'ERROR_MISSING_INPUTS'
+
+
+# A WE that follows the temperature later than the AE
+
+@pytest.fixture
+def lagging():
+    ''' Four days every minute, without gas: the AE follows the temperature, the WE four hours later, and humidity '''
+    index = pd.date_range('2026-07-01', periods=4 * 1440, freq='1min', tz='UTC')
+    hours = np.arange(len(index)) / 60
+    rng = np.random.default_rng(0)
+    T = pd.Series(20 + 6 * np.sin(2 * np.pi * hours / 24), index=index)
+    hum = pd.Series(60 - 15 * np.sin(2 * np.pi * (hours - 2) / 24), index=index)
+    return pd.DataFrame({'AE': 0.30 + 0.002 * T + rng.normal(0, 1e-5, len(index)),
+                         'WE': 0.29 + 0.002 * first_order(T, 240) + 0.0001 * hum + rng.normal(0, 1e-5, len(index)),
+                         'T': T, 'HUM': hum}, index=index)
+
+
+def als(data, **kwargs):
+    result = alphasense_als(data, we='WE', ae='AE', t='T', alphasense_id=NO2, lam=100, p=1e-8, n_gaps=10,
+                            gap_window_removal_h=6, **kwargs)
+    assert result.status_code.name == 'SUCCESS'
+    # After the first day, when the delay has its history
+    return result.data[result.data.index >= result.data.index[0] + pd.Timedelta(days=1)]
+
+
+def test_first_order_reaches_two_thirds_in_its_time_constant():
+    step = pd.Series(0.0, index=pd.date_range('2026-01-01', periods=1200, freq='1min'))
+    step.iloc[600:] = 1.0
+
+    delayed = first_order(step, 60)
+
+    assert delayed.iloc[599 + 60] == pytest.approx(1 - np.exp(-1), abs=0.02)
+    assert first_order(step, 0) is step
+
+
+def test_without_delay_the_baseline_is_as_before(lagging):
+    assert als(lagging, ae_tau_minutes=0).equals(als(lagging))
+
+
+def test_a_delayed_ae_removes_the_lag_of_the_we(lagging):
+    without = als(lagging, regressors=None)
+    delayed = als(lagging, ae_tau_minutes='auto')
+
+    # No gas: what is left is the temperature that the AE does not explain
+    assert delayed.std() < without.std() / 2
+
+
+def test_regressors_are_fitted_with_the_ae(lagging):
+    assert als(lagging, ae_tau_minutes='auto', regressors=['HUM']).std() < als(lagging, ae_tau_minutes='auto').std()
+
+
+def test_regressors_not_in_the_data_are_an_error(lagging):
+    result = alphasense_als(lagging, we='WE', ae='AE', t='T', alphasense_id=NO2, regressors=['PRESS'])
 
     assert result.status_code.name == 'ERROR_MISSING_INPUTS'

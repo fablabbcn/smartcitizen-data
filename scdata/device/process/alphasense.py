@@ -6,7 +6,7 @@ from scdata.device.process.params import *
 from scdata.device.process import clean_ts, baseline_als
 from scipy.stats import linregress
 import numpy as np
-from pandas import date_range, DataFrame, Series, isnull, Timedelta
+from pandas import concat, date_range, DataFrame, Series, isnull, Timedelta
 from smartcitizen_connector.tools import pandas_freq
 from scdata.device.process.error_codes import StatusCode, ProcessResult
 
@@ -40,6 +40,13 @@ def alphasense_803_04(dataframe, **kwargs):
         no2_channel: string
             Default 'NO2'
             Channel name for calculating 'NO2' cross-sensitivity
+        ae_tau_minutes: number or 'auto'
+            Default None
+            Time constant (minutes) of a first-order delay of the AE before fitting it to the WE baseline: the WE
+            can follow the temperature hours after the AE. 'auto' takes the one in AE_TAUS_MINUTES that fits best
+        regressors: list
+            Default None
+            Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour
     Returns
     -------
         calculation of pollutant in ppb
@@ -224,6 +231,48 @@ def alphasense_803_04(dataframe, **kwargs):
 
     return ProcessResult(result, StatusCode.SUCCESS)
 
+# Time constants (minutes) that ae_tau_minutes='auto' tries
+AE_TAUS_MINUTES = [0, 30, 60, 120, 240, 360, 480, 720]
+
+
+def first_order(series, tau_minutes):
+    ''' First-order response, time constant tau_minutes, of a series with a time index (gaps kept) '''
+    if not tau_minutes:
+        return series
+    delayed = series.ewm(halflife=Timedelta(minutes=tau_minutes * np.log(2)), times=series.index,
+                         ignore_na=True).mean()
+    return delayed.where(series.notna())
+
+
+def ae_correction(df, ae_tau_minutes, regressors):
+    '''
+    The AE (delayed ae_tau_minutes, or the delay of AE_TAUS_MINUTES that fits best with 'auto') and the
+    regressors (each with its change per hour), fitted by least squares to the WE baseline. Returns the fitted
+    series and the delay used
+    '''
+    extra = []
+    hours = Series(df.index, index=df.index).diff().dt.total_seconds() / 3600
+    for column in regressors:
+        values = df[column].astype(float)
+        # Its change per hour, averaged over an hour
+        extra += [values, (values.diff() / hours).rolling('1h').mean()]
+    taus = AE_TAUS_MINUTES if ae_tau_minutes == 'auto' else [ae_tau_minutes or 0]
+    best = None
+    for tau in taus:
+        X = concat([first_order(df['ae_t'], tau)] + extra, axis=1)
+        mask = X.notna().all(axis=1) & df['we_baseline'].notna()
+        if mask.sum() < X.shape[1] + 2:
+            continue
+        A = np.column_stack([X[mask].values, np.ones(mask.sum())])
+        coef, *_ = np.linalg.lstsq(A, df.loc[mask, 'we_baseline'].values, rcond=None)
+        residual = np.var(df.loc[mask, 'we_baseline'].values - A @ coef)
+        if best is None or residual < best[0]:
+            best = (residual, tau, X.values @ coef[:-1] + coef[-1])
+    if best is None:
+        return None, None
+    return Series(best[2], index=df.index), best[1]
+
+
 def alphasense_als(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
@@ -302,6 +351,14 @@ def alphasense_als(dataframe, **kwargs):
 
     # NO2 cross-sensitivity
     no2_channel = kwargs.get('no2_channel', 'NO2')
+
+    # Delay of the AE, and other columns fitted with it
+    ae_tau_minutes = kwargs.get('ae_tau_minutes', None)
+    regressors = kwargs.get('regressors', None) or []
+    missing = [column for column in regressors if column not in dataframe.columns]
+    if missing:
+        logger.error(f'Regressors not in the data: {missing}')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
 
     # Make copy
     df = dataframe.copy()
@@ -391,11 +448,20 @@ def alphasense_als(dataframe, **kwargs):
         # E.g. a period shorter than gap_window_removal_h, all of it removed: load more data before it
         logger.error('Not enough values of the electrodes for the baseline')
         return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
-    coef = np.polyfit(df.loc[mask, 'ae_t'], df.loc[mask, 'we_baseline'], 1)
-    a, b = coef
+    if not ae_tau_minutes and not regressors:
+        coef = np.polyfit(df.loc[mask, 'ae_t'], df.loc[mask, 'we_baseline'], 1)
+        a, b = coef
 
-    # Correct Auxiliary electrode based on mean factor
-    df['ae_cor'] = a * df['ae_t'] + b
+        # Correct Auxiliary electrode based on mean factor
+        df['ae_cor'] = a * df['ae_t'] + b
+    else:
+        # The delayed AE and the regressors, fitted to the baseline
+        correction, tau = ae_correction(df, ae_tau_minutes, regressors)
+        if correction is None or correction.notna().sum() < 2:
+            logger.error('Not enough values of the electrodes and regressors for the baseline')
+            return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
+        df['ae_cor'] = correction
+        logger.info(f'AE delayed {tau} minutes, with regressors: {regressors}')
     df['we_c'] = df['we_t'] - df['ae_cor']
     if found_gaps:
         df.loc[df['we_mask'], 'we_c'] = np.nan
