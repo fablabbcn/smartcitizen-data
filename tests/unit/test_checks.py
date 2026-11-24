@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from scdata.device.check import find_gaps, find_implausible_values
+from scdata.device.check import find_gaps, find_implausible_values, find_insensitive_electrodes
 from scdata.device.check.gaps import gap_intervals
 from scdata.device.check.summary import flagged_runs, summarise_check
 
@@ -132,3 +132,65 @@ def test_health_checks_fill_device_health(checked_device):
     assert implausible['columns']['ADC_48_3']['flagged'] == 1
     assert broken['status'].startswith('error: KeyError')
     assert broken['columns'] == {}
+
+
+# Insensitive electrodes
+
+def electrode_pair(peaks):
+    ''' Six days every minute: the AE and the WE follow the temperature, and the WE has the gas peaks, in V '''
+    index = pd.date_range('2026-01-01', periods=6 * 1440, freq='1min', tz='UTC')
+    hours = np.arange(len(index)) / 60
+    rng = np.random.default_rng(0)
+    temperature = 0.002 * np.sin(2 * np.pi * hours / 24)
+    gas = peaks * 0.01 * (np.sin(2 * np.pi * hours / 7) > 0.9)
+    return pd.DataFrame({'SO2_AE': 0.35 + temperature + rng.normal(0, 1e-4, len(index)),
+                         'SO2_WE': 0.33 + 2 * temperature + gas + rng.normal(0, 1e-4, len(index))}, index=index)
+
+
+@pytest.mark.parametrize('peaks, flagged', [(False, True), (True, False)])
+def test_a_working_electrode_without_gas_response_is_flagged(peaks, flagged):
+    data = electrode_pair(peaks)
+
+    result = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}])
+
+    assert result.status_code.name == 'SUCCESS'
+    assert result.data['__SO2'].all() == flagged and result.data['__SO2'].any() == flagged
+
+
+def test_electrodes_that_are_not_in_the_data_are_skipped():
+    result = find_insensitive_electrodes(electrode_pair(False), electrodes=[{'channel': 'NO2', 'we': 'NO2_WE', 'ae': 'NO2_AE'}])
+
+    assert result.data.empty and list(result.data.columns) == []
+
+
+def test_only_readings_with_the_channel_are_flagged():
+    data = electrode_pair(False)
+    data['SO2'] = 1.0
+    data.iloc[:360, data.columns.get_loc('SO2')] = np.nan
+
+    flags = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}]).data['__SO2']
+
+    assert not flags.iloc[:360].any() and flags.iloc[360:].all()
+
+
+@pytest.mark.parametrize('peaks, flagged', [(False, True), (True, False)])
+def test_a_constant_auxiliary_electrode_is_checked_without_fit(peaks, flagged):
+    data = electrode_pair(peaks)
+    data['SO2_AE'] = 0.0
+    if not peaks:
+        # Nothing for the AE to explain either
+        data['SO2_WE'] = 0.33
+
+    result = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}])
+
+    assert result.data['__SO2'].all() == flagged
+
+
+def test_windows_without_readings_are_skipped():
+    data = electrode_pair(False)
+    data.iloc[:4320] = np.nan
+
+    flags = find_insensitive_electrodes(data, electrodes=[{'channel': 'SO2', 'we': 'SO2_WE', 'ae': 'SO2_AE'}],
+                                        min_coverage=0).data['__SO2']
+
+    assert not flags.iloc[:4320].any() and flags.iloc[4320:].all()

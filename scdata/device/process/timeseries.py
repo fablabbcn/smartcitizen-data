@@ -394,7 +394,7 @@ def baseline_als(dataframe, **kwargs):
     for i in range(niter):
         W = sparse.spdiags(w, 0, L, L)
         Z = W + lam * D.dot(D.transpose())
-        z = spsolve(Z, w*y)
+        z = spsolve(Z.tocsc(), w*y)
         w = p * (y > z) + (1-p) * (y < z)
 
     df[rname]=z

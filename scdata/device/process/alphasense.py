@@ -387,6 +387,10 @@ def alphasense_als(dataframe, **kwargs):
     # Calculate baseline factor with the baseline mean
     mean_we = df['we_baseline'].mean()
     mask = df['ae_t'].notna() & df['we_baseline'].notna()
+    if mask.sum() < 2:
+        # E.g. a period shorter than gap_window_removal_h, all of it removed: load more data before it
+        logger.error('Not enough values of the electrodes for the baseline')
+        return ProcessResult(None, StatusCode.ERROR_MISSING_INPUTS)
     coef = np.polyfit(df.loc[mask, 'ae_t'], df.loc[mask, 'we_baseline'], 1)
     a, b = coef
 

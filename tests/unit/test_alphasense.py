@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from scdata._config import config
-from scdata.device.process.alphasense import alphasense_803_04
+from scdata.device.process.alphasense import alphasense_803_04, alphasense_als
 from scdata.device.process.params import as_sensor_algs, as_t_comp
 
 # ASA4_NO2 uses algorithm 1, and ASA4_CO uses algorithm 4 as its alternative
@@ -66,3 +66,11 @@ def test_all_columns(electrodes):
     result = conc(electrodes, return_all_cols=True)
 
     assert list(result.columns) == ['803_we_clean', '803_ae_clean', '803_we_t', '803_ae_t', '803_we_c', 'conc']
+
+
+def test_baseline_of_a_period_shorter_than_the_hours_removed_is_an_error(electrodes):
+    # The first hours after the start are removed: with only those, there is nothing to fit
+    result = alphasense_als(electrodes.iloc[:120], we='WE', ae='AE', t='T', alphasense_id=NO2,
+                            n_gaps=10, gap_window_removal_h=6, lam=100, p=1e-8)
+
+    assert result.status_code.name == 'ERROR_MISSING_INPUTS'
