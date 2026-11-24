@@ -157,3 +157,13 @@ def test_unknown_ae_factors_are_an_error(lagging):
     result = alphasense_als(lagging, we='WE', ae='AE', t='T', alphasense_id=NO2, ae_factor='quadratic')
 
     assert result.status_code.name == 'ERROR_MISSING_INPUTS'
+
+
+def test_options_that_are_not_used_are_warned(lagging, monkeypatch):
+    import scdata.device.process.alphasense as alphasense
+    warnings = []
+    monkeypatch.setattr(alphasense.logger, 'warning', warnings.append)
+
+    als(lagging, ae_factr='linear')
+
+    assert "Options not used by alphasense_als: ['ae_factr']" in warnings

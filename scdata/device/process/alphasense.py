@@ -40,22 +40,6 @@ def alphasense_803_04(dataframe, **kwargs):
         no2_channel: string
             Default 'NO2'
             Channel name for calculating 'NO2' cross-sensitivity
-        ae_tau_minutes: number or 'auto'
-            Default None
-            Time constant (minutes) of a first-order delay of the AE before fitting it to the WE baseline: the WE
-            can follow the temperature hours after the AE. 'auto' takes the one in AE_TAUS_MINUTES that fits best
-        regressors: list
-            Default None
-            Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour. A
-            regressor can be delayed as the AE: {'column': 'HUM', 'tau_minutes': 360}
-        ae_factor: string
-            Default None (one factor for the AE in each window)
-            'n_t': the factor of the AE follows n(T) of AAN 803-04 for the sensor type, scaled to the window.
-            'linear': it changes linearly with the temperature
-        regressors_min_ae_tau_minutes: number
-            Default None
-            Only use the regressors in windows where the AE delay ('auto') is at least these minutes (when the WE
-            lags the temperature, e.g. in summer). Without it, the regressors are always used
     Returns
     -------
         calculation of pollutant in ppb
@@ -320,6 +304,13 @@ def ae_correction(df, ae_tau_minutes, regressors, regressors_min_tau=None, terms
     return fitted, tau, used
 
 
+# Options of alphasense_als: others are not used (e.g. misspelled, or of another scdata version)
+ALS_OPTIONS = {'we', 'ae', 't', 'alphasense_id', 'use_alternative', 'clip_negative_conc', 'offset_negative_conc',
+               'background_conc', 'lam', 'p', 'return_all_cols', 'n_gaps', 'gap_window_removal_h', 'resample_frequency',
+               'rolling_frequency', 'no2_channel', 'ae_tau_minutes', 'regressors', 'regressors_min_ae_tau_minutes',
+               'ae_factor'}
+
+
 def alphasense_als(dataframe, **kwargs):
     """
     Calculates pollutant concentration based on 4 electrode sensor readings (mV)
@@ -353,10 +344,30 @@ def alphasense_als(dataframe, **kwargs):
         no2_channel: string
             Default 'NO2'
             Channel name for calculating 'NO2' cross-sensitivity
+        ae_tau_minutes: number or 'auto'
+            Default None
+            Time constant (minutes) of a first-order delay of the AE before fitting it to the WE baseline: the WE
+            can follow the temperature hours after the AE. 'auto' takes the one in AE_TAUS_MINUTES that fits best
+        regressors: list
+            Default None
+            Columns fitted to the WE baseline with the AE (e.g. HUM), each also with its change per hour. A
+            regressor can be delayed as the AE: {'column': 'HUM', 'tau_minutes': 360}
+        ae_factor: string
+            Default None (one factor for the AE in each window)
+            'n_t': the factor of the AE follows n(T) of AAN 803-04 for the sensor type, scaled to the window.
+            'linear': it changes linearly with the temperature
+        regressors_min_ae_tau_minutes: number
+            Default None
+            Only use the regressors in windows where the AE delay ('auto') is at least these minutes (when the WE
+            lags the temperature, e.g. in summer). Without it, the regressors are always used
     Returns
     -------
         calculation of pollutant in ppb
     """
+    unknown = sorted(set(kwargs) - ALS_OPTIONS)
+    if unknown:
+        logger.warning(f'Options not used by alphasense_als: {unknown}')
+
 
     # Check inputs
     flag_error = False
